@@ -20,7 +20,7 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Confirm Password" />
+            <Head title="Admin Confirm Password" />
 
             <div className="mb-4 text-sm text-gray-600">
                 This is a secure area of the application. Please confirm your
