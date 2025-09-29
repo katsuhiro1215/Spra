@@ -127,9 +127,15 @@ return [
     |
     */
 
+    // User
     'cookie' => env(
         'SESSION_COOKIE',
         Str::slug(env('APP_NAME', 'laravel')).'-session'
+    ),
+    // Admin
+    'admin_cookie' => env(
+        'SESSION_ADMIN_COOKIE',
+        Str::slug(env('APP_NAME', 'laravel')).'-admin-session'
     ),
 
     /*
