@@ -10,8 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RedirectIfAuthenticated
 {
-    private const GUARD_USER = 'user';
-    private const GUARD_ADMIN = 'admin';
+    private const GUARD_USER = 'users';
+    private const GUARD_ADMIN = 'admins';
     /**
      * Handle an incoming request.
      *
