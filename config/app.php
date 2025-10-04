@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect URLs
+    |--------------------------------------------------------------------------
+    |
+    | URLs to redirect users after authentication
+    |
+    */
+    
+    'redirect_urls' => [
+        'user_home' => '/dashboard',
+        'admin_home' => '/admin/dashboard',
+    ],
+
 ];

@@ -16,7 +16,7 @@ export default function ResetPassword({ token, email }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('password.store'), {
+        post(route('user.password.store'), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -24,7 +24,7 @@ export default function ResetPassword({ token, email }) {
     return (
         <GuestLayout>
             <Head title="User Reset Password" />
-
++            User
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="email" value="Email" />

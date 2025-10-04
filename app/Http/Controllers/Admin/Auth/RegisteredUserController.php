@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +46,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($admin);
 
-        return redirect(RouteServiceProvider::ADMIN_HOME);
+        return redirect(admin_home_url());
     }
 }

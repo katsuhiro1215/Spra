@@ -13,7 +13,7 @@ export default function ConfirmPassword() {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('password.confirm'), {
+        post(route('user.password.confirm'), {
             onFinish: () => reset('password'),
         });
     };
@@ -21,7 +21,7 @@ export default function ConfirmPassword() {
     return (
         <GuestLayout>
             <Head title="User Confirm Password" />
-
+            User
             <div className="mb-4 text-sm text-gray-600">
                 This is a secure area of the application. Please confirm your
                 password before continuing.
