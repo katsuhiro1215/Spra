@@ -23,7 +23,16 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="User Log in" />
+            <Head title="ユーザーログイン" />
+
+            {/* User識別ヘッダー */}
+            <div className="mb-6 text-center">
+                <div className="inline-flex items-center px-4 py-2 bg-blue-100 border border-blue-200 rounded-lg">
+                    <span className="text-blue-600 font-semibold text-sm">
+                        👤 ユーザーログイン
+                    </span>
+                </div>
+            </div>
 
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
