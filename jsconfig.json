@@ -4,7 +4,15 @@
         "paths": {
             "@/*": ["resources/js/*"],
             "ziggy-js": ["./vendor/tightenco/ziggy"]
-        }
+        },
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "jsx": "preserve",
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true
     },
+    "include": [
+        "resources/js/**/*"
+    ],
     "exclude": ["node_modules", "public"]
 }
