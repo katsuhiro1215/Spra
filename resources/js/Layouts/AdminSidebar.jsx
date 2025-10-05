@@ -38,6 +38,21 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             children: []
         },
         {
+            name: "ホームページ管理",
+            href: "admin.homepage.pages.index",
+            icon: "M12 21V9l-2 2m0 0l-2-2m2 2V3m0 18l2-2m-2 2l2 2m6-6h-3m3 0a3 3 0 01-3 3h-3m3-3a3 3 0 00-3-3h-3m3 3V9a3 3 0 00-3-3h-3",
+            current: route().current("admin.homepage.*"),
+            children: [
+                { name: "ページ管理", href: "admin.homepage.pages.index" },
+                { name: "サービス管理", href: "admin.homepage.services.index" },
+                { name: "ブログ管理", href: "admin.homepage.blog-posts.index" },
+                { name: "カテゴリ管理", href: "admin.homepage.categories.index" },
+                { name: "FAQ管理", href: "admin.homepage.faqs.index" },
+                { name: "お問い合わせ", href: "admin.homepage.contacts.index" },
+                { name: "サイト設定", href: "admin.homepage.site-settings.index" }
+            ]
+        },
+        {
             name: "ユーザー管理",
             href: "admin.users.index",
             icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",

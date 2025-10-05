@@ -19,5 +19,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // ホームページ管理用の初期データを作成
+        $this->call([
+            HomepagePageSeeder::class,
+        ]);
     }
 }
