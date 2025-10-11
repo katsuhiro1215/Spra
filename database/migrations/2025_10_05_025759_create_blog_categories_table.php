@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('blog_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // カテゴリ名
             $table->string('slug')->unique(); // URL用スラッグ
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0); // 表示順序
             $table->boolean('is_active')->default(true); // 有効状態
             $table->timestamps();
-            
+
             $table->index(['is_active', 'sort_order']);
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('blog_categories');
     }
 };

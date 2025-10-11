@@ -50,8 +50,8 @@ class Admin extends Authenticatable
     /**
      * ブログ投稿との関連
      */
-    public function blogPosts(): HasMany
+    public function blogs(): HasMany
     {
-        return $this->hasMany(BlogPost::class, 'author_id');
+        return $this->hasMany(Blog::class, 'author_id');
     }
 }

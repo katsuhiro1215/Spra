@@ -18,14 +18,19 @@ class RedirectIfAuthenticated
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
-        // Check if the user is authenticated and redirect accordingly
-        if (Auth::guard(self::GUARD_USER)->check() && $request->routeIs('user.*')) {
-            return redirect(user_home_url());
-        }
+        $guards = empty($guards) ? [null] : $guards;
 
-        // Check if the admin is authenticated and redirect accordingly
-        if (Auth::guard(self::GUARD_ADMIN)->check() && $request->routeIs('admin.*')) {
-            return redirect(admin_home_url());
+        foreach ($guards as $guard) {
+            if (Auth::guard($guard)->check()) {
+                if ($guard === self::GUARD_ADMIN) {
+                    return redirect(admin_home_url());
+                } elseif ($guard === self::GUARD_USER) {
+                    return redirect(user_home_url());
+                } else {
+                    // Default case for null guard (users)
+                    return redirect(user_home_url());
+                }
+            }
         }
 
         return $next($request);

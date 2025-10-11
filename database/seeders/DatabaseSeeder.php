@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
         // ホームページ管理用の初期データを作成
         $this->call([
             HomepagePageSeeder::class,
+            ServiceCategorySeeder::class,
+            ServiceSeeder::class,
+            FaqCategorySeeder::class,
         ]);
     }
 }

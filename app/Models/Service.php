@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Str;
 
 class Service extends Model
 {
     protected $fillable = [
         'name',
         'slug',
-        'category',
+        'service_category_id',
         'description',
         'details',
         'icon',
@@ -21,7 +22,8 @@ class Service extends Model
         'technologies',
         'status',
         'sort_order',
-        'is_featured'
+        'is_featured',
+        'is_active'
     ];
 
     protected $casts = [
@@ -30,8 +32,17 @@ class Service extends Model
         'demo_links' => 'array',
         'gallery' => 'array',
         'technologies' => 'array',
-        'is_featured' => 'boolean'
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean'
     ];
+
+    /**
+     * Get the service category that owns the service.
+     */
+    public function serviceCategory()
+    {
+        return $this->belongsTo(ServiceCategory::class);
+    }
 
     // スコープ
     public function scopeFeatured($query)
@@ -39,9 +50,14 @@ class Service extends Model
         return $query->where('is_featured', true);
     }
 
-    public function scopeByCategory($query, $category)
+    public function scopeActive($query)
     {
-        return $query->where('category', $category);
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('service_category_id', $categoryId);
     }
 
     public function scopeOrdered($query)
@@ -53,13 +69,7 @@ class Service extends Model
     protected function categoryName(): Attribute
     {
         return Attribute::make(
-            get: fn() => match ($this->category) {
-                'web' => 'Web開発',
-                'system' => 'システム開発',
-                'app' => 'アプリ開発',
-                'consulting' => 'コンサルティング',
-                default => $this->category
-            }
+            get: fn() => $this->serviceCategory?->name ?? '未分類'
         );
     }
 
@@ -88,5 +98,25 @@ class Service extends Model
                 return $prices->min();
             }
         );
+    }
+
+    /**
+     * Automatically generate slug from name.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($service) {
+            if (empty($service->slug)) {
+                $service->slug = Str::slug($service->name);
+            }
+        });
+
+        static::updating(function ($service) {
+            if ($service->isDirty('name') && empty($service->slug)) {
+                $service->slug = Str::slug($service->name);
+            }
+        });
     }
 }
