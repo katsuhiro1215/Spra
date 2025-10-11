@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // サービス名
             $table->string('slug')->unique(); // URL用スラッグ
-            $table->enum('category', ['web', 'system', 'app']); // サービスカテゴリ
+            $table->unsignedBigInteger('service_category_id'); // サービスカテゴリID
             $table->text('description'); // サービス説明
             $table->longText('details'); // 詳細説明
             $table->string('icon')->nullable(); // アイコン
@@ -27,11 +27,14 @@ return new class extends Migration
             $table->string('status')->default('active'); // サービス状態
             $table->integer('sort_order')->default(0); // 表示順序
             $table->boolean('is_featured')->default(false); // おすすめサービス
+            $table->boolean('is_active')->default(true); // アクティブ状態
             $table->timestamps();
             
-            $table->index(['category', 'status']);
+            $table->foreign('service_category_id')->references('id')->on('service_categories')->onDelete('cascade');
+            $table->index(['service_category_id', 'status']);
             $table->index('sort_order');
             $table->index('is_featured');
+            $table->index('is_active');
         });
     }
 

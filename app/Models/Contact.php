@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contact extends Model
 {
@@ -12,31 +13,46 @@ class Contact extends Model
         'email',
         'phone',
         'company',
+        'category',
         'subject',
         'message',
-        'service_interest',
-        'budget_range',
-        'timeline',
-        'additional_info',
+        'attachments',
         'status',
         'admin_notes',
-        'replied_at'
+        'responded_at',
+        'assigned_to'
     ];
 
     protected $casts = [
-        'additional_info' => 'array',
-        'replied_at' => 'datetime'
+        'attachments' => 'array',
+        'responded_at' => 'datetime'
     ];
 
-    // スコープ
-    public function scopePending($query)
+    // リレーション
+    public function assignedAdmin(): BelongsTo
     {
-        return $query->where('status', 'pending');
+        return $this->belongsTo(Admin::class, 'assigned_to');
     }
 
-    public function scopeReplied($query)
+    // スコープ
+    public function scopeNew($query)
     {
-        return $query->where('status', 'replied');
+        return $query->where('status', 'new');
+    }
+
+    public function scopeInProgress($query)
+    {
+        return $query->where('status', 'in_progress');
+    }
+
+    public function scopeResolved($query)
+    {
+        return $query->where('status', 'resolved');
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('status', 'closed');
     }
 
     public function scopeRecent($query, $days = 7)
@@ -44,37 +60,41 @@ class Contact extends Model
         return $query->where('created_at', '>=', now()->subDays($days));
     }
 
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
     // アクセサ
-    protected function isReplied(): Attribute
+    protected function isResolved(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->status === 'replied' && $this->replied_at !== null
+            get: fn() => in_array($this->status, ['resolved', 'closed'])
         );
     }
 
     protected function statusLabel(): Attribute
     {
         return Attribute::make(
-            get: fn () => match($this->status) {
-                'pending' => '未対応',
+            get: fn() => match ($this->status) {
+                'new' => '新規',
                 'in_progress' => '対応中',
-                'replied' => '返信済み',
+                'resolved' => '解決済み',
                 'closed' => 'クローズ',
                 default => $this->status
             }
         );
     }
 
-    protected function serviceInterestLabel(): Attribute
+    protected function categoryLabel(): Attribute
     {
         return Attribute::make(
-            get: fn () => match($this->service_interest) {
-                'web' => 'Web開発',
-                'system' => 'システム開発',
-                'app' => 'アプリ開発',
-                'consulting' => 'コンサルティング',
+            get: fn() => match ($this->category) {
+                'estimate' => '見積もり',
+                'partnership' => '業務提携',
+                'support' => 'サポート',
                 'other' => 'その他',
-                default => $this->service_interest
+                default => $this->category
             }
         );
     }

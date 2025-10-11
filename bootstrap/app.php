@@ -10,7 +10,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         using: function () {
             // User routes with user. prefix
-            Route::as('user.')
+            Route::prefix('/')
+                ->as('user.')
                 ->middleware('web')
                 ->group(base_path('routes/web.php'));
 
@@ -19,17 +20,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->as('admin.')
                 ->middleware('web')
                 ->group(base_path('routes/admin.php'));
-                
-            // 互換性のため、loginとregisterルートのグローバルエイリアスを作成
-            Route::middleware('web')->group(function () {
-                Route::get('login', function() {
-                    return redirect()->route('user.login');
-                })->name('login');
-                
-                Route::get('register', function() {
-                    return redirect()->route('user.register');
-                })->name('register');
-            });
         },
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
@@ -38,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        // ミドルウェアエイリアスの設定
+        $middleware->alias([
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

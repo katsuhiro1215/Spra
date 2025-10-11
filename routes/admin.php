@@ -5,12 +5,14 @@ use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\Homepage\PageController;
+use App\Http\Controllers\Admin\Homepage\ServiceCategoryController;
 use App\Http\Controllers\Admin\Homepage\ServicesController;
-use App\Http\Controllers\Admin\Homepage\BlogPostController;
-use App\Http\Controllers\Admin\Homepage\CategoryController;
-use App\Http\Controllers\Admin\Homepage\FaqController;
+use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
+use App\Http\Controllers\Admin\Homepage\BlogController;
+use App\Http\Controllers\Admin\Homepage\FaqsController;
 use App\Http\Controllers\Admin\Homepage\ContactController;
 use App\Http\Controllers\Admin\Homepage\SiteSettingController;
+use App\Http\Controllers\Admin\MediaController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -24,13 +26,33 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   // ホームページ管理
   Route::prefix('homepage')->name('homepage.')->group(function () {
     Route::resource('pages', PageController::class);
+    Route::resource('serviceCategories', ServiceCategoryController::class);
     Route::resource('services', ServicesController::class);
-    Route::resource('blog-posts', BlogPostController::class);
-    Route::resource('categories', CategoryController::class);
-    Route::resource('faqs', FaqController::class);
-    Route::resource('contacts', ContactController::class)->only(['index', 'show', 'destroy']);
+    Route::resource('blogCategories', BlogCategoryController::class);
+    Route::post('/blogCategories/bulk-action', [BlogCategoryController::class, 'bulkAction'])->name('blogCategories.bulk-action');
+    Route::post('/blogCategories/update-order', [BlogCategoryController::class, 'updateOrder'])->name('blogCategories.update-order');
+    Route::resource('blogs', BlogController::class);
+    Route::post('/blogs/bulk-action', [BlogController::class, 'bulkAction'])->name('blogs.bulk-action');
+    Route::patch('/blogs/{blog}/status', [BlogController::class, 'changeStatus'])->name('blogs.change-status');
+    Route::post('/blogs/upload-editor-image', [BlogController::class, 'uploadEditorImage'])->name('blogs.upload-editor-image');
+
+    // FAQs管理
+    Route::resource('faqs', FaqsController::class);
+    Route::delete('/faqs/bulk-destroy', [FaqsController::class, 'bulkDestroy'])->name('faqs.bulk-destroy');
+    Route::patch('/faqs/bulk-status', [FaqsController::class, 'bulkUpdateStatus'])->name('faqs.bulk-status');
+
+    // お問い合わせ管理
+    Route::resource('contacts', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
+    Route::patch('/contacts/bulk-update', [ContactController::class, 'bulkUpdate'])->name('contacts.bulk-update');
+    Route::get('/contacts/export', [ContactController::class, 'export'])->name('contacts.export');
+
     Route::resource('site-settings', SiteSettingController::class);
   });
+
+  // メディア管理
+  Route::resource('media', MediaController::class);
+  Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+  Route::delete('/media/bulk-destroy', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
 
   // コンテンツ管理（一時的にダミー）
   Route::get('/content', function () {

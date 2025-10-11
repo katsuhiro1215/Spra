@@ -6,11 +6,11 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Page;
 use App\Models\Service;
-use App\Models\Category;
-use App\Models\BlogPost;
 use App\Models\Faq;
 use App\Models\SiteSetting;
 use App\Models\Admin;
+use App\Models\Blog;
+use App\Models\BlogCategory;
 
 class HomepageSeeder extends Seeder
 {
@@ -23,7 +23,7 @@ class HomepageSeeder extends Seeder
         $this->createSiteSettings();
 
         // カテゴリを作成
-        $this->createCategories();
+        $this->createBlogCategories();
 
         // 固定ページを作成
         $this->createPages();
@@ -32,7 +32,7 @@ class HomepageSeeder extends Seeder
         $this->createServices();
 
         // ブログ投稿を作成
-        $this->createBlogPosts();
+        $this->createBlogs();
 
         // FAQを作成
         $this->createFaqs();
@@ -70,19 +70,19 @@ class HomepageSeeder extends Seeder
         }
     }
 
-    private function createCategories()
+    private function createBlogCategories()
     {
-        $categories = [
+        $blogCategories = [
             ['name' => '技術', 'slug' => 'technology', 'description' => '技術に関する記事', 'color' => '#3B82F6', 'sort_order' => 1],
             ['name' => 'ビジネス', 'slug' => 'business', 'description' => 'ビジネスに関する記事', 'color' => '#10B981', 'sort_order' => 2],
             ['name' => '事例', 'slug' => 'case-study', 'description' => '導入事例', 'color' => '#F59E0B', 'sort_order' => 3],
             ['name' => 'お知らせ', 'slug' => 'news', 'description' => '会社のお知らせ', 'color' => '#EF4444', 'sort_order' => 4],
         ];
 
-        foreach ($categories as $category) {
-            Category::updateOrCreate(
-                ['slug' => $category['slug']],
-                $category
+        foreach ($blogCategories as $blogCategory) {
+            BlogCategory::updateOrCreate(
+                ['slug' => $blogCategory['slug']],
+                $blogCategory
             );
         }
     }
@@ -301,7 +301,7 @@ class HomepageSeeder extends Seeder
         }
     }
 
-    private function createBlogPosts()
+    private function createBlogs()
     {
         $admin = Admin::first();
         if (!$admin) return;
@@ -351,20 +351,20 @@ class HomepageSeeder extends Seeder
         ];
 
         foreach ($posts as $post) {
-            $blogPost = BlogPost::updateOrCreate(
+            $blog = Blog::updateOrCreate(
                 ['slug' => $post['slug']],
                 $post
             );
 
             // カテゴリを設定
             if ($post['post_type'] === 'case_study') {
-                $category = Category::where('slug', 'case-study')->first();
+                $blogCategory = BlogCategory::where('slug', 'case-study')->first();
             } else {
-                $category = Category::where('slug', 'technology')->first();
+                $blogCategory = BlogCategory::where('slug', 'technology')->first();
             }
 
-            if ($category) {
-                $blogPost->categories()->syncWithoutDetaching([$category->id]);
+            if ($blogCategory) {
+                $blog->categories()->syncWithoutDetaching([$blogCategory->id]);
             }
         }
     }
