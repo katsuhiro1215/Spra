@@ -1,18 +1,19 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
+// Layouts
+import GuestLayout from '@/Layouts/GuestLayout';
+// Components
+import { InputLabel, TextInput, InputError } from '@/Components/Forms';
+import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function ResetPassword({ token, email }) {
+    // フォーム状態管理
     const { data, setData, post, processing, errors, reset } = useForm({
         token: token,
         email: email,
         password: '',
         password_confirmation: '',
     });
-
+    // フォーム送信ハンドラー
     const submit = (e) => {
         e.preventDefault();
 

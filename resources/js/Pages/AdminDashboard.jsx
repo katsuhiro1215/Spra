@@ -1,45 +1,46 @@
-import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { Head } from "@inertiajs/react";
 
 export default function Dashboard() {
     // ダミーデータ（実際のプロジェクトでは props から受け取る）
     const stats = [
         {
-            name: '総ユーザー数',
-            value: '1,234',
-            change: '+12%',
-            changeType: 'increase',
-            icon: '👥'
+            name: "総ユーザー数",
+            value: "1,234",
+            change: "+12%",
+            changeType: "increase",
+            icon: "👥",
         },
         {
-            name: '今月の新規登録',
-            value: '89',
-            change: '+5.2%',
-            changeType: 'increase',
-            icon: '📈'
+            name: "今月の新規登録",
+            value: "89",
+            change: "+5.2%",
+            changeType: "increase",
+            icon: "📈",
         },
         {
-            name: 'アクティブユーザー',
-            value: '567',
-            change: '+3.1%',
-            changeType: 'increase',
-            icon: '✨'
+            name: "アクティブユーザー",
+            value: "567",
+            change: "+3.1%",
+            changeType: "increase",
+            icon: "✨",
         },
         {
-            name: 'システムステータス',
-            value: '正常',
-            change: '稼働中',
-            changeType: 'neutral',
-            icon: '🟢'
-        }
+            name: "システムステータス",
+            value: "正常",
+            change: "稼働中",
+            changeType: "neutral",
+            icon: "🟢",
+        },
     ];
 
     const recentActivities = [
-        { id: 1, user: '田中太郎', action: '新規登録', time: '5分前' },
-        { id: 2, user: '佐藤花子', action: 'プロフィール更新', time: '15分前' },
-        { id: 3, user: '山田次郎', action: 'ログイン', time: '30分前' },
-        { id: 4, user: '鈴木三郎', action: '記事投稿', time: '1時間前' },
-        { id: 5, user: '高橋四郎', action: 'パスワード変更', time: '2時間前' },
+        { id: 1, user: "田中太郎", action: "新規登録", time: "5分前" },
+        { id: 2, user: "佐藤花子", action: "プロフィール更新", time: "15分前" },
+        { id: 3, user: "山田次郎", action: "ログイン", time: "30分前" },
+        { id: 4, user: "鈴木三郎", action: "記事投稿", time: "1時間前" },
+        { id: 5, user: "高橋四郎", action: "パスワード変更", time: "2時間前" },
     ];
 
     return (
@@ -50,22 +51,30 @@ export default function Dashboard() {
                         📊 管理者ダッシュボード
                     </h2>
                     <div className="text-sm text-gray-500">
-                        最終更新: {new Date().toLocaleString('ja-JP')}
+                        最終更新: {new Date().toLocaleString("ja-JP")}
                     </div>
                 </div>
             }
         >
             <Head title="管理者ダッシュボード" />
 
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+
             <div className="space-y-6">
                 {/* 統計カード */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     {stats.map((stat) => (
-                        <div key={stat.name} className="bg-white overflow-hidden shadow-sm rounded-lg">
+                        <div
+                            key={stat.name}
+                            className="bg-white overflow-hidden shadow-sm rounded-lg"
+                        >
                             <div className="p-5">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <span className="text-2xl">{stat.icon}</span>
+                                        <span className="text-2xl">
+                                            {stat.icon}
+                                        </span>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
                                         <dl>
@@ -76,13 +85,17 @@ export default function Dashboard() {
                                                 <div className="text-2xl font-semibold text-gray-900">
                                                     {stat.value}
                                                 </div>
-                                                <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                                                    stat.changeType === 'increase'
-                                                        ? 'text-green-600'
-                                                        : stat.changeType === 'decrease'
-                                                        ? 'text-red-600'
-                                                        : 'text-gray-500'
-                                                }`}>
+                                                <div
+                                                    className={`ml-2 flex items-baseline text-sm font-semibold ${
+                                                        stat.changeType ===
+                                                        "increase"
+                                                            ? "text-green-600"
+                                                            : stat.changeType ===
+                                                              "decrease"
+                                                            ? "text-red-600"
+                                                            : "text-gray-500"
+                                                    }`}
+                                                >
                                                     {stat.change}
                                                 </div>
                                             </dd>
@@ -104,40 +117,52 @@ export default function Dashboard() {
                             </h3>
                             <div className="flow-root">
                                 <ul className="-mb-8">
-                                    {recentActivities.map((activity, activityIdx) => (
-                                        <li key={activity.id}>
-                                            <div className="relative pb-8">
-                                                {activityIdx !== recentActivities.length - 1 ? (
-                                                    <span
-                                                        className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                                                        aria-hidden="true"
-                                                    />
-                                                ) : null}
-                                                <div className="relative flex space-x-3">
-                                                    <div>
-                                                        <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                                                            <span className="text-white text-xs font-medium">
-                                                                {activity.user.charAt(0)}
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                    <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                    {recentActivities.map(
+                                        (activity, activityIdx) => (
+                                            <li key={activity.id}>
+                                                <div className="relative pb-8">
+                                                    {activityIdx !==
+                                                    recentActivities.length -
+                                                        1 ? (
+                                                        <span
+                                                            className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                            aria-hidden="true"
+                                                        />
+                                                    ) : null}
+                                                    <div className="relative flex space-x-3">
                                                         <div>
-                                                            <p className="text-sm text-gray-500">
-                                                                <span className="font-medium text-gray-900">
-                                                                    {activity.user}
-                                                                </span>{' '}
-                                                                が {activity.action} を実行しました
-                                                            </p>
+                                                            <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                                <span className="text-white text-xs font-medium">
+                                                                    {activity.user.charAt(
+                                                                        0
+                                                                    )}
+                                                                </span>
+                                                            </span>
                                                         </div>
-                                                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                                                            {activity.time}
+                                                        <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                            <div>
+                                                                <p className="text-sm text-gray-500">
+                                                                    <span className="font-medium text-gray-900">
+                                                                        {
+                                                                            activity.user
+                                                                        }
+                                                                    </span>{" "}
+                                                                    が{" "}
+                                                                    {
+                                                                        activity.action
+                                                                    }{" "}
+                                                                    を実行しました
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                                                {activity.time}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </li>
-                                    ))}
+                                            </li>
+                                        )
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -179,16 +204,28 @@ export default function Dashboard() {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600">99.9%</div>
-                                <div className="text-sm text-gray-500">稼働率</div>
+                                <div className="text-2xl font-bold text-green-600">
+                                    99.9%
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    稼働率
+                                </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600">1.2GB</div>
-                                <div className="text-sm text-gray-500">使用容量</div>
+                                <div className="text-2xl font-bold text-blue-600">
+                                    1.2GB
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    使用容量
+                                </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-purple-600">v1.0.0</div>
-                                <div className="text-sm text-gray-500">システムバージョン</div>
+                                <div className="text-2xl font-bold text-purple-600">
+                                    v1.0.0
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    システムバージョン
+                                </div>
                             </div>
                         </div>
                     </div>
