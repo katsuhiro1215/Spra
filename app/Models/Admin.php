@@ -54,4 +54,12 @@ class Admin extends Authenticatable
     {
         return $this->hasMany(Blog::class, 'author_id');
     }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\AdminResetPassword($token));
+    }
 }
