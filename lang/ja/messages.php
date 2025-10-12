@@ -73,6 +73,8 @@ return [
     'login_success' => 'ログインしました。',
     'logout_success' => 'ログアウトしました。',
     'login_failed' => 'ログインに失敗しました。',
+    'registration_success' => 'アカウントが作成されました。',
+    'registration_failed' => 'アカウントの作成に失敗しました。',
     'unauthorized' => 'アクセス権限がありません。',
     'session_expired' => 'セッションが期限切れです。再度ログインしてください。',
     'password_changed' => 'パスワードが変更されました。',

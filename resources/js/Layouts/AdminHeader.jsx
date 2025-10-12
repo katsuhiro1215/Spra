@@ -1,5 +1,6 @@
-import Dropdown from "@/Components/Dropdown";
 import { usePage } from "@inertiajs/react";
+// Components
+import Dropdown from "@/Components/Layout/Dropdown";
 
 export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     const { props } = usePage();

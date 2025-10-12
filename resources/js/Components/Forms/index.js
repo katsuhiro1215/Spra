@@ -7,9 +7,16 @@ export { default as InputLabel } from "./InputLabel";
 export { default as TextInput } from "./TextInput";
 export { default as TextArea } from "./TextArea";
 export { default as InputError } from "./InputError";
+export { default as Checkbox } from "./Checkbox";
+
+// Validated Components
+export { default as ValidatedInput } from "./ValidatedInput";
+export { default as ValidatedTextArea } from "./ValidatedTextArea";
+
+// Rich Text Editor
+export { default as RichTextEditor } from "./RichTextEditor";
 
 // Input Types
-export { default as Checkbox } from "./Checkbox";
 export { default as RadioButton, RadioGroup } from "./RadioButton";
 export { default as Select } from "./Select";
 export { default as FileInput } from "./FileInput";

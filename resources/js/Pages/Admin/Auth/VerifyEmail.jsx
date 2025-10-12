@@ -1,10 +1,13 @@
-import PrimaryButton from '@/Components/PrimaryButton';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+// Layouts
+import GuestLayout from '@/Layouts/GuestLayout';
+// Components
+import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function VerifyEmail({ status }) {
+    // フォーム状態管理
     const { post, processing } = useForm({});
-
+    // フォーム送信ハンドラー
     const submit = (e) => {
         e.preventDefault();
 
@@ -14,7 +17,7 @@ export default function VerifyEmail({ status }) {
     return (
         <GuestLayout>
             <Head title="Admin Email Verification" />
-+            Admin
+            
             <div className="mb-4 text-sm text-gray-600">
                 Thanks for signing up! Before getting started, could you verify
                 your email address by clicking on the link we just emailed to
