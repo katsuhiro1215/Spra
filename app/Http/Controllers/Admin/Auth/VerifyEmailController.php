@@ -3,26 +3,39 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class VerifyEmailController extends Controller
 {
     /**
-     * Mark the authenticated user's email address as verified.
+     * メールアドレス確認
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Exception
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(admin_home_url() . '?verified=1');
-        }
+        try {
+            $admin = $request->user('admins');
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
+            if ($admin->hasVerifiedEmail()) {
+                return redirect()->route('admin.dashboard')
+                    ->with('info', __('messages.auth.email_already_verified'));
+            }
 
-        return redirect()->intended(admin_home_url() . '?verified=1');
+            if ($admin->markEmailAsVerified()) {
+                event(new Verified($admin));
+            }
+
+            return redirect()->route('admin.dashboard')
+                ->with('success', __('messages.auth.email_verified'));
+        } catch (\Exception $e) {
+            Log::error('Admin email verification error: ' . $e->getMessage());
+
+            return redirect()->route('admin.login')
+                ->with('error', __('messages.general.action_failed'));
+        }
     }
 }

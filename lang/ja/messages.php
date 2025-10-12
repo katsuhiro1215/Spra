@@ -79,6 +79,11 @@ return [
     'session_expired' => 'セッションが期限切れです。再度ログインしてください。',
     'password_changed' => 'パスワードが変更されました。',
     'password_change_failed' => 'パスワードの変更に失敗しました。',
+    'password_updated' => 'パスワードが正常に更新されました。',
+    'password_confirmed' => 'パスワードが確認されました。',
+    'email_verified' => 'メールアドレスが認証されました。',
+    'email_already_verified' => 'メールアドレスは既に認証済みです。',
+    'verification_link_sent' => '認証メールを送信しました。',
   ],
 
   'pagination' => [
