@@ -25,7 +25,10 @@ export default function Show({ serviceType, servicePlan }) {
         },
         {
             label: "編集",
-            href: route("admin.service.plans.edit", [serviceType.id, servicePlan.id]),
+            href: route("admin.service.plans.edit", [
+                serviceType.id,
+                servicePlan.id,
+            ]),
             variant: "primary",
             icon: PencilIcon,
         },
@@ -43,9 +46,7 @@ export default function Show({ serviceType, servicePlan }) {
     };
 
     const formatPrice = (price, unit, setupFee) => {
-        let priceText = price
-            ? `¥${Number(price).toLocaleString()}`
-            : "要相談";
+        let priceText = price ? `¥${Number(price).toLocaleString()}` : "要相談";
         if (unit) priceText += `/${unit}`;
         if (setupFee > 0) {
             priceText += ` (初期費用: ¥${Number(setupFee).toLocaleString()})`;
@@ -109,7 +110,8 @@ export default function Show({ serviceType, servicePlan }) {
                                             <div
                                                 className="w-4 h-4 rounded-full mr-3"
                                                 style={{
-                                                    backgroundColor: servicePlan.color,
+                                                    backgroundColor:
+                                                        servicePlan.color,
                                                 }}
                                             />
                                         )}
@@ -123,7 +125,9 @@ export default function Show({ serviceType, servicePlan }) {
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <StatusBadge isActive={servicePlan.is_active} />
+                                        <StatusBadge
+                                            isActive={servicePlan.is_active}
+                                        />
                                         {servicePlan.is_popular && (
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                 <StarIcon className="h-3 w-3 mr-1" />
@@ -185,7 +189,9 @@ export default function Show({ serviceType, servicePlan }) {
                                         </dt>
                                         <dd className="mt-1 text-lg font-semibold text-gray-900">
                                             {servicePlan.setup_fee > 0
-                                                ? `¥${Number(servicePlan.setup_fee).toLocaleString()}`
+                                                ? `¥${Number(
+                                                      servicePlan.setup_fee
+                                                  ).toLocaleString()}`
                                                 : "無料"}
                                         </dd>
                                     </div>
@@ -195,7 +201,9 @@ export default function Show({ serviceType, servicePlan }) {
                                             請求サイクル
                                         </dt>
                                         <dd className="mt-1 text-lg font-semibold text-gray-900">
-                                            {getBillingCycleLabel(servicePlan.billing_cycle)}
+                                            {getBillingCycleLabel(
+                                                servicePlan.billing_cycle
+                                            )}
                                         </dd>
                                     </div>
 
@@ -216,28 +224,31 @@ export default function Show({ serviceType, servicePlan }) {
                         {/* プラン詳細情報 */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* 機能・特徴 */}
-                            {servicePlan.features && servicePlan.features.length > 0 && (
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="px-4 py-5 sm:p-6">
-                                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                            機能・特徴
-                                        </h3>
-                                        <ul className="space-y-2">
-                                            {servicePlan.features.map((feature, index) => (
-                                                <li
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                                                    <span className="text-sm text-gray-700">
-                                                        {feature}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
+                            {servicePlan.features &&
+                                servicePlan.features.length > 0 && (
+                                    <div className="bg-white shadow rounded-lg">
+                                        <div className="px-4 py-5 sm:p-6">
+                                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                                機能・特徴
+                                            </h3>
+                                            <ul className="space-y-2">
+                                                {servicePlan.features.map(
+                                                    (feature, index) => (
+                                                        <li
+                                                            key={index}
+                                                            className="flex items-start"
+                                                        >
+                                                            <CheckIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700">
+                                                                {feature}
+                                                            </span>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
                             {/* 含まれる項目 */}
                             {servicePlan.included_items &&
@@ -307,7 +318,8 @@ export default function Show({ serviceType, servicePlan }) {
                                             最大修正回数
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            {servicePlan.max_revisions || "制限なし"}
+                                            {servicePlan.max_revisions ||
+                                                "制限なし"}
                                         </dd>
                                     </div>
 
@@ -354,7 +366,8 @@ export default function Show({ serviceType, servicePlan }) {
                                             作成者
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            {servicePlan.creator?.name || "不明"}
+                                            {servicePlan.creator?.name ||
+                                                "不明"}
                                         </dd>
                                     </div>
 
@@ -363,7 +376,8 @@ export default function Show({ serviceType, servicePlan }) {
                                             最終更新者
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            {servicePlan.updater?.name || "未更新"}
+                                            {servicePlan.updater?.name ||
+                                                "未更新"}
                                         </dd>
                                     </div>
 

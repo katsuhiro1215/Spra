@@ -2,120 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ServicePlan;
 use App\Models\ServiceType;
 use App\Models\Admin;
-
-class ServicePlanSeeder extends Seeder
-{
-    /**
-     * Run the database seeder.
-     */
-    public function run(): void
-    {
-        // 管理者を取得
-        $admin = Admin::first();
-        if (!$admin) {
-            $this->command->error('Admin user not found. Please run AdminSeeder first.');
-            return;
-        }
-
-        // 各サービスタイプに対してプランを作成
-        $serviceTypes = ServiceType::take(3)->get();
-
-        foreach ($serviceTypes as $serviceType) {
-            $this->createPlansForServiceType($serviceType, $admin->id);
-        }
-
-        $this->command->info('ServicePlan seeder completed successfully.');
-    }
-
-    private function createPlansForServiceType(ServiceType $serviceType, int $adminId): void
-    {
-        $basePrice = $serviceType->base_price ?? 300000;
-
-        $plans = [
-            [
-                'name' => 'ベーシック',
-                'slug' => 'basic-' . $serviceType->id,
-                'service_type_id' => $serviceType->id,
-                'description' => '基本的な機能を含む入門プラン',
-                'detailed_description' => $serviceType->name . 'の基本的な機能を提供するプランです。小規模なプロジェクトに最適です。',
-                'base_price' => $basePrice * 0.7,
-                'price_unit' => '式',
-                'billing_cycle' => 'one_time',
-                'setup_fee' => 0,
-                'features' => ['基本機能', 'サポート対応', '基本カスタマイズ'],
-                'included_items' => ['基本設計', '実装', 'テスト'],
-                'limitations' => ['修正回数: 3回まで'],
-                'max_revisions' => 3,
-                'estimated_delivery_days' => 14,
-                'is_popular' => false,
-                'is_recommended' => false,
-                'sort_order' => 1,
-                'color' => '#10B981',
-                'created_by' => $adminId,
-            ],
-            [
-                'name' => 'スタンダード',
-                'slug' => 'standard-' . $serviceType->id,
-                'service_type_id' => $serviceType->id,
-                'description' => '充実した機能の標準プラン',
-                'detailed_description' => $serviceType->name . 'の標準的な機能を全て含むプランです。多くのお客様に選ばれています。',
-                'base_price' => $basePrice,
-                'price_unit' => '式',
-                'billing_cycle' => 'one_time',
-                'setup_fee' => 0,
-                'features' => ['標準機能一式', '優先サポート', 'カスタマイズ対応', 'アフターサポート'],
-                'included_items' => ['詳細設計', '実装', 'テスト・検証', 'マニュアル作成'],
-                'limitations' => ['修正回数: 5回まで'],
-                'max_revisions' => 5,
-                'estimated_delivery_days' => 21,
-                'is_popular' => true,
-                'is_recommended' => true,
-                'sort_order' => 2,
-                'color' => '#3B82F6',
-                'badge_text' => '人気',
-                'created_by' => $adminId,
-            ],
-            [
-                'name' => 'プレミアム',
-                'slug' => 'premium-' . $serviceType->id,
-                'service_type_id' => $serviceType->id,
-                'description' => '最上位の高機能プラン',
-                'detailed_description' => $serviceType->name . 'の全機能に加え、カスタム機能も含む最上位プランです。大規模なプロジェクトに対応。',
-                'base_price' => $basePrice * 1.5,
-                'price_unit' => '式',
-                'billing_cycle' => 'one_time',
-                'setup_fee' => 50000,
-                'features' => ['全機能', 'カスタム機能開発', '専任サポート', '優先対応', '保守・運用サポート'],
-                'included_items' => ['要件定義', '詳細設計', 'フルカスタム実装', 'テスト・検証', 'マニュアル・研修', '運用サポート（3ヶ月）'],
-                'limitations' => ['修正回数: 10回まで'],
-                'max_revisions' => 10,
-                'estimated_delivery_days' => 35,
-                'is_popular' => false,
-                'is_recommended' => false,
-                'sort_order' => 3,
-                'color' => '#8B5CF6',
-                'badge_text' => '高機能',
-                'created_by' => $adminId,
-            ],
-        ];
-
-        foreach ($plans as $planData) {
-            ServicePlan::firstOrCreate(
-                [
-                    'service_type_id' => $serviceType->id,
-                    'slug' => $planData['slug'],
-                ],
-                $planData
-            );
-        }
-    }
-}
-Database\Seeders;
-
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -126,6 +15,142 @@ class ServicePlanSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        // Get first service type and admin for relationships
+        $serviceType = ServiceType::first();
+        $admin = Admin::first();
+
+        if (!$serviceType || !$admin) {
+            $this->command->warn('ServiceType or Admin not found. Please seed those tables first.');
+            return;
+        }
+
+        $plans = [
+            [
+                'service_type_id' => $serviceType->id,
+                'name' => 'Basic Plan',
+                'description' => 'Basic service plan for individuals',
+                'detailed_description' => 'This is a comprehensive basic plan designed for individuals and small businesses who need essential features.',
+                'base_price' => 999.00,
+                'price_unit' => 'month',
+                'billing_cycle' => 'monthly',
+                'setup_fee' => 0.00,
+                'features' => ['1 User', 'Basic Support', '1GB Storage'],
+                'included_items' => ['Email Support', 'Basic Templates', 'Mobile App Access'],
+                'limitations' => ['Limited API calls', 'No priority support'],
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 7,
+                'is_popular' => false,
+                'is_recommended' => false,
+                'sort_order' => 1,
+                'is_active' => true,
+                'color' => '#3B82F6',
+                'badge_text' => null,
+                'icon' => 'star',
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ],
+            [
+                'service_type_id' => $serviceType->id,
+                'name' => 'Professional Plan',
+                'description' => 'Professional service plan for small businesses',
+                'detailed_description' => 'Perfect for growing businesses that need advanced features and priority support.',
+                'base_price' => 2999.00,
+                'price_unit' => 'month',
+                'billing_cycle' => 'monthly',
+                'setup_fee' => 500.00,
+                'features' => ['5 Users', 'Priority Support', '10GB Storage', 'Advanced Analytics'],
+                'included_items' => ['Priority Email Support', 'Premium Templates', 'API Access', 'Custom Reports'],
+                'limitations' => ['Limited customization'],
+                'max_revisions' => 10,
+                'estimated_delivery_days' => 5,
+                'is_popular' => true,
+                'is_recommended' => true,
+                'sort_order' => 2,
+                'is_active' => true,
+                'color' => '#10B981',
+                'badge_text' => '最人気',
+                'icon' => 'rocket',
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ],
+            [
+                'service_type_id' => $serviceType->id,
+                'name' => 'Enterprise Plan',
+                'description' => 'Enterprise service plan for large organizations',
+                'detailed_description' => 'Comprehensive solution for large enterprises with unlimited features and dedicated support.',
+                'base_price' => 9999.00,
+                'price_unit' => 'month',
+                'billing_cycle' => 'monthly',
+                'setup_fee' => 2000.00,
+                'features' => ['Unlimited Users', '24/7 Support', '100GB Storage', 'Custom Integration', 'Dedicated Manager'],
+                'included_items' => ['24/7 Phone Support', 'Custom Development', 'Dedicated Account Manager', 'White-label Options'],
+                'limitations' => [],
+                'max_revisions' => null,
+                'estimated_delivery_days' => 3,
+                'is_popular' => false,
+                'is_recommended' => true,
+                'sort_order' => 3,
+                'is_active' => true,
+                'color' => '#8B5CF6',
+                'badge_text' => '推奨',
+                'icon' => 'crown',
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ],
+            [
+                'service_type_id' => $serviceType->id,
+                'name' => 'Starter Plan',
+                'description' => 'Free starter plan for testing',
+                'detailed_description' => 'Perfect for testing our services before committing to a paid plan.',
+                'base_price' => 0.00,
+                'price_unit' => 'month',
+                'billing_cycle' => 'monthly',
+                'setup_fee' => 0.00,
+                'features' => ['1 User', 'Community Support', '500MB Storage'],
+                'included_items' => ['Basic Templates', 'Community Forum Access'],
+                'limitations' => ['Limited features', 'Community support only', 'Basic functionality'],
+                'max_revisions' => 1,
+                'estimated_delivery_days' => 14,
+                'is_popular' => false,
+                'is_recommended' => false,
+                'sort_order' => 0,
+                'is_active' => true,
+                'color' => '#6B7280',
+                'badge_text' => '無料',
+                'icon' => 'gift',
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ],
+            [
+                'service_type_id' => $serviceType->id,
+                'name' => 'Legacy Plan',
+                'description' => 'Old plan no longer offered',
+                'detailed_description' => 'This plan is no longer available for new customers but is maintained for existing users.',
+                'base_price' => 1999.00,
+                'price_unit' => 'month',
+                'billing_cycle' => 'monthly',
+                'setup_fee' => 0.00,
+                'features' => ['3 Users', 'Email Support', '5GB Storage'],
+                'included_items' => ['Email Support', 'Standard Templates'],
+                'limitations' => ['Deprecated features'],
+                'max_revisions' => 5,
+                'estimated_delivery_days' => 10,
+                'is_popular' => false,
+                'is_recommended' => false,
+                'sort_order' => 4,
+                'is_active' => false,
+                'color' => '#EF4444',
+                'badge_text' => '終了予定',
+                'icon' => 'archive',
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ],
+        ];
+
+        foreach ($plans as $planData) {
+            ServicePlan::create($planData);
+        }
+
+        $this->command->info('ServicePlan seeder completed successfully!');
     }
 }

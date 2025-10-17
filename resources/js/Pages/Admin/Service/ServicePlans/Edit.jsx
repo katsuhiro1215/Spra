@@ -29,7 +29,8 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
         estimated_delivery_days: servicePlan.estimated_delivery_days || "",
         is_popular: servicePlan.is_popular || false,
         is_recommended: servicePlan.is_recommended || false,
-        is_active: servicePlan.is_active !== undefined ? servicePlan.is_active : true,
+        is_active:
+            servicePlan.is_active !== undefined ? servicePlan.is_active : true,
         sort_order: servicePlan.sort_order || "",
         color: servicePlan.color || "#3B82F6",
         badge_text: servicePlan.badge_text || "",
@@ -47,7 +48,12 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route("admin.service.plans.update", [serviceType.id, servicePlan.id]));
+        patch(
+            route("admin.service.plans.update", [
+                serviceType.id,
+                servicePlan.id,
+            ])
+        );
     };
 
     const addArrayItem = (field) => {
@@ -122,7 +128,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         name="description"
                                         value={data.description}
                                         onChange={(e) =>
-                                            setData("description", e.target.value)
+                                            setData(
+                                                "description",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.description}
                                         required
@@ -170,7 +179,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         type="number"
                                         value={data.base_price}
                                         onChange={(e) =>
-                                            setData("base_price", e.target.value)
+                                            setData(
+                                                "base_price",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.base_price}
                                         required
@@ -184,7 +196,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         name="price_unit"
                                         value={data.price_unit}
                                         onChange={(e) =>
-                                            setData("price_unit", e.target.value)
+                                            setData(
+                                                "price_unit",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.price_unit}
                                         placeholder="例: 式、月、時間"
@@ -208,18 +223,27 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            請求サイクル <span className="text-red-500">*</span>
+                                            請求サイクル{" "}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
                                         </label>
                                         <select
                                             value={data.billing_cycle}
                                             onChange={(e) =>
-                                                setData("billing_cycle", e.target.value)
+                                                setData(
+                                                    "billing_cycle",
+                                                    e.target.value
+                                                )
                                             }
                                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             {Object.entries(billingCycles).map(
                                                 ([key, label]) => (
-                                                    <option key={key} value={key}>
+                                                    <option
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </option>
                                                 )
@@ -238,7 +262,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         type="number"
                                         value={data.max_revisions}
                                         onChange={(e) =>
-                                            setData("max_revisions", e.target.value)
+                                            setData(
+                                                "max_revisions",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.max_revisions}
                                         min="0"
@@ -263,7 +290,9 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() => addArrayItem("features")}
+                                            onClick={() =>
+                                                addArrayItem("features")
+                                            }
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -272,7 +301,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                     </div>
                                     <div className="space-y-2">
                                         {data.features.map((feature, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
+                                            <div
+                                                key={index}
+                                                className="flex items-center space-x-2"
+                                            >
                                                 <input
                                                     type="text"
                                                     value={feature}
@@ -290,7 +322,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            removeArrayItem("features", index)
+                                                            removeArrayItem(
+                                                                "features",
+                                                                index
+                                                            )
                                                         }
                                                         className="text-red-600 hover:text-red-800"
                                                     >
@@ -310,7 +345,9 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() => addArrayItem("included_items")}
+                                            onClick={() =>
+                                                addArrayItem("included_items")
+                                            }
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -318,34 +355,43 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         </button>
                                     </div>
                                     <div className="space-y-2">
-                                        {data.included_items.map((item, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
-                                                <input
-                                                    type="text"
-                                                    value={item}
-                                                    onChange={(e) =>
-                                                        updateArrayItem(
-                                                            "included_items",
-                                                            index,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="例: デザイン設計"
-                                                />
-                                                {data.included_items.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeArrayItem("included_items", index)
+                                        {data.included_items.map(
+                                            (item, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center space-x-2"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value={item}
+                                                        onChange={(e) =>
+                                                            updateArrayItem(
+                                                                "included_items",
+                                                                index,
+                                                                e.target.value
+                                                            )
                                                         }
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
+                                                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                        placeholder="例: デザイン設計"
+                                                    />
+                                                    {data.included_items
+                                                        .length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeArrayItem(
+                                                                    "included_items",
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 </div>
 
@@ -357,7 +403,9 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() => addArrayItem("limitations")}
+                                            onClick={() =>
+                                                addArrayItem("limitations")
+                                            }
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -365,34 +413,43 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         </button>
                                     </div>
                                     <div className="space-y-2">
-                                        {data.limitations.map((limitation, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
-                                                <input
-                                                    type="text"
-                                                    value={limitation}
-                                                    onChange={(e) =>
-                                                        updateArrayItem(
-                                                            "limitations",
-                                                            index,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="例: ページ数上限: 5ページ"
-                                                />
-                                                {data.limitations.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeArrayItem("limitations", index)
+                                        {data.limitations.map(
+                                            (limitation, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center space-x-2"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value={limitation}
+                                                        onChange={(e) =>
+                                                            updateArrayItem(
+                                                                "limitations",
+                                                                index,
+                                                                e.target.value
+                                                            )
                                                         }
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
+                                                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                        placeholder="例: ページ数上限: 5ページ"
+                                                    />
+                                                    {data.limitations.length >
+                                                        1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeArrayItem(
+                                                                    "limitations",
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 </div>
 
@@ -404,7 +461,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         type="number"
                                         value={data.estimated_delivery_days}
                                         onChange={(e) =>
-                                            setData("estimated_delivery_days", e.target.value)
+                                            setData(
+                                                "estimated_delivery_days",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.estimated_delivery_days}
                                         min="0"
@@ -417,7 +477,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         type="number"
                                         value={data.sort_order}
                                         onChange={(e) =>
-                                            setData("sort_order", e.target.value)
+                                            setData(
+                                                "sort_order",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.sort_order}
                                         min="0"
@@ -429,7 +492,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                         name="badge_text"
                                         value={data.badge_text}
                                         onChange={(e) =>
-                                            setData("badge_text", e.target.value)
+                                            setData(
+                                                "badge_text",
+                                                e.target.value
+                                            )
                                         }
                                         error={errors.badge_text}
                                         placeholder="例: 人気、推奨"
@@ -476,7 +542,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                             id="is_popular"
                                             checked={data.is_popular}
                                             onChange={(e) =>
-                                                setData("is_popular", e.target.checked)
+                                                setData(
+                                                    "is_popular",
+                                                    e.target.checked
+                                                )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
@@ -494,7 +563,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                             id="is_recommended"
                                             checked={data.is_recommended}
                                             onChange={(e) =>
-                                                setData("is_recommended", e.target.checked)
+                                                setData(
+                                                    "is_recommended",
+                                                    e.target.checked
+                                                )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
@@ -512,7 +584,10 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                                             id="is_active"
                                             checked={data.is_active}
                                             onChange={(e) =>
-                                                setData("is_active", e.target.checked)
+                                                setData(
+                                                    "is_active",
+                                                    e.target.checked
+                                                )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
@@ -531,9 +606,7 @@ export default function Edit({ serviceType, servicePlan, billingCycles }) {
                         <div className="flex items-center justify-end space-x-3">
                             <button
                                 type="button"
-                                onClick={() =>
-                                    window.history.back()
-                                }
+                                onClick={() => window.history.back()}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 キャンセル

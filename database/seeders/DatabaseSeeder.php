@@ -22,10 +22,12 @@ class DatabaseSeeder extends Seeder
 
         // ホームページ管理用の初期データを作成
         $this->call([
+            AdminSeeder::class,
             HomepagePageSeeder::class,
             ServiceCategorySeeder::class,
             ServiceTypeSeeder::class,
             ServiceSeeder::class,
+            ServicePlanSeeder::class,
             FaqCategorySeeder::class,
         ]);
     }
