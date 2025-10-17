@@ -135,7 +135,7 @@ class ServicePlan extends Model
         }
 
         $price = '¥' . number_format($this->base_price);
-        
+
         if ($this->price_unit) {
             $price .= '/' . $this->price_unit;
         }
@@ -160,7 +160,7 @@ class ServicePlan extends Model
      */
     public function getBillingCycleJaAttribute(): string
     {
-        return match($this->billing_cycle) {
+        return match ($this->billing_cycle) {
             'one_time' => '一回払い',
             'monthly' => '月額',
             'quarterly' => '四半期',
