@@ -1,28 +1,29 @@
 import React, { useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
+// Layouts
 import AdminLayout from "@/Layouts/AdminLayout";
-import { PlusIcon } from "@heroicons/react/24/outline";
-
-// 定数
-import { ServiceTypesConstants } from "@/Constants/ServiceTypesConstants";
+// Constants
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
-
-// 汎用コンポーネント
-import Pagination from "@/Components/Pagination";
-import SearchFilter from "@/Components/SearchFilter";
-import PageHeader from "@/Components/PageHeader";
-
-// 画面専用コンポーネント
+// Icons
+import { PlusIcon } from "@heroicons/react/24/outline";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
+import SearchFilter from "@/Components/Layout/SearchFilter";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// ServiceType Components
 import ServiceTypesBulkActions from "./Components/ServiceTypesBulkActions";
 import ServiceTypesTable from "./Components/ServiceTypesTable";
+// Features
+import { ServiceTypesConstants } from "@/Features/ServiceTypes/constants";
 
-const ServiceTypesIndex = ({
+export default function Index({
     serviceTypes,
     serviceCategories,
     pricingModels,
     filters,
     sort,
-}) => {
+}) {
     const [selectedItems, setSelectedItems] = useState([]);
     const [bulkAction, setBulkAction] = useState("");
 
@@ -37,7 +38,7 @@ const ServiceTypesIndex = ({
 
     // 検索実行
     const handleSearch = () => {
-        get(route("admin.service.service-types.index"), {
+        get(route("admin.service.type.index"), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -51,7 +52,7 @@ const ServiceTypesIndex = ({
         setData("direction", direction);
 
         // 即座にソート実行
-        get(route("admin.service.service-types.index"), {
+        get(route("admin.service.type.index"), {
             data: { ...data, sort: field, direction },
             preserveState: true,
             preserveScroll: true,
@@ -89,7 +90,7 @@ const ServiceTypesIndex = ({
 
         if (confirmed) {
             router.post(
-                route("admin.service.service-types.bulk-action"),
+                route("admin.service.type.bulk-action"),
                 {
                     action,
                     ids: selectedItems,
@@ -108,7 +109,7 @@ const ServiceTypesIndex = ({
     const handleDelete = (id) => {
         const confirmed = confirm(ServiceTypesConstants.confirmMessages.delete);
         if (confirmed) {
-            router.delete(route("admin.service.service-types.destroy", id));
+            router.delete(route("admin.service.type.destroy", id));
         }
     };
 
@@ -161,13 +162,16 @@ const ServiceTypesIndex = ({
             label: ServiceTypesConstants.actions.create,
             icon: PlusIcon,
             variant: "primary",
-            route: route("admin.service.service-types.create"),
+            route: route("admin.service.type.create"),
         },
     ];
 
     return (
         <AdminLayout>
             <Head title={ServiceTypesConstants.page.documentTitle} />
+
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
             <div className="space-y-6">
                 {/* ヘッダー */}
@@ -213,6 +217,4 @@ const ServiceTypesIndex = ({
             </div>
         </AdminLayout>
     );
-};
-
-export default ServiceTypesIndex;
+}

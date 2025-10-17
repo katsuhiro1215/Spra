@@ -207,7 +207,7 @@ const ServiceTypesTable = ({
                                             onClick={() =>
                                                 router.get(
                                                     route(
-                                                        "admin.service.service-types.show",
+                                                        "admin.service.type.show",
                                                         serviceType.id
                                                     )
                                                 )
@@ -220,7 +220,7 @@ const ServiceTypesTable = ({
                                             onClick={() =>
                                                 router.get(
                                                     route(
-                                                        "admin.service.service-types.edit",
+                                                        "admin.service.type.edit",
                                                         serviceType.id
                                                     )
                                                 )
@@ -233,7 +233,7 @@ const ServiceTypesTable = ({
                                             onClick={() =>
                                                 router.post(
                                                     route(
-                                                        "admin.service.service-types.duplicate",
+                                                        "admin.service.type.duplicate",
                                                         serviceType.id
                                                     )
                                                 )

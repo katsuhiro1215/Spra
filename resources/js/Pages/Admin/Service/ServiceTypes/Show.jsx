@@ -1,11 +1,11 @@
 import React from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import {
     ArrowLeftIcon,
     PencilIcon,
     TrashIcon,
-    DuplicateIcon,
+    DocumentDuplicateIcon,
     EyeIcon,
     CalendarIcon,
     UserIcon,
@@ -13,34 +13,56 @@ import {
     CurrencyYenIcon,
     ClockIcon,
     ChartBarIcon,
-    ColorSwatchIcon,
+    SwatchIcon,
     Cog6ToothIcon,
     StarIcon,
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const ServiceTypeShow = ({ serviceType }) => {
+export default function ServiceTypeShow({ serviceType }) {
+    // 実際のデータは serviceType.data の中にある
+    const data = serviceType?.data;
+
+    // データが存在しない場合の処理
+    if (!data) {
+        return (
+            <AdminLayout>
+                <Head title="サービスタイプ詳細" />
+                <div className="space-y-6">
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <div className="text-center">
+                            <p className="text-gray-500">
+                                サービスタイプが見つかりません。
+                            </p>
+                            <Link
+                                href={route("admin.service.type.index")}
+                                className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                                一覧に戻る
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </AdminLayout>
+        );
+    }
+
     const handleDelete = () => {
         if (
             confirm(
-                `「${serviceType.name}」を削除しますか？この操作は取り消せません。`
+                `「${data?.name}」を削除しますか？この操作は取り消せません。`
             )
         ) {
-            router.delete(
-                route("admin.service.service-types.destroy", serviceType.id),
-                {
-                    onSuccess: () =>
-                        router.get(route("admin.service.service-types.index")),
-                }
-            );
+            router.delete(route("admin.service.type.destroy", data?.id), {
+                onSuccess: () => router.get(route("admin.service.type.index")),
+            });
         }
     };
 
     const handleDuplicate = () => {
-        router.post(
-            route("admin.service.service-types.duplicate", serviceType.id)
-        );
+        router.post(route("admin.service.type.duplicate", data?.id));
     };
 
     const formatDate = (dateString) => {
@@ -109,34 +131,30 @@ const ServiceTypeShow = ({ serviceType }) => {
 
     return (
         <AdminLayout>
-            <Head title={`サービスタイプ詳細 - ${serviceType.name}`} />
+            <Head title={`サービスタイプ詳細 - ${data?.name || ""}`} />
 
             <div className="space-y-6">
                 {/* ヘッダー */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() =>
-                                router.get(
-                                    route("admin.service.service-types.index")
-                                )
-                            }
+                        <Link
+                            href={route("admin.service.type.index")}
                             className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                             <ArrowLeftIcon className="w-4 h-4 mr-2" />
                             一覧に戻る
-                        </button>
+                        </Link>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                                {serviceType.color && (
+                                {data?.color && (
                                     <div
                                         className="w-6 h-6 rounded-full mr-3"
                                         style={{
-                                            backgroundColor: serviceType.color,
+                                            backgroundColor: data.color,
                                         }}
                                     ></div>
                                 )}
-                                {serviceType.name}
+                                {data?.name || "サービスタイプ"}
                             </h1>
                             <p className="text-gray-600">サービスタイプ詳細</p>
                         </div>
@@ -146,25 +164,41 @@ const ServiceTypeShow = ({ serviceType }) => {
                             serviceType.is_active,
                             serviceType.is_featured
                         )}
-                        <button
-                            onClick={() =>
-                                router.get(
-                                    route(
-                                        "admin.service.service-types.edit",
-                                        serviceType.id
-                                    )
-                                )
-                            }
+                        <Link
+                            href={route("admin.service.type.edit", {
+                                serviceType: data?.id,
+                            })}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                             <PencilIcon className="w-4 h-4 mr-2" />
                             編集
-                        </button>
+                        </Link>
+                        <Link
+                            href={route("admin.service.priceItem.index", {
+                                serviceType: data?.id,
+                            })}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                            <svg
+                                className="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                            </svg>
+                            価格項目管理
+                        </Link>
                         <button
                             onClick={handleDuplicate}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
-                            <DuplicateIcon className="w-4 h-4 mr-2" />
+                            <DocumentDuplicateIcon className="w-4 h-4 mr-2" />
                             複製
                         </button>
                         <button
@@ -192,7 +226,7 @@ const ServiceTypeShow = ({ serviceType }) => {
                                             サービスタイプ名
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            {serviceType.name}
+                                            {data?.name || "-"}
                                         </dd>
                                     </div>
                                     <div>
@@ -200,7 +234,7 @@ const ServiceTypeShow = ({ serviceType }) => {
                                             スラッグ
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            /{serviceType.slug}
+                                            {data?.slug ? `/${data.slug}` : "-"}
                                         </dd>
                                     </div>
                                     <div>
@@ -208,7 +242,8 @@ const ServiceTypeShow = ({ serviceType }) => {
                                             カテゴリ
                                         </dt>
                                         <dd className="mt-1 text-sm text-gray-900">
-                                            {serviceType.service_category?.name}
+                                            {data?.service_category?.name ||
+                                                "-"}
                                         </dd>
                                     </div>
                                     <div>
@@ -216,31 +251,33 @@ const ServiceTypeShow = ({ serviceType }) => {
                                             料金体系
                                         </dt>
                                         <dd className="mt-1">
-                                            {getPricingModelBadge(
-                                                serviceType.pricing_model
-                                            )}
+                                            {data?.pricing_model
+                                                ? getPricingModelBadge(
+                                                      data.pricing_model
+                                                  )
+                                                : "-"}
                                         </dd>
                                     </div>
                                 </dl>
 
-                                {serviceType.description && (
+                                {data?.description && (
                                     <div className="mt-6">
                                         <dt className="text-sm font-medium text-gray-500 mb-2">
                                             概要説明
                                         </dt>
                                         <dd className="text-sm text-gray-900 whitespace-pre-wrap">
-                                            {serviceType.description}
+                                            {data.description}
                                         </dd>
                                     </div>
                                 )}
 
-                                {serviceType.detailed_description && (
+                                {data?.detailed_description && (
                                     <div className="mt-6">
                                         <dt className="text-sm font-medium text-gray-500 mb-2">
                                             詳細説明
                                         </dt>
                                         <dd className="text-sm text-gray-900 whitespace-pre-wrap">
-                                            {serviceType.detailed_description}
+                                            {data.detailed_description}
                                         </dd>
                                     </div>
                                 )}
@@ -408,26 +445,21 @@ const ServiceTypeShow = ({ serviceType }) => {
                                     クイックアクション
                                 </h3>
                                 <div className="space-y-3">
-                                    <button
-                                        onClick={() =>
-                                            router.get(
-                                                route(
-                                                    "admin.service.service-types.edit",
-                                                    serviceType.id
-                                                )
-                                            )
-                                        }
+                                    <Link
+                                        href={route("admin.service.type.edit", {
+                                            serviceType: data?.id,
+                                        })}
                                         className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                     >
                                         <PencilIcon className="w-4 h-4 mr-2" />
                                         編集
-                                    </button>
+                                    </Link>
 
                                     <button
                                         onClick={handleDuplicate}
                                         className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                     >
-                                        <DuplicateIcon className="w-4 h-4 mr-2" />
+                                        <DocumentDuplicateIcon className="w-4 h-4 mr-2" />
                                         複製
                                     </button>
                                 </div>
@@ -438,7 +470,7 @@ const ServiceTypeShow = ({ serviceType }) => {
                         <div className="bg-white shadow rounded-lg">
                             <div className="px-4 py-5 sm:p-6">
                                 <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <ColorSwatchIcon className="w-5 h-5 mr-2" />
+                                    <SwatchIcon className="w-5 h-5 mr-2" />
                                     ビジュアル情報
                                 </h3>
                                 <dl className="space-y-4">
@@ -621,6 +653,4 @@ const ServiceTypeShow = ({ serviceType }) => {
             </div>
         </AdminLayout>
     );
-};
-
-export default ServiceTypeShow;
+}
