@@ -5,7 +5,6 @@ use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\Homepage\PageController;
-use App\Http\Controllers\Admin\Homepage\ServiceCategoryController;
 use App\Http\Controllers\Admin\Homepage\ServicesController;
 use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
 use App\Http\Controllers\Admin\Homepage\BlogController;
@@ -13,6 +12,9 @@ use App\Http\Controllers\Admin\Homepage\FaqsController;
 use App\Http\Controllers\Admin\Homepage\ContactController;
 use App\Http\Controllers\Admin\Homepage\SiteSettingController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\Service\ServiceTypeController;
+use App\Http\Controllers\Admin\Service\ServiceCategoryController;
+use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -26,7 +28,6 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   // ホームページ管理
   Route::prefix('homepage')->name('homepage.')->group(function () {
     Route::resource('pages', PageController::class);
-    Route::resource('serviceCategories', ServiceCategoryController::class);
     Route::resource('services', ServicesController::class);
     Route::resource('blogCategories', BlogCategoryController::class);
     Route::post('/blogCategories/bulk-action', [BlogCategoryController::class, 'bulkAction'])->name('blogCategories.bulk-action');
@@ -53,6 +54,22 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   Route::resource('media', MediaController::class);
   Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
   Route::delete('/media/bulk-destroy', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
+
+  // サービス管理
+  Route::prefix('service')->name('service.')->group(function () {
+    Route::resource('categories', ServiceCategoryController::class);
+    Route::resource('type', ServiceTypeController::class)->parameters(['type' => 'serviceType']);
+    Route::post('/type/bulk-action', [ServiceTypeController::class, 'bulkAction'])->name('type.bulk-action');
+    Route::post('/type/update-order', [ServiceTypeController::class, 'updateOrder'])->name('type.update-order');
+    Route::post('/type/{serviceType}/duplicate', [ServiceTypeController::class, 'duplicate'])->name('type.duplicate');
+
+    // 価格項目管理
+    Route::prefix('type/{serviceType}')->group(function () {
+      Route::resource('priceItem', ServiceTypePriceItemController::class)->parameters(['priceItem' => 'priceItem']);
+      Route::post('/priceItem/sort-order', [ServiceTypePriceItemController::class, 'updateSortOrder'])->name('priceItem.sort-order');
+      Route::post('/priceItem/template', [ServiceTypePriceItemController::class, 'createFromTemplate'])->name('priceItem.template');
+    });
+  });
 
   // コンテンツ管理（一時的にダミー）
   Route::get('/content', function () {
