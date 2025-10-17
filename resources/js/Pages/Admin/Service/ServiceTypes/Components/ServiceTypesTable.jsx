@@ -8,6 +8,7 @@ import {
     TrashIcon,
     DocumentDuplicateIcon,
     StarIcon,
+    SwatchIcon,
 } from "@heroicons/react/24/outline";
 
 const ServiceTypesTable = ({
@@ -202,54 +203,74 @@ const ServiceTypesTable = ({
                                             serviceType.updated_at
                                         ).toLocaleDateString("ja-JP")}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                        <button
-                                            onClick={() =>
-                                                router.get(
-                                                    route(
-                                                        "admin.service.type.show",
-                                                        serviceType.id
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() =>
+                                                    router.get(
+                                                        route(
+                                                            "admin.service.type.show",
+                                                            serviceType.id
+                                                        )
                                                     )
-                                                )
-                                            }
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                router.get(
-                                                    route(
-                                                        "admin.service.type.edit",
-                                                        serviceType.id
+                                                }
+                                                className="text-blue-600 hover:text-blue-900"
+                                                title="詳細表示"
+                                            >
+                                                <EyeIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    router.get(
+                                                        route(
+                                                            "admin.service.plans.index",
+                                                            serviceType.id
+                                                        )
                                                     )
-                                                )
-                                            }
-                                            className="text-green-600 hover:text-green-900"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                router.post(
-                                                    route(
-                                                        "admin.service.type.duplicate",
-                                                        serviceType.id
+                                                }
+                                                className="text-indigo-600 hover:text-indigo-900"
+                                                title="プラン管理"
+                                            >
+                                                <SwatchIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    router.get(
+                                                        route(
+                                                            "admin.service.type.edit",
+                                                            serviceType.id
+                                                        )
                                                     )
-                                                )
-                                            }
-                                            className="text-purple-600 hover:text-purple-900"
-                                        >
-                                            <DocumentDuplicateIcon className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                onDelete(serviceType.id)
-                                            }
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                                }
+                                                className="text-green-600 hover:text-green-900"
+                                                title="編集"
+                                            >
+                                                <PencilIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    router.post(
+                                                        route(
+                                                            "admin.service.type.duplicate",
+                                                            serviceType.id
+                                                        )
+                                                    )
+                                                }
+                                                className="text-purple-600 hover:text-purple-900"
+                                                title="複製"
+                                            >
+                                                <DocumentDuplicateIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    onDelete(serviceType.id)
+                                                }
+                                                className="text-red-600 hover:text-red-900"
+                                                title="削除"
+                                            >
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

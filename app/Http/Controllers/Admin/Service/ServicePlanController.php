@@ -97,7 +97,6 @@ class ServicePlanController extends Controller
             return redirect()
                 ->route('admin.service.plans.index', $serviceType)
                 ->with('success', 'サービスプランを作成しました。');
-
         } catch (\Exception $e) {
             Log::error('ServicePlan creation error: ' . $e->getMessage());
             return back()
@@ -188,7 +187,6 @@ class ServicePlanController extends Controller
             return redirect()
                 ->route('admin.service.plans.index', $serviceType)
                 ->with('success', 'サービスプランを更新しました。');
-
         } catch (\Exception $e) {
             Log::error('ServicePlan update error: ' . $e->getMessage());
             return back()
@@ -208,7 +206,6 @@ class ServicePlanController extends Controller
             return redirect()
                 ->route('admin.service.plans.index', $serviceType)
                 ->with('success', 'サービスプランを削除しました。');
-
         } catch (\Exception $e) {
             Log::error('ServicePlan deletion error: ' . $e->getMessage());
             return back()->with('error', 'サービスプランの削除に失敗しました。');
@@ -235,7 +232,6 @@ class ServicePlanController extends Controller
             return redirect()
                 ->route('admin.service.plans.index', $serviceType)
                 ->with('success', count($request->ids) . '件のサービスプランを削除しました。');
-
         } catch (\Exception $e) {
             Log::error('ServicePlan bulk deletion error: ' . $e->getMessage());
             return back()->with('error', 'サービスプランの一括削除に失敗しました。');

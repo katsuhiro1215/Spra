@@ -69,7 +69,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
       Route::resource('priceItem', ServiceTypePriceItemController::class)->parameters(['priceItem' => 'priceItem']);
       Route::post('/priceItem/sort-order', [ServiceTypePriceItemController::class, 'updateSortOrder'])->name('priceItem.sort-order');
       Route::post('/priceItem/template', [ServiceTypePriceItemController::class, 'createFromTemplate'])->name('priceItem.template');
-      
+
       // サービスプラン管理
       Route::resource('plans', ServicePlanController::class)->parameters(['plans' => 'servicePlan']);
       Route::post('/plans/bulk-destroy', [ServicePlanController::class, 'bulkDestroy'])->name('plans.bulk-destroy');

@@ -23,7 +23,7 @@ class ServicePlanSeeder extends Seeder
 
         // 各サービスタイプに対してプランを作成
         $serviceTypes = ServiceType::take(3)->get();
-        
+
         foreach ($serviceTypes as $serviceType) {
             $this->createPlansForServiceType($serviceType, $admin->id);
         }
@@ -34,7 +34,7 @@ class ServicePlanSeeder extends Seeder
     private function createPlansForServiceType(ServiceType $serviceType, int $adminId): void
     {
         $basePrice = $serviceType->base_price ?? 300000;
-        
+
         $plans = [
             [
                 'name' => 'ベーシック',
@@ -113,7 +113,8 @@ class ServicePlanSeeder extends Seeder
             );
         }
     }
-}Database\Seeders;
+}
+Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;

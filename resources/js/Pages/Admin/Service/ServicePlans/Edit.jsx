@@ -12,27 +12,28 @@ import {
     CurrencyYenIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Create({ serviceType, billingCycles }) {
-    const { data, setData, post, processing, errors } = useForm({
-        name: "",
-        slug: "",
-        description: "",
-        detailed_description: "",
-        base_price: "",
-        price_unit: "",
-        billing_cycle: "one_time",
-        setup_fee: "",
-        features: [""],
-        included_items: [""],
-        limitations: [""],
-        max_revisions: "",
-        estimated_delivery_days: "",
-        is_popular: false,
-        is_recommended: false,
-        sort_order: "",
-        color: "#3B82F6",
-        badge_text: "",
-        icon: "",
+export default function Edit({ serviceType, servicePlan, billingCycles }) {
+    const { data, setData, patch, processing, errors } = useForm({
+        name: servicePlan.name || "",
+        slug: servicePlan.slug || "",
+        description: servicePlan.description || "",
+        detailed_description: servicePlan.detailed_description || "",
+        base_price: servicePlan.base_price || "",
+        price_unit: servicePlan.price_unit || "",
+        billing_cycle: servicePlan.billing_cycle || "one_time",
+        setup_fee: servicePlan.setup_fee || "",
+        features: servicePlan.features || [""],
+        included_items: servicePlan.included_items || [""],
+        limitations: servicePlan.limitations || [""],
+        max_revisions: servicePlan.max_revisions || "",
+        estimated_delivery_days: servicePlan.estimated_delivery_days || "",
+        is_popular: servicePlan.is_popular || false,
+        is_recommended: servicePlan.is_recommended || false,
+        is_active: servicePlan.is_active !== undefined ? servicePlan.is_active : true,
+        sort_order: servicePlan.sort_order || "",
+        color: servicePlan.color || "#3B82F6",
+        badge_text: servicePlan.badge_text || "",
+        icon: servicePlan.icon || "",
     });
 
     const headerActions = [
@@ -46,7 +47,7 @@ export default function Create({ serviceType, billingCycles }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.service.plans.store", serviceType.id));
+        patch(route("admin.service.plans.update", [serviceType.id, servicePlan.id]));
     };
 
     const addArrayItem = (field) => {
@@ -68,15 +69,15 @@ export default function Create({ serviceType, billingCycles }) {
 
     return (
         <AdminLayout>
-            <Head title={`サービスプラン作成 - ${serviceType.name}`} />
+            <Head title={`サービスプラン編集 - ${servicePlan.name}`} />
 
             <div className="py-6">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <FlashMessage />
 
                     <PageHeader
-                        title="サービスプラン作成"
-                        description={`${serviceType.name}の新しいプランを作成します`}
+                        title="サービスプラン編集"
+                        description={`${serviceType.name}のプラン「${servicePlan.name}」を編集します`}
                         actions={headerActions}
                     />
 
@@ -121,10 +122,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         name="description"
                                         value={data.description}
                                         onChange={(e) =>
-                                            setData(
-                                                "description",
-                                                e.target.value
-                                            )
+                                            setData("description", e.target.value)
                                         }
                                         error={errors.description}
                                         required
@@ -172,10 +170,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         type="number"
                                         value={data.base_price}
                                         onChange={(e) =>
-                                            setData(
-                                                "base_price",
-                                                e.target.value
-                                            )
+                                            setData("base_price", e.target.value)
                                         }
                                         error={errors.base_price}
                                         required
@@ -189,10 +184,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         name="price_unit"
                                         value={data.price_unit}
                                         onChange={(e) =>
-                                            setData(
-                                                "price_unit",
-                                                e.target.value
-                                            )
+                                            setData("price_unit", e.target.value)
                                         }
                                         error={errors.price_unit}
                                         placeholder="例: 式、月、時間"
@@ -216,27 +208,18 @@ export default function Create({ serviceType, billingCycles }) {
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            請求サイクル{" "}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            請求サイクル <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={data.billing_cycle}
                                             onChange={(e) =>
-                                                setData(
-                                                    "billing_cycle",
-                                                    e.target.value
-                                                )
+                                                setData("billing_cycle", e.target.value)
                                             }
                                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             {Object.entries(billingCycles).map(
                                                 ([key, label]) => (
-                                                    <option
-                                                        key={key}
-                                                        value={key}
-                                                    >
+                                                    <option key={key} value={key}>
                                                         {label}
                                                     </option>
                                                 )
@@ -255,10 +238,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         type="number"
                                         value={data.max_revisions}
                                         onChange={(e) =>
-                                            setData(
-                                                "max_revisions",
-                                                e.target.value
-                                            )
+                                            setData("max_revisions", e.target.value)
                                         }
                                         error={errors.max_revisions}
                                         min="0"
@@ -283,9 +263,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                addArrayItem("features")
-                                            }
+                                            onClick={() => addArrayItem("features")}
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -294,10 +272,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     </div>
                                     <div className="space-y-2">
                                         {data.features.map((feature, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center space-x-2"
-                                            >
+                                            <div key={index} className="flex items-center space-x-2">
                                                 <input
                                                     type="text"
                                                     value={feature}
@@ -315,10 +290,7 @@ export default function Create({ serviceType, billingCycles }) {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            removeArrayItem(
-                                                                "features",
-                                                                index
-                                                            )
+                                                            removeArrayItem("features", index)
                                                         }
                                                         className="text-red-600 hover:text-red-800"
                                                     >
@@ -338,9 +310,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                addArrayItem("included_items")
-                                            }
+                                            onClick={() => addArrayItem("included_items")}
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -348,43 +318,34 @@ export default function Create({ serviceType, billingCycles }) {
                                         </button>
                                     </div>
                                     <div className="space-y-2">
-                                        {data.included_items.map(
-                                            (item, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center space-x-2"
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        value={item}
-                                                        onChange={(e) =>
-                                                            updateArrayItem(
-                                                                "included_items",
-                                                                index,
-                                                                e.target.value
-                                                            )
+                                        {data.included_items.map((item, index) => (
+                                            <div key={index} className="flex items-center space-x-2">
+                                                <input
+                                                    type="text"
+                                                    value={item}
+                                                    onChange={(e) =>
+                                                        updateArrayItem(
+                                                            "included_items",
+                                                            index,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="例: デザイン設計"
+                                                />
+                                                {data.included_items.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeArrayItem("included_items", index)
                                                         }
-                                                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="例: デザイン設計"
-                                                    />
-                                                    {data.included_items
-                                                        .length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                removeArrayItem(
-                                                                    "included_items",
-                                                                    index
-                                                                )
-                                                            }
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )
-                                        )}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <TrashIcon className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -396,9 +357,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                addArrayItem("limitations")
-                                            }
+                                            onClick={() => addArrayItem("limitations")}
                                             className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" />
@@ -406,43 +365,34 @@ export default function Create({ serviceType, billingCycles }) {
                                         </button>
                                     </div>
                                     <div className="space-y-2">
-                                        {data.limitations.map(
-                                            (limitation, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center space-x-2"
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        value={limitation}
-                                                        onChange={(e) =>
-                                                            updateArrayItem(
-                                                                "limitations",
-                                                                index,
-                                                                e.target.value
-                                                            )
+                                        {data.limitations.map((limitation, index) => (
+                                            <div key={index} className="flex items-center space-x-2">
+                                                <input
+                                                    type="text"
+                                                    value={limitation}
+                                                    onChange={(e) =>
+                                                        updateArrayItem(
+                                                            "limitations",
+                                                            index,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="例: ページ数上限: 5ページ"
+                                                />
+                                                {data.limitations.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeArrayItem("limitations", index)
                                                         }
-                                                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="例: ページ数上限: 5ページ"
-                                                    />
-                                                    {data.limitations.length >
-                                                        1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                removeArrayItem(
-                                                                    "limitations",
-                                                                    index
-                                                                )
-                                                            }
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )
-                                        )}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        <TrashIcon className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -454,10 +404,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         type="number"
                                         value={data.estimated_delivery_days}
                                         onChange={(e) =>
-                                            setData(
-                                                "estimated_delivery_days",
-                                                e.target.value
-                                            )
+                                            setData("estimated_delivery_days", e.target.value)
                                         }
                                         error={errors.estimated_delivery_days}
                                         min="0"
@@ -470,10 +417,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         type="number"
                                         value={data.sort_order}
                                         onChange={(e) =>
-                                            setData(
-                                                "sort_order",
-                                                e.target.value
-                                            )
+                                            setData("sort_order", e.target.value)
                                         }
                                         error={errors.sort_order}
                                         min="0"
@@ -485,10 +429,7 @@ export default function Create({ serviceType, billingCycles }) {
                                         name="badge_text"
                                         value={data.badge_text}
                                         onChange={(e) =>
-                                            setData(
-                                                "badge_text",
-                                                e.target.value
-                                            )
+                                            setData("badge_text", e.target.value)
                                         }
                                         error={errors.badge_text}
                                         placeholder="例: 人気、推奨"
@@ -535,10 +476,7 @@ export default function Create({ serviceType, billingCycles }) {
                                             id="is_popular"
                                             checked={data.is_popular}
                                             onChange={(e) =>
-                                                setData(
-                                                    "is_popular",
-                                                    e.target.checked
-                                                )
+                                                setData("is_popular", e.target.checked)
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
@@ -556,10 +494,7 @@ export default function Create({ serviceType, billingCycles }) {
                                             id="is_recommended"
                                             checked={data.is_recommended}
                                             onChange={(e) =>
-                                                setData(
-                                                    "is_recommended",
-                                                    e.target.checked
-                                                )
+                                                setData("is_recommended", e.target.checked)
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
@@ -570,6 +505,24 @@ export default function Create({ serviceType, billingCycles }) {
                                             推奨プランとして表示
                                         </label>
                                     </div>
+
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="is_active"
+                                            checked={data.is_active}
+                                            onChange={(e) =>
+                                                setData("is_active", e.target.checked)
+                                            }
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label
+                                            htmlFor="is_active"
+                                            className="ml-2 text-sm text-gray-700"
+                                        >
+                                            アクティブ（公開中）
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -578,7 +531,9 @@ export default function Create({ serviceType, billingCycles }) {
                         <div className="flex items-center justify-end space-x-3">
                             <button
                                 type="button"
-                                onClick={() => window.history.back()}
+                                onClick={() =>
+                                    window.history.back()
+                                }
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 キャンセル
@@ -588,7 +543,7 @@ export default function Create({ serviceType, billingCycles }) {
                                 disabled={processing}
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
                             >
-                                {processing ? "作成中..." : "プラン作成"}
+                                {processing ? "更新中..." : "プラン更新"}
                             </button>
                         </div>
                     </form>

@@ -53,9 +53,7 @@ export default function Index({ serviceType, servicePlans }) {
         if (selectedPlans.length === 0) return;
 
         if (
-            confirm(
-                `選択した${selectedPlans.length}件のプランを削除しますか？`
-            )
+            confirm(`選択した${selectedPlans.length}件のプランを削除しますか？`)
         ) {
             router.post(
                 route("admin.service.plans.bulk-destroy", serviceType.id),
@@ -70,18 +68,13 @@ export default function Index({ serviceType, servicePlans }) {
     const handleDelete = (plan) => {
         if (confirm(`「${plan.name}」を削除しますか？`)) {
             router.delete(
-                route("admin.service.plans.destroy", [
-                    serviceType.id,
-                    plan.id,
-                ])
+                route("admin.service.plans.destroy", [serviceType.id, plan.id])
             );
         }
     };
 
     const formatPrice = (price, unit, setupFee) => {
-        let priceText = price
-            ? `¥${Number(price).toLocaleString()}`
-            : "要相談";
+        let priceText = price ? `¥${Number(price).toLocaleString()}` : "要相談";
         if (unit) priceText += `/${unit}`;
         if (setupFee > 0) {
             priceText += ` (初期費用: ¥${Number(setupFee).toLocaleString()})`;
@@ -311,7 +304,8 @@ export default function Index({ serviceType, servicePlans }) {
                                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                         checked={
                                                             selectedPlans.length ===
-                                                                servicePlans.data
+                                                                servicePlans
+                                                                    .data
                                                                     .length &&
                                                             servicePlans.data
                                                                 .length > 0
