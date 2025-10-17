@@ -194,6 +194,15 @@ export default function ServiceTypeShow({ serviceType }) {
                             </svg>
                             価格項目管理
                         </Link>
+                        <Link
+                            href={route("admin.service.plans.index", {
+                                serviceType: data?.id,
+                            })}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100"
+                        >
+                            <SwatchIcon className="w-4 h-4 mr-2" />
+                            プラン管理
+                        </Link>
                         <button
                             onClick={handleDuplicate}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"

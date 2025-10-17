@@ -64,9 +64,7 @@ class ServiceType extends Model
 
     public function servicePlans(): HasMany
     {
-        // ServicePlanクラス作成後に有効化
-        // return $this->hasMany(ServicePlan::class);
-        return $this->hasMany('App\Models\ServicePlan');
+        return $this->hasMany(ServicePlan::class)->orderBy('sort_order');
     }
 
     public function parentService(): BelongsTo
