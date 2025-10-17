@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Homepage\SiteSettingController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\Service\ServiceTypeController;
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
+use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -57,10 +58,17 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   // サービス管理
   Route::prefix('service')->name('service.')->group(function () {
     Route::resource('categories', ServiceCategoryController::class);
-    Route::resource('service-types', ServiceTypeController::class);
-    Route::post('/service-types/bulk-action', [ServiceTypeController::class, 'bulkAction'])->name('service-types.bulk-action');
-    Route::post('/service-types/update-order', [ServiceTypeController::class, 'updateOrder'])->name('service-types.update-order');
-    Route::post('/service-types/{serviceType}/duplicate', [ServiceTypeController::class, 'duplicate'])->name('service-types.duplicate');
+    Route::resource('type', ServiceTypeController::class)->parameters(['type' => 'serviceType']);
+    Route::post('/type/bulk-action', [ServiceTypeController::class, 'bulkAction'])->name('type.bulk-action');
+    Route::post('/type/update-order', [ServiceTypeController::class, 'updateOrder'])->name('type.update-order');
+    Route::post('/type/{serviceType}/duplicate', [ServiceTypeController::class, 'duplicate'])->name('type.duplicate');
+
+    // 価格項目管理
+    Route::prefix('type/{serviceType}')->group(function () {
+      Route::resource('priceItem', ServiceTypePriceItemController::class)->parameters(['priceItem' => 'priceItem']);
+      Route::post('/priceItem/sort-order', [ServiceTypePriceItemController::class, 'updateSortOrder'])->name('priceItem.sort-order');
+      Route::post('/priceItem/template', [ServiceTypePriceItemController::class, 'createFromTemplate'])->name('priceItem.template');
+    });
   });
 
   // コンテンツ管理（一時的にダミー）

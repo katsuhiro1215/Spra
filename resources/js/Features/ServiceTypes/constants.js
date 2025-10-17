@@ -18,6 +18,22 @@ export const ServiceTypesConstants = {
         import: "インポート",
     },
 
+    // ページ情報
+    pages: {
+        index: {
+            title: "サービスタイプ一覧",
+        },
+        show: {
+            title: "サービスタイプ詳細",
+        },
+        create: {
+            title: "サービスタイプ作成",
+        },
+        edit: {
+            title: "サービスタイプ編集",
+        },
+    },
+
     // 検索・フィルター
     search: {
         placeholder: "サービスタイプ名、説明で検索...",
@@ -143,6 +159,7 @@ export const ServiceTypesConstants = {
             saveAndContinue: "保存して続行",
             cancel: "キャンセル",
             back: "戻る",
+            backToDetail: "詳細に戻る",
         },
         validation: {
             nameRequired: "サービスタイプ名は必須です",

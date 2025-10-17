@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Admin\Service;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceType;
 use App\Services\ServiceTypeService;
-use App\Http\Requests\StoreServiceTypeRequest;
-use App\Http\Requests\UpdateServiceTypeRequest;
+use App\Http\Requests\Admin\Service\ServiceTypeRequest;
 use App\Http\Resources\Admin\ServiceTypeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -88,19 +87,19 @@ class ServiceTypeController extends Controller
    * サービスタイプ保存
    * @return RedirectResponse
    */
-  public function store(StoreServiceTypeRequest $request): RedirectResponse
+  public function store(ServiceTypeRequest $request): RedirectResponse
   {
     try {
       $this->serviceTypeService->createServiceType($request->validated());
 
       return redirect()
-        ->route('admin.service.service-types.index')
-        ->with('success', 'サービスタイプを作成しました。');
+        ->route('admin.service.type.index')
+        ->with('success', __('messages.service_type.created'));
     } catch (\Exception $e) {
       Log::error('ServiceType store error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', 'サービスタイプの作成に失敗しました。');
+        ->with('error', __('messages.service_type.create_failed'));
     }
   }
 
@@ -155,19 +154,19 @@ class ServiceTypeController extends Controller
    * @param ServiceType $serviceType
    * @return RedirectResponse
    */
-  public function update(UpdateServiceTypeRequest $request, ServiceType $serviceType): RedirectResponse
+  public function update(ServiceTypeRequest $request, ServiceType $serviceType): RedirectResponse
   {
     try {
       $this->serviceTypeService->updateServiceType($serviceType, $request->validated());
 
       return redirect()
-        ->route('admin.service.service-types.show', $serviceType)
-        ->with('success', 'サービスタイプを更新しました。');
+        ->route('admin.service.type.show', $serviceType)
+        ->with('success', __('messages.service_type.updated'));
     } catch (\Exception $e) {
       Log::error('ServiceType update error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', 'サービスタイプの更新に失敗しました。');
+        ->with('error', __('messages.service_type.update_failed'));
     }
   }
 
@@ -182,11 +181,11 @@ class ServiceTypeController extends Controller
       $this->serviceTypeService->deleteServiceType($serviceType);
 
       return redirect()
-        ->route('admin.service.service-types.index')
-        ->with('success', 'サービスタイプを削除しました。');
+        ->route('admin.service.type.index')
+        ->with('success', __('messages.service_type.deleted'));
     } catch (\Exception $e) {
       Log::error('ServiceType destroy error: ' . $e->getMessage());
-      return redirect()->back()->with('error', 'サービスタイプの削除に失敗しました。');
+      return redirect()->back()->with('error', __('messages.service_type.delete_failed'));
     }
   }
 
@@ -201,11 +200,11 @@ class ServiceTypeController extends Controller
       $duplicatedServiceType = $this->serviceTypeService->duplicateServiceType($serviceType);
 
       return redirect()
-        ->route('admin.service.service-types.edit', $duplicatedServiceType)
-        ->with('success', 'サービスタイプを複製しました。');
+        ->route('admin.service.type.edit', $duplicatedServiceType)
+        ->with('success', __('messages.service_type.duplicated'));
     } catch (\Exception $e) {
       Log::error('ServiceType duplicate error: ' . $e->getMessage());
-      return redirect()->back()->with('error', 'サービスタイプの複製に失敗しました。');
+      return redirect()->back()->with('error', __('messages.service_type.duplicate_failed'));
     }
   }
 
@@ -226,17 +225,17 @@ class ServiceTypeController extends Controller
       $count = $this->serviceTypeService->bulkAction($request->ids, $request->action);
 
       $messages = [
-        'activate' => "{$count}件のサービスタイプをアクティブにしました。",
-        'deactivate' => "{$count}件のサービスタイプを非アクティブにしました。",
-        'feature' => "{$count}件のサービスタイプをおすすめに設定しました。",
-        'unfeature' => "{$count}件のサービスタイプをおすすめから外しました。",
-        'delete' => "{$count}件のサービスタイプを削除しました。",
+        'activate' => __('messages.service_type.bulk_activated', ['count' => $count]),
+        'deactivate' => __('messages.service_type.bulk_deactivated', ['count' => $count]),
+        'feature' => __('messages.service_type.bulk_featured', ['count' => $count]),
+        'unfeature' => __('messages.service_type.bulk_unfeatured', ['count' => $count]),
+        'delete' => __('messages.service_type.bulk_deleted', ['count' => $count]),
       ];
 
       return redirect()->back()->with('success', $messages[$request->action]);
     } catch (\Exception $e) {
       Log::error('ServiceType bulk action error: ' . $e->getMessage());
-      return redirect()->back()->with('error', '一括操作に失敗しました。');
+      return redirect()->back()->with('error', __('messages.service_type.bulk_action_failed'));
     }
   }
 
@@ -256,10 +255,10 @@ class ServiceTypeController extends Controller
     try {
       $this->serviceTypeService->updateOrder($request->orders);
 
-      return redirect()->back()->with('success', '表示順序を更新しました。');
+      return redirect()->back()->with('success', __('messages.service_type.order_updated'));
     } catch (\Exception $e) {
       Log::error('ServiceType update order error: ' . $e->getMessage());
-      return redirect()->back()->with('error', '表示順序の更新に失敗しました。');
+      return redirect()->back()->with('error', __('messages.service_type.order_update_failed'));
     }
   }
 }
