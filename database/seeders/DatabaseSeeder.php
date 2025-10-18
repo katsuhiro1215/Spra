@@ -13,8 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // 基本のテストユーザー
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -30,6 +29,10 @@ class DatabaseSeeder extends Seeder
             ServicePlanSeeder::class,
             PlanPricingSeeder::class,
             FaqCategorySeeder::class,
+
+            // 新しいSeeder群（順序重要：CompanySeeder → UserSeeder）
+            CompanySeeder::class,    // 会社データを先に作成
+            UserSeeder::class,       // ユーザーデータ（会社との関連含む）
         ]);
     }
 }

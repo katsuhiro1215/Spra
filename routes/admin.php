@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\PlanPricingController;
+use App\Http\Controllers\Admin\CompanyController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -26,6 +27,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
 
   // ユーザー管理
   Route::resource('users', UserController::class);
+
+  // 会社管理
+  Route::resource('companies', CompanyController::class);
+  Route::post('/companies/bulk-destroy', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-destroy');
+  Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
+
+  // 会社住所管理
+  Route::prefix('companies/{company}')->name('companies.')->group(function () {
+    Route::post('/addresses', [CompanyController::class, 'storeAddress'])->name('addresses.store');
+    Route::put('/addresses/{address}', [CompanyController::class, 'updateAddress'])->name('addresses.update');
+    Route::delete('/addresses/{address}', [CompanyController::class, 'destroyAddress'])->name('addresses.destroy');
+  });
 
   // ホームページ管理
   Route::prefix('homepage')->name('homepage.')->group(function () {
