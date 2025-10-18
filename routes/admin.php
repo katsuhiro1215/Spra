@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Service\ServiceTypeController;
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
+use App\Http\Controllers\Admin\Service\PlanPricingController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -73,6 +74,15 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
       // サービスプラン管理
       Route::resource('plans', ServicePlanController::class)->parameters(['plans' => 'servicePlan']);
       Route::post('/plans/bulk-destroy', [ServicePlanController::class, 'bulkDestroy'])->name('plans.bulk-destroy');
+
+      // プラン価格設定管理
+      Route::prefix('plans/{servicePlan}')->name('plans.')->group(function () {
+        Route::resource('pricing', PlanPricingController::class)->parameters(['pricing' => 'pricing']);
+        Route::post('/pricing/bulk-destroy', [PlanPricingController::class, 'bulkDelete'])->name('pricing.bulk-destroy');
+        Route::patch('/pricing/{pricing}/toggle-active', [PlanPricingController::class, 'toggleActive'])->name('pricing.toggle-active');
+        Route::patch('/pricing/{pricing}/set-default', [PlanPricingController::class, 'setDefault'])->name('pricing.set-default');
+        Route::post('/pricing/{pricing}/calculate', [PlanPricingController::class, 'calculatePrice'])->name('pricing.calculate');
+      });
     });
   });
 

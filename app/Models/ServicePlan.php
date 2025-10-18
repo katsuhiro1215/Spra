@@ -86,6 +86,30 @@ class ServicePlan extends Model
     }
 
     /**
+     * PlanPricingとのリレーション
+     */
+    public function planPricings(): HasMany
+    {
+        return $this->hasMany(PlanPricing::class);
+    }
+
+    /**
+     * アクティブなPlanPricingとのリレーション
+     */
+    public function activePlanPricings(): HasMany
+    {
+        return $this->hasMany(PlanPricing::class)->active();
+    }
+
+    /**
+     * 現在有効なPlanPricingとのリレーション
+     */
+    public function effectivePlanPricings(): HasMany
+    {
+        return $this->hasMany(PlanPricing::class)->active()->effective();
+    }
+
+    /**
      * スコープ: アクティブなプランのみ
      */
     public function scopeActive($query)
