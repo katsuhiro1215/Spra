@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Service;
 use App\Http\Controllers\Controller;
 use App\Models\PlanPricing;
 use App\Models\ServicePlan;
+use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,7 @@ class PlanPricingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, ServicePlan $servicePlan): Response
+    public function index(Request $request, ServiceType $serviceType, ServicePlan $servicePlan): Response
     {
         $query = $servicePlan->planPricings()
             ->with(['creator', 'updater'])
@@ -91,7 +92,7 @@ class PlanPricingController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(ServicePlan $servicePlan): Response
+    public function create(ServiceType $serviceType, ServicePlan $servicePlan): Response
     {
         return Inertia::render('Admin/Service/PlanPricing/Create', [
             'servicePlan' => $servicePlan->load('serviceType'),
@@ -101,7 +102,7 @@ class PlanPricingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, ServicePlan $servicePlan): RedirectResponse
+    public function store(Request $request, ServiceType $serviceType, ServicePlan $servicePlan): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -162,7 +163,7 @@ class PlanPricingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ServicePlan $servicePlan, PlanPricing $pricing): Response
+    public function show(ServiceType $serviceType, ServicePlan $servicePlan, PlanPricing $pricing): Response
     {
         $pricing->load(['creator', 'updater']);
 
@@ -175,7 +176,7 @@ class PlanPricingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ServicePlan $servicePlan, PlanPricing $pricing): Response
+    public function edit(ServiceType $serviceType, ServicePlan $servicePlan, PlanPricing $pricing): Response
     {
         return Inertia::render('Admin/Service/PlanPricing/Edit', [
             'servicePlan' => $servicePlan->load('serviceType'),
@@ -186,7 +187,7 @@ class PlanPricingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ServicePlan $servicePlan, PlanPricing $pricing): RedirectResponse
+    public function update(Request $request, ServiceType $serviceType, ServicePlan $servicePlan, PlanPricing $pricing): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',

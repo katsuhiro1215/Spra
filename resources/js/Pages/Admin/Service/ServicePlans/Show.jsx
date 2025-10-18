@@ -164,10 +164,22 @@ export default function Show({ serviceType, servicePlan }) {
                         {/* 価格情報 */}
                         <div className="bg-white shadow rounded-lg">
                             <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <CurrencyYenIcon className="w-5 h-5 mr-2" />
-                                    価格情報
-                                </h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                                        <CurrencyYenIcon className="w-5 h-5 mr-2" />
+                                        価格情報
+                                    </h3>
+                                    <Link
+                                        href={route(
+                                            "admin.service.plans.pricing.index",
+                                            [serviceType.id, servicePlan.id]
+                                        )}
+                                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    >
+                                        <CurrencyYenIcon className="h-4 w-4 mr-2" />
+                                        価格設定を管理
+                                    </Link>
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div className="bg-gray-50 rounded-lg p-4">
