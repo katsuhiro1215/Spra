@@ -28,6 +28,16 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   // ユーザー管理
   Route::resource('users', UserController::class);
 
+  // ユーザープロフィール管理
+  Route::prefix('users/{user}')->name('users.')->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/create', [\App\Http\Controllers\Admin\UserProfileController::class, 'create'])->name('profile.create');
+    Route::post('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'store'])->name('profile.store');
+    Route::get('/profile/edit', [\App\Http\Controllers\Admin\UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'destroy'])->name('profile.destroy');
+  });
+
   // 会社管理
   Route::resource('companies', CompanyController::class);
   Route::post('/companies/bulk-destroy', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-destroy');

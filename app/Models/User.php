@@ -105,6 +105,11 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
     public function addresses(): MorphMany
     {
         return $this->morphMany(UserAddress::class, 'addressable');

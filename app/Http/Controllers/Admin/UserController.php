@@ -18,7 +18,7 @@ class UserController extends Controller
         $users = User::query()
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10)
@@ -63,7 +63,9 @@ class UserController extends Controller
     public function show(User $user): Response
     {
         return Inertia::render('Admin/Users/Show', [
-            'user' => $user->load(['created_at', 'updated_at']),
+            'user' => $user->load(['profile']),
+            'profile' => $user->profile,
+            'addresses' => $user->addresses,
         ]);
     }
 
