@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\PlanPricingController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\LogController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -108,6 +109,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
       });
     });
   });
+
+  // ログ管理
+  Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
   // コンテンツ管理（一時的にダミー）
   Route::get('/content', function () {

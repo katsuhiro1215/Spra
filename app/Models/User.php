@@ -120,6 +120,26 @@ class User extends Authenticatable
         return $this->addresses()->where('is_default', true)->where('is_active', true);
     }
 
+    public function activityLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
+    }
+
+    public function loginHistories()
+    {
+        return $this->hasMany(UserLoginHistory::class);
+    }
+
+    public function recentActivityLogs($days = 30)
+    {
+        return $this->activityLogs()->recent($days);
+    }
+
+    public function recentLoginHistories($days = 30)
+    {
+        return $this->loginHistories()->recent($days);
+    }
+
     // Accessors
     public function getUserTypeNameAttribute(): string
     {
