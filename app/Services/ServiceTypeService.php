@@ -8,6 +8,7 @@ use App\Repositories\ServiceTypeRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 
 class ServiceTypeService
 {
@@ -33,7 +34,7 @@ class ServiceTypeService
   /**
    * アクティブなサービスカテゴリを取得
    */
-  public function getActiveServiceCategories(): \Illuminate\Database\Eloquent\Collection
+  public function getActiveServiceCategories(): Collection
   {
     return ServiceCategory::active()
       ->orderBy('sort_order')
@@ -55,6 +56,9 @@ class ServiceTypeService
 
   /**
    * 新しいサービスタイプを作成
+   * 
+   * @param array $data
+   * @return ServiceType
    */
   public function createServiceType(array $data): ServiceType
   {
@@ -71,6 +75,10 @@ class ServiceTypeService
 
   /**
    * サービスタイプを更新
+   * 
+   * @param ServiceType $serviceType
+   * @param array $data
+   * @return ServiceType
    */
   public function updateServiceType(ServiceType $serviceType, array $data): ServiceType
   {

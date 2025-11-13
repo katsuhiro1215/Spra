@@ -19,9 +19,15 @@ return new class extends Migration
             $table->json('content'); // セクション毎のコンテンツ（JSON形式）
             $table->json('meta')->nullable(); // SEO用メタデータ
             $table->json('settings')->nullable(); // ページ固有の設定
+            $table->foreignId('media_id')->nullable()->constrained('media')->nullOnDelete(); // アイキャッチ画像
             $table->boolean('is_published')->default(false); // 公開状態
             $table->integer('sort_order')->default(0); // 表示順序
+            // メンテナンス用カラム
+            $table->foreignId('created_by')->constrained('admins')->nullOnDelete(); // 作成者
+            $table->foreignId('updated_by')->constrained('admins')->nullOnDelete(); // 更新者
+            $table->foreignId('deleted_by')->constrained('admins')->nullOnDelete(); // 削除者
             $table->timestamps();
+            $table->softDeletes();
             
             $table->index(['slug', 'is_published']);
             $table->index('sort_order');

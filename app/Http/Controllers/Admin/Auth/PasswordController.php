@@ -14,11 +14,13 @@ class PasswordController extends Controller
 {
     /**
      * パスワード変更画面
+     * 
      * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
      * @throws \Exception
      */
     public function update(Request $request): RedirectResponse
     {
+        // パスワード変更処理
         try {
             $validated = $request->validate([
                 'current_password' => ['required', 'current_password:admins'],
@@ -37,9 +39,11 @@ class PasswordController extends Controller
 
             return back()->with('success', __('messages.auth.password_updated'));
         } catch (ValidationException $e) {
+            // バリデーションエラー時の処理
             return back()->withErrors($e->errors())
                 ->with('error', __('messages.form.validation_error'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin password update error: ' . $e->getMessage());
 
             return back()->with('error', __('messages.general.action_failed'));

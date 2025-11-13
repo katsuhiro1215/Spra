@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin\Homepage;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Homepage\BlogRequest;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
@@ -94,57 +96,45 @@ class BlogController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(BlogRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:blogs',
-            'excerpt' => 'nullable|string|max:500',
-            'content' => 'required|string',
-            'status' => 'required|in:draft,published,scheduled',
-            'published_at' => 'nullable|date',
-            'featured_media_id' => 'nullable|exists:media,id',
-            'categories' => 'array',
-            'categories.*' => 'exists:blog_categories,id',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:300',
-            'gallery_media_ids' => 'array',
-            'gallery_media_ids.*' => 'exists:media,id',
-        ], [
-            'title.required' => 'タイトルは必須です。',
-            'content.required' => 'コンテンツは必須です。',
-            'slug.unique' => 'このスラッグは既に使用されています。',
-            'status.required' => 'ステータスを選択してください。',
-            'status.in' => '無効なステータスです。',
-        ]);
+        $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
-            $blog = Blog::create([
-                'title' => $validated['title'],
-                'slug' => $validated['slug'],
-                'excerpt' => $validated['excerpt'],
-                'content' => $validated['content'],
-                'status' => $validated['status'],
-                'published_at' => $validated['published_at'],
-                'featured_media_id' => $validated['featured_media_id'],
-                'meta_title' => $validated['meta_title'],
-                'meta_description' => $validated['meta_description'],
-                'admin_id' => Auth::guard('admins')->id(),
-            ]);
+        try {
+            DB::transaction(function () use ($validated) {
+                $blog = Blog::create([
+                    'title' => $validated['title'],
+                    'slug' => $validated['slug'],
+                    'excerpt' => $validated['excerpt'],
+                    'content' => $validated['content'],
+                    'status' => $validated['status'],
+                    'published_at' => $validated['published_at'],
+                    'featured_media_id' => $validated['featured_media_id'],
+                    'meta_title' => $validated['meta_title'],
+                    'meta_description' => $validated['meta_description'],
+                    'admin_id' => Auth::guard('admins')->id(),
+                ]);
+    
+                // カテゴリを関連付け
+                if (!empty($validated['categories'])) {
+                    $blog->categories()->sync($validated['categories']);
+                }
+    
+                // ギャラリーメディアを関連付け
+                if (!empty($validated['gallery_media_ids'])) {
+                    $blog->media()->sync($validated['gallery_media_ids']);
+                }
+            });
+    
+            return redirect()->route('admin.homepage.blogs.index')
+                ->with('success', 'ブログを作成しました。');
+        } catch (\Exception $e) {
+            Log::error('ブログの作成中にエラーが発生しました。', ['error' => $e]);
 
-            // カテゴリを関連付け
-            if (!empty($validated['categories'])) {
-                $blog->categories()->sync($validated['categories']);
-            }
-
-            // ギャラリーメディアを関連付け
-            if (!empty($validated['gallery_media_ids'])) {
-                $blog->media()->sync($validated['gallery_media_ids']);
-            }
-        });
-
-        return redirect()->route('admin.homepage.blogs.index')
-            ->with('success', 'ブログを作成しました。');
+            return redirect()->back()
+                ->withErrors(['error' => 'ブログの作成中にエラーが発生しました。'])
+                ->withInput();
+        }
     }
 
     /**

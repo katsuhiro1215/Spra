@@ -1,6 +1,6 @@
-import AdminHeader from "@/Layouts/AdminHeader";
-import AdminSidebar from "@/Layouts/AdminSidebar";
-import AdminFooter from "@/Layouts/AdminFooter";
+import AdminHeader from "@/Layouts/Admin/AdminHeader";
+import AdminSidebar from "@/Layouts/Admin/AdminSidebar";
+import AdminFooter from "@/Layouts/Admin/AdminFooter";
 import { usePage } from "@inertiajs/react";
 import { useState } from "react";
 
@@ -55,11 +55,7 @@ export default function AdminAuthenticatedLayout({ header, children }) {
                     )}
 
                     {/* メインコンテンツ */}
-                    <main className="flex-1 py-6 relative z-10">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {children}
-                        </div>
-                    </main>
+                    <div className="flex-1 pb-6 relative z-10">{children}</div>
 
                     {/* フッター */}
                     <AdminFooter />

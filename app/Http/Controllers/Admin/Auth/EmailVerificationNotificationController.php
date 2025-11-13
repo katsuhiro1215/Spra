@@ -11,11 +11,13 @@ class EmailVerificationNotificationController extends Controller
 {
     /**
      * メールアドレス確認通知の再送
+     * 
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Exception
      */
     public function store(Request $request): RedirectResponse
     {
+        // メール確認通知再送処理
         try {
             $admin = $request->user('admins');
 
@@ -28,6 +30,7 @@ class EmailVerificationNotificationController extends Controller
 
             return back()->with('success', __('messages.auth.verification_link_sent'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin email verification notification error: ' . $e->getMessage());
 
             return back()->with('error', __('messages.general.action_failed'));

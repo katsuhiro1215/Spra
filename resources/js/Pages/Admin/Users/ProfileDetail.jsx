@@ -1,6 +1,13 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     UserIcon,
     PencilIcon,
@@ -16,6 +23,8 @@ import {
     IdentificationIcon,
     BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const ProfileDetail = ({ user, profile }) => {
     const formatDate = (dateString) => {
@@ -74,11 +83,27 @@ const ProfileDetail = ({ user, profile }) => {
         ([key, value]) => value
     );
 
-    return (
-        <AdminLayout>
-            <Head title={`${getDisplayName()} - プロフィール詳細`} />
+    const headerActions = [
+        {
+            label: PageConfig.pages.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.pages.index"),
+        },
+    ];
 
-            <div className="space-y-6">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`${getDisplayName()} - プロフィール詳細`} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.userProfiles.title}
+                description={PageConfig.userProfiles.description}
+                actions={headerActions}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -639,8 +664,8 @@ const ProfileDetail = ({ user, profile }) => {
                         )}
                     </>
                 )}
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 };
 

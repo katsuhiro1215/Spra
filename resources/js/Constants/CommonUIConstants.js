@@ -21,6 +21,7 @@ export const CommonUIConstants = {
         duplicate: "複製",
         export: "エクスポート",
         import: "インポート",
+        viewLogs: "ログ一覧を見る",
     },
 
     // 共通ステータス

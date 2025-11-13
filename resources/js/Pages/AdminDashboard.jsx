@@ -1,7 +1,14 @@
-import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
 import { Head } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 import SidebarLogs from "./Admin/Logs/SidebarLogs";
+// Icons
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function Dashboard() {
     // ダミーデータ（実際のプロジェクトでは props から受け取る）
@@ -89,32 +96,27 @@ export default function Dashboard() {
             },
         ],
     };
+    const headerActions = [
+        {
+            label: PageConfig.dashboard.actions.viewLogs,
+            variant: "softBlue",
+            route: route("admin.logs.index"),
+        },
+    ];
 
     return (
-        <AdminAuthenticatedLayout
-            header={
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                        📊 管理者ダッシュボード
-                    </h2>
-                    <div className="flex items-center gap-4">
-                        <a
-                            href="/admin/logs"
-                            className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition"
-                        >
-                            ログ一覧を見る
-                        </a>
-                        <span className="text-sm text-gray-500">
-                            最終更新: {new Date().toLocaleString("ja-JP")}
-                        </span>
-                    </div>
-                </div>
-            }
-        >
+        <AdminAuthenticatedLayout>
             <Head title="管理者ダッシュボード" />
             {/* フラッシュメッセージ */}
             <FlashMessage />
-            <div className="flex gap-6">
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.dashboard.title}
+                description={PageConfig.dashboard.description}
+                actions={headerActions}
+                updatedAt={new Date().toLocaleString("ja-JP")}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* メインコンテンツ */}
                 <div className="flex-1 space-y-6">
                     {/* 統計カード */}
@@ -290,7 +292,7 @@ export default function Dashboard() {
                 </div>
                 {/* 右側サイドバーにログ表示 */}
                 <SidebarLogs logs={logs} moreUrl="/admin/logs" />
-            </div>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }

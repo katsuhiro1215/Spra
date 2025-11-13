@@ -1,8 +1,8 @@
 import React from "react";
-import BaseAlert from "./BaseAlert";
+import BaseAlert from "@/Components/Alerts/BaseAlert";
 
 const DeleteAlert = ({
-    isOpen,
+    show,
     onClose,
     onConfirm,
     itemName = "",
@@ -18,7 +18,7 @@ const DeleteAlert = ({
 
     return (
         <BaseAlert
-            isOpen={isOpen}
+            isOpen={show}
             onClose={onClose}
             onConfirm={onConfirm}
             title={title}

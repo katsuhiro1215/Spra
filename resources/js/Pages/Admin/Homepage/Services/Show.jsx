@@ -1,6 +1,12 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
+// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -14,6 +20,8 @@ import {
     GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ service }) {
     const formatDate = (dateString) => {
@@ -57,38 +65,32 @@ export default function Show({ service }) {
         }
     };
 
-    return (
-        <AdminAuthenticatedLayout
-            header={
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                        <Link
-                            href={route("admin.homepage.services.index")}
-                            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-                        >
-                            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                            戻る
-                        </Link>
-                        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                            サービス詳細
-                        </h2>
-                    </div>
-                    <Link
-                        href={route("admin.homepage.services.edit", service)}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
-                    >
-                        <PencilIcon className="h-4 w-4 mr-2" />
-                        編集
-                    </Link>
-                </div>
-            }
-        >
-            <Head title={`サービス詳細 - ${service.name}`} />
+    // ページヘッダーのアクション設定
+    const headerActions = [
+        {
+            label: PageConfig.services.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.services.index"),
+        },
+    ];
 
-            <div className="py-12">
-                <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`サービス詳細 - ${service.name}`} />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.services.title}
+                description={PageConfig.services.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* メインコンテンツ */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* 基本情報 */}
+                        <Card>
                             {/* ヘッダー部分 */}
                             <div className="mb-8">
                                 <div className="flex items-start justify-between mb-4">
@@ -173,7 +175,6 @@ export default function Show({ service }) {
                                     </p>
                                 </div>
                             </div>
-
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {/* 特徴・機能 */}
                                 {service.features &&
@@ -359,17 +360,18 @@ export default function Show({ service }) {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* アクションボタン */}
-                            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
-                                <Link
-                                    href={route(
-                                        "admin.homepage.services.index"
-                                    )}
-                                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                >
-                                    一覧に戻る
-                                </Link>
+                        </Card>
+                    </div>
+                    {/* サイドバー情報 */}
+                    <div className="space-y-6">
+                        {/* アクション */}
+                        <Card>
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    アクション
+                                </h3>
+                            </div>
+                            <div className="px-6 py-4 space-y-3">
                                 <Link
                                     href={route(
                                         "admin.homepage.services.edit",
@@ -381,10 +383,10 @@ export default function Show({ service }) {
                                     編集
                                 </Link>
                             </div>
-                        </div>
+                        </Card>
                     </div>
                 </div>
-            </div>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }

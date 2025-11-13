@@ -1,18 +1,27 @@
-import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+// Layouts
+import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout';
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index() {
     return (
-        <AdminAuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    📝 コンテンツ管理
-                </h2>
-            }
-        >
-            <Head title="コンテンツ管理" />
-
-            <div className="bg-white shadow-sm rounded-lg p-6">
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.contents.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.contents.title}
+                description={PageConfig.contents.description}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 <div className="text-center py-12">
                     <div className="text-gray-400 text-6xl mb-4">🚧</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -22,7 +31,7 @@ export default function Index() {
                         この機能は現在開発中です。近日公開予定です。
                     </p>
                 </div>
-            </div>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }

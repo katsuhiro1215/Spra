@@ -1,12 +1,20 @@
 import React from "react";
-import { Head, router, useForm } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PhotoIcon,
     VideoCameraIcon,
     DocumentIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const MediaEdit = ({ media, folders = [] }) => {
     const { data, setData, patch, processing, errors } = useForm({
@@ -43,11 +51,27 @@ const MediaEdit = ({ media, folders = [] }) => {
         }
     };
 
-    return (
-        <AdminLayout>
-            <Head title={`メディア編集 - ${media.title || media.filename}`} />
+    const headerActions = [
+        {
+            label: PageConfig.pages.actions.create,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.media.index"),
+        },
+    ];
 
-            <div className="space-y-6">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`メディア編集 - ${media.title || media.filename}`} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.media.title}
+                description={PageConfig.media.description}
+                actions={headerActions}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
                 <div className="flex items-center space-x-3">
                     <button
@@ -369,8 +393,8 @@ const MediaEdit = ({ media, folders = [] }) => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 };
 

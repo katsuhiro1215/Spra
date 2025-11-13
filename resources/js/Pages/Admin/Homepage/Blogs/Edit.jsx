@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import { Head, useForm } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
 import RichTextEditor from "@/Components/RichTextEditor";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PhotoIcon,
@@ -12,6 +19,8 @@ import {
     CalendarIcon,
     Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogEdit = ({ blog, blogCategories, allMedia }) => {
     const [showMediaModal, setShowMediaModal] = useState(false);
@@ -294,12 +303,28 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
         </div>
     );
 
-    return (
-        <AdminLayout>
-            <Head title={`ブログ編集 - ${blog.title}`} />
+    const headerActions = [
+        {
+            label: PageConfig.blogs.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.blogs.index"),
+        },
+    ];
 
-            <div className="space-y-6">
-                {/* ヘッダー */}
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`ブログ編集 - ${blog.title}`} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.blogs.title}
+                description={PageConfig.blogs.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <button
@@ -313,12 +338,6 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                             <ArrowLeftIcon className="w-4 h-4 mr-2" />
                             詳細に戻る
                         </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                ブログ編集
-                            </h1>
-                            <p className="text-gray-600">{blog.title}</p>
-                        </div>
                     </div>
                     <div className="flex items-center space-x-3">
                         {getStatusBadge(data.status)}
@@ -332,7 +351,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                         </button>
                     </div>
                 </div>
-
+                {/* フォーム */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* メインコンテンツ */}
@@ -810,12 +829,11 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                         </div>
                     </div>
                 </form>
-            </div>
-
+            </main>
             {/* モーダル */}
             {showMediaModal && <MediaModal />}
             {showCategoryModal && <CategoryModal />}
-        </AdminLayout>
+        </AdminAuthenticatedLayout>
     );
 };
 

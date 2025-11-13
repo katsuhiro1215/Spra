@@ -1,7 +1,13 @@
 import React, { useState, useCallback } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
-import UploadModal from "./UploadModal";
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import DeleteAlert from "@/Components/Alerts/DeleteAlert";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     FolderIcon,
     PhotoIcon,
@@ -19,6 +25,10 @@ import {
     VideoCameraIcon as VideoSolidIcon,
     DocumentIcon as DocumentSolidIcon,
 } from "@heroicons/react/24/solid";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
+// Pages Components
+import UploadModal from "./Components/UploadModal";
 
 const MediaIndex = ({ media, folders, filters, flash }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -98,21 +108,27 @@ const MediaIndex = ({ media, folders, filters, flash }) => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    return (
-        <AdminLayout>
-            <Head title="メディア管理" />
+    const headerActions = [
+        {
+            label: PageConfig.pages.actions.create,
+            icon: PlusIcon,
+            variant: "primary",
+        },
+    ];
 
-            <div className="space-y-6">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title="メディア管理" />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.media.title}
+                description={PageConfig.media.description}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
                 <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            メディア管理
-                        </h1>
-                        <p className="text-gray-600">
-                            画像、動画、ドキュメントを管理
-                        </p>
-                    </div>
                     <div className="flex space-x-3">
                         <button
                             onClick={() => setShowFilters(!showFilters)}
@@ -133,7 +149,7 @@ const MediaIndex = ({ media, folders, filters, flash }) => {
 
                 {/* フィルターパネル */}
                 {showFilters && (
-                    <div className="bg-white p-4 border border-gray-200 rounded-lg">
+                    <Card>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {/* 検索 */}
                             <div>
@@ -228,7 +244,7 @@ const MediaIndex = ({ media, folders, filters, flash }) => {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 )}
 
                 {/* 一括操作バー */}
@@ -552,7 +568,7 @@ const MediaIndex = ({ media, folders, filters, flash }) => {
                         </div>
                     </div>
                 )}
-            </div>
+            </main>
 
             {/* アップロードモーダル */}
             <UploadModal
@@ -560,7 +576,7 @@ const MediaIndex = ({ media, folders, filters, flash }) => {
                 onClose={() => setShowUploadModal(false)}
                 folders={folders}
             />
-        </AdminLayout>
+        </AdminAuthenticatedLayout>
     );
 };
 

@@ -1,6 +1,20 @@
-import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import DeleteAlert from "@/Components/Alerts/DeleteAlert";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Components - Forms
+import InputLabel from "@/Components/Forms/InputLabel";
+import ValidatedInput from "@/Components/Forms/ValidatedInput";
+import ValidatedTextArea from "@/Components/Forms/ValidatedTextArea";
+// Icons
+import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ categories }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -19,157 +33,129 @@ export default function Create({ categories }) {
         });
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.faqs.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.faqs.index"),
+        },
+    ];
+
     return (
-        <AdminAuthenticatedLayout
-            header={
-                <div className="flex items-center space-x-4">
-                    <Link
-                        href={route("admin.homepage.faqs.index")}
-                        className="text-gray-600 hover:text-gray-900"
-                    >
-                        <ArrowLeftIcon className="w-5 h-5" />
-                    </Link>
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        FAQ作成
-                    </h2>
-                </div>
-            }
-        >
-            <Head title="FAQ作成" />
-
-            <div className="py-12">
-                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.faqs.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.faqs.pages.create.title}
+                description={PageConfig.faqs.form.create.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                {/* フォーム */}
+                <form onSubmit={handleSubmit}>
+                    {/* 設定項目 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
                             {/* カテゴリ選択 */}
-                            <div>
-                                <label
-                                    htmlFor="faq_category_id"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
-                                >
-                                    カテゴリ{" "}
-                                    <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    id="faq_category_id"
-                                    value={data.faq_category_id}
-                                    onChange={(e) =>
-                                        setData(
-                                            "faq_category_id",
-                                            e.target.value
-                                        )
-                                    }
-                                    className={`w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                                        errors.faq_category_id
-                                            ? "border-red-300"
-                                            : "border-gray-300"
-                                    }`}
-                                    required
-                                >
-                                    <option value="">
-                                        カテゴリを選択してください
-                                    </option>
-                                    {categories.map((category) => (
-                                        <option
-                                            key={category.id}
-                                            value={category.id}
-                                        >
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.faq_category_id && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        {errors.faq_category_id}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* 質問 */}
-                            <div>
-                                <label
-                                    htmlFor="question"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
-                                >
-                                    質問 <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="question"
-                                    value={data.question}
-                                    onChange={(e) =>
-                                        setData("question", e.target.value)
-                                    }
-                                    className={`w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                                        errors.question
-                                            ? "border-red-300"
-                                            : "border-gray-300"
-                                    }`}
-                                    placeholder="よくある質問を入力してください"
-                                    maxLength={500}
-                                    required
-                                />
-                                <div className="flex justify-between mt-1">
-                                    {errors.question && (
-                                        <p className="text-sm text-red-600">
-                                            {errors.question}
-                                        </p>
-                                    )}
-                                    <p className="text-sm text-gray-500 ml-auto">
-                                        {data.question.length}/500文字
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* 回答 */}
-                            <div>
-                                <label
-                                    htmlFor="answer"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
-                                >
-                                    回答 <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    id="answer"
-                                    value={data.answer}
-                                    onChange={(e) =>
-                                        setData("answer", e.target.value)
-                                    }
-                                    rows={8}
-                                    className={`w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                                        errors.answer
-                                            ? "border-red-300"
-                                            : "border-gray-300"
-                                    }`}
-                                    placeholder="回答内容を詳しく入力してください"
-                                    maxLength={2000}
-                                    required
-                                />
-                                <div className="flex justify-between mt-1">
-                                    {errors.answer && (
-                                        <p className="text-sm text-red-600">
-                                            {errors.answer}
-                                        </p>
-                                    )}
-                                    <p className="text-sm text-gray-500 ml-auto">
-                                        {data.answer.length}/2000文字
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* 設定項目 */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* 表示順序 */}
-                                <div>
+                            <Card>
+                                <Card.Body>
                                     <label
-                                        htmlFor="sort_order"
+                                        htmlFor="faq_category_id"
                                         className="block text-sm font-medium text-gray-700 mb-2"
                                     >
-                                        表示順序
+                                        カテゴリ{" "}
+                                        <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <select
+                                        id="faq_category_id"
+                                        value={data.faq_category_id}
+                                        onChange={(e) =>
+                                            setData(
+                                                "faq_category_id",
+                                                e.target.value
+                                            )
+                                        }
+                                        className={`w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                                            errors.faq_category_id
+                                                ? "border-red-300"
+                                                : "border-gray-300"
+                                        }`}
+                                        required
+                                    >
+                                        <option value="">
+                                            カテゴリを選択してください
+                                        </option>
+                                        {categories.map((category) => (
+                                            <option
+                                                key={category.id}
+                                                value={category.id}
+                                            >
+                                                {category.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.faq_category_id && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.faq_category_id}
+                                        </p>
+                                    )}
+                                </Card.Body>
+                            </Card>
+                            {/* 質問 & 回答 */}
+                            <Card>
+                                <Card.Title>質問と回答</Card.Title>
+                                <Card.Body className="space-y-4">
+                                    <ValidatedInput
+                                        label="質問"
+                                        name="question"
+                                        type="text"
+                                        value={data.question}
+                                        onChange={(e) =>
+                                            setData("question", e.target.value)
+                                        }
+                                        placeholder="よくある質問を入力してください"
+                                        required
+                                        error={errors.question}
+                                        className="w-full"
+                                        maxLength={500}
+                                    />
+                                    <div className="flex justify-between mt-1">
+                                        <p className="text-sm text-gray-500 ml-auto">
+                                            {data.question.length}/500文字
+                                        </p>
+                                    </div>
+                                    <ValidatedTextArea
+                                        label="回答"
+                                        name="answer"
+                                        value={data.answer}
+                                        onChange={(e) =>
+                                            setData("answer", e.target.value)
+                                        }
+                                        placeholder="回答内容を詳しく入力してください"
+                                        required
+                                        error={errors.answer}
+                                        rows={8}
+                                        className="w-full"
+                                        maxLength={2000}
+                                    />
+                                    <div className="flex justify-between mt-1">
+                                        <p className="text-sm text-gray-500 ml-auto">
+                                            {data.answer.length}/2000文字
+                                        </p>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                            {/* 表示順序 */}
+                            <Card>
+                                <Card.Body>
+                                    <ValidatedInput
+                                        label="表示順序"
+                                        name="sort_order"
                                         type="number"
-                                        id="sort_order"
                                         value={data.sort_order}
                                         onChange={(e) =>
                                             setData(
@@ -177,58 +163,55 @@ export default function Create({ categories }) {
                                                 parseInt(e.target.value) || 0
                                             )
                                         }
-                                        className={`w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                                            errors.sort_order
-                                                ? "border-red-300"
-                                                : "border-gray-300"
-                                        }`}
+                                        placeholder="表示順序を入力してください"
+                                        error={errors.sort_order}
+                                        className="w-full"
                                         min="0"
                                     />
-                                    {errors.sort_order && (
-                                        <p className="mt-1 text-sm text-red-600">
-                                            {errors.sort_order}
-                                        </p>
-                                    )}
                                     <p className="mt-1 text-sm text-gray-500">
                                         小さい数字ほど上位に表示されます
                                     </p>
-                                </div>
-
-                                {/* よくある質問 */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        よくある質問
+                                </Card.Body>
+                            </Card>
+                            {/* よくある質問 */}
+                            <Card>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    よくある質問
+                                </label>
+                                <div className="flex items-center h-10">
+                                    <input
+                                        type="checkbox"
+                                        id="is_featured"
+                                        checked={data.is_featured}
+                                        onChange={(e) =>
+                                            setData(
+                                                "is_featured",
+                                                e.target.checked
+                                            )
+                                        }
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <label
+                                        htmlFor="is_featured"
+                                        className="ml-2 text-sm text-gray-700"
+                                    >
+                                        よくある質問として表示
                                     </label>
-                                    <div className="flex items-center h-10">
-                                        <input
-                                            type="checkbox"
-                                            id="is_featured"
-                                            checked={data.is_featured}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "is_featured",
-                                                    e.target.checked
-                                                )
-                                            }
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <label
-                                            htmlFor="is_featured"
-                                            className="ml-2 text-sm text-gray-700"
-                                        >
-                                            よくある質問として表示
-                                        </label>
-                                    </div>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        チェックすると優先的に表示されます
-                                    </p>
                                 </div>
-
-                                {/* 公開状態 */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        公開状態
-                                    </label>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    チェックすると優先的に表示されます
+                                </p>
+                            </Card>
+                        </div>
+                        <div className="space-y-6">
+                            {/* 公開状態 */}
+                            <Card>
+                                <Card.Title>公開設定</Card.Title>
+                                <Card.Body className="space-y-4">
+                                    <InputLabel
+                                        htmlFor="is_published"
+                                        value="公開状態"
+                                    />
                                     <div className="flex items-center h-10">
                                         <input
                                             type="checkbox"
@@ -252,29 +235,34 @@ export default function Create({ categories }) {
                                     <p className="mt-1 text-sm text-gray-500">
                                         チェックを外すと下書きとして保存されます
                                     </p>
-                                </div>
-                            </div>
-
+                                </Card.Body>
+                            </Card>
                             {/* 送信ボタン */}
-                            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                                <Link
-                                    href={route("admin.homepage.faqs.index")}
-                                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-                                >
-                                    キャンセル
-                                </Link>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center disabled:opacity-50"
-                                >
-                                    {processing ? "作成中..." : "FAQを作成"}
-                                </button>
-                            </div>
-                        </form>
+                            <Card>
+                                <Card.Title>アクション</Card.Title>
+                                <Card.Body className="space-y-4">
+                                    <BasicButton
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={processing}
+                                    >
+                                        <PlusIcon className="h-4 w-4 mr-2" />
+                                        {processing ? "作成中..." : "FAQを作成"}
+                                    </BasicButton>
+                                    <BasicButton
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full"
+                                        disabled={processing}
+                                    >
+                                        {PageConfig.faqs.actions.reset}
+                                    </BasicButton>
+                                </Card.Body>
+                            </Card>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </form>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }

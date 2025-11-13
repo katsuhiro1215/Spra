@@ -2,22 +2,26 @@ import React, { useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import { ArrowLeftIcon, SwatchIcon } from "@heroicons/react/24/outline";
 // Layouts
-import AdminLayout from "@/Layouts/AdminLayout";
-// Constants
-import { CommonUIConstants } from "@/Constants/CommonUIConstants";
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import DeleteAlert from "@/Components/Alerts/DeleteAlert";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Hooks
 import { useFieldValidation } from "@/Hooks/useFieldValidation";
 // ServiceType Components
 import BasicInfoSection from "./Components/BasicInfoSection";
 import PricingSection from "./Components/PricingSection";
 import ArrayInputSection from "./Components/ArrayInputSection";
-// Features
-import { ServiceTypesConstants } from "@/Features/ServiceTypes/constants";
+// Constants
+import { CommonUIConstants } from "@/Constants/CommonUIConstants";
+import { PageConfig } from "@/Constants/PageConfig";
+// Validation
 import {
     serviceTypeCreateValidationRules,
     validateAllServiceTypeFields,
-} from "@/Features/ServiceTypes/validation";
+} from "@/Constants/Validation/ServiceTypeMessages";
 
 export default function ServiceTypesCreate({ serviceCategories }) {
     // フォームデータ管理
@@ -103,7 +107,7 @@ export default function ServiceTypesCreate({ serviceCategories }) {
     // ページヘッダーのアクション設定
     const headerActions = [
         {
-            label: CommonUIConstants.actions.back,
+            label: PageConfig.serviceTypes.actions.back,
             icon: ArrowLeftIcon,
             variant: "secondary",
             route: route("admin.service.type.index"),
@@ -111,18 +115,19 @@ export default function ServiceTypesCreate({ serviceCategories }) {
     ];
 
     return (
-        <AdminLayout>
-            <Head title={ServiceTypesConstants.form.create.documentTitle} />
-
-            <div className="space-y-6">
-                {/* ヘッダー */}
-                <PageHeader
-                    title={ServiceTypesConstants.form.create.title}
-                    description={ServiceTypesConstants.form.create.description}
-                    actions={headerActions}
-                />
-
-                <form onSubmit={handleSubmit} className="space-y-6">
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.serviceTypes.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.serviceTypes.form.create.title}
+                description={PageConfig.serviceTypes.form.create.description}
+                actions={headerActions}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                {/* フォーム */}
+                <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* メインコンテンツ */}
                         <div className="lg:col-span-2 space-y-6">
@@ -134,7 +139,7 @@ export default function ServiceTypesCreate({ serviceCategories }) {
                                 validationErrors={validationErrors}
                                 handleFieldBlur={handleFieldBlur}
                                 serviceCategories={serviceCategories}
-                                ServiceTypesConstants={ServiceTypesConstants}
+                                ServiceTypesConstants={PageConfig.serviceTypes}
                             />
 
                             {/* 価格・納期設定 */}
@@ -144,7 +149,7 @@ export default function ServiceTypesCreate({ serviceCategories }) {
                                 errors={errors}
                                 validationErrors={validationErrors}
                                 handleFieldBlur={handleFieldBlur}
-                                ServiceTypesConstants={ServiceTypesConstants}
+                                ServiceTypesConstants={PageConfig.serviceTypes}
                             />
 
                             {/* 配列データ入力セクション */}
@@ -379,7 +384,7 @@ export default function ServiceTypesCreate({ serviceCategories }) {
                         </div>
                     </div>
                 </form>
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 }

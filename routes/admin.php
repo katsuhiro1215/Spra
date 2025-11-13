@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\PlanPricingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\SystemSettingController;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
@@ -119,9 +120,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   })->name('content.index');
 
   // 設定（一時的にダミー）
-  Route::get('/settings', function () {
-    return Inertia::render('Admin/Settings/Index');
-  })->name('settings.index');
+  Route::resource('systemSetting', SystemSettingController::class)->only(['index', 'edit', 'update']);  
 
   // 管理者プロフィール  
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

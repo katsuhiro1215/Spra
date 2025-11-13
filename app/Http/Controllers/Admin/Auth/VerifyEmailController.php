@@ -12,11 +12,13 @@ class VerifyEmailController extends Controller
 {
     /**
      * メールアドレス確認
+     * 
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Exception
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
+        // メールアドレス確認処理
         try {
             $admin = $request->user('admins');
 
@@ -32,6 +34,7 @@ class VerifyEmailController extends Controller
             return redirect()->route('admin.dashboard')
                 ->with('success', __('messages.auth.email_verified'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin email verification error: ' . $e->getMessage());
 
             return redirect()->route('admin.login')

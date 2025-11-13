@@ -32,7 +32,7 @@ const ValidatedInput = forwardRef(
     `.trim();
 
         return (
-            <div>
+            <div className="space-y-2">
                 {label && (
                     <InputLabel
                         htmlFor={name}

@@ -18,11 +18,11 @@ import BasicInfoSection from "./Components/BasicInfoSection";
 import PricingSection from "./Components/PricingSection";
 import ArrayInputSection from "./Components/ArrayInputSection";
 // Features
-import { ServiceTypesConstants } from "@/Features/ServiceTypes/constants";
+import { ServiceTypesConstants } from "@/Features/Services/ServiceTypes/constants";
 import {
     serviceTypeEditValidationRules,
     validateAllServiceTypeFields,
-} from "@/Features/ServiceTypes/validation";
+} from "@/Features/Services/ServiceTypes/validation";
 
 export default function ServiceTypesEdit({ serviceType, serviceCategories }) {
     const [showPreview, setShowPreview] = useState(false);
