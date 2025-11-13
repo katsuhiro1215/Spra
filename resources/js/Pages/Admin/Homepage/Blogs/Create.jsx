@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
-import RichTextEditor from "@/Components/RichTextEditor";
+import { Head, useForm } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import RichTextEditor from "@/Components/Forms/RichTextEditor";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PhotoIcon,
@@ -13,6 +18,8 @@ import {
     DocumentTextIcon,
     Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogCreate = ({ categories, media }) => {
     const [showMediaModal, setShowMediaModal] = useState(false);
@@ -89,43 +96,38 @@ const BlogCreate = ({ categories, media }) => {
         return media.filter((m) => data.gallery_media_ids.includes(m.id));
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.blogs.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.blogs.index"),
+        },
+    ];
+
     return (
-        <AdminLayout>
-            <Head title="ブログ作成" />
-
-            <div className="space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() =>
-                                router.get(route("admin.homepage.blogs.index"))
-                            }
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            ブログ一覧に戻る
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                ブログ作成
-                            </h1>
-                            <p className="text-gray-600">
-                                新しいブログ記事を作成します
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex space-x-3">
-                        <button
-                            onClick={() => setPreviewMode(!previewMode)}
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <EyeIcon className="w-4 h-4 mr-2" />
-                            {previewMode ? "エディタに戻る" : "プレビュー"}
-                        </button>
-                    </div>
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.blogs.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.blogs.pages.create.title}
+                description={PageConfig.blogs.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                <div className="flex space-x-3">
+                    <button
+                        onClick={() => setPreviewMode(!previewMode)}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                        <EyeIcon className="w-4 h-4 mr-2" />
+                        {previewMode ? "エディタに戻る" : "プレビュー"}
+                    </button>
                 </div>
-
+                {/* フォーム */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* メインコンテンツ */}
@@ -561,7 +563,7 @@ const BlogCreate = ({ categories, media }) => {
                         </button>
                     </div>
                 </form>
-            </div>
+            </main>
 
             {/* メディア選択モーダル */}
             {showMediaModal && (
@@ -611,7 +613,7 @@ const BlogCreate = ({ categories, media }) => {
                     </div>
                 </div>
             )}
-        </AdminLayout>
+        </AdminAuthenticatedLayout>
     );
 };
 

@@ -246,6 +246,8 @@ return [
         'comment' => 'コメント',
         'terms' => '利用規約',
         'privacy' => 'プライバシーポリシー',
+        'template' => 'テンプレート名',
+        'sort_order' => '表示順序',
 
         // サービスタイプ関連
         'service_category_id' => 'サービスカテゴリ',

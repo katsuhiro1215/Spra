@@ -16,6 +16,7 @@ class PasswordResetLinkController extends Controller
 {
     /**
      * パスワードリセットリンク送信画面
+     * 
      * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
      * @throws \Exception
      */
@@ -33,11 +34,13 @@ class PasswordResetLinkController extends Controller
 
     /**
      * パスワードリセットリンクの送信
-     * @return \Illuminate\Http\RedirectResponse
+
+    * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
+        // パスワードリセットリンク送信処理
         try {
             $request->validate([
                 'email' => 'required|email',
@@ -59,10 +62,12 @@ class PasswordResetLinkController extends Controller
                 ->withErrors(['email' => __($status)])
                 ->with('error', __('passwords.throttled'));
         } catch (ValidationException $e) {
+            // バリデーションエラー時の処理
             return back()->withInput($request->only('email'))
                 ->withErrors($e->errors())
                 ->with('error', __('messages.form.validation_error'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin password reset link error: ' . $e->getMessage());
 
             return back()->withInput($request->only('email'))

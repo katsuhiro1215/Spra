@@ -9,7 +9,8 @@
         "moduleResolution": "node",
         "jsx": "preserve",
         "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "ignoreDeprecations": "6.0"
     },
     "include": [
         "resources/js/**/*"

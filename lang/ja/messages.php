@@ -10,52 +10,6 @@ return [
     |
     */
 
-  'service_type' => [
-    'created' => 'サービスタイプが正常に作成されました。',
-    'updated' => 'サービスタイプが正常に更新されました。',
-    'deleted' => 'サービスタイプが正常に削除されました。',
-    'duplicated' => 'サービスタイプを複製しました。',
-    'order_updated' => '表示順序を更新しました。',
-    'create_failed' => 'サービスタイプの作成に失敗しました。',
-    'update_failed' => 'サービスタイプの更新に失敗しました。',
-    'delete_failed' => 'サービスタイプの削除に失敗しました。',
-    'duplicate_failed' => 'サービスタイプの複製に失敗しました。',
-    'order_update_failed' => '表示順序の更新に失敗しました。',
-    'bulk_action_failed' => '一括操作に失敗しました。',
-    'not_found' => 'サービスタイプが見つかりません。',
-    'bulk_deleted' => ':count件のサービスタイプが削除されました。',
-    'bulk_updated' => ':count件のサービスタイプが更新されました。',
-    'bulk_activated' => ':count件のサービスタイプをアクティブにしました。',
-    'bulk_deactivated' => ':count件のサービスタイプを非アクティブにしました。',
-    'bulk_featured' => ':count件のサービスタイプをおすすめに設定しました。',
-    'bulk_unfeatured' => ':count件のサービスタイプをおすすめから外しました。',
-  ],
-
-  'service_category' => [
-    'created' => 'サービスカテゴリが正常に作成されました。',
-    'updated' => 'サービスカテゴリが正常に更新されました。',
-    'deleted' => 'サービスカテゴリが正常に削除されました。',
-    'create_failed' => 'サービスカテゴリの作成に失敗しました。',
-    'update_failed' => 'サービスカテゴリの更新に失敗しました。',
-    'delete_failed' => 'サービスカテゴリの削除に失敗しました。',
-    'not_found' => 'サービスカテゴリが見つかりません。',
-    'has_service_types' => 'このカテゴリには関連するサービスタイプがあるため削除できません。',
-  ],
-
-  'price_item' => [
-    'created' => '価格項目を作成しました。',
-    'updated' => '価格項目を更新しました。',
-    'deleted' => '価格項目を削除しました。',
-    'order_updated' => '価格項目の表示順序を更新しました。',
-    'template_applied' => 'テンプレートを適用しました。',
-    'create_failed' => '価格項目の作成に失敗しました。',
-    'update_failed' => '価格項目の更新に失敗しました。',
-    'delete_failed' => '価格項目の削除に失敗しました。',
-    'order_update_failed' => '価格項目の表示順序更新に失敗しました。',
-    'template_apply_failed' => 'テンプレートの適用に失敗しました。',
-    'not_found' => '価格項目が見つかりません。',
-  ],
-
   'general' => [
     'save' => '保存',
     'cancel' => 'キャンセル',
@@ -150,4 +104,61 @@ return [
     'months_ago' => ':countヶ月前',
     'years_ago' => ':count年前',
   ],
+
+  'created' => ':attributeが正常に作成されました。',
+  'updated' => ':attributeが正常に更新されました。',
+  'deleted' => ':attributeが正常に削除されました。',
+  'create_failed' => ':attributeの作成に失敗しました。',
+  'update_failed' => ':attributeの更新に失敗しました。',
+  'delete_failed' => ':attributeの削除に失敗しました。',
+  'not_found' => ':attributeが見つかりません。',
+  'bulk_deleted' => ':count件の:attributeが削除されました。',
+  'bulk_updated' => ':count件の:attributeが更新されました。',
+  'bulk_activated' => ':count件の:attributeがアクティブになりました。',
+  'bulk_deactivated' => ':count件の:attributeが非アクティブになりました。',
+  'bulk_featured' => ':count件の:attributeがおすすめに設定されました。',
+  'bulk_unfeatured' => ':count件の:attributeがおすすめから外されました。',
+
+  // ページ
+  // ブログカテゴリ
+  'blog_category' => [
+    'has_blogs' => 'このカテゴリには関連するブログがあるため削除できません。',
+  ],
+  // ブログ
+
+  // サービスタイプ
+  'service_type' => [
+    'duplicated' => 'サービスタイプを複製しました。',
+    'order_updated' => '表示順序を更新しました。',
+    'duplicate_failed' => 'サービスタイプの複製に失敗しました。',
+    'order_update_failed' => '表示順序の更新に失敗しました。',
+    'bulk_action_failed' => '一括操作に失敗しました。',
+  ],
+
+  // サービスカテゴリ
+  'service_category' => [
+    'has_service_types' => 'このカテゴリには関連するサービスタイプがあるため削除できません。',
+  ],
+
+  // 価格項目
+  'price_item' => [
+    'order_updated' => '価格項目の表示順序を更新しました。',
+    'template_applied' => 'テンプレートを適用しました。',
+    'order_update_failed' => '価格項目の表示順序更新に失敗しました。',
+    'template_apply_failed' => 'テンプレートの適用に失敗しました。',
+  ],
+
+  /*
+    |--------------------------------------------------------------------------
+    | カスタムメッセージ属性
+    |--------------------------------------------------------------------------
+    */
+
+    'attributes' => [
+      'page' => 'ページ',
+      'blog_category' => 'ブログカテゴリ',
+      'service_type' => 'サービスタイプ',
+      'service_category' => 'サービスカテゴリ',
+      'price_item' => '価格項目',
+    ],
 ];

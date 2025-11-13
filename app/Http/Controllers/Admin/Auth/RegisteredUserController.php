@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\AdminRegistrationRequest;
+use App\Http\Requests\Admin\AdminRequest;
 use App\Models\Admin;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,7 +15,7 @@ use Inertia\Response;
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * 新規登録画面
      */
     public function create(): RedirectResponse|Response
     {
@@ -29,16 +28,13 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * 新規登録処理
      */
-    public function store(AdminRegistrationRequest $request): RedirectResponse
+    public function store(AdminRequest $request): RedirectResponse
     {
+        // 新規登録処理
         try {
-            $admin = Admin::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+            $admin = Admin::create($request->validated());
 
             event(new Registered($admin));
 
@@ -46,6 +42,7 @@ class RegisteredUserController extends Controller
 
             return redirect_to_admin_home()->with('success', __('messages.auth.registration_success'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin registration error: ' . $e->getMessage());
 
             return back()->withInput($request->only('name', 'email'))

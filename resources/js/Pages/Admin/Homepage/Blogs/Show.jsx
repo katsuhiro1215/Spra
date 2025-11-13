@@ -1,6 +1,12 @@
 import React from "react";
-import { Head, router } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import { Head } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -13,6 +19,8 @@ import {
     ShareIcon,
     ChartBarIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogShow = ({ blog }) => {
     const handleDelete = () => {
@@ -67,66 +75,59 @@ const BlogShow = ({ blog }) => {
         return new Date(dateString).toLocaleString("ja-JP");
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.blogs.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.blogs.index"),
+        },
+    ];
+
     return (
-        <AdminLayout>
+        <AdminAuthenticatedLayout>
             <Head title={`ブログ詳細 - ${blog.title}`} />
-
-            <div className="space-y-6">
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.blogs.title}
+                description={PageConfig.blogs.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() =>
-                                router.get(route("admin.homepage.blogs.index"))
-                            }
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                <div className="flex space-x-3">
+                    <div className="flex items-center space-x-2">
+                        {getStatusBadge(blog.status)}
+                        <select
+                            value={blog.status}
+                            onChange={(e) => handleStatusChange(e.target.value)}
+                            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            ブログ一覧に戻る
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {blog.title}
-                            </h1>
-                            <p className="text-gray-600">ブログ詳細</p>
-                        </div>
+                            <option value="draft">下書き</option>
+                            <option value="published">公開</option>
+                            <option value="scheduled">予約投稿</option>
+                        </select>
                     </div>
-                    <div className="flex space-x-3">
-                        <div className="flex items-center space-x-2">
-                            {getStatusBadge(blog.status)}
-                            <select
-                                value={blog.status}
-                                onChange={(e) =>
-                                    handleStatusChange(e.target.value)
-                                }
-                                className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
-                                <option value="draft">下書き</option>
-                                <option value="published">公開</option>
-                                <option value="scheduled">予約投稿</option>
-                            </select>
-                        </div>
-                        <button
-                            onClick={() =>
-                                router.get(
-                                    route("admin.homepage.blogs.edit", blog.id)
-                                )
-                            }
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <PencilIcon className="w-4 h-4 mr-2" />
-                            編集
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                        >
-                            <TrashIcon className="w-4 h-4 mr-2" />
-                            削除
-                        </button>
-                    </div>
+                    <button
+                        onClick={() =>
+                            router.get(
+                                route("admin.homepage.blogs.edit", blog.id)
+                            )
+                        }
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                        <PencilIcon className="w-4 h-4 mr-2" />
+                        編集
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                    >
+                        <TrashIcon className="w-4 h-4 mr-2" />
+                        削除
+                    </button>
                 </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* メイン コンテンツ */}
                     <div className="lg:col-span-2 space-y-6">
@@ -480,8 +481,8 @@ const BlogShow = ({ blog }) => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 };
 

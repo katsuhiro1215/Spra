@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PlusIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ serviceCategories }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -126,31 +134,35 @@ export default function Create({ serviceCategories }) {
         });
     };
 
-    return (
-        <AdminAuthenticatedLayout
-            header={
-                <div className="flex items-center space-x-4">
-                    <Link
-                        href={route("admin.homepage.services.index")}
-                        className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-                    >
-                        <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                        戻る
-                    </Link>
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        サービス作成
-                    </h2>
-                </div>
-            }
-        >
-            <Head title="サービス作成" />
+    const headerActions = [
+        {
+            label: PageConfig.services.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.services.index"),
+        },
+    ];
 
-            <div className="py-12">
-                <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <form onSubmit={submit} className="p-6 space-y-8">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.services.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.services.title}
+                description={PageConfig.services.form.create.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                {/* フォーム */}
+                <form onSubmit={submit}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* メインコンテンツ */}
+                        <div className="lg:col-span-2 space-y-6">
                             {/* 基本情報 */}
-                            <div>
+                            <Card>
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                                     基本情報
                                 </h3>
@@ -271,7 +283,6 @@ export default function Create({ serviceCategories }) {
                                         )}
                                     </div>
                                 </div>
-
                                 <div className="mt-6">
                                     <label
                                         htmlFor="description"
@@ -299,7 +310,6 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     )}
                                 </div>
-
                                 <div className="mt-6">
                                     <label
                                         htmlFor="details"
@@ -324,10 +334,9 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
+                            </Card>
                             {/* 特徴・機能 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         特徴・機能
@@ -377,10 +386,9 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
+                            </Card>
                             {/* 価格設定 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         価格設定
@@ -479,10 +487,9 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
+                            </Card>
                             {/* デモリンク */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         デモリンク
@@ -542,10 +549,9 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
+                            </Card>
                             {/* 使用技術 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         使用技術
@@ -595,10 +601,9 @@ export default function Create({ serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
+                            </Card>
                             {/* 設定 */}
-                            <div>
+                            <Card>
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                                     設定
                                 </h3>
@@ -705,30 +710,36 @@ export default function Create({ serviceCategories }) {
                                         </label>
                                     </div>
                                 </div>
-                            </div>
-
+                            </Card>
+                        </div>
+                        {/* サイドバー */}
+                        <div className="space-y-6">
                             {/* アクションボタン */}
-                            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                                <Link
-                                    href={route(
-                                        "admin.homepage.services.index"
-                                    )}
-                                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                >
-                                    キャンセル
-                                </Link>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                                >
-                                    {processing ? "作成中..." : "作成"}
-                                </button>
-                            </div>
-                        </form>
+                            <Card>
+                                <div className="space-y-3">
+                                    <BasicButton
+                                        type="submit"
+                                        variant="primary"
+                                        className="w-full"
+                                        disabled={processing}
+                                    >
+                                        {processing ? "作成中..." : "作成"}
+                                    </BasicButton>
+                                    <BasicButton
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => reset()}
+                                        disabled={processing}
+                                    >
+                                        {PageConfig.pages.actions.reset}
+                                    </BasicButton>
+                                </div>
+                            </Card>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </form>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }
