@@ -9,13 +9,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * ログイン画面
+     * 
+     * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
      */
     public function create(): RedirectResponse|Response
     {
@@ -31,17 +34,20 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * ログイン処理
+     * 
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // 認証処理
         try {
             $request->authenticate();
 
             $request->session()->regenerate();
 
             return redirect_to_admin_home()->with('success', __('messages.auth.login_success'));
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             // 認証失敗時の処理
             return back()->withErrors([
                 'email' => __('messages.auth.login_failed'),
@@ -59,10 +65,13 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Destroy an authenticated session.
+     * ログアウト処理
+     * 
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // ログアウト処理
         try {
             Auth::guard('admins')->logout();
 

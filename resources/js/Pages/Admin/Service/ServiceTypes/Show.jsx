@@ -1,6 +1,13 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -19,6 +26,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function ServiceTypeShow({ serviceType }) {
     // 実際のデータは serviceType.data の中にある
@@ -129,21 +138,31 @@ export default function ServiceTypeShow({ serviceType }) {
         );
     };
 
-    return (
-        <AdminLayout>
-            <Head title={`サービスタイプ詳細 - ${data?.name || ""}`} />
+    const headerActions = [
+        {
+            label: PageConfig.serviceTypes.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.service.type.index"),
+        },
+    ];
 
-            <div className="space-y-6">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`サービスタイプ詳細 - ${data?.name || ""}`} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.serviceTypes.title}
+                description={PageConfig.serviceTypes.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                        <Link
-                            href={route("admin.service.type.index")}
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            一覧に戻る
-                        </Link>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                                 {data?.color && (
@@ -224,11 +243,11 @@ export default function ServiceTypeShow({ serviceType }) {
                     {/* メインコンテンツ */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* 基本情報 */}
-                        <div className="bg-white shadow rounded-lg">
-                            <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                    基本情報
-                                </h3>
+                        <Card>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                基本情報
+                            </h3>
+                            <div className="space-y-4">
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <dt className="text-sm font-medium text-gray-500">
@@ -268,7 +287,6 @@ export default function ServiceTypeShow({ serviceType }) {
                                         </dd>
                                     </div>
                                 </dl>
-
                                 {data?.description && (
                                     <div className="mt-6">
                                         <dt className="text-sm font-medium text-gray-500 mb-2">
@@ -279,7 +297,6 @@ export default function ServiceTypeShow({ serviceType }) {
                                         </dd>
                                     </div>
                                 )}
-
                                 {data?.detailed_description && (
                                     <div className="mt-6">
                                         <dt className="text-sm font-medium text-gray-500 mb-2">
@@ -291,15 +308,15 @@ export default function ServiceTypeShow({ serviceType }) {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </Card>
 
                         {/* 価格・納期情報 */}
-                        <div className="bg-white shadow rounded-lg">
-                            <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <CurrencyYenIcon className="w-5 h-5 mr-2" />
-                                    価格・納期情報
-                                </h3>
+                        <Card>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                                <CurrencyYenIcon className="w-5 h-5 mr-2" />
+                                価格・納期情報
+                            </h3>
+                            <div className="space-y-4">
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <dt className="text-sm font-medium text-gray-500">
@@ -323,7 +340,6 @@ export default function ServiceTypeShow({ serviceType }) {
                                         </dd>
                                     </div>
                                 </dl>
-
                                 {serviceType.requires_consultation && (
                                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                         <div className="flex">
@@ -346,7 +362,7 @@ export default function ServiceTypeShow({ serviceType }) {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </Card>
 
                         {/* 特徴・機能 */}
                         {serviceType.features &&
@@ -659,7 +675,7 @@ export default function ServiceTypeShow({ serviceType }) {
                         </div>
                     </div>
                 </div>
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 }

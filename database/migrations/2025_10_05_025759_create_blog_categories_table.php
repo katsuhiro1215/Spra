@@ -19,7 +19,12 @@ return new class extends Migration
             $table->string('color')->default('#3B82F6'); // カテゴリカラー
             $table->integer('sort_order')->default(0); // 表示順序
             $table->boolean('is_active')->default(true); // 有効状態
+            // メンテナンス用カラム
+            $table->foreignId('created_by')->constrained('admins')->nullOnDelete(); // 作成者
+            $table->foreignId('updated_by')->constrained('admins')->nullOnDelete(); // 更新者
+            $table->foreignId('deleted_by')->constrained('admins')->nullOnDelete(); // 削除者
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['is_active', 'sort_order']);
         });

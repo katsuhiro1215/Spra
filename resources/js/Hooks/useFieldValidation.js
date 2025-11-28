@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { ValidationMessages } from "@/Constants/ValidationMessages";
+import { ValidationMessages } from "@/Constants/Validation/index";
 
 export const useFieldValidation = () => {
     const [errors, setErrors] = useState({});

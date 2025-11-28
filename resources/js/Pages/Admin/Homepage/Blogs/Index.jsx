@@ -1,6 +1,14 @@
 import React, { useState } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import DeleteAlert from "@/Components/Alerts/DeleteAlert";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     MagnifyingGlassIcon,
     PlusIcon,
@@ -14,6 +22,8 @@ import {
     TagIcon,
     PhotoIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
     const [selectedBlogs, setSelectedBlogs] = useState([]);
@@ -138,39 +148,38 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
         );
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.blogs.actions.create,
+            icon: PlusIcon,
+            variant: "primary",
+            route: route("admin.homepage.blogs.create"),
+        },
+    ];
+
     return (
-        <AdminLayout>
-            <Head title="ブログ管理" />
-
-            <div className="space-y-6">
-                {/* ヘッダー */}
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            ブログ管理
-                        </h1>
-                        <p className="text-gray-600">ブログ記事を管理します</p>
-                    </div>
-                    <div className="flex space-x-3">
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <FunnelIcon className="w-4 h-4 mr-2" />
-                            フィルター
-                        </button>
-                        <button
-                            onClick={() =>
-                                router.get(route("admin.homepage.blogs.create"))
-                            }
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                        >
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            新規作成
-                        </button>
-                    </div>
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.blogs.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.blogs.title}
+                description={PageConfig.blogs.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                {/* フィルター */}
+                <div className="flex space-x-3">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                        <FunnelIcon className="w-4 h-4 mr-2" />
+                        フィルター
+                    </button>
                 </div>
-
                 {/* フィルターパネル */}
                 {showFilters && (
                     <div className="bg-white p-4 border border-gray-200 rounded-lg">
@@ -314,7 +323,6 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                         </div>
                     </div>
                 )}
-
                 {/* 一括操作バー */}
                 {selectedBlogs.length > 0 && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -352,7 +360,6 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                         </div>
                     </div>
                 )}
-
                 {/* ブログ一覧テーブル */}
                 <div className="bg-white shadow rounded-lg overflow-hidden">
                     <div className="overflow-x-auto">
@@ -584,7 +591,6 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                             </tbody>
                         </table>
                     </div>
-
                     {/* ページネーション */}
                     {blogs.links && (
                         <div className="px-6 py-4 border-t border-gray-200">
@@ -618,7 +624,6 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                         </div>
                     )}
                 </div>
-
                 {/* 空の場合 */}
                 {blogs.data.length === 0 && (
                     <div className="text-center py-12">
@@ -630,22 +635,17 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                             最初のブログ記事を作成しましょう。
                         </p>
                         <div className="mt-6">
-                            <button
-                                onClick={() =>
-                                    router.get(
-                                        route("admin.homepage.blogs.create")
-                                    )
-                                }
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                            >
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                新規作成
-                            </button>
+                            <Link href={route("admin.homepage.blogs.create")}>
+                                <BasicButton variant="primary">
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    最初のブログを作成
+                                </BasicButton>
+                            </Link>
                         </div>
                     </div>
                 )}
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 };
 

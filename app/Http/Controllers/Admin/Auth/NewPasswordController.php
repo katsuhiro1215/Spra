@@ -20,6 +20,7 @@ class NewPasswordController extends Controller
 {
     /**
      * パスワード再設定画面
+     * 
      * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      * @throws \Exception
      */
@@ -38,11 +39,13 @@ class NewPasswordController extends Controller
 
     /**
      * 新しいパスワードの保存
-     * @return \Illuminate\Http\RedirectResponse
+
+    * @return \Illuminate\Http\RedirectResponse
      * @throws \Exception
      */
     public function store(Request $request): RedirectResponse
     {
+        // 新しいパスワード保存処理
         try {
             $request->validate([
                 'token' => 'required',
@@ -56,7 +59,7 @@ class NewPasswordController extends Controller
                 'password.confirmed' => __('validation.confirmed', ['attribute' => __('validation.attributes.password')]),
             ]);
 
-            // パスワードのリセット処理
+            // パスワードリセット処理
             $status = Password::broker('admins')->reset(
                 $request->only('email', 'password', 'password_confirmation', 'token'),
                 function ($user) use ($request) {
@@ -78,10 +81,12 @@ class NewPasswordController extends Controller
                 ->withErrors(['email' => __($status)])
                 ->with('error', __('passwords.token'));
         } catch (ValidationException $e) {
+            // バリデーションエラー時の処理
             return back()->withInput($request->only('email'))
                 ->withErrors($e->errors())
                 ->with('error', __('messages.form.validation_error'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin password reset error: ' . $e->getMessage());
 
             return back()->withInput($request->only('email'))

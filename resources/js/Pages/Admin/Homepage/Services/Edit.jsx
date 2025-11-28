@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
+// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+import FlashMessage from "@/Components/Notifications/FlashMessage";
+// Icons
 import {
     ArrowLeftIcon,
     PlusIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({ service, serviceCategories }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -141,31 +149,34 @@ export default function Edit({ service, serviceCategories }) {
         });
     };
 
-    return (
-        <AdminAuthenticatedLayout
-            header={
-                <div className="flex items-center space-x-4">
-                    <Link
-                        href={route("admin.homepage.services.index")}
-                        className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-                    >
-                        <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                        戻る
-                    </Link>
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        サービス編集
-                    </h2>
-                </div>
-            }
-        >
-            <Head title={`サービス編集 - ${service.name}`} />
+    const headerActions = [
+        {
+            label: PageConfig.services.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.homepage.services.index"),
+        },
+    ];
 
-            <div className="py-12">
-                <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <form onSubmit={submit} className="p-6 space-y-8">
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={`サービス編集 - ${service.name}`} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.services.title}
+                description={PageConfig.services.form.edit.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                <form onSubmit={submit}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* メインコンテンツ */}
+                        <div className="lg:col-span-2 space-y-6">
                             {/* 基本情報 */}
-                            <div>
+                            <Card>
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                                     基本情報
                                 </h3>
@@ -354,10 +365,10 @@ export default function Edit({ service, serviceCategories }) {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* 特徴・機能 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         特徴・機能
@@ -407,10 +418,10 @@ export default function Edit({ service, serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* 価格設定 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         価格設定
@@ -509,10 +520,10 @@ export default function Edit({ service, serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* デモリンク */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         デモリンク
@@ -572,10 +583,10 @@ export default function Edit({ service, serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* 使用技術 */}
-                            <div>
+                            <Card>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         使用技術
@@ -625,10 +636,10 @@ export default function Edit({ service, serviceCategories }) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* 設定 */}
-                            <div>
+                            <Card>
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                                     設定
                                 </h3>
@@ -735,10 +746,12 @@ export default function Edit({ service, serviceCategories }) {
                                         </label>
                                     </div>
                                 </div>
-                            </div>
-
+                            </Card>
+                        </div>
+                        {/* サイドバー */}
+                        <div className="space-y-6">
                             {/* アクションボタン */}
-                            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <Card className="flex items-center justify-between pt-6 border-t border-gray-200">
                                 <Link
                                     href={route(
                                         "admin.homepage.services.show",
@@ -765,11 +778,11 @@ export default function Edit({ service, serviceCategories }) {
                                         {processing ? "更新中..." : "更新"}
                                     </button>
                                 </div>
-                            </div>
-                        </form>
+                            </Card>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </form>
+            </main>
         </AdminAuthenticatedLayout>
     );
 }

@@ -24,12 +24,14 @@ class ConfirmablePasswordController extends Controller
     }
 
     /**
-     * ユーザーのパスワードを確認
+     * ユーザーパスワード確認
+     * 
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
+        // パスワード確認処理
         try {
             $request->validate([
                 'password' => 'required',
@@ -51,9 +53,11 @@ class ConfirmablePasswordController extends Controller
             return redirect()->intended(route('admin.dashboard'))
                 ->with('success', __('messages.auth.password_confirmed'));
         } catch (ValidationException $e) {
+            // バリデーションエラー時の処理
             return back()->withErrors($e->errors())
                 ->with('error', __('messages.form.validation_error'));
         } catch (\Exception $e) {
+            // その他のエラー
             Log::error('Admin password confirmation error: ' . $e->getMessage());
 
             return back()->with('error', __('messages.general.action_failed'));

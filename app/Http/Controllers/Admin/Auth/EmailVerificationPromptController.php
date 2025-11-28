@@ -12,6 +12,7 @@ class EmailVerificationPromptController extends Controller
 {
     /**
      * メールアドレス確認の促し表示
+     * 
      * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
      * @throws \Exception
      */

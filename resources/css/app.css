@@ -1,3 +1,79 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Loading Animation Styles */
+@layer utilities {
+    .bg-gradient-conic {
+        background: conic-gradient(from 0deg, var(--tw-gradient-stops));
+    }
+
+    /* Custom animations for loading */
+    @keyframes sprout-grow {
+        0% {
+            transform: translateY(20px) scale(0);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes leaf-unfold {
+        0% {
+            transform: scale(0) rotate(-45deg);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+    }
+
+    @keyframes bloom {
+        0% {
+            transform: scale(0) rotate(180deg);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+    }
+
+    .animate-sprout {
+        animation: sprout-grow 1s ease-out;
+    }
+
+    .animate-leaf {
+        animation: leaf-unfold 0.8s ease-out;
+    }
+
+    .animate-bloom {
+        animation: bloom 1s ease-out;
+    }
+}
+
+/* Page Transitions */
+@layer components {
+    .page-transition {
+        @apply transition-all duration-300 ease-in-out;
+    }
+
+    .page-transition-enter {
+        @apply opacity-0 translate-y-4 scale-95;
+    }
+
+    .page-transition-enter-active {
+        @apply opacity-100 translate-y-0 scale-100;
+    }
+
+    .page-transition-exit {
+        @apply opacity-100 translate-y-0 scale-100;
+    }
+
+    .page-transition-exit-active {
+        @apply opacity-0 translate-y-4 scale-95;
+    }
+}

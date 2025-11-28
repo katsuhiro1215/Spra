@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use Illuminate\Foundation\Application;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\Homepage\PageController;
@@ -18,15 +18,31 @@ use App\Http\Controllers\Admin\Service\ServiceTypePriceItemController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\PlanPricingController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\SystemSettingController;
+use Inertia\Inertia;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
   Route::get('/dashboard', function () {
-    return Inertia::render('AdminDashboard');
+    return Inertia::render('AdminDashboard', [
+      'laravelVersion' => Application::VERSION,
+      'phpVersion' => PHP_VERSION,
+    ]);
   })->name('dashboard');
 
   // ユーザー管理
   Route::resource('users', UserController::class);
+
+  // ユーザープロフィール管理
+  Route::prefix('users/{user}')->name('users.')->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/create', [\App\Http\Controllers\Admin\UserProfileController::class, 'create'])->name('profile.create');
+    Route::post('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'store'])->name('profile.store');
+    Route::get('/profile/edit', [\App\Http\Controllers\Admin\UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [\App\Http\Controllers\Admin\UserProfileController::class, 'destroy'])->name('profile.destroy');
+  });
 
   // 会社管理
   Route::resource('companies', CompanyController::class);
@@ -99,15 +115,16 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     });
   });
 
+  // ログ管理
+  Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
   // コンテンツ管理（一時的にダミー）
   Route::get('/content', function () {
     return Inertia::render('Admin/Content/Index');
   })->name('content.index');
 
   // 設定（一時的にダミー）
-  Route::get('/settings', function () {
-    return Inertia::render('Admin/Settings/Index');
-  })->name('settings.index');
+  Route::resource('systemSetting', SystemSettingController::class)->only(['index', 'edit', 'update']);  
 
   // 管理者プロフィール  
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

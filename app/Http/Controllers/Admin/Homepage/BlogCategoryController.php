@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Admin\Homepage;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Homepage\BlogCategoryRequest;
 use App\Models\BlogCategory;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BlogCategoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * ブログカテゴリ一覧
      */
     public function index(Request $request): Response
     {
@@ -48,48 +50,41 @@ class BlogCategoryController extends Controller
 
         $categories = $query->paginate(15)->withQueryString();
 
-        return Inertia::render('Admin/Homepage/BlogCategories/Index', [
+        return Inertia::render('Admin/Homepage/Blogs/Categories/Index', [
             'categories' => $categories,
             'filters' => $request->only(['search', 'status', 'sort', 'direction']),
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ブログカテゴリ作成画面
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Homepage/BlogCategories/Create');
+        return Inertia::render('Admin/Homepage/Blogs/Categories/Create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ブログカテゴリ作成処理
      */
-    public function store(Request $request): RedirectResponse
+    public function store(BlogCategoryRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:blog_categories',
-            'slug' => 'nullable|string|max:255|unique:blog_categories',
-            'description' => 'nullable|string|max:1000',
-            'color' => 'required|string|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-        ], [
-            'name.required' => 'カテゴリ名は必須です。',
-            'name.unique' => 'このカテゴリ名は既に使用されています。',
-            'slug.unique' => 'このスラッグは既に使用されています。',
-            'color.required' => 'カラーは必須です。',
-            'color.regex' => '有効なカラーコードを入力してください。',
-        ]);
+        try {
+            BlogCategory::create($request->validated());
+            
+            return redirect()->route('admin.homepage.blogCategories.index')
+            ->with('success', __('messages.blog_category.created'));
+        } catch (\Exception $e) {
+            // その他のエラー
+            Log::error('BlogCategory store error: ' . $e->getMessage());
 
-        $category = BlogCategory::create($validated);
-
-        return redirect()->route('admin.homepage.blogCategories.index')
-            ->with('success', 'ブログカテゴリを作成しました。');
+            return back()->withInput()
+                ->with('error', __('messages.blog_category.created_failed'));
+        }
     }
 
     /**
-     * Display the specified resource.
+     * ブログカテゴリ詳細
      */
     public function show(BlogCategory $blogCategory): Response
     {
@@ -97,45 +92,39 @@ class BlogCategoryController extends Controller
             $query->with('admin')->latest();
         }]);
 
-        return Inertia::render('Admin/Homepage/BlogCategories/Show', [
+        return Inertia::render('Admin/Homepage/Blogs/Categories/Show', [
             'category' => $blogCategory,
         ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * ブログカテゴリ編集画面
      */
     public function edit(BlogCategory $blogCategory): Response
     {
-        return Inertia::render('Admin/Homepage/BlogCategories/Edit', [
+        return Inertia::render('Admin/Homepage/Blogs/Categories/Edit', [
             'category' => $blogCategory,
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * ブログカテゴリ更新処理
      */
-    public function update(Request $request, BlogCategory $blogCategory): RedirectResponse
+    public function update(BlogCategoryRequest $request, BlogCategory $blogCategory): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('blog_categories')->ignore($blogCategory)],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('blog_categories')->ignore($blogCategory)],
-            'description' => 'nullable|string|max:1000',
-            'color' => 'required|string|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-        ], [
-            'name.required' => 'カテゴリ名は必須です。',
-            'name.unique' => 'このカテゴリ名は既に使用されています。',
-            'slug.unique' => 'このスラッグは既に使用されています。',
-            'color.required' => 'カラーは必須です。',
-            'color.regex' => '有効なカラーコードを入力してください。',
-        ]);
+        // 更新処理
+        try {
+            $blogCategory->update($request->validated());
+    
+            return redirect()->route('admin.homepage.blogCategories.index')
+                ->with('success', __('messages.blog_category.updated'));
+        } catch (\Exception $e) {
+            // その他のエラー
+            Log::error('BlogCategory update error: ' . $e->getMessage());
 
-        $blogCategory->update($validated);
-
-        return redirect()->route('admin.homepage.blogCategories.index')
-            ->with('success', 'ブログカテゴリを更新しました。');
+            return back()->withInput()
+                ->with('error', __('messages.blog_category.update_failed'));
+        }
     }
 
     /**

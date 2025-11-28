@@ -1,0 +1,28 @@
+import { Head, Link } from "@inertiajs/react";
+// Layouts
+import PublicLayout from "@/Layouts/PublicLayout";
+import HeroSection from "@/Pages/Public/Section/HeroSection";
+import AboutSection from "@/Pages/Public/Section/AboutSection";
+import ServiceSection from "@/Pages/Public/Section/ServiceSection";
+import BannerSection from "@/Pages/Public/Section/BannerSection";
+import BlogSection from "@/Pages/Public/Section/BlogSection";
+import ContactSection from "@/Pages/Public/Section/ContactSection";
+//Components
+
+export default function Home({ services, blogs, auth }) {
+    return (
+        <PublicLayout
+            auth={auth}
+            showLoading={true}
+            title="Smart Sprouts | スプラ公式サイト"
+        >
+            <Head title="Home" />
+            <HeroSection />
+            <AboutSection />
+            <ServiceSection />
+            <BannerSection />
+            <BlogSection blogs={blogs} />
+            <ContactSection />
+        </PublicLayout>
+    );
+}

@@ -4,37 +4,54 @@ namespace App\Http\Controllers\Admin\Homepage;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
-use Illuminate\Http\Request;
+use App\Services\PageService;
+use App\Http\Requests\Admin\Homepage\PageRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
+    public function __construct(
+        private PageService $pageService
+    ) {
+        // 必要に応じて個別の権限制御を追加
+        // $this->middleware('can:manage,Page');
+    }
     /**
-     * Display a listing of the resource.
+     * ページ一覧
+     * 
+     * @return \Inertia\Response
      */
     public function index(): Response
     {
-        $pages = Page::orderBy('sort_order')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($page) {
-                return [
-                    'id' => $page->id,
-                    'title' => $page->title,
-                    'slug' => $page->slug,
-                    'template' => $page->template,
-                    'is_published' => $page->is_published,
-                    'sort_order' => $page->sort_order,
-                    'updated_at' => $page->updated_at->format('Y/m/d H:i'),
-                ];
-            });
-
-        return Inertia::render('Admin/Homepage/Pages/Index', [
-            'pages' => $pages,
-        ]);
+        try {
+            $pages = Page::orderBy('sort_order')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($page) {
+                    return [
+                        'id' => $page->id,
+                        'title' => $page->title,
+                        'slug' => $page->slug,
+                        'template' => $page->template,
+                        'is_published' => $page->is_published,
+                        'sort_order' => $page->sort_order,
+                        'updated_at' => $page->updated_at->format('Y/m/d H:i'),
+                    ];
+                });
+    
+            return Inertia::render('Admin/Homepage/Pages/Index', [
+                'pages' => $pages,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Page index error: ' . $e->getMessage());
+            return Inertia::render('Admin/Homepage/Pages/Index', [
+                'pages' => [],
+                'error' => __('messages.page.index_failed'),
+            ]);
+        }
     }
 
     /**
@@ -42,32 +59,37 @@ class PageController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Homepage/Pages/Create', [
-            'templates' => $this->getAvailableTemplates(),
-        ]);
+        try {
+            return Inertia::render('Admin/Homepage/Pages/Create', [
+                'templates' => $this->getAvailableTemplates(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Page create error: ' . $e->getMessage());
+            return Inertia::render('Admin/Homepage/Pages/Create', [
+                'templates' => [],
+                'error' => __('messages.page.create_failed'),
+            ]);
+        }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ページ保存
+     * 
+     * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(PageRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:pages,slug',
-            'template' => 'required|string|max:50',
-            'content' => 'nullable|array',
-            'meta' => 'nullable|array',
-            'settings' => 'nullable|array',
-            'is_published' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
-
-        Page::create($validated);
-
-        return redirect()
-            ->route('admin.homepage.pages.index')
-            ->with('message', 'ページが正常に作成されました。');
+        try {
+            $this->pageService->createPage($request->validated());
+            return redirect()
+                ->route('admin.homepage.pages.index')
+                ->with('success', __('messages.page.created'));
+        } catch (\Exception $e) {
+            Log::error('Page store error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', __('messages.page.create_failed'));
+        }
     }
 
     /**
@@ -116,25 +138,9 @@ class PageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Page $page): RedirectResponse
+    public function update(PageRequest $request, Page $page): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('pages', 'slug')->ignore($page->id),
-            ],
-            'template' => 'required|string|max:50',
-            'content' => 'nullable|array',
-            'meta' => 'nullable|array',
-            'settings' => 'nullable|array',
-            'is_published' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
-
-        $page->update($validated);
+        $page->update($request->validated());
 
         return redirect()
             ->route('admin.homepage.pages.index')

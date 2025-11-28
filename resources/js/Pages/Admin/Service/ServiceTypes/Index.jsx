@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 // Layouts
-import AdminLayout from "@/Layouts/AdminLayout";
-// Constants
-import { CommonUIConstants } from "@/Constants/CommonUIConstants";
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
 // Components
@@ -14,8 +12,8 @@ import FlashMessage from "@/Components/Notifications/FlashMessage";
 // ServiceType Components
 import ServiceTypesBulkActions from "./Components/ServiceTypesBulkActions";
 import ServiceTypesTable from "./Components/ServiceTypesTable";
-// Features
-import { ServiceTypesConstants } from "@/Features/ServiceTypes/constants";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({
     serviceTypes,
@@ -82,7 +80,7 @@ export default function Index({
         if (selectedItems.length === 0) return;
 
         const confirmed = confirm(
-            ServiceTypesConstants.confirmMessages.bulkAction(
+            PageConfig.serviceTypes.confirmMessages.bulkAction(
                 selectedItems.length,
                 action
             )
@@ -107,7 +105,9 @@ export default function Index({
 
     // 削除処理
     const handleDelete = (id) => {
-        const confirmed = confirm(ServiceTypesConstants.confirmMessages.delete);
+        const confirmed = confirm(
+            PageConfig.serviceTypes.confirmMessages.delete
+        );
         if (confirmed) {
             router.delete(route("admin.service.type.destroy", id));
         }
@@ -117,8 +117,8 @@ export default function Index({
     const searchFilterConfig = [
         {
             key: "category_id",
-            label: ServiceTypesConstants.filters.category.label,
-            placeholder: ServiceTypesConstants.filters.category.placeholder,
+            label: PageConfig.serviceTypes.filters.category.label,
+            placeholder: PageConfig.serviceTypes.filters.category.placeholder,
             options: serviceCategories.map((category) => ({
                 value: category.id,
                 label: category.name,
@@ -126,8 +126,9 @@ export default function Index({
         },
         {
             key: "pricing_model",
-            label: ServiceTypesConstants.filters.pricingModel.label,
-            placeholder: ServiceTypesConstants.filters.pricingModel.placeholder,
+            label: PageConfig.serviceTypes.filters.pricingModel.label,
+            placeholder:
+                PageConfig.serviceTypes.filters.pricingModel.placeholder,
             options: Object.entries(pricingModels).map(([key, label]) => ({
                 value: key,
                 label: label,
@@ -135,21 +136,22 @@ export default function Index({
         },
         {
             key: "status",
-            label: ServiceTypesConstants.filters.status.label,
-            placeholder: ServiceTypesConstants.filters.status.placeholder,
+            label: PageConfig.serviceTypes.filters.status.label,
+            placeholder: PageConfig.serviceTypes.filters.status.placeholder,
             options: [
                 {
                     value: "active",
-                    label: ServiceTypesConstants.filters.status.options.active,
+                    label: PageConfig.serviceTypes.filters.status.options
+                        .active,
                 },
                 {
                     value: "inactive",
-                    label: ServiceTypesConstants.filters.status.options
+                    label: PageConfig.serviceTypes.filters.status.options
                         .inactive,
                 },
                 {
                     value: "featured",
-                    label: ServiceTypesConstants.filters.status.options
+                    label: PageConfig.serviceTypes.filters.status.options
                         .featured,
                 },
             ],
@@ -159,7 +161,7 @@ export default function Index({
     // ページヘッダーのアクション設定
     const headerActions = [
         {
-            label: ServiceTypesConstants.actions.create,
+            label: PageConfig.serviceTypes.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.service.type.create"),
@@ -167,27 +169,29 @@ export default function Index({
     ];
 
     return (
-        <AdminLayout>
-            <Head title={ServiceTypesConstants.page.documentTitle} />
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.serviceTypes.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="space-y-6">
-                {/* ヘッダー */}
-                <PageHeader
-                    title={ServiceTypesConstants.page.title}
-                    description={ServiceTypesConstants.page.description}
-                    actions={headerActions}
-                />
-
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.serviceTypes.title}
+                description={PageConfig.serviceTypes.description}
+                actions={headerActions}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* 検索・フィルター */}
                 <SearchFilter
                     data={data}
                     setData={setData}
                     onSearch={handleSearch}
                     processing={processing}
-                    searchPlaceholder={ServiceTypesConstants.search.placeholder}
+                    searchPlaceholder={
+                        PageConfig.serviceTypes.search.placeholder
+                    }
                     filters={searchFilterConfig}
                 />
 
@@ -214,7 +218,7 @@ export default function Index({
 
                 {/* ページネーション */}
                 <Pagination paginationData={serviceTypes} />
-            </div>
-        </AdminLayout>
+            </main>
+        </AdminAuthenticatedLayout>
     );
 }

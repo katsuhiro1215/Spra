@@ -1,6 +1,12 @@
 import React from "react";
 import { Head, router } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+// Layouts
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Card from "@/Components/Card";
+import BasicButton from "@/Components/Buttons/BasicButton";
+// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -48,30 +54,27 @@ const MediaShow = ({ media }) => {
         }
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.media.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "secondary",
+            route: route("admin.media.index"),
+        },
+    ];
+
     return (
         <AdminLayout>
             <Head title={`メディア詳細 - ${media.title || media.filename}`} />
-
-            <div className="space-y-6">
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.media.title}
+                description={PageConfig.media.description}
+                actions={headerActions}
+            />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* ヘッダー */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() =>
-                                router.get(route("admin.media.index"))
-                            }
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            メディア一覧に戻る
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {media.title || media.filename}
-                            </h1>
-                            <p className="text-gray-600">メディア詳細</p>
-                        </div>
-                    </div>
                     <div className="flex space-x-3">
                         <button
                             onClick={() =>
@@ -319,7 +322,7 @@ const MediaShow = ({ media }) => {
                         )}
                     </div>
                 </div>
-            </div>
+            </main>
         </AdminLayout>
     );
 };

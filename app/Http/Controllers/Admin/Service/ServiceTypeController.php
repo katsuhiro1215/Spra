@@ -24,6 +24,7 @@ class ServiceTypeController extends Controller
 
   /**
    * サービスタイプ一覧
+   * 
    * @return Response
    */
   public function index(Request $request): Response
