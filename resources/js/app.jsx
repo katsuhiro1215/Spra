@@ -22,6 +22,9 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: "#4B5563",
+        // スタイリッシュなプログレスバー
+        color: "#10B981", // Green-500
+        size: 3,
+        showSpinner: true,
     },
 });

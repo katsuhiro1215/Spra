@@ -5,7 +5,6 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import { InputError, InputLabel, TextInput } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import FlashMessage from "@/Components/Notifications/FlashMessage";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
 
 export default function ConfirmPassword() {
     // フォーム状態管理

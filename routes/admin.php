@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use Illuminate\Foundation\Application;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\Homepage\PageController;
@@ -20,11 +20,15 @@ use App\Http\Controllers\Admin\Service\PlanPricingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SystemSettingController;
+use Inertia\Inertia;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
   // 管理者ダッシュボード
   Route::get('/dashboard', function () {
-    return Inertia::render('AdminDashboard');
+    return Inertia::render('AdminDashboard', [
+      'laravelVersion' => Application::VERSION,
+      'phpVersion' => PHP_VERSION,
+    ]);
   })->name('dashboard');
 
   // ユーザー管理
