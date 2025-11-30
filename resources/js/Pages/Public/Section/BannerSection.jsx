@@ -93,7 +93,7 @@ export default function BannerSection() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
                             <a
-                                href="#contact"
+                                href="/reservation"
                                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                             >
                                 無料相談を予約

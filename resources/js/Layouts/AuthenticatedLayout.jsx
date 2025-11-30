@@ -1,181 +1,254 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Layout/Dropdown';
-import NavLink from '@/Components/Navigation/NavLink';
-import ResponsiveNavLink from '@/Components/Navigation/ResponsiveNavLink';
-import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
+import {
+    HomeIcon,
+    DocumentTextIcon,
+    CogIcon,
+    ChartBarIcon,
+    UserIcon,
+    Bars3Icon,
+    XMarkIcon,
+    BellIcon,
+    ArrowRightOnRectangleIcon,
+    CalendarDaysIcon,
+} from "@heroicons/react/24/outline";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    // サイドバーのナビゲーション項目
+    const navigation = [
+        {
+            name: "ダッシュボード",
+            href: route("user.dashboard"),
+            icon: HomeIcon,
+            current: route().current("user.dashboard"),
+        },
+        {
+            name: "プロジェクト",
+            href: "/user/projects",
+            icon: DocumentTextIcon,
+            current: false,
+        },
+        {
+            name: "契約管理",
+            href: "/user/contracts",
+            icon: ChartBarIcon,
+            current: false,
+        },
+        {
+            name: "進捗状況",
+            href: "/user/progress",
+            icon: ChartBarIcon,
+            current: false,
+        },
+        {
+            name: "予約設定",
+            href: "/user/reservation-settings",
+            icon: CalendarDaysIcon,
+            current: false,
+        },
+        {
+            name: "設定",
+            href: route("user.profile.edit"),
+            icon: CogIcon,
+            current: route().current("user.profile.edit"),
+        },
+    ];
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* User識別バー */}
-            <div className="bg-blue-600 text-white text-center py-1 text-sm font-medium">
-                👤 ユーザーモード - User Portal
-            </div>
-            
-            <nav className="border-b border-gray-100 bg-white">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('user.dashboard')}
-                                    active={route().current('user.dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('user.profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('user.logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <div className="min-h-screen bg-gray-50">
+            {/* モバイル用サイドバー */}
+            <div
+                className={`fixed inset-0 z-40 lg:hidden ${
+                    sidebarOpen ? "" : "pointer-events-none"
+                }`}
+            >
+                <div
+                    className={`fixed inset-0 bg-gray-600 transition-opacity duration-300 ${
+                        sidebarOpen ? "opacity-75" : "opacity-0"
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                />
 
                 <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
+                    className={`relative flex w-full max-w-xs flex-1 flex-col bg-white transition-transform duration-300 ${
+                        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
                 >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('user.dashboard')}
-                            active={route().current('user.dashboard')}
+                    <div
+                        className={`absolute top-0 right-0 -mr-12 pt-2 transition-opacity duration-300 ${
+                            sidebarOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(false)}
+                            className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                         >
-                            Dashboard
-                        </ResponsiveNavLink>
+                            <XMarkIcon className="h-6 w-6 text-white" />
+                        </button>
                     </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
+                    {/* モバイルサイドバーコンテンツ */}
+                    <div className="flex flex-shrink-0 items-center px-4 py-4 border-b border-gray-200">
+                        <ApplicationLogo className="h-8 w-8 text-green-600 mr-3" />
+                        <span className="text-xl font-bold text-gray-900">
+                            Smart Sprouts
+                        </span>
+                    </div>
+                    <div className="mt-5 h-0 flex-1 overflow-y-auto">
+                        <nav className="px-2 space-y-1">
+                            {navigation.map((item) => (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                                        item.current
+                                            ? "bg-green-100 text-green-900"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }`}
+                                >
+                                    <item.icon
+                                        className={`mr-3 h-5 w-5 ${
+                                            item.current
+                                                ? "text-green-500"
+                                                : "text-gray-400 group-hover:text-gray-500"
+                                        }`}
+                                    />
+                                    {item.name}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            {/* デスクトップ用サイドバー */}
+            <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+                <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200">
+                    {/* ロゴ・ブランディング */}
+                    <div className="flex items-center h-16 px-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-blue-600">
+                        <ApplicationLogo className="h-8 w-8 text-white mr-3" />
+                        <div className="flex flex-col">
+                            <span className="text-lg font-bold text-white">
+                                Smart Sprouts
+                            </span>
+                            <span className="text-xs text-green-100">
+                                管理画面
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* ユーザー情報 */}
+                    <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
+                                    <UserIcon className="h-5 w-5 text-white" />
+                                </div>
                             </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
+                            <div className="ml-3 flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                    {user.name}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                    {user.email}
+                                </p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('user.profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('user.logout')}
-                                as="button"
+                    {/* ナビゲーション */}
+                    <nav className="mt-5 flex-1 px-2 pb-4 space-y-1 overflow-y-auto">
+                        {navigation.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                                    item.current
+                                        ? "bg-green-100 text-green-900 border-r-2 border-green-500"
+                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
                             >
-                                Log Out
-                            </ResponsiveNavLink>
+                                <item.icon
+                                    className={`mr-3 h-5 w-5 ${
+                                        item.current
+                                            ? "text-green-500"
+                                            : "text-gray-400 group-hover:text-gray-500"
+                                    }`}
+                                />
+                                {item.name}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    {/* ログアウトボタン */}
+                    <div className="px-2 pb-4">
+                        <Link
+                            href={route("user.logout")}
+                            method="post"
+                            as="button"
+                            className="group flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                        >
+                            <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-red-500" />
+                            ログアウト
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* メインコンテンツエリア */}
+            <div className="lg:pl-64">
+                {/* トップバー */}
+                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pl-1 pt-1 sm:pl-3 sm:pt-3 lg:hidden">
+                    <button
+                        type="button"
+                        onClick={() => setSidebarOpen(true)}
+                        className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+                    >
+                        <Bars3Icon className="h-6 w-6" />
+                    </button>
+                </div>
+
+                {/* デスクトップ用トップバー */}
+                <div className="hidden lg:block bg-white border-b border-gray-200 px-4 py-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            {header && (
+                                <h1 className="text-2xl font-bold text-gray-900">
+                                    {header}
+                                </h1>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            {/* 通知アイコン */}
+                            <button className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-full">
+                                <BellIcon className="h-6 w-6" />
+                            </button>
+
+                            {/* 公開サイトへのリンク */}
+                            <Link
+                                href="/"
+                                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                            >
+                                公開サイトを見る
+                            </Link>
                         </div>
                     </div>
                 </div>
-            </nav>
 
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
+                {/* メインコンテンツ */}
+                <main className="flex-1">
+                    <div className="py-6">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            {children}
+                        </div>
                     </div>
-                </header>
-            )}
-
-            <main>{children}</main>
+                </main>
+            </div>
         </div>
     );
 }
