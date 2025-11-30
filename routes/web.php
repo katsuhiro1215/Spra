@@ -29,6 +29,8 @@ Route::name('public.')->prefix('/')->group(function () {
     Route::get('/lp', fn() => inertiaPublic('LandingPage'))->name('landing.page');
     Route::get('/lp-minimal', fn() => inertiaPublic('LandingPageMinimal'))->name('landing.minimal');
     Route::get('/lp-creative', fn() => inertiaPublic('LandingPageCreative'))->name('landing.creative');
+    Route::get('/reservation', fn() => inertiaPublic('Reservation'))->name('reservation');
+    Route::post('/reservation', fn() => redirect()->back()->with('success', '予約を受け付けました。確認メールをお送りしました。'))->name('reservation.store');
 });
 
 if (!function_exists('inertiaPublic')) {
@@ -46,6 +48,12 @@ Route::middleware(['auth:users', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/reservation-settings', function () {
+        return Inertia::render('User/ReservationSettings');
+    })->name('reservation.settings');
+    Route::post('/reservation-settings', function () {
+        return redirect()->back()->with('success', '予約設定を保存しました。');
+    })->name('reservation.settings.store');
 });
 
 require __DIR__ . '/auth.php';
