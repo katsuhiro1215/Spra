@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('type')->default('text'); // 設定値の型（text, json, boolean, number）
             $table->string('group')->default('general'); // 設定グループ
             $table->text('description')->nullable(); // 設定の説明
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
             $table->timestamps();
-            
             $table->index('group');
         });
     }

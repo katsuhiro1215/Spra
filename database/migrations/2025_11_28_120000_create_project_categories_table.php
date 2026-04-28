@@ -11,22 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('blog_categories', function (Blueprint $table) {
+        Schema::create('project_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // カテゴリ名
-            $table->string('slug')->unique(); // URL用スラッグ
+            $table->string('name')->unique(); // カテゴリ名
             $table->text('description')->nullable(); // カテゴリ説明
-            $table->string('color')->default('#3B82F6'); // カテゴリカラー
+            $table->string('slug')->unique(); // URL用スラッグ
+            $table->boolean('is_active')->default(true); // 有効フラグ
             $table->integer('sort_order')->default(0); // 表示順序
-            $table->boolean('is_active')->default(true); // 有効状態
-            // メンテナンス用カラム
             $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
             $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
             $table->foreignId('deleted_by')->nullable()->constrained('admins')->onDelete('set null')->comment('削除者');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->index(['is_active', 'sort_order']);
         });
     }
 
@@ -35,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('blog_categories');
+        Schema::dropIfExists('project_categories');
     }
 };

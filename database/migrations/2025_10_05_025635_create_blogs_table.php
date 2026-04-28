@@ -24,10 +24,9 @@ return new class extends Migration
             $table->json('meta')->nullable(); // SEO用メタデータ
             $table->json('custom_fields')->nullable(); // カスタムフィールド
             $table->timestamp('published_at')->nullable(); // 公開日時
-
-            $table->foreignId('created_by')->constrained('admins')->nullOnDelete(); // 作成者
-            $table->foreignId('updated_by')->constrained('admins')->nullOnDelete(); // 更新者
-            $table->foreignId('deleted_by')->constrained('admins')->nullOnDelete(); // 削除者
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
+            $table->foreignId('deleted_by')->nullable()->constrained('admins')->onDelete('set null')->comment('削除者');
             $table->timestamps();
             $table->softDeletes();
             

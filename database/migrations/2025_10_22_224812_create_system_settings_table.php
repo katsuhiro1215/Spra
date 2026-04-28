@@ -24,6 +24,8 @@ return new class extends Migration
             $table->boolean('is_editable')->default(true); // 管理画面で編集可能か
             $table->json('options')->nullable(); // 選択肢や補助情報（例: select用）
             $table->integer('sort_order')->default(0); // 表示順
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
             $table->timestamps();
         });
     }

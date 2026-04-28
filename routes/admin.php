@@ -20,6 +20,9 @@ use App\Http\Controllers\Admin\Service\PlanPricingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\ProjectCategoryController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectDraftController;
 use Inertia\Inertia;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
@@ -85,6 +88,13 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
   Route::resource('media', MediaController::class);
   Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
   Route::delete('/media/bulk-destroy', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
+
+  // プロジェクト管理
+  Route::resource('project', ProjectController::class); // プロジェクト管理
+  Route::prefix('project')->name('project.')->group(function () {
+    Route::resource('categories', ProjectCategoryController::class); // プロジェクトカテゴリ管理
+    Route::resource('drafts', ProjectDraftController::class); // 初回ヒアリング用
+  });
 
   // サービス管理
   Route::prefix('service')->name('service.')->group(function () {

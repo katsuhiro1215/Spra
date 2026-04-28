@@ -20,7 +20,11 @@ return new class extends Migration
             $table->integer('sort_order')->default(0); // 表示順序
             $table->boolean('is_featured')->default(false); // よくある質問として表示
             $table->boolean('is_published')->default(true); // 公開状態
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
+            $table->foreignId('deleted_by')->nullable()->constrained('admins')->onDelete('set null')->comment('削除者');
             $table->timestamps();
+            $table->softDeletes();
             
             $table->index(['faq_category_id', 'is_published']);
             $table->index(['category', 'is_published']); // 旧カテゴリ用インデックス

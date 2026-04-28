@@ -20,7 +20,11 @@ return new class extends Migration
             $table->string('icon')->nullable(); // アイコン（Heroicons等）
             $table->integer('sort_order')->default(0); // 表示順序
             $table->boolean('is_active')->default(true); // アクティブ状態
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
+            $table->foreignId('deleted_by')->nullable()->constrained('admins')->onDelete('set null')->comment('削除者');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['is_active', 'sort_order']);
             $table->index('slug');

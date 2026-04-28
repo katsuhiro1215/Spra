@@ -29,10 +29,12 @@ return new class extends Migration
             $table->string('folder')->nullable(); // フォルダ分類
             $table->json('tags')->nullable(); // タグ
             $table->boolean('is_public')->default(true); // 公開設定
-            $table->unsignedBigInteger('uploaded_by')->nullable(); // アップロード者
+            $table->foreignId('created_by')->nullable()->constrained('admins')->onDelete('set null')->comment('作成者');
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->onDelete('set null')->comment('更新者');
+            $table->foreignId('deleted_by')->nullable()->constrained('admins')->onDelete('set null')->comment('削除者');
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->foreign('uploaded_by')->references('id')->on('admins')->onDelete('set null');
             $table->index(['type', 'is_public']);
             $table->index(['folder', 'type']);
             $table->index('mime_type');
