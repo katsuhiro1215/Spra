@@ -4,22 +4,52 @@ namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceCategory;
-use App\Http\Requests\StoreServiceCategoryRequest;
-use App\Http\Requests\UpdateServiceCategoryRequest;
+use App\Services\ServiceCategoryService;
+use App\Http\Requests\ServiceCategoryRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ServiceCategoryController extends Controller
 {
+    public function __construct(
+        private ServiceCategoryService $serviceCategoryService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return Inertia::render('Admin/Service/Categories/Index', [
-            'serviceCategories' => ServiceCategory::ordered()->get(),
-        ]);
+        try {
+            $filters = $request->only(['search', 'status', 'trashed']);
+            $sort = [
+                'field' => $request->get('sort', 'sort_order'),
+                'direction' => $request->get('direction', 'asc')
+            ];
+
+            $serviceCategories = $this->serviceCategoryService->getPaginatedServiceCategories($filters, $sort);
+            $statuses = $this->serviceCategoryService->getStatuses();
+            $stats = $this->serviceCategoryService->getServiceCategoryStats();
+
+            return Inertia::render('Admin/Service/Categories/Index', [
+                'serviceCategories' => $serviceCategories,
+                'statuses' => $statuses,
+                'filters' => $filters,
+                'sort' => $sort,
+                'stats' => $stats,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('ServiceCategory index error: ' . $e->getMessage());
+            return Inertia::render('Admin/Service/Categories/Index', [
+                'serviceCategories' => [],
+                'statuses' => [],
+                'filters' => [],
+                'sort' => [],
+                'error' => 'データの取得に失敗しました。'
+            ]);
+        }
     }
 
     /**
@@ -27,18 +57,29 @@ class ServiceCategoryController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Service/Categories/Create');
+        $statuses = $this->serviceCategoryService->getStatuses();
+
+        return Inertia::render('Admin/Service/Categories/Create', [
+            'statuses' => $statuses,
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreServiceCategoryRequest $request)
+    public function store(ServiceCategoryRequest $request)
     {
-        ServiceCategory::create($request->validated());
+        try {
+            $this->serviceCategoryService->createServiceCategory($request->validated());
 
-        return redirect()->route('admin.service.categories.index')
-            ->with('success', 'サービスカテゴリが作成されました。');
+            return redirect()->route('admin.service.category.index')
+                ->with('success', 'サービスカテゴリが作成されました。');
+        } catch (\Exception $e) {
+            Log::error('ServiceCategory store error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'サービスカテゴリの作成に失敗しました。');
+        }
     }
 
     /**
@@ -47,7 +88,7 @@ class ServiceCategoryController extends Controller
     public function show(ServiceCategory $serviceCategory): Response
     {
         return Inertia::render('Admin/Service/Categories/Show', [
-            'serviceCategory' => $serviceCategory,
+            'serviceCategory' => $serviceCategory->load(['creator', 'updater']),
             'servicesCount' => $serviceCategory->services()->count(),
         ]);
     }
@@ -57,20 +98,30 @@ class ServiceCategoryController extends Controller
      */
     public function edit(ServiceCategory $serviceCategory): Response
     {
+        $statuses = $this->serviceCategoryService->getStatuses();
+
         return Inertia::render('Admin/Service/Categories/Edit', [
             'serviceCategory' => $serviceCategory,
+            'statuses' => $statuses,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateServiceCategoryRequest $request, ServiceCategory $serviceCategory)
+    public function update(ServiceCategoryRequest $request, ServiceCategory $serviceCategory)
     {
-        $serviceCategory->update($request->validated());
+        try {
+            $this->serviceCategoryService->updateServiceCategory($serviceCategory, $request->validated());
 
-        return redirect()->route('admin.service.categories.index')
-            ->with('success', 'サービスカテゴリが更新されました。');
+            return redirect()->route('admin.service.category.index')
+                ->with('success', 'サービスカテゴリが更新されました。');
+        } catch (\Exception $e) {
+            Log::error('ServiceCategory update error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'サービスカテゴリの更新に失敗しました。');
+        }
     }
 
     /**
@@ -78,15 +129,15 @@ class ServiceCategoryController extends Controller
      */
     public function destroy(ServiceCategory $serviceCategory)
     {
-        // サービスが紐づいている場合は削除を防ぐ
-        if ($serviceCategory->services()->count() > 0) {
+        try {
+            $this->serviceCategoryService->deleteServiceCategory($serviceCategory);
+
+            return redirect()->route('admin.service.category.index')
+                ->with('success', 'サービスカテゴリが削除されました。');
+        } catch (\Exception $e) {
+            Log::error('ServiceCategory destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'このカテゴリにはサービスが紐づいているため削除できません。');
+                ->with('error', $e->getMessage());
         }
-
-        $serviceCategory->delete();
-
-        return redirect()->route('admin.service.categories.index')
-            ->with('success', 'サービスカテゴリが削除されました。');
     }
 }

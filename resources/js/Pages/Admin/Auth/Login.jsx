@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 // Components
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import {Card} from "@/Components/Card";
 import {
     Checkbox,
     InputError,
@@ -76,7 +77,7 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 {/* フォーム */}
-                <div className="bg-white shadow-2xl rounded-2xl px-8 py-8 space-y-6">
+                <Card className="bg-white shadow-2xl rounded-2xl px-8 py-8 space-y-6">
                     {status && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                             <div className="flex">
@@ -186,7 +187,7 @@ export default function Login({ status, canResetPassword }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "password",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             placeholder="••••••••"
@@ -206,7 +207,7 @@ export default function Login({ status, canResetPassword }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "remember",
-                                                    e.target.checked
+                                                    e.target.checked,
                                                 )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -219,7 +220,7 @@ export default function Login({ status, canResetPassword }) {
                                     {canResetPassword && (
                                         <Link
                                             href={route(
-                                                "admin.password.request"
+                                                "admin.password.request",
                                             )}
                                             className="text-sm text-blue-600 hover:text-blue-500 font-medium"
                                         >
@@ -230,6 +231,7 @@ export default function Login({ status, canResetPassword }) {
                             </div>
 
                             <PrimaryButton
+                                type="submit"
                                 className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
                                 disabled={processing}
                             >
@@ -333,7 +335,7 @@ export default function Login({ status, canResetPassword }) {
                             </p>
                         </div>
                     )}
-                </div>
+                </Card>
             </div>
         </div>
     );

@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,26 +11,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 基本のテストユーザー
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        // ホームページ管理用の初期データを作成
         $this->call([
+            // 管理者（認証確認用）
             AdminSeeder::class,
-            HomepagePageSeeder::class,
+
+            // 会社（ユーザーより先に作成 → company_user で参照される）
+            CompanySeeder::class,
+
+            // ユーザー（会社への紐付け・住所含む）
+            UserSeeder::class,
+
+            // プロフィール（Admin, User統合）
+            ProfileSeeder::class,
+
+            // 住所（Admin, User, Company統合）
+            AddressSeeder::class,
+
+            // メディア
+            MediaSeeder::class,
+
+            // サービス関連
             ServiceCategorySeeder::class,
-            ServiceTypeSeeder::class,
             ServiceSeeder::class,
             ServicePlanSeeder::class,
-            PlanPricingSeeder::class,
-            FaqCategorySeeder::class,
-
-            // 新しいSeeder群（順序重要：CompanySeeder → UserSeeder）
-            CompanySeeder::class,    // 会社データを先に作成
-            UserSeeder::class,       // ユーザーデータ（会社との関連含む）
+            ServiceItemSeeder::class,
         ]);
     }
 }

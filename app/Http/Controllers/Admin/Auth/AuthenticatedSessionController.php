@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\AdminLoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +17,8 @@ class AuthenticatedSessionController extends Controller
 {
     /**
      * ログイン画面
-     * 
-     * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
+     *
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function create(): RedirectResponse|Response
     {
@@ -35,10 +35,11 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * ログイン処理
-     * 
+     *
+     * @param  \App\Http\Requests\Auth\AdminLoginRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(AdminLoginRequest $request): RedirectResponse
     {
         // 認証処理
         try {
@@ -66,7 +67,7 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * ログアウト処理
-     * 
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse

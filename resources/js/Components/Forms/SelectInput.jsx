@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useRef } from "react";
 
 export default forwardRef(function SelectInput(
-    { className = "", isFocused = false, children, ...props },
-    ref
+    { className = "", isFocused = false, options = [], children, ...props },
+    ref,
 ) {
     const select = ref ? ref : useRef();
 
@@ -16,12 +16,18 @@ export default forwardRef(function SelectInput(
         <select
             {...props}
             className={
-                "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm " +
+                "w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed " +
                 className
             }
             ref={select}
         >
-            {children}
+            {options.length > 0
+                ? options.map((option) => (
+                      <option key={option.value} value={option.value}>
+                          {option.label}
+                      </option>
+                  ))
+                : children}
         </select>
     );
 });

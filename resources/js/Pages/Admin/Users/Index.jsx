@@ -1,218 +1,265 @@
-import { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
-// Layouts
+import { useState, useEffect } from "react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import BasicTable from "@/Components/Tables/BasicTable";
-import BasicButton from "@/Components/Buttons/BasicButton";
 import Pagination from "@/Components/Layout/Pagination";
-import DeleteAlert from "@/Components/Alerts/DeleteAlert";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
+import { Card } from "@/Components/Card";
+import { CreateButton, SecondaryButton } from "@/Components/Buttons";
+import TabNavigation from "@/Components/TabNavigation";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
 // Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
+import { ADMIN_STATUS_OPTIONS } from "@/Constants/SelectOptions";
+// User Components
+import UsersTable from "./_components/UsersTable";
 
-export default function Index({ users, filters }) {
-    const [search, setSearch] = useState(filters.search || "");
+export default function Index({ users, filters, stats }) {
+    // ========================================
+    // State & Form
+    // ========================================
+    const [activeTab, setActiveTab] = useState(
+        filters.trashed || "without_trashed",
+    );
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        router.get(route("admin.users.index"), { search });
+    const { data, setData, get, processing } = useForm({
+        search: filters.search || "",
+        status: filters.status || "",
+        trashed: filters.trashed || "without_trashed",
+    });
+
+    // ========================================
+    // Effects
+    // ========================================
+    // propsが更新されたらstateも更新
+    useEffect(() => {
+        setActiveTab(filters.trashed || "without_trashed");
+        setData({
+            search: filters.search || "",
+            status: filters.status || "",
+            trashed: filters.trashed || "without_trashed",
+        });
+    }, [filters.trashed]);
+
+    // フィルター変更時に自動検索
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (data.status !== filters.status) {
+                handleSearch();
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [data.status]);
+
+    // ========================================
+    // Handlers - Tab
+    // ========================================
+    const handleTabChange = (tab) => {
+        router.get(
+            route("admin.user.index"),
+            {
+                search: data.search,
+                status: data.status,
+                trashed: tab,
+            },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            },
+        );
     };
 
-    const handleDelete = (user) => {
-        if (confirm(`${user.name} を削除してもよろしいですか？`)) {
-            router.delete(route("admin.users.destroy", user.id));
+    // ========================================
+    // Handlers - Search & Filter
+    // ========================================
+    const handleSearch = () => {
+        get(route("admin.user.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // フィルタークリア
+    const handleClearFilters = () => {
+        setData({
+            search: "",
+            status: "",
+            trashed: activeTab,
+        });
+        get(route("admin.user.index", { trashed: activeTab }), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // ========================================
+    // Handlers - Delete
+    // ========================================
+    const handleDelete = (admin) => {
+        const confirmed = confirm(
+            `${admin.profile ? admin.profile.last_name : admin.email} を削除してもよろしいですか？`,
+        );
+        if (confirmed) {
+            router.delete(route("admin.user.destroy", admin.id));
         }
     };
 
+    // ========================================
+    // Constants - Header Actions & Breadcrumbs
+    // ========================================
     const headerActions = [
         {
             label: PageConfig.users.actions.create,
             icon: PlusIcon,
             variant: "primary",
-            route: route("admin.users.create"),
+            route: route("admin.user.create"),
         },
     ];
 
+    const breadcrumbs = [
+        { label: "ダッシュボード", href: "/admin/dashboard" },
+        { label: "ユーザー一覧", href: null },
+    ];
+
+    // ========================================
+    // Constants - Tabs & Filters
+    // ========================================
+    const tabs = [
+        {
+            key: "with_trashed",
+            label: "すべて",
+            count: stats?.all || users.total,
+        },
+        {
+            key: "without_trashed",
+            label: "一覧",
+            count: stats?.active || users.total,
+        },
+        {
+            key: "only_trashed",
+            label: "削除済み",
+            count: stats?.trashed || 0,
+        },
+    ];
+
+    const hasActiveFilters = data.search || data.status;
+
     return (
-        <AdminAuthenticatedLayout>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={PageConfig.users.title}
+                    description={PageConfig.users.description}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title={PageConfig.users.documentTitle} />
+
             {/* フラッシュメッセージ */}
             <FlashMessage />
+
             {/* ヘッダー */}
-            <PageHeader
-                title={PageConfig.users.title}
-                description={PageConfig.users.description}
-                actions={headerActions}
-            />
-            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-                {/* 検索フォーム */}
-                <div className="bg-white shadow-sm rounded-lg p-6">
-                    <form onSubmit={handleSearch} className="flex space-x-4">
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                placeholder="ユーザー名またはメールアドレスで検索..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                        >
-                            🔍 検索
-                        </button>
-                        {filters.search && (
-                            <Link
-                                href={route("admin.users.index")}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            >
-                                🔄 リセット
-                            </Link>
-                        )}
-                    </form>
-                </div>
-                {/* ユーザー一覧テーブル */}
-                <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <h3 className="text-lg font-medium text-gray-900">
-                            ユーザー一覧 ({users.total}件)
-                        </h3>
+            <div className="w-full flex flex-col gap-4">
+                {/* タブナビゲーション + 検索バー */}
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 p-4">
+                    {/* タブナビゲーション */}
+                    <div className="flex-1">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                        />
                     </div>
-                    <BasicTable>
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ユーザー情報
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    登録日
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ステータス
-                                </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    アクション
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {users.data.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
-                                                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                                    <span className="text-indigo-600 font-medium text-sm">
-                                                        {user.name
-                                                            .charAt(0)
-                                                            .toUpperCase()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {user.name}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {user.email}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(
-                                            user.created_at
-                                        ).toLocaleDateString("ja-JP")}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            アクティブ
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <Link
-                                            href={route(
-                                                "admin.users.show",
-                                                user.id
-                                            )}
-                                            className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                            👁️ 詳細
-                                        </Link>
-                                        <Link
-                                            href={route(
-                                                "admin.users.edit",
-                                                user.id
-                                            )}
-                                            className="text-yellow-600 hover:text-yellow-900"
-                                        >
-                                            ✏️ 編集
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(user)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            🗑️ 削除
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </BasicTable>
-                    {/* ペジネーション */}
-                    {users.links && (
-                        <div className="px-6 py-4 border-t border-gray-200">
-                            <div className="flex items-center justify-between">
-                                <div className="text-sm text-gray-500">
-                                    {users.from}-{users.to} / {users.total}
-                                    件を表示
-                                </div>
-                                <div className="flex space-x-1">
-                                    {users.links.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            href={link.url || "#"}
-                                            className={`px-3 py-2 text-sm rounded-md ${
-                                                link.active
-                                                    ? "bg-indigo-600 text-white"
-                                                    : link.url
-                                                    ? "bg-white text-gray-700 hover:bg-gray-50 border"
-                                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                            }`}
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* 検索バー */}
+                    <div className="flex-1">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder="ユーザー名またはメールアドレスで検索..."
+                            disabled={processing}
+                        />
+                    </div>
                 </div>
 
+                {/* フィルター */}
+                <div className="border-t border-slate-200 dark:border-slate-700 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                        <FunnelIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            フィルター
+                        </span>
+                        {hasActiveFilters && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                フィルター中
+                            </span>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {/* ステータスフィルター */}
+                        <FilterSelect
+                            label="ステータス"
+                            value={data.status}
+                            onChange={(value) => setData("status", value)}
+                            options={ADMIN_STATUS_OPTIONS}
+                            placeholder="すべてのステータス"
+                        />
+
+                        {/* スペーサー */}
+                        <div className="hidden lg:block"></div>
+
+                        {/* フィルタークリアボタン */}
+                        <div className="flex items-end">
+                            <SecondaryButton
+                                onClick={handleClearFilters}
+                                disabled={!hasActiveFilters}
+                                size="md"
+                                className="w-full"
+                            >
+                                <XMarkIcon className="h-4 w-4 mr-2" />
+                                フィルタークリア
+                            </SecondaryButton>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ユーザー一覧テーブル */}
+                <UsersTable users={users} onDelete={handleDelete} />
+
+                {/* ページネーション */}
+                {users.data.length > 0 && <Pagination paginationData={users} />}
+
+                {/* データがない場合 */}
                 {users.data.length === 0 && (
-                    <div className="bg-white shadow-sm rounded-lg p-12 text-center">
-                        <div className="text-gray-500 text-lg mb-4">👤</div>
-                        <p className="text-gray-500 mb-4">
+                    <Card>
+                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
+                            👤
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
                                 ? "検索条件に一致するユーザーが見つかりませんでした。"
-                                : "まだユーザーが登録されていません。"}
+                                : activeTab === "only_trashed"
+                                  ? "削除されたユーザーはいません。"
+                                  : "まだユーザーが登録されていません。"}
                         </p>
-                        <Link
-                            href={route("admin.users.create")}
-                            className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500"
-                        >
-                            ➕ 最初のユーザーを作成
-                        </Link>
-                    </div>
+                        {!filters.search && activeTab !== "only_trashed" && (
+                            <CreateButton
+                                href={route("admin.user.create")}
+                                size="md"
+                            >
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                最初のユーザーを作成
+                            </CreateButton>
+                        )}
+                    </Card>
                 )}
-            </main>
+            </div>
         </AdminAuthenticatedLayout>
     );
 }

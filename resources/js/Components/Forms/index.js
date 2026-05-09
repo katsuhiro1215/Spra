@@ -21,9 +21,18 @@ export { default as RichTextEditor } from "./RichTextEditor";
 export { default as RadioButton, RadioGroup } from "./RadioButton";
 export { default as Select } from "./Select";
 export { default as FileInput } from "./FileInput";
+export { default as NumberInput } from "./NumberInput";
+export { default as ColorInput } from "./ColorInput";
+export { default as ImageUpload } from "./ImageUpload";
+
+// Advanced Components
+export { default as ButtonSelect } from "./ButtonSelect";
+export { default as ArrayFieldEditor } from "./ArrayFieldEditor";
 
 // Form Structure
 export { default as FormWrapper, FormField, FormActions } from "./FormWrapper";
+export { default as FormGroup } from "./FormGroup";
+export { default as FormSectionTitle } from "./FormSectionTitle";
 
 // ==========================================
 // 重複解決のための優先順位

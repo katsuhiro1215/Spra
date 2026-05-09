@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 
 class ServiceCategory extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceCategoryFactory> */
-    use HasFactory;
+    use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -18,12 +20,14 @@ class ServiceCategory extends Model
         'description',
         'color',
         'icon',
+        'status',
         'sort_order',
-        'is_active',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'status' => 'string',
     ];
 
     /**
@@ -39,7 +43,47 @@ class ServiceCategory extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Get the admin who created this category.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * Get the admin who last updated this category.
+     */
+    public function updater()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    /**
+     * Check if category is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if category is inactive.
+     */
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
+    }
+
+    /**
+     * Check if category is suspended.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
     }
 
     /**

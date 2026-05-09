@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Admin\Homepage;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceCategory;
-use App\Http\Requests\StoreServiceRequest;
-use App\Http\Requests\UpdateServiceRequest;
+use App\Http\Requests\ServiceRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -54,7 +53,7 @@ class ServicesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreServiceRequest $request)
+    public function store(ServiceRequest $request)
     {
         Service::create($request->validated());
 
@@ -90,7 +89,7 @@ class ServicesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateServiceRequest $request, Service $service)
+    public function update(ServiceRequest $request, Service $service)
     {
         $service->update($request->validated());
 

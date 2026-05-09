@@ -3,35 +3,54 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\StoreUserRequest;
+use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Models\User;
+use App\Models\Media;
+use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserController extends Controller
 {
+    public function __construct(
+        private UserService $userService
+    ) {}
+
     /**
-     * Display a listing of the resource.
+     * 管理者一覧画面
      */
     public function index(Request $request): Response
     {
-        $users = User::query()
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+        // フィルター
+        $filters = [
+            'search' => $request->input('search'),
+            'status' => $request->input('status'),
+            'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
+        ];
+        // ソート
+        $sort = [
+            'field' => $request->input('sort_field', 'created_at'),
+            'direction' => $request->input('sort_direction', 'desc'),
+        ];
+        // ユーザーのページネーション取得
+        $users = $this->userService->getPaginatedUsers($filters, $sort, 20);
+
+        // 統計情報の取得
+        $stats = $this->userService->getUserStats();
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
-            'filters' => $request->only(['search']),
+            'filters' => $filters,
+            'stats' => $stats,
+            'statuses' => $this->userService->getStatuses(),
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ユーザー登録画面
      */
     public function create(): Response
     {
@@ -39,77 +58,88 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ユーザー登録処理
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $result = $this->userService->createUser($request->validated());
 
-        $validated['password'] = bcrypt($validated['password']);
-
-        User::create($validated);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'ユーザーが正常に作成されました。');
+        return redirect()
+            ->route('admin.users.show', $result['user'])
+            ->with('success', 'ユーザーを作成しました。初期パスワード: ' . $result['password']);
     }
 
     /**
-     * Display the specified resource.
+     * ユーザー詳細画面
      */
     public function show(User $user): Response
     {
+        $user->load(['profile.media', 'addresses']);
+
+        // プロフィール画像URLを明示的に追加
+        if ($user->profile && $user->profile->media) {
+            $user->profile->media->makeVisible(['url', 'original_url']);
+        }
+
+        // テナントのメディア一覧を取得（画像選択用）
+        $mediaList = Media::where('type', 'image')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($media) => [
+                'id' => $media->id,
+                'title' => $media->title,
+                'file_name' => $media->original_filename,
+                'alt_text' => $media->alt_text,
+                'url' => $media->url,
+                'file_size' => $media->original_file_size,
+            ]);
+
         return Inertia::render('Admin/Users/Show', [
-            'user' => $user->load(['profile']),
-            'profile' => $user->profile,
-            'addresses' => $user->addresses,
+            'user' => $user,
+            'mediaList' => $mediaList,
         ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * ユーザー編集画面
      */
     public function edit(User $user): Response
     {
+        $user->load('profile');
+
         return Inertia::render('Admin/Users/Edit', [
             'user' => $user,
+            'statuses' => $this->userService->getStatuses(),
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * ユーザー更新処理
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
+        $this->userService->updateUser($user, $request->validated());
 
-        if (empty($validated['password'])) {
-            unset($validated['password']);
-        } else {
-            $validated['password'] = bcrypt($validated['password']);
+        return redirect()
+            ->route('admin.users.show', $user)
+            ->with('success', 'ユーザー情報を更新しました。');
+    }
+
+    /**
+     * ユーザー削除処理
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        try {
+            $this->userService->deleteUser($user, auth('user')->id());
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with('success', 'ユーザーを削除しました。');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', $e->getMessage());
         }
-
-        $user->update($validated);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'ユーザー情報が正常に更新されました。');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        $user->delete();
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'ユーザーが正常に削除されました。');
     }
 }

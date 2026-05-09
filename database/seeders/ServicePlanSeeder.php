@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\ServicePlan;
-use App\Models\ServiceType;
-use App\Models\Admin;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\ServicePlan;
+use App\Models\Service;
 
 class ServicePlanSeeder extends Seeder
 {
@@ -15,140 +14,271 @@ class ServicePlanSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get first service type and admin for relationships
-        $serviceType = ServiceType::first();
-        $admin = Admin::first();
-
-        if (!$serviceType || !$admin) {
-            $this->command->warn('ServiceType or Admin not found. Please seed those tables first.');
-            return;
-        }
-
-        $plans = [
-            [
-                'service_type_id' => $serviceType->id,
-                'name' => 'Basic Plan',
-                'description' => 'Basic service plan for individuals',
-                'detailed_description' => 'This is a comprehensive basic plan designed for individuals and small businesses who need essential features.',
-                'base_price' => 999.00,
-                'price_unit' => 'month',
-                'billing_cycle' => 'monthly',
-                'setup_fee' => 0.00,
-                'features' => ['1 User', 'Basic Support', '1GB Storage'],
-                'included_items' => ['Email Support', 'Basic Templates', 'Mobile App Access'],
-                'limitations' => ['Limited API calls', 'No priority support'],
-                'max_revisions' => 3,
-                'estimated_delivery_days' => 7,
-                'is_popular' => false,
-                'is_recommended' => false,
+        // コーポレートサイト制作のプラン
+        $corporateWebsite = Service::where('slug', 'corporate-website')->first();
+        if ($corporateWebsite) {
+            ServicePlan::create([
+                'name' => 'ライトプラン',
+                'slug' => 'corporate-light',
+                'service_id' => $corporateWebsite->id,
+                'description' => '小規模企業向けの基本的なコーポレートサイト',
+                'details' => "5ページまでの構成で、企業の基本情報を掲載するシンプルなプランです。\n\n含まれるもの：\n- レスポンシブデザイン\n- 基本的なSEO対策\n- お問い合わせフォーム\n- 1ヶ月の無料保守",
+                'base_price' => 300000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 0,
+                'max_revisions' => 2,
+                'estimated_delivery_days' => 30,
+                'status' => 'active',
+                'is_featured' => false,
                 'sort_order' => 1,
-                'is_active' => true,
                 'color' => '#3B82F6',
                 'badge_text' => null,
-                'icon' => 'star',
-                'created_by' => $admin->id,
-                'updated_by' => $admin->id,
-            ],
-            [
-                'service_type_id' => $serviceType->id,
-                'name' => 'Professional Plan',
-                'description' => 'Professional service plan for small businesses',
-                'detailed_description' => 'Perfect for growing businesses that need advanced features and priority support.',
-                'base_price' => 2999.00,
-                'price_unit' => 'month',
-                'billing_cycle' => 'monthly',
-                'setup_fee' => 500.00,
-                'features' => ['5 Users', 'Priority Support', '10GB Storage', 'Advanced Analytics'],
-                'included_items' => ['Priority Email Support', 'Premium Templates', 'API Access', 'Custom Reports'],
-                'limitations' => ['Limited customization'],
-                'max_revisions' => 10,
-                'estimated_delivery_days' => 5,
-                'is_popular' => true,
-                'is_recommended' => true,
-                'sort_order' => 2,
-                'is_active' => true,
-                'color' => '#10B981',
-                'badge_text' => '最人気',
-                'icon' => 'rocket',
-                'created_by' => $admin->id,
-                'updated_by' => $admin->id,
-            ],
-            [
-                'service_type_id' => $serviceType->id,
-                'name' => 'Enterprise Plan',
-                'description' => 'Enterprise service plan for large organizations',
-                'detailed_description' => 'Comprehensive solution for large enterprises with unlimited features and dedicated support.',
-                'base_price' => 9999.00,
-                'price_unit' => 'month',
-                'billing_cycle' => 'monthly',
-                'setup_fee' => 2000.00,
-                'features' => ['Unlimited Users', '24/7 Support', '100GB Storage', 'Custom Integration', 'Dedicated Manager'],
-                'included_items' => ['24/7 Phone Support', 'Custom Development', 'Dedicated Account Manager', 'White-label Options'],
-                'limitations' => [],
-                'max_revisions' => null,
-                'estimated_delivery_days' => 3,
-                'is_popular' => false,
-                'is_recommended' => true,
-                'sort_order' => 3,
-                'is_active' => true,
-                'color' => '#8B5CF6',
-                'badge_text' => '推奨',
-                'icon' => 'crown',
-                'created_by' => $admin->id,
-                'updated_by' => $admin->id,
-            ],
-            [
-                'service_type_id' => $serviceType->id,
-                'name' => 'Starter Plan',
-                'description' => 'Free starter plan for testing',
-                'detailed_description' => 'Perfect for testing our services before committing to a paid plan.',
-                'base_price' => 0.00,
-                'price_unit' => 'month',
-                'billing_cycle' => 'monthly',
-                'setup_fee' => 0.00,
-                'features' => ['1 User', 'Community Support', '500MB Storage'],
-                'included_items' => ['Basic Templates', 'Community Forum Access'],
-                'limitations' => ['Limited features', 'Community support only', 'Basic functionality'],
-                'max_revisions' => 1,
-                'estimated_delivery_days' => 14,
-                'is_popular' => false,
-                'is_recommended' => false,
-                'sort_order' => 0,
-                'is_active' => true,
-                'color' => '#6B7280',
-                'badge_text' => '無料',
-                'icon' => 'gift',
-                'created_by' => $admin->id,
-                'updated_by' => $admin->id,
-            ],
-            [
-                'service_type_id' => $serviceType->id,
-                'name' => 'Legacy Plan',
-                'description' => 'Old plan no longer offered',
-                'detailed_description' => 'This plan is no longer available for new customers but is maintained for existing users.',
-                'base_price' => 1999.00,
-                'price_unit' => 'month',
-                'billing_cycle' => 'monthly',
-                'setup_fee' => 0.00,
-                'features' => ['3 Users', 'Email Support', '5GB Storage'],
-                'included_items' => ['Email Support', 'Standard Templates'],
-                'limitations' => ['Deprecated features'],
-                'max_revisions' => 5,
-                'estimated_delivery_days' => 10,
-                'is_popular' => false,
-                'is_recommended' => false,
-                'sort_order' => 4,
-                'is_active' => false,
-                'color' => '#EF4444',
-                'badge_text' => '終了予定',
-                'icon' => 'archive',
-                'created_by' => $admin->id,
-                'updated_by' => $admin->id,
-            ],
-        ];
+                'icon' => null,
+            ]);
 
-        foreach ($plans as $planData) {
-            ServicePlan::create($planData);
+            ServicePlan::create([
+                'name' => 'スタンダードプラン',
+                'slug' => 'corporate-standard',
+                'service_id' => $corporateWebsite->id,
+                'description' => '中規模企業向けの充実したコーポレートサイト',
+                'details' => "10ページまでの構成で、企業の魅力を十分に伝えられるプランです。\n\n含まれるもの：\n- レスポンシブデザイン\n- SEO対策（詳細設定）\n- お問い合わせフォーム\n- ブログ機能\n- 3ヶ月の無料保守",
+                'base_price' => 600000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 0,
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 45,
+                'status' => 'active',
+                'is_featured' => true,
+                'sort_order' => 2,
+                'color' => '#10B981',
+                'badge_text' => '人気',
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'プレミアムプラン',
+                'slug' => 'corporate-premium',
+                'service_id' => $corporateWebsite->id,
+                'description' => '大規模企業向けの本格的なコーポレートサイト',
+                'details' => "20ページまでの構成で、多言語対応や高度な機能を含む本格的なプランです。\n\n含まれるもの：\n- 高度なデザイン\n- 詳細なSEO対策\n- 多言語対応（2言語）\n- CMS導入\n- 6ヶ月の無料保守",
+                'base_price' => 1200000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 100000,
+                'max_revisions' => 5,
+                'estimated_delivery_days' => 60,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 3,
+                'color' => '#8B5CF6',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+        }
+
+        // ECサイト構築のプラン
+        $ecommerce = Service::where('slug', 'ecommerce-development')->first();
+        if ($ecommerce) {
+            ServicePlan::create([
+                'name' => 'スモールショッププラン',
+                'slug' => 'ec-small',
+                'service_id' => $ecommerce->id,
+                'description' => '小規模ECサイト向けの基本プラン',
+                'details' => "商品数50点までの小規模ECサイトに最適なプランです。",
+                'base_price' => 500000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 50000,
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 45,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 1,
+                'color' => '#F59E0B',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'ビジネスプラン',
+                'slug' => 'ec-business',
+                'service_id' => $ecommerce->id,
+                'description' => '中規模ECサイト向けの標準プラン',
+                'details' => "商品数500点までの中規模ECサイトに対応。在庫管理や顧客管理機能も充実。",
+                'base_price' => 1000000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 100000,
+                'max_revisions' => 4,
+                'estimated_delivery_days' => 60,
+                'status' => 'active',
+                'is_featured' => true,
+                'sort_order' => 2,
+                'color' => '#EF4444',
+                'badge_text' => 'おすすめ',
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'エンタープライズプラン',
+                'slug' => 'ec-enterprise',
+                'service_id' => $ecommerce->id,
+                'description' => '大規模ECサイト向けのフルカスタマイズプラン',
+                'details' => "商品数無制限の大規模ECサイトに対応。基幹システム連携も可能。",
+                'base_price' => 2000000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 200000,
+                'max_revisions' => 5,
+                'estimated_delivery_days' => 90,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 3,
+                'color' => '#6366F1',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+        }
+
+        // ランディングページ制作のプラン
+        $landingPage = Service::where('slug', 'landing-page')->first();
+        if ($landingPage) {
+            ServicePlan::create([
+                'name' => 'シンプルLP',
+                'slug' => 'lp-simple',
+                'service_id' => $landingPage->id,
+                'description' => '1ページ完結の基本的なランディングページ',
+                'details' => "シンプルで効果的な1ページ構成のLPです。",
+                'base_price' => 150000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 0,
+                'max_revisions' => 2,
+                'estimated_delivery_days' => 14,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 1,
+                'color' => '#06B6D4',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'プロフェッショナルLP',
+                'slug' => 'lp-professional',
+                'service_id' => $landingPage->id,
+                'description' => 'コンバージョン最適化されたランディングページ',
+                'details' => "A/Bテスト対応で、継続的な改善が可能なLPです。",
+                'base_price' => 300000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 0,
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 21,
+                'status' => 'active',
+                'is_featured' => true,
+                'sort_order' => 2,
+                'color' => '#EC4899',
+                'badge_text' => '人気',
+                'icon' => null,
+            ]);
+        }
+
+        // 業務管理システムのプラン
+        $businessSystem = Service::where('slug', 'business-management-system')->first();
+        if ($businessSystem) {
+            ServicePlan::create([
+                'name' => 'ベーシックシステム',
+                'slug' => 'bms-basic',
+                'service_id' => $businessSystem->id,
+                'description' => '小規模向けの基本的な業務管理システム',
+                'details' => "5ユーザーまで利用可能な基本システムです。",
+                'base_price' => 800000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 100000,
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 60,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 1,
+                'color' => '#14B8A6',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'スタンダードシステム',
+                'slug' => 'bms-standard',
+                'service_id' => $businessSystem->id,
+                'description' => '中規模向けの標準的な業務管理システム',
+                'details' => "20ユーザーまで利用可能で、カスタマイズにも対応。",
+                'base_price' => 1500000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 150000,
+                'max_revisions' => 4,
+                'estimated_delivery_days' => 90,
+                'status' => 'active',
+                'is_featured' => true,
+                'sort_order' => 2,
+                'color' => '#10B981',
+                'badge_text' => 'おすすめ',
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'エンタープライズシステム',
+                'slug' => 'bms-enterprise',
+                'service_id' => $businessSystem->id,
+                'description' => '大規模向けのフルカスタマイズシステム',
+                'details' => "無制限ユーザー、基幹システム連携も対応。",
+                'base_price' => 3000000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 300000,
+                'max_revisions' => 5,
+                'estimated_delivery_days' => 120,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 3,
+                'color' => '#8B5CF6',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+        }
+
+        // iOSアプリ開発のプラン
+        $iosApp = Service::where('slug', 'ios-app-development')->first();
+        if ($iosApp) {
+            ServicePlan::create([
+                'name' => 'ベーシックアプリ',
+                'slug' => 'ios-basic',
+                'service_id' => $iosApp->id,
+                'description' => '基本機能を持ったシンプルなiOSアプリ',
+                'details' => "5画面程度の基本的なアプリ開発です。",
+                'base_price' => 800000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 0,
+                'max_revisions' => 3,
+                'estimated_delivery_days' => 60,
+                'status' => 'active',
+                'is_featured' => false,
+                'sort_order' => 1,
+                'color' => '#3B82F6',
+                'badge_text' => null,
+                'icon' => null,
+            ]);
+
+            ServicePlan::create([
+                'name' => 'スタンダードアプリ',
+                'slug' => 'ios-standard',
+                'service_id' => $iosApp->id,
+                'description' => '充実した機能を持つiOSアプリ',
+                'details' => "10画面程度で、サーバー連携やプッシュ通知にも対応。",
+                'base_price' => 1500000,
+                'billing_cycle' => 'one_time',
+                'setup_fee' => 100000,
+                'max_revisions' => 4,
+                'estimated_delivery_days' => 90,
+                'status' => 'active',
+                'is_featured' => true,
+                'sort_order' => 2,
+                'color' => '#10B981',
+                'badge_text' => '人気',
+                'icon' => null,
+            ]);
         }
 
         $this->command->info('ServicePlan seeder completed successfully!');

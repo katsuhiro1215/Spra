@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 class SiteSetting extends Model
 {
+    use HasUlid;
     protected $fillable = [
         'key',
         'value',
@@ -69,7 +71,7 @@ class SiteSetting extends Model
             Cache::forget("site_setting_{$key}");
         }
         Cache::forget('site_settings_all');
-        
+
         $groups = static::distinct()->pluck('group');
         foreach ($groups as $group) {
             Cache::forget("site_settings_group_{$group}");

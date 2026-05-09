@@ -1,22 +1,26 @@
-export default function SecondaryButton({
-    type = 'button',
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
+import BaseButton from "./BaseButton";
+
+/**
+ * SecondaryButton - セカンダリボタン
+ */
+export default function SecondaryButton({ className = "", ...props }) {
+    const colorClasses = `
+        bg-white text-slate-700
+        border border-slate-300
+        hover:bg-slate-50
+        focus:ring-indigo-500
+        dark:bg-slate-800 dark:text-slate-100
+        dark:border-slate-600 dark:hover:bg-slate-700
+        shadow-sm
+    `
+        .trim()
+        .replace(/\s+/g, " ");
+
     return (
-        <button
+        <BaseButton
+            colorClasses={colorClasses}
+            className={className}
             {...props}
-            type={type}
-            className={
-                `inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
-            disabled={disabled}
-        >
-            {children}
-        </button>
+        />
     );
 }

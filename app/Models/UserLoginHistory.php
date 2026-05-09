@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,7 @@ use Carbon\Carbon;
 
 class UserLoginHistory extends Model
 {
-    use HasFactory;
+    use HasUlid, HasFactory;
 
     protected $fillable = [
         'user_id',

@@ -1,24 +1,10 @@
-import { forwardRef } from "react";
-
-/**
- * BasicTable
- * シンプルなスタイル付きのテーブルコンポーネント
- * 
- * @param {React.ReactNode} children - <thead> と <tbody> を含む内容
- * @param {string} className - 追加のクラス名
- */
-const BasicTable = forwardRef(({ children, className = "", ...props }, ref) => {
+// Temporary wrapper component for table element
+export default function BasicTable({ children, ...props }) {
     return (
         <div className="overflow-x-auto">
-            <table
-                ref={ref}
-                className={`min-w-full border border-gray-200 divide-y divide-gray-200 rounded-lg shadow-sm ${className}`}
-                {...props}
-            >
+            <table className="min-w-full divide-y divide-gray-200" {...props}>
                 {children}
             </table>
         </div>
     );
-});
-
-export default BasicTable;
+}

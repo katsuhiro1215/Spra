@@ -14,127 +14,74 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Owner - 最高権限（kakoi10）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi10@smartsprouts.jp'],
+        $admins = [
+            // Owner - 最高権限
             [
-                'name' => 'Owner - Katsuhiro Kakoi',
                 'email' => 'kakoi10@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Super Admin - システム管理者（kakoi100）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi100@smartsprouts.jp'],
+                'role' => 'owner',
+                'status' => 'active',
+            ],
+            // Super Admin - システム管理者
             [
-                'name' => 'Super Admin - Katsuhiro Admin',
                 'email' => 'kakoi100@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Admin - 一般管理者（kakoi101）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi101@smartsprouts.jp'],
+                'role' => 'super_admin',
+                'status' => 'active',
+            ],
+            // Admin - 一般管理者（8名）
             [
-                'name' => 'Admin - システム管理',
                 'email' => 'kakoi101@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Service Manager - サービス管理者（kakoi102）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi102@smartsprouts.jp'],
+                'role' => 'admin',
+                'status' => 'active',
+            ],
             [
-                'name' => 'Service Manager - サービス管理',
                 'email' => 'kakoi102@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Content Manager - コンテンツ管理者（kakoi103）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi103@smartsprouts.jp'],
+                'role' => 'admin',
+                'status' => 'active',
+            ],
             [
-                'name' => 'Content Manager - コンテンツ管理',
                 'email' => 'kakoi103@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Sales Manager - 営業管理者（kakoi104）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi104@smartsprouts.jp'],
+                'role' => 'admin',
+                'status' => 'active',
+            ],
             [
-                'name' => 'Sales Manager - 営業管理',
                 'email' => 'kakoi104@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Customer Support - カスタマーサポート（kakoi105）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi105@smartsprouts.jp'],
+                'role' => 'admin',
+                'status' => 'inactive',
+            ],
             [
-                'name' => 'Customer Support - サポート',
                 'email' => 'kakoi105@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Editor - 編集者（kakoi106）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi106@smartsprouts.jp'],
+                'role' => 'admin',
+                'status' => 'suspended',
+            ],
             [
-                'name' => 'Editor - 編集者',
                 'email' => 'kakoi106@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Operator - オペレーター（kakoi107）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi107@smartsprouts.jp'],
+                'role' => 'editor',
+                'status' => 'active',
+            ],
             [
-                'name' => 'Operator - オペレーター',
                 'email' => 'kakoi107@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        // Viewer - 閲覧者（kakoi108）
-        Admin::updateOrCreate(
-            ['email' => 'kakoi108@smartsprouts.jp'],
+                'role' => 'editor',
+                'status' => 'active',
+            ],
             [
-                'name' => 'Viewer - 閲覧者',
                 'email' => 'kakoi108@smartsprouts.jp',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
+                'role' => 'editor',
+                'status' => 'active',
+            ],
+        ];
 
-        $this->command->info('10種類の管理者アカウントを作成しました:');
-        $this->command->info('Owner: kakoi10@smartsprouts.jp');
-        $this->command->info('Super Admin: kakoi100@smartsprouts.jp');
-        $this->command->info('Admin: kakoi101@smartsprouts.jp');
-        $this->command->info('Service Manager: kakoi102@smartsprouts.jp');
-        $this->command->info('Content Manager: kakoi103@smartsprouts.jp');
-        $this->command->info('Sales Manager: kakoi104@smartsprouts.jp');
-        $this->command->info('Customer Support: kakoi105@smartsprouts.jp');
-        $this->command->info('Editor: kakoi106@smartsprouts.jp');
-        $this->command->info('Operator: kakoi107@smartsprouts.jp');
-        $this->command->info('Viewer: kakoi108@smartsprouts.jp');
-        $this->command->info('すべてのパスワード: password');
+        foreach ($admins as $adminData) {
+            Admin::updateOrCreate(
+                ['email' => $adminData['email']],
+                [
+                    'email_verified_at' => now(),
+                    'password' => Hash::make('password'),
+                    'role' => $adminData['role'],
+                    'status' => $adminData['status'],
+                ]
+            );
+        }
+
+        $this->command->info('管理者アカウントを作成しました: ' . count($admins) . '名');
     }
 }

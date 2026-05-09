@@ -125,6 +125,50 @@ export const CommonUIConstants = {
         info: "bg-cyan-100 text-cyan-800",
     },
 
+    // カードのバリアント
+    cardVariants: {
+        default: {
+            card: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+            header: "bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700",
+            footer: "bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700",
+        },
+        primary: {
+            card: "bg-white dark:bg-gray-800 border-l-4 border-l-blue-500 border border-gray-200 dark:border-gray-700",
+            header: "bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800",
+            footer: "bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800",
+        },
+        success: {
+            card: "bg-white dark:bg-gray-800 border-l-4 border-l-green-500 border border-gray-200 dark:border-gray-700",
+            header: "bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800",
+            footer: "bg-green-50 dark:bg-green-900/20 border-t border-green-200 dark:border-green-800",
+        },
+        warning: {
+            card: "bg-white dark:bg-gray-800 border-l-4 border-l-yellow-500 border border-gray-200 dark:border-gray-700",
+            header: "bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800",
+            footer: "bg-yellow-50 dark:bg-yellow-900/20 border-t border-yellow-200 dark:border-yellow-800",
+        },
+        danger: {
+            card: "bg-white dark:bg-gray-800 border-l-4 border-l-red-500 border border-gray-200 dark:border-gray-700",
+            header: "bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800",
+            footer: "bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800",
+        },
+        info: {
+            card: "bg-white dark:bg-gray-800 border-l-4 border-l-cyan-500 border border-gray-200 dark:border-gray-700",
+            header: "bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-200 dark:border-cyan-800",
+            footer: "bg-cyan-50 dark:bg-cyan-900/20 border-t border-cyan-200 dark:border-cyan-800",
+        },
+        bordered: {
+            card: "bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600",
+            header: "bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600",
+            footer: "bg-white dark:bg-gray-800 border-t-2 border-gray-300 dark:border-gray-600",
+        },
+        elevated: {
+            card: "bg-white dark:bg-gray-800 shadow-lg",
+            header: "bg-gradient-to-r from-blue-500 to-blue-600 text-white",
+            footer: "bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700",
+        },
+    },
+
     // ボタンサイズ
     buttonSizes: {
         xs: "px-2 py-1 text-xs",
@@ -176,5 +220,68 @@ export const CommonUIConstants = {
         all: "すべて",
         reset: "フィルターをリセット",
         apply: "適用",
+    },
+
+    // ServiceCategory固有の定数
+    serviceCategory: {
+        /**
+         * アイコンオプション（Heroicons）
+         */
+        iconOptions: [
+            { value: "globe-alt", label: "グローブ" },
+            { value: "code-bracket", label: "コード" },
+            { value: "device-phone-mobile", label: "モバイル" },
+            { value: "paint-brush", label: "ペイントブラシ" },
+            { value: "megaphone", label: "メガホン" },
+            { value: "lightbulb", label: "ライトバルブ" },
+            { value: "wrench-screwdriver", label: "レンチ" },
+            { value: "ellipsis-horizontal", label: "その他" },
+        ],
+
+        /**
+         * ステータスオプション
+         */
+        statusOptions: [
+            {
+                value: "active",
+                label: "稼働中（アクティブ）",
+                description: "カテゴリが表示されます",
+            },
+            {
+                value: "inactive",
+                label: "停止中（非表示）",
+                description: "カテゴリは表示されません",
+            },
+            {
+                value: "suspended",
+                label: "一時停止（メンテナンス等）",
+                description: "メンテナンスや一時的な停止",
+            },
+        ],
+
+        /**
+         * カラーオプション（themeColorsから生成）
+         */
+        get colorOptions() {
+            return [
+                { value: "#3B82F6", label: "ブルー", color: "#3B82F6" },
+                { value: "#10B981", label: "グリーン", color: "#10B981" },
+                { value: "#F59E0B", label: "イエロー", color: "#F59E0B" },
+                { value: "#EF4444", label: "レッド", color: "#EF4444" },
+                { value: "#8B5CF6", label: "パープル", color: "#8B5CF6" },
+                { value: "#06B6D4", label: "シアン", color: "#06B6D4" },
+                { value: "#F97316", label: "オレンジ", color: "#F97316" },
+                { value: "#6B7280", label: "グレー", color: "#6B7280" },
+            ];
+        },
+
+        /**
+         * デフォルト値
+         */
+        defaults: {
+            color: "#3B82F6",
+            sortOrder: 0,
+            status: "active",
+        },
     },
 };

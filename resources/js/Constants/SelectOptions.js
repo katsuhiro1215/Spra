@@ -1,0 +1,143 @@
+/**
+ * セレクト要素・フィルタ用のオプション定義
+ * フォームやフィルタコンポーネントで使用される選択肢を管理
+ */
+
+/**
+ * Admin/Userステータスのセレクトオプション
+ */
+export const ADMIN_STATUS_OPTIONS = [
+    { value: "active", label: "アクティブ" },
+    { value: "inactive", label: "非アクティブ" },
+    { value: "suspended", label: "停止中" },
+];
+
+/**
+ * Admin役割のセレクトオプション
+ */
+export const ADMIN_ROLE_OPTIONS = [
+    { value: "owner", label: "オーナー" },
+    { value: "super_admin", label: "スーパー管理者" },
+    { value: "admin", label: "管理者" },
+    { value: "editor", label: "編集者" },
+];
+
+/**
+ * 性別のセレクトオプション
+ */
+export const GENDER_OPTIONS = [
+    { value: "male", label: "男性" },
+    { value: "female", label: "女性" },
+    { value: "other", label: "その他" },
+    { value: "prefer_not_to_say", label: "回答しない" },
+];
+
+/**
+ * 住所種別のセレクトオプション
+ */
+export const ADDRESS_TYPE_OPTIONS = [
+    { value: "home", label: "自宅" },
+    { value: "office", label: "オフィス" },
+    { value: "branch", label: "支店" },
+    { value: "billing", label: "請求先" },
+    { value: "shipping", label: "配送先" },
+    { value: "other", label: "その他" },
+];
+
+/**
+ * 都道府県名のセレクトオプション
+ */
+export const PREFECTURE_OPTIONS = [
+    { value: "北海道", label: "北海道" },
+    { value: "青森県", label: "青森県" },
+    { value: "岩手県", label: "岩手県" },
+    { value: "宮城県", label: "宮城県" },
+    { value: "秋田県", label: "秋田県" },
+    { value: "山形県", label: "山形県" },
+    { value: "福島県", label: "福島県" },
+    { value: "茨城県", label: "茨城県" },
+    { value: "栃木県", label: "栃木県" },
+    { value: "群馬県", label: "群馬県" },
+    { value: "埼玉県", label: "埼玉県" },
+    { value: "千葉県", label: "千葉県" },
+    { value: "東京都", label: "東京都" },
+    { value: "神奈川県", label: "神奈川県" },
+    { value: "新潟県", label: "新潟県" },
+    { value: "富山県", label: "富山県" },
+    { value: "石川県", label: "石川県" },
+    { value: "福井県", label: "福井県" },
+    { value: "山梨県", label: "山梨県" },
+    { value: "長野県", label: "長野県" },
+    { value: "岐阜県", label: "岐阜県" },
+    { value: "静岡県", label: "静岡県" },
+    { value: "愛知県", label: "愛知県" },
+    { value: "三重県", label: "三重県" },
+    { value: "滋賀県", label: "滋賀県" },
+    { value: "京都府", label: "京都府" },
+    { value: "大阪府", label: "大阪府" },
+    { value: "兵庫県", label: "兵庫県" },
+    { value: "奈良県", label: "奈良県" },
+    { value: "和歌山県", label: "和歌山県" },
+    { value: "鳥取県", label: "鳥取県" },
+    { value: "島根県", label: "島根県" },
+    { value: "岡山県", label: "岡山県" },
+    { value: "広島県", label: "広島県" },
+    { value: "山口県", label: "山口県" },
+    { value: "徳島県", label: "徳島県" },
+    { value: "香川県", label: "香川県" },
+    { value: "愛媛県", label: "愛媛県" },
+    { value: "高知県", label: "高知県" },
+    { value: "福岡県", label: "福岡県" },
+    { value: "佐賀県", label: "佐賀県" },
+    { value: "長崎県", label: "長崎県" },
+    { value: "熊本県", label: "熊本県" },
+    { value: "大分県", label: "大分県" },
+    { value: "宮崎県", label: "宮崎県" },
+    { value: "鹿児島県", label: "鹿児島県" },
+    { value: "沖縄県", label: "沖縄県" },
+];
+
+/**
+ * メディアタイプのセレクトオプション
+ */
+export const MEDIA_TYPE_OPTIONS = [
+    { value: "image", label: "画像" },
+    { value: "video", label: "動画" },
+    { value: "3d_model", label: "3Dモデル" },
+];
+
+/**
+ * メディア使用用途のセレクトオプション
+ */
+export const MEDIA_USAGE_TYPE_OPTIONS = [
+    { value: "profile", label: "プロフィール画像" },
+    { value: "admin_profile", label: "Adminプロフィール" },
+    { value: "user_profile", label: "Userプロフィール" },
+    { value: "unused", label: "未使用" },
+];
+
+/**
+ * サービスカテゴリステータスのセレクトオプション
+ */
+export const SERVICE_CATEGORY_STATUS_OPTIONS = [
+    { value: "active", label: "アクティブ" },
+    { value: "inactive", label: "非アクティブ" },
+    { value: "suspended", label: "停止中" },
+];
+
+/**
+ * サービスステータスのセレクトオプション
+ */
+export const SERVICE_STATUS_OPTIONS = [
+    { value: "active", label: "アクティブ" },
+    { value: "inactive", label: "非アクティブ" },
+    { value: "suspended", label: "停止中" },
+];
+
+/**
+ * 注目サービスのセレクトオプション
+ */
+export const IS_FEATURED_OPTIONS = [
+    { value: "1", label: "注目" },
+    { value: "0", label: "通常" },
+];

@@ -47,7 +47,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             current: route().current("admin.homepage.*"),
             children: [
                 { name: "ページ管理", href: "admin.homepage.pages.index" },
-                { name: "サービス管理", href: "admin.homepage.services.index" },
+                // TODO: ルート競合のため一時的にコメントアウト
+                // { name: "サービス管理", href: "admin.homepage.services.index" },
                 { name: "ブログ管理", href: "admin.homepage.blogs.index" },
                 {
                     name: "ブログカテゴリ管理",
@@ -61,44 +62,73 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                 },
             ],
         },
-        {
-            name: "プロジェクト管理",
-            href: "admin.project.index",
-            icon: "M12 6v6h4m-2 14H6a2 2 0 01-2-2v-7a2 2 0 012-2h7l5 5v5a2 2 0 01-2 2z",
-            current: route().current("admin.project.*"),
-        },
+        // {
+        //     name: "プロジェクト管理",
+        //     href: "admin.project.index",
+        //     icon: "M12 6v6h4m-2 14H6a2 2 0 01-2-2v-7a2 2 0 012-2h7l5 5v5a2 2 0 01-2 2z",
+        //     current: route().current("admin.project.*"),
+        // },
         {
             name: "サービス管理",
-            href: "admin.service.type.index",
+            href: "admin.service.index",
             icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
             current: route().current("admin.service.*"),
             children: [
                 {
                     name: "サービスカテゴリ",
-                    href: "admin.service.categories.index",
+                    href: "admin.service.category.index",
                 },
                 {
-                    name: "サービスタイプ",
-                    href: "admin.service.type.index",
+                    name: "サービス",
+                    href: "admin.service.index",
                 },
-                {
-                    name: "料金プラン",
-                    href: "admin.service.type.index",
-                },
-                { name: "契約管理", href: "admin.service.type.index" },
             ],
         },
         {
-            name: "ユーザー管理",
-            href: "admin.users.index",
-            icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
-            current: route().current("admin.users.*") || route().current("admin.companies.*"),
+            name: "契約管理",
+            href: "admin.contract.index",
+            icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+            current: route().current("admin.contract.*"),
             children: [
-                { name: "ユーザー一覧", href: "admin.users.index" },
-                { name: "新規ユーザー", href: "admin.users.create" },
-                { name: "会社管理", href: "admin.companies.index" },
-                { name: "新規会社", href: "admin.companies.create" },
-                { name: "権限管理", href: "admin.users.index" },
+                {
+                    name: "契約一覧",
+                    href: "admin.contract.index",
+                },
+                {
+                    name: "新規契約",
+                    href: "admin.contract.create",
+                },
+            ],
+        },
+        {
+            name: "ガントチャート",
+            href: "admin.gantt.index",
+            icon: "M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25",
+            current: route().current("admin.gantt.*"),
+            children: [],
+        },
+        {
+            name: "ユーザー管理",
+            href: "admin.user.index",
+            icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+            current:
+                route().current("admin.user.*") ||
+                route().current("admin.company.*"),
+            children: [
+                { name: "ユーザー一覧", href: "admin.user.index" },
+                { name: "新規ユーザー", href: "admin.user.create" },
+                { name: "会社管理", href: "admin.company.index" },
+                { name: "新規会社", href: "admin.company.create" },
+            ],
+        },
+        {
+            name: "管理者",
+            href: "admin.admin.index",
+            icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+            current: route().current("admin.admin.*"),
+            children: [
+                { name: "管理者一覧", href: "admin.admin.index" },
+                { name: "新規管理者", href: "admin.admin.create" },
             ],
         },
         {
@@ -118,8 +148,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
             current: route().current("admin.content.*"),
             children: [
-                { name: "記事管理", href: "admin.users.index" },
-                { name: "カテゴリ", href: "admin.users.index" },
+                { name: "記事管理", href: "admin.content.index" },
+                { name: "カテゴリ", href: "admin.content.index" },
             ],
         },
         {
@@ -141,14 +171,14 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             {sidebarOpen && (
                 <div className="fixed inset-0 flex z-40 md:hidden">
                     <div
-                        className="fixed inset-0 bg-gray-600 bg-opacity-75"
+                        className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-colors"
                         onClick={() => setSidebarOpen(false)}
                     ></div>
-                    <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800">
+                    <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800 dark:bg-gray-900 transition-colors">
                         <div className="absolute top-0 right-0 -mr-12 pt-2">
                             <button
                                 type="button"
-                                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white dark:focus:ring-gray-400 transition-colors"
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <span className="sr-only">
@@ -181,18 +211,26 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                     <Link
                                         key={item.name}
                                         href={route(item.href)}
-                                        className={`group flex flex-col items-center px-2 py-3 text-xs font-medium rounded-md transition-colors ${
+                                        className={`group flex flex-col items-center px-2 py-3 text-xs font-medium rounded-md transition-all duration-200 ${
                                             item.current
-                                                ? "bg-gray-900 text-white"
-                                                : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                                                ? "text-white shadow-lg"
+                                                : "text-gray-300 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
                                         }`}
+                                        style={
+                                            item.current
+                                                ? {
+                                                      backgroundColor:
+                                                          "var(--color-primary)",
+                                                  }
+                                                : {}
+                                        }
                                         onClick={() => setSidebarOpen(false)}
                                     >
                                         <svg
                                             className={`h-6 w-6 mb-1 ${
                                                 item.current
-                                                    ? "text-gray-300"
-                                                    : "text-gray-400 group-hover:text-gray-300"
+                                                    ? "text-white"
+                                                    : "text-gray-400 dark:text-gray-500 group-hover:text-gray-300 dark:group-hover:text-gray-400"
                                             }`}
                                             fill="none"
                                             viewBox="0 0 24 24"
@@ -216,8 +254,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
 
             {/* デスクトップ用サイドバー */}
             <div className="hidden md:flex md:w-20 md:flex-col fixed inset-y-0 left-0 z-50">
-                <div className="flex flex-col flex-grow bg-gray-800">
-                    <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 bg-gray-900">
+                <div className="flex flex-col flex-grow bg-gray-800 dark:bg-gray-900 transition-colors">
+                    <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 bg-gray-900 dark:bg-gray-950 transition-colors">
                         <ApplicationLogo className="h-8 w-auto fill-current text-white" />
                     </div>
                     <nav className="mt-5 flex-1 px-2 space-y-1">
@@ -230,20 +268,28 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                             >
                                 <Link
                                     href={route(item.href)}
-                                    className={`group flex flex-col items-center px-2 py-3 text-xs font-medium rounded-md transition-colors relative ${
+                                    className={`group flex flex-col items-center px-2 py-3 text-xs font-medium rounded-md transition-all duration-200 relative ${
                                         item.current
-                                            ? "bg-gray-900 text-white"
+                                            ? "text-white shadow-lg"
                                             : hoveredItem === index &&
-                                              item.children?.length > 0
-                                            ? "bg-gray-700 text-white"
-                                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                                                item.children?.length > 0
+                                              ? "bg-gray-700 dark:bg-gray-800 text-white"
+                                              : "text-gray-300 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
                                     }`}
+                                    style={
+                                        item.current
+                                            ? {
+                                                  backgroundColor:
+                                                      "var(--color-primary)",
+                                              }
+                                            : {}
+                                    }
                                 >
                                     <svg
                                         className={`h-6 w-6 mb-1 ${
                                             item.current
-                                                ? "text-gray-300"
-                                                : "text-gray-400 group-hover:text-gray-300"
+                                                ? "text-white"
+                                                : "text-gray-400 dark:text-gray-500 group-hover:text-gray-300 dark:group-hover:text-gray-400"
                                         }`}
                                         fill="none"
                                         viewBox="0 0 24 24"
@@ -264,7 +310,13 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                     {item.children &&
                                         item.children.length > 0 && (
                                             <div className="absolute top-1 right-1">
-                                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                                <div
+                                                    className="w-2 h-2 rounded-full"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "var(--color-primary)",
+                                                    }}
+                                                ></div>
                                             </div>
                                         )}
                                 </Link>
@@ -274,13 +326,13 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                     item.children.length > 0 &&
                                     hoveredItem === index && (
                                         <div
-                                            className="absolute left-full top-0 ml-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[100] transform transition-all duration-200 ease-out opacity-100 scale-100"
+                                            className="absolute left-full top-0 ml-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-2 z-[100] transform transition-all duration-200 ease-out opacity-100 scale-100"
                                             onMouseEnter={() =>
                                                 handleMouseEnter(index)
                                             }
                                             onMouseLeave={handleMouseLeave}
                                         >
-                                            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 bg-gray-50">
+                                            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                                                 {item.name}
                                             </div>
                                             <div className="py-1">
@@ -288,7 +340,19 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                                     <Link
                                                         key={child.name}
                                                         href={route(child.href)}
-                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-900 transition-colors border-l-2 border-transparent hover:border-blue-500"
+                                                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l-2 border-transparent"
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.borderLeftColor =
+                                                                "var(--color-primary)";
+                                                            e.currentTarget.style.color =
+                                                                "var(--color-primary)";
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.borderLeftColor =
+                                                                "transparent";
+                                                            e.currentTarget.style.color =
+                                                                "";
+                                                        }}
                                                     >
                                                         {child.name}
                                                     </Link>

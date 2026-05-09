@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 
 class Service extends Model
 {
+    /** @use HasFactory<\Database\Factories\ServiceFactory> */
+    use HasUlid, HasFactory, SoftDeletes;
+
     protected $fillable = [
         'name',
         'slug',
@@ -15,25 +21,16 @@ class Service extends Model
         'description',
         'details',
         'icon',
-        'features',
-        'pricing',
-        'demo_links',
-        'gallery',
-        'technologies',
         'status',
         'sort_order',
         'is_featured',
-        'is_active'
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'features' => 'array',
-        'pricing' => 'array',
-        'demo_links' => 'array',
-        'gallery' => 'array',
-        'technologies' => 'array',
         'is_featured' => 'boolean',
-        'is_active' => 'boolean'
+        'status' => 'string',
     ];
 
     /**
@@ -44,6 +41,54 @@ class Service extends Model
         return $this->belongsTo(ServiceCategory::class);
     }
 
+    /**
+     * Get the service plans for this service.
+     */
+    public function servicePlans()
+    {
+        return $this->hasMany(ServicePlan::class);
+    }
+
+    /**
+     * Get the service items for this service.
+     */
+    public function serviceItems()
+    {
+        return $this->hasMany(ServiceItem::class);
+    }
+
+    /**
+     * Get the quotes for this service.
+     */
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    /**
+     * Get the contracts for this service.
+     */
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    /**
+     * Get the admin who created this service.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * Get the admin who last updated this service.
+     */
+    public function updater()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
     // スコープ
     public function scopeFeatured($query)
     {
@@ -52,7 +97,7 @@ class Service extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'active');
     }
 
     public function scopeByCategory($query, $categoryId)
@@ -65,58 +110,17 @@ class Service extends Model
         return $query->orderBy('sort_order')->orderBy('name');
     }
 
+    // ヘルパーメソッド
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
     // アクセサ
     protected function categoryName(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->serviceCategory?->name ?? '未分類'
         );
-    }
-
-    protected function hasDemo(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => !empty($this->demo_links)
-        );
-    }
-
-    protected function techStack(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->technologies ?: []
-        );
-    }
-
-    protected function startingPrice(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                if (empty($this->pricing)) {
-                    return null;
-                }
-                $prices = collect($this->pricing)->pluck('price')->filter();
-                return $prices->min();
-            }
-        );
-    }
-
-    /**
-     * Automatically generate slug from name.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($service) {
-            if (empty($service->slug)) {
-                $service->slug = Str::slug($service->name);
-            }
-        });
-
-        static::updating(function ($service) {
-            if ($service->isDirty('name') && empty($service->slug)) {
-                $service->slug = Str::slug($service->name);
-            }
-        });
     }
 }

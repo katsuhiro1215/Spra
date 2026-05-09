@@ -1,12 +1,18 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import {FlashMessage} from "@/Components/Notifications";
+// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ serviceCategory, servicesCount }) {
     const formatDate = (dateString) => {
@@ -19,35 +25,24 @@ export default function Show({ serviceCategory, servicesCount }) {
         });
     };
 
+    const headerActions = [
+        {
+            label: "一覧に戻る",
+            icon: ArrowLeftIcon,
+            variant: "default",
+            route: route("admin.service.category.index"),
+        },
+    ];
+
     return (
         <AdminAuthenticatedLayout
             header={
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                        <Link
-                            href={route(
-                                "admin.homepage.serviceCategories.index"
-                            )}
-                            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-                        >
-                            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                            戻る
-                        </Link>
-                        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                            サービスカテゴリ詳細
-                        </h2>
-                    </div>
-                    <Link
-                        href={route(
-                            "admin.homepage.serviceCategories.edit",
-                            serviceCategory
-                        )}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
-                    >
-                        <PencilIcon className="h-4 w-4 mr-2" />
-                        編集
-                    </Link>
-                </div>
+                <PageHeader
+                    title={PageConfig.serviceCategories.title}
+                    description={PageConfig.serviceCategories.description}
+                    actions={headerActions}
+                    breadcrumbs={PageConfig.serviceCategories.breadcrumbs}
+                />
             }
         >
             <Head title={`サービスカテゴリ詳細 - ${serviceCategory.name}`} />
@@ -81,20 +76,20 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                 {serviceCategory.slug}
                                             </span>
                                             <div className="flex items-center space-x-1">
-                                                {serviceCategory.is_active ? (
-                                                    <>
-                                                        <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                                                        <span className="text-sm text-green-600">
-                                                            アクティブ
-                                                        </span>
-                                                    </>
+                                                {serviceCategory.status ===
+                                                "active" ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        稼働中
+                                                    </span>
+                                                ) : serviceCategory.status ===
+                                                  "inactive" ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                        停止中
+                                                    </span>
                                                 ) : (
-                                                    <>
-                                                        <XCircleIcon className="h-4 w-4 text-red-500" />
-                                                        <span className="text-sm text-red-600">
-                                                            非アクティブ
-                                                        </span>
-                                                    </>
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        一時停止
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
@@ -152,11 +147,11 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                 {servicesCount > 0 && (
                                                     <Link
                                                         href={route(
-                                                            "admin.homepage.services.index",
+                                                            "admin.service.category.index",
                                                             {
                                                                 category:
                                                                     serviceCategory.id,
-                                                            }
+                                                            },
                                                         )}
                                                         className="ml-2 text-sm text-blue-600 hover:text-blue-800"
                                                     >
@@ -229,18 +224,27 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                 ステータス
                                             </label>
                                             <div className="flex items-center space-x-2">
-                                                {serviceCategory.is_active ? (
+                                                {serviceCategory.status ===
+                                                "active" ? (
                                                     <>
                                                         <CheckCircleIcon className="h-5 w-5 text-green-500" />
                                                         <span className="text-green-600 font-medium">
-                                                            アクティブ
+                                                            稼働中
+                                                        </span>
+                                                    </>
+                                                ) : serviceCategory.status ===
+                                                  "inactive" ? (
+                                                    <>
+                                                        <XCircleIcon className="h-5 w-5 text-gray-500" />
+                                                        <span className="text-gray-600 font-medium">
+                                                            停止中
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <XCircleIcon className="h-5 w-5 text-red-500" />
                                                         <span className="text-red-600 font-medium">
-                                                            非アクティブ
+                                                            一時停止
                                                         </span>
                                                     </>
                                                 )}
@@ -262,7 +266,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                                         </span>
                                         <span className="ml-2">
                                             {formatDate(
-                                                serviceCategory.created_at
+                                                serviceCategory.created_at,
                                             )}
                                         </span>
                                     </div>
@@ -272,7 +276,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                                         </span>
                                         <span className="ml-2">
                                             {formatDate(
-                                                serviceCategory.updated_at
+                                                serviceCategory.updated_at,
                                             )}
                                         </span>
                                     </div>
@@ -283,7 +287,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                             <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
                                 <Link
                                     href={route(
-                                        "admin.homepage.serviceCategories.index"
+                                        "admin.service.category.index",
                                     )}
                                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                 >
@@ -291,8 +295,8 @@ export default function Show({ serviceCategory, servicesCount }) {
                                 </Link>
                                 <Link
                                     href={route(
-                                        "admin.homepage.serviceCategories.edit",
-                                        serviceCategory
+                                        "admin.service.category.edit",
+                                        serviceCategory.id,
                                     )}
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                                 >
