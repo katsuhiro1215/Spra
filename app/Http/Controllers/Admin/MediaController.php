@@ -3,207 +3,191 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreMediaRequest;
-use App\Http\Requests\Admin\UpdateMediaRequest;
+use App\Http\Requests\Media\StoreMediaRequest;
+use App\Http\Requests\Media\UpdateMediaRequest;
 use App\Models\Media;
+use App\Repositories\MediaRepository;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class MediaController extends Controller
 {
+    public function __construct(
+        private MediaRepository $mediaRepository,
+        private MediaService $mediaService,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): Response
     {
-        $query = Media::with(['uploader']);
-
-        // フィルタリング
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        if ($request->filled('folder')) {
-            $query->where('folder', $request->folder);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('original_name', 'like', "%{$search}%")
-                    ->orWhere('alt_text', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // ソート
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $media = $query->paginate(24)->withQueryString();
-
-        // 統計情報
-        $stats = [
-            'total' => Media::count(),
-            'images' => Media::images()->count(),
-            'videos' => Media::videos()->count(),
-            'documents' => Media::documents()->count(),
-            'total_size' => Media::sum('size'),
+        $filters = [
+            'search' => $request->query('search'),
+            'type' => $request->query('type'),
+            'format' => $request->query('format'),
+            'usage_type' => $request->query('usage_type'),
         ];
 
-        // フォルダ一覧
-        $folders = Media::whereNotNull('folder')
-            ->distinct()
-            ->pluck('folder')
-            ->sort()
-            ->values();
+        $sort = [
+            'field' => $request->query('sort_field', 'created_at'),
+            'direction' => $request->query('sort_direction', 'desc'),
+        ];
+
+        $mediaList = $this->mediaService->getPaginatedMedia(
+            $filters,
+            $sort,
+            perPage: 20
+        );
+
+        // 統計情報を取得
+        $stats = $this->mediaService->getStats();
 
         return Inertia::render('Admin/Media/Index', [
-            'media' => $media,
+            'mediaList' => $mediaList,
+            'filters' => $filters,
             'stats' => $stats,
-            'folders' => $folders,
-            'filters' => $request->only(['type', 'folder', 'search', 'sort_by', 'sort_order']),
         ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Media/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMediaRequest $request): RedirectResponse
+    public function store(StoreMediaRequest $request)
     {
-        $uploadedFiles = [];
+        try {
+            $adminId = Auth::guard('admins')->id();
 
-        foreach ($request->file('files', []) as $file) {
-            $mediaData = $this->processUploadedFile($file, $request);
-            $media = Media::create($mediaData);
-            $uploadedFiles[] = $media;
+            $media = $this->mediaService->uploadImage(
+                $request->file('image'),
+                $request->validated(),
+                $adminId
+            );
+
+            // Ajaxリクエストの場合はJSONを返す（モーダルからのアップロード用）
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'media' => $media,
+                    'message' => 'メディアをアップロードしました。バリアントは自動生成中です。',
+                ]);
+            }
+
+            return redirect()
+                ->route('admin.media.show', $media)
+                ->with('success', 'メディアをアップロードしました。バリアントは自動生成中です。');
+        } catch (\Exception $e) {
+            // Ajaxリクエストの場合はJSONエラーを返す
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'メディアのアップロードに失敗しました: ' . $e->getMessage(),
+                ], 422);
+            }
+
+            return back()
+                ->withInput()
+                ->with('error', 'メディアのアップロードに失敗しました: ' . $e->getMessage());
         }
-
-        $count = count($uploadedFiles);
-        return redirect()->back()->with('success', "{$count}個のファイルをアップロードしました。");
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Media $media): Response
+    public function show(Media $medium): Response
     {
-        $media->load(['uploader']);
+        $medium->load('variants');
 
         return Inertia::render('Admin/Media/Show', [
-            'media' => $media,
+            'media' => $medium,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Media $medium): Response
+    {
+        $medium->load('variants');
+
+        return Inertia::render('Admin/Media/Edit', [
+            'media' => $medium,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMediaRequest $request, Media $media): RedirectResponse
+    public function update(UpdateMediaRequest $request, Media $media)
     {
-        $media->update($request->validated());
+        try {
+            $this->mediaRepository->update($media->id, $request->validated());
 
-        return redirect()->back()->with('success', 'メディア情報を更新しました。');
+            return back()->with('success', 'メディア情報を更新しました。');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'メディア情報の更新に失敗しました: ' . $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Media $media): RedirectResponse
+    public function destroy(Media $media)
     {
-        // ファイルを削除
-        if (Storage::disk($media->disk)->exists($media->path)) {
-            Storage::disk($media->disk)->delete($media->path);
+        try {
+            $this->mediaService->deleteMedia($media->id);
+
+            return redirect()
+                ->route('admin.media.index')
+                ->with('success', 'メディアを削除しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', 'メディアの削除に失敗しました: ' . $e->getMessage());
         }
-
-        $media->delete();
-
-        return redirect()->route('admin.media.index')
-            ->with('success', 'メディアファイルを削除しました。');
     }
 
     /**
-     * Bulk delete media files
+     * Create custom variant with cropping
      */
-    public function bulkDestroy(Request $request): RedirectResponse
+    public function createVariant(Request $request, Media $media)
     {
-        $request->validate([
-            'media_ids' => 'required|array',
-            'media_ids.*' => 'exists:media,id',
+        $validated = $request->validate([
+            'custom_name' => ['required', 'string', 'max:50'],
+            'target_width' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'target_height' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'quality' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'crop_data' => ['nullable', 'array'],
+            'crop_data.x' => ['nullable', 'integer', 'min:0'],
+            'crop_data.y' => ['nullable', 'integer', 'min:0'],
+            'crop_data.width' => ['nullable', 'integer', 'min:1'],
+            'crop_data.height' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $mediaFiles = Media::whereIn('id', $request->media_ids)->get();
+        try {
+            $variant = $this->mediaService->createCustomVariant(
+                $media,
+                $validated['custom_name'],
+                $validated['target_width'] ?? null,
+                $validated['target_height'] ?? null,
+                $validated['quality'] ?? null,
+                $validated['crop_data'] ?? null
+            );
 
-        foreach ($mediaFiles as $media) {
-            // ファイルを削除
-            if (Storage::disk($media->disk)->exists($media->path)) {
-                Storage::disk($media->disk)->delete($media->path);
-            }
-            $media->delete();
+            return back()->with('success', 'カスタムバリアントを作成しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', 'バリアントの作成に失敗しました: ' . $e->getMessage());
         }
-
-        $count = $mediaFiles->count();
-        return redirect()->back()->with('success', "{$count}個のメディアファイルを削除しました。");
-    }
-
-    /**
-     * Process uploaded file and create media data
-     */
-    private function processUploadedFile(UploadedFile $file, Request $request): array
-    {
-        $originalName = $file->getClientOriginalName();
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $mimeType = $file->getMimeType();
-        $size = $file->getSize();
-        $type = Media::getTypeFromMime($mimeType);
-
-        // フォルダパスを設定
-        $folder = $request->get('folder', 'uploads');
-        $path = $folder . '/' . $filename;
-
-        // ファイルを保存
-        $file->storeAs($folder, $filename, 'public');
-
-        // 画像の場合、基本的なサイズ情報を取得（後で画像処理ライブラリで拡張）
-        $dimensions = null;
-        if ($type === 'image') {
-            try {
-                // getimagesize を使用してサイズ情報を取得
-                $imageInfo = getimagesize($file->getPathname());
-                if ($imageInfo) {
-                    $dimensions = [
-                        'width' => $imageInfo[0],
-                        'height' => $imageInfo[1],
-                    ];
-                }
-            } catch (\Exception $e) {
-                // 画像処理エラーは無視
-            }
-        }
-
-        return [
-            'name' => pathinfo($originalName, PATHINFO_FILENAME),
-            'original_name' => $originalName,
-            'filename' => $filename,
-            'path' => $path,
-            'url' => Storage::url($path),
-            'disk' => 'public',
-            'mime_type' => $mimeType,
-            'type' => $type,
-            'size' => $size,
-            'dimensions' => $dimensions,
-            'folder' => $folder,
-            'alt_text' => $request->get('alt_text'),
-            'description' => $request->get('description'),
-            'tags' => $request->get('tags') ? explode(',', $request->get('tags')) : null,
-            'is_public' => $request->get('is_public', true),
-            'uploaded_by' => auth('admin')->id(),
-        ];
     }
 }

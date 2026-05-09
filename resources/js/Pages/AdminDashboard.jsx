@@ -105,18 +105,23 @@ export default function Dashboard() {
     ];
 
     return (
-        <AdminAuthenticatedLayout>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={PageConfig.dashboard.title}
+                    description={PageConfig.dashboard.description}
+                    actions={headerActions}
+                    updatedAt={new Date().toLocaleString("ja-JP")}
+                />
+            }
+        >
             <Head title="管理者ダッシュボード" />
+
             {/* フラッシュメッセージ */}
             <FlashMessage />
+
             {/* ヘッダー */}
-            <PageHeader
-                title={PageConfig.dashboard.title}
-                description={PageConfig.dashboard.description}
-                actions={headerActions}
-                updatedAt={new Date().toLocaleString("ja-JP")}
-            />
-            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
                 {/* メインコンテンツ */}
                 <div className="flex-1 space-y-6">
                     {/* 統計カード */}
@@ -148,9 +153,9 @@ export default function Dashboard() {
                                                             "increase"
                                                                 ? "text-green-600"
                                                                 : stat.changeType ===
-                                                                  "decrease"
-                                                                ? "text-red-600"
-                                                                : "text-gray-500"
+                                                                    "decrease"
+                                                                  ? "text-red-600"
+                                                                  : "text-gray-500"
                                                         }`}
                                                     >
                                                         {stat.change}
@@ -191,7 +196,7 @@ export default function Dashboard() {
                                                                 <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
                                                                     <span className="text-white text-xs font-medium">
                                                                         {activity.user.charAt(
-                                                                            0
+                                                                            0,
                                                                         )}
                                                                     </span>
                                                                 </span>
@@ -220,7 +225,7 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                 </li>
-                                            )
+                                            ),
                                         )}
                                     </ul>
                                 </div>
@@ -292,7 +297,7 @@ export default function Dashboard() {
                 </div>
                 {/* 右側サイドバーにログ表示 */}
                 <SidebarLogs logs={logs} moreUrl="/admin/logs" />
-            </main>
+            </div>
         </AdminAuthenticatedLayout>
     );
 }

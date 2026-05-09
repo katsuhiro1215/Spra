@@ -1,20 +1,24 @@
-export default function PrimaryButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
+import BaseButton from "./BaseButton";
+
+/**
+ * PrimaryButton - プライマリボタン
+ */
+export default function PrimaryButton({ className = "", ...props }) {
+    const colorClasses = `
+        bg-indigo-600 text-white
+        hover:bg-indigo-700
+        focus:ring-indigo-500
+        dark:bg-indigo-500 dark:hover:bg-indigo-600
+        active:scale-95 shadow-md hover:shadow-lg
+    `
+        .trim()
+        .replace(/\s+/g, " ");
+
     return (
-        <button
+        <BaseButton
+            colorClasses={colorClasses}
+            className={className}
             {...props}
-            className={
-                `inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
-            disabled={disabled}
-        >
-            {children}
-        </button>
+        />
     );
 }

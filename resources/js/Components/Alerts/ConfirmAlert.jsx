@@ -5,6 +5,7 @@ const ConfirmAlert = ({
     isOpen,
     onClose,
     onConfirm,
+    onCancel,
     title = "確認",
     message = "この操作を実行しますか？",
     confirmText = "実行",
@@ -19,6 +20,7 @@ const ConfirmAlert = ({
             isOpen={isOpen}
             onClose={onClose}
             onConfirm={onConfirm}
+            onCancel={onCancel}
             title={title}
             message={message}
             type={type}

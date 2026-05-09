@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\User\ProjectController as UserProjectController;
+use App\Http\Controllers\User\ContractController as UserContractController;
+use App\Http\Controllers\User\InvoiceController as UserInvoiceController;
 use Inertia\Inertia;
 
 // Public routes
@@ -42,12 +46,23 @@ if (!function_exists('inertiaPublic')) {
 
 // User routes
 Route::middleware(['auth:users', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // プロジェクト（クライアント向け）
+    Route::get('/my/projects', [UserProjectController::class, 'index'])->name('projects.index');
+    Route::get('/my/projects/{id}', [UserProjectController::class, 'show'])->name('projects.show');
+
+    // 契約（クライアント向け）
+    Route::get('/my/contracts', [UserContractController::class, 'index'])->name('contracts.index');
+    Route::get('/my/contracts/{id}', [UserContractController::class, 'show'])->name('contracts.show');
+
+    // 請求書（クライアント向け）
+    Route::get('/my/invoices', [UserInvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/my/invoices/{id}', [UserInvoiceController::class, 'show'])->name('invoices.show');
     Route::get('/reservation-settings', function () {
         return Inertia::render('User/ReservationSettings');
     })->name('reservation.settings');

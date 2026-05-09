@@ -1,12 +1,12 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 export default forwardRef(function TextArea(
-    { 
-        className = '', 
-        isFocused = false, 
+    {
+        className = "",
+        isFocused = false,
         rows = 4,
-        resize = 'vertical',
-        ...props 
+        resize = "vertical",
+        ...props
     },
     ref,
 ) {
@@ -23,10 +23,10 @@ export default forwardRef(function TextArea(
     }, [isFocused]);
 
     const resizeClasses = {
-        none: 'resize-none',
-        vertical: 'resize-y',
-        horizontal: 'resize-x',
-        both: 'resize'
+        none: "resize-none",
+        vertical: "resize-y",
+        horizontal: "resize-x",
+        both: "resize",
     };
 
     return (
@@ -34,7 +34,7 @@ export default forwardRef(function TextArea(
             {...props}
             rows={rows}
             className={
-                `rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${resizeClasses[resize]} ` +
+                `w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${resizeClasses[resize]} ` +
                 className
             }
             ref={localRef}

@@ -1,10 +1,26 @@
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
 
 const createPageTemplates = (baseName) => ({
-    index: { title: `${baseName}一覧` },
-    show: { title: `${baseName}詳細` },
-    create: { title: `${baseName}作成` },
-    edit: { title: `${baseName}編集` },
+    index: {
+        title: `${baseName}一覧`,
+        description: `${baseName}の一覧を表示します`,
+        breadcrumb: `${baseName}一覧`,
+    },
+    show: {
+        title: `${baseName}詳細`,
+        description: `${baseName}の詳細情報を表示します`,
+        breadcrumb: "詳細",
+    },
+    create: {
+        title: `${baseName}作成`,
+        description: `新しい${baseName}を作成します`,
+        breadcrumb: "新規作成",
+    },
+    edit: {
+        title: `${baseName}編集`,
+        description: `${baseName}の情報を編集します`,
+        breadcrumb: "編集",
+    },
 });
 
 const createSearchTemplate = (baseName) => ({
@@ -52,6 +68,21 @@ export const PageConfig = {
     },
 
     /**
+     * 管理者管理
+     */
+    admins: {
+        title: "👥 管理者管理",
+        description: "管理者を管理します",
+        documentTitle: "管理者管理",
+        breadcrumbs: ["ホーム", "管理者管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("管理者"),
+        search: createSearchTemplate("管理者"),
+    },
+
+    /**
      * ユーザー管理
      */
     users: {
@@ -94,6 +125,21 @@ export const PageConfig = {
         },
         pages: createPageTemplates("メディア"),
         search: createSearchTemplate("メディア"),
+    },
+
+    /**
+     * サービスカテゴリ管理
+     */
+    serviceCategories: {
+        title: "🛠️ サービスカテゴリ管理",
+        description: "サービスカテゴリを管理します",
+        documentTitle: "サービスカテゴリー管理",
+        breadcrumbs: ["ホーム", "サービスカテゴリ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("サービスカテゴリ"),
+        search: createSearchTemplate("サービスカテゴリ"),
     },
 
     /**

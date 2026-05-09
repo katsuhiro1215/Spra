@@ -1,27 +1,19 @@
-import React from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import BasicButton from "@/Components/Buttons/BasicButton";
 import FlashMessage from "@/Components/Notifications/FlashMessage";
-// Icons
+import { TextInput, TextArea, InputLabel, InputError } from "@/Components/Form";
+import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import {
-    ArrowLeftIcon,
     PhotoIcon,
     VideoCameraIcon,
-    DocumentIcon,
+    ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
-// Constants
-import { PageConfig } from "@/Constants/PageConfig";
 
-const MediaEdit = ({ media, folders = [] }) => {
+export default function Edit({ media }) {
     const { data, setData, patch, processing, errors } = useForm({
         title: media.title || "",
         description: media.description || "",
-        folder: media.folder || "",
-        tags: media.tags || [],
         alt_text: media.alt_text || "",
     });
 
@@ -33,369 +25,204 @@ const MediaEdit = ({ media, folders = [] }) => {
     };
 
     const formatFileSize = (bytes) => {
-        if (bytes === 0) return "0 Bytes";
+        if (!bytes || bytes === 0) return "0 B";
         const k = 1024;
-        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const sizes = ["B", "KB", "MB", "GB"];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+        return (
+            Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i]
+        );
     };
-
-    const getTypeIcon = (type) => {
-        switch (type) {
-            case "image":
-                return <PhotoIcon className="w-6 h-6 text-blue-500" />;
-            case "video":
-                return <VideoCameraIcon className="w-6 h-6 text-purple-500" />;
-            default:
-                return <DocumentIcon className="w-6 h-6 text-gray-500" />;
-        }
-    };
-
-    const headerActions = [
-        {
-            label: PageConfig.pages.actions.create,
-            icon: ArrowLeftIcon,
-            variant: "secondary",
-            route: route("admin.media.index"),
-        },
-    ];
 
     return (
-        <AdminAuthenticatedLayout>
-            <Head title={`メディア編集 - ${media.title || media.filename}`} />
-            {/* フラッシュメッセージ */}
-            <FlashMessage />
-            {/* ヘッダー */}
-            <PageHeader
-                title={PageConfig.media.title}
-                description={PageConfig.media.description}
-                actions={headerActions}
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="メディア編集"
+                    description={media.title || media.original_filename}
+                    breadcrumbs={[
+                        {
+                            name: "メディア管理",
+                            href: route("admin.media.index"),
+                        },
+                        {
+                            name: "詳細",
+                            href: route("admin.media.show", media.id),
+                        },
+                        { name: "編集" },
+                    ]}
+                />
+            }
+        >
+            <Head
+                title={`メディア編集 - ${media.title || media.original_filename}`}
             />
-            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center space-x-3">
-                    <button
-                        onClick={() =>
-                            router.get(route("admin.media.show", media.id))
-                        }
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                        詳細に戻る
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            メディア編集
-                        </h1>
-                        <p className="text-gray-600">
-                            {media.title || media.filename}
-                        </p>
+            <FlashMessage />
+
+            <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 左カラム: プレビュー */}
+                <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                        プレビュー
+                    </h3>
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center min-h-[300px]">
+                        {media.type === "image" ? (
+                            <img
+                                src={media.original_url}
+                                alt={media.alt_text || media.title}
+                                className="max-w-full max-h-[400px] object-contain rounded"
+                            />
+                        ) : media.type === "video" ? (
+                            <video
+                                src={media.original_url}
+                                controls
+                                className="max-w-full max-h-[400px] rounded"
+                            >
+                                お使いのブラウザは動画タグをサポートしていません。
+                            </video>
+                        ) : (
+                            <div className="text-center text-slate-500 dark:text-slate-400">
+                                <ArrowsPointingOutIcon className="mx-auto h-16 w-16 mb-2" />
+                                <p className="text-sm font-mono truncate max-w-[200px]">
+                                    {media.original_filename}
+                                </p>
+                            </div>
+                        )}
                     </div>
+
+                    {/* ファイル情報 */}
+                    <dl className="mt-4 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <dt className="text-slate-500 dark:text-slate-400">
+                                タイプ:
+                            </dt>
+                            <dd className="text-slate-900 dark:text-white">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                    {media.type}
+                                </span>
+                            </dd>
+                        </div>
+                        <div className="flex justify-between">
+                            <dt className="text-slate-500 dark:text-slate-400">
+                                サイズ:
+                            </dt>
+                            <dd className="text-slate-900 dark:text-white">
+                                {formatFileSize(media.original_file_size)}
+                            </dd>
+                        </div>
+                        {media.original_width && media.original_height && (
+                            <div className="flex justify-between">
+                                <dt className="text-slate-500 dark:text-slate-400">
+                                    寸法:
+                                </dt>
+                                <dd className="text-slate-900 dark:text-white">
+                                    {media.original_width} ×{" "}
+                                    {media.original_height} px
+                                </dd>
+                            </div>
+                        )}
+                        <div className="flex justify-between">
+                            <dt className="text-slate-500 dark:text-slate-400">
+                                MIME:
+                            </dt>
+                            <dd className="text-slate-900 dark:text-white font-mono text-xs">
+                                {media.mime_type}
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* プレビュー */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white shadow rounded-lg overflow-hidden">
-                            <div className="p-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                    プレビュー
-                                </h3>
-                                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                                    {media.type === "image" ? (
-                                        <img
-                                            src={media.url}
-                                            alt={
-                                                media.alt_text || media.filename
-                                            }
-                                            className="max-w-full max-h-full object-contain rounded"
-                                        />
-                                    ) : media.type === "video" ? (
-                                        <video
-                                            src={media.url}
-                                            controls
-                                            className="max-w-full max-h-full rounded"
-                                        />
-                                    ) : (
-                                        <div className="text-center">
-                                            {getTypeIcon(media.type)}
-                                            <p className="mt-2 text-gray-500 text-sm">
-                                                {media.filename}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* ファイル情報 */}
-                            <div className="px-4 pb-4 border-t border-gray-200">
-                                <dl className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <dt className="text-gray-500">
-                                            ファイルサイズ:
-                                        </dt>
-                                        <dd className="text-gray-900">
-                                            {formatFileSize(media.file_size)}
-                                        </dd>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <dt className="text-gray-500">
-                                            タイプ:
-                                        </dt>
-                                        <dd className="text-gray-900 capitalize">
-                                            {media.type}
-                                        </dd>
-                                    </div>
-                                    {media.dimensions && (
-                                        <div className="flex justify-between">
-                                            <dt className="text-gray-500">
-                                                サイズ:
-                                            </dt>
-                                            <dd className="text-gray-900">
-                                                {media.dimensions.width} ×{" "}
-                                                {media.dimensions.height}
-                                            </dd>
-                                        </div>
-                                    )}
-                                </dl>
-                            </div>
+                {/* 右カラム: 編集フォーム */}
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
+                        メディア情報
+                    </h3>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* タイトル */}
+                        <div>
+                            <InputLabel htmlFor="title" value="タイトル" />
+                            <TextInput
+                                id="title"
+                                name="title"
+                                value={data.title}
+                                onChange={(e) =>
+                                    setData("title", e.target.value)
+                                }
+                                placeholder="メディアのタイトルを入力..."
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.title}
+                                className="mt-2"
+                            />
                         </div>
-                    </div>
 
-                    {/* 編集フォーム */}
-                    <div className="lg:col-span-2">
-                        <div className="bg-white shadow rounded-lg">
-                            <div className="px-4 py-5 sm:p-6">
-                                <form
-                                    onSubmit={handleSubmit}
-                                    className="space-y-6"
-                                >
-                                    {/* タイトル */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            タイトル
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.title}
-                                            onChange={(e) =>
-                                                setData("title", e.target.value)
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="メディアのタイトルを入力..."
-                                        />
-                                        {errors.title && (
-                                            <div className="text-red-600 text-sm mt-1">
-                                                {errors.title}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 説明 */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            説明
-                                        </label>
-                                        <textarea
-                                            value={data.description}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "description",
-                                                    e.target.value
-                                                )
-                                            }
-                                            rows={4}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="メディアの説明を入力..."
-                                        />
-                                        {errors.description && (
-                                            <div className="text-red-600 text-sm mt-1">
-                                                {errors.description}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Altテキスト（画像の場合のみ） */}
-                                    {media.type === "image" && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Altテキスト
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.alt_text}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "alt_text",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="画像の代替テキストを入力..."
-                                            />
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                アクセシビリティのための画像説明テキスト
-                                            </p>
-                                            {errors.alt_text && (
-                                                <div className="text-red-600 text-sm mt-1">
-                                                    {errors.alt_text}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* フォルダ */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            フォルダ
-                                        </label>
-                                        <select
-                                            value={data.folder}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "folder",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            <option value="">
-                                                ルートフォルダ
-                                            </option>
-                                            {folders.map((folder) => (
-                                                <option
-                                                    key={folder}
-                                                    value={folder}
-                                                >
-                                                    {folder}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <div className="mt-2">
-                                            <input
-                                                type="text"
-                                                placeholder="または新しいフォルダ名を入力"
-                                                value={data.folder}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "folder",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            />
-                                        </div>
-                                        {errors.folder && (
-                                            <div className="text-red-600 text-sm mt-1">
-                                                {errors.folder}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* タグ */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            タグ
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.tags.join(", ")}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "tags",
-                                                    e.target.value
-                                                        .split(",")
-                                                        .map((tag) =>
-                                                            tag.trim()
-                                                        )
-                                                        .filter((tag) => tag)
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="写真, 商品, バナー... (カンマ区切り)"
-                                        />
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            複数のタグをカンマで区切って入力してください
-                                        </p>
-                                        {errors.tags && (
-                                            <div className="text-red-600 text-sm mt-1">
-                                                {errors.tags}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 現在のタグ表示 */}
-                                    {data.tags.length > 0 && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                現在のタグ
-                                            </label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {data.tags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                                                    >
-                                                        {tag}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setData(
-                                                                    "tags",
-                                                                    data.tags.filter(
-                                                                        (
-                                                                            _,
-                                                                            i
-                                                                        ) =>
-                                                                            i !==
-                                                                            index
-                                                                    )
-                                                                )
-                                                            }
-                                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* アクションボタン */}
-                                    <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                router.get(
-                                                    route(
-                                                        "admin.media.show",
-                                                        media.id
-                                                    )
-                                                )
-                                            }
-                                            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                        >
-                                            キャンセル
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                        >
-                                            {processing
-                                                ? "保存中..."
-                                                : "変更を保存"}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                        {/* 説明 */}
+                        <div>
+                            <InputLabel htmlFor="description" value="説明" />
+                            <TextArea
+                                id="description"
+                                name="description"
+                                value={data.description}
+                                onChange={(e) =>
+                                    setData("description", e.target.value)
+                                }
+                                placeholder="メディアの説明を入力..."
+                                rows={4}
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.description}
+                                className="mt-2"
+                            />
                         </div>
-                    </div>
+
+                        {/* Altテキスト（画像の場合のみ） */}
+                        {media.type === "image" && (
+                            <div>
+                                <InputLabel
+                                    htmlFor="alt_text"
+                                    value="代替テキスト (Alt)"
+                                />
+                                <TextInput
+                                    id="alt_text"
+                                    name="alt_text"
+                                    value={data.alt_text}
+                                    onChange={(e) =>
+                                        setData("alt_text", e.target.value)
+                                    }
+                                    placeholder="画像の代替テキストを入力..."
+                                    className="mt-1 block w-full"
+                                />
+                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                    アクセシビリティのための画像説明テキスト
+                                </p>
+                                <InputError
+                                    message={errors.alt_text}
+                                    className="mt-2"
+                                />
+                            </div>
+                        )}
+
+                        {/* アクションボタン */}
+                        <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-700">
+                            <SecondaryButton
+                                type="button"
+                                onClick={() =>
+                                    router.get(
+                                        route("admin.media.show", media.id),
+                                    )
+                                }
+                            >
+                                キャンセル
+                            </SecondaryButton>
+                            <PrimaryButton type="submit" disabled={processing}>
+                                {processing ? "保存中..." : "変更を保存"}
+                            </PrimaryButton>
+                        </div>
+                    </form>
                 </div>
-            </main>
+            </div>
         </AdminAuthenticatedLayout>
     );
-};
-
-export default MediaEdit;
+}

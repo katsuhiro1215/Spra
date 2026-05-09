@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Company extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -18,11 +20,6 @@ class Company extends Model
         'legal_name',
         'registration_number',
         'tax_number',
-        'postal_code',
-        'prefecture',
-        'city',
-        'district',
-        'address_other',
         'phone',
         'fax',
         'email',
@@ -38,42 +35,41 @@ class Company extends Model
         'established_date',
         'status',
         'notes',
-        'metadata',
     ];
 
     protected $casts = [
         'established_date' => 'date',
-        'capital' => 'decimal:2',
-        'employee_count' => 'integer',
-        'metadata' => 'array',
+        'capital'          => 'decimal:2',
     ];
 
-    protected $attributes = [
-        'company_type' => 'individual',
-        'status' => 'active',
-    ];
-
-    // Enums
-    public const COMPANY_TYPES = [
+    public const TYPES = [
         'individual' => '個人',
-        'corporate' => '法人',
+        'corporate'  => '法人',
     ];
+
+    // コントローラー互換のためのエイリアス
+    // public const COMPANY_TYPES = self::TYPES;
 
     public const STATUSES = [
-        'active' => 'アクティブ',
-        'inactive' => '非アクティブ',
+        'active'    => '有効',
+        'inactive'  => '無効',
         'suspended' => '停止中',
     ];
 
+    // -------------------------
     // Relationships
-    public function users(): HasMany
+    // -------------------------
+
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'company_user')
+            ->withPivot(['role', 'is_primary', 'joined_at', 'left_at'])
+            ->withTimestamps();
     }
 
     public function addresses(): MorphMany
     {
-        return $this->morphMany(UserAddress::class, 'addressable');
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     public function defaultAddress(): MorphMany
@@ -81,57 +77,49 @@ class Company extends Model
         return $this->addresses()->where('is_default', true)->where('is_active', true);
     }
 
-    // Accessors
-    public function getCompanyTypeNameAttribute(): string
+    public function projects(): HasMany
     {
-        return self::COMPANY_TYPES[$this->company_type] ?? $this->company_type;
+        return $this->hasMany(Project::class);
     }
 
-    public function getStatusNameAttribute(): string
+    public function contracts(): HasMany
     {
-        return self::STATUSES[$this->status] ?? $this->status;
+        return $this->hasMany(Contract::class);
     }
 
-    public function getFullAddressAttribute(): string
-    {
-        $parts = array_filter([
-            $this->postal_code ? "〒{$this->postal_code}" : null,
-            $this->prefecture,
-            $this->city,
-            $this->district,
-            $this->address_other,
-        ]);
-
-        return implode(' ', $parts);
-    }
-
-    public function getDisplayNameAttribute(): string
-    {
-        return $this->legal_name ?: $this->name;
-    }
-
+    // -------------------------
     // Scopes
+    // -------------------------
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeByType($query, $type)
+    public function scopeByType($query, string $type)
     {
         return $query->where('company_type', $type);
     }
 
-    public function scopeSearch($query, $search)
+    public function scopeSearch($query, string $keyword)
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('legal_name', 'like', "%{$search}%")
-                ->orWhere('registration_number', 'like', "%{$search}%")
-                ->orWhere('representative_name', 'like', "%{$search}%");
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('name', 'like', "%{$keyword}%")
+                ->orWhere('legal_name', 'like', "%{$keyword}%")
+                ->orWhere('email', 'like', "%{$keyword}%")
+                ->orWhere('representative_name', 'like', "%{$keyword}%");
         });
     }
 
-    // Helper methods
+    public function scopeCorporate($query)
+    {
+        return $query->where('company_type', 'corporate');
+    }
+
+    // -------------------------
+    // Helpers
+    // -------------------------
+
     public function isActive(): bool
     {
         return $this->status === 'active';
@@ -140,10 +128,5 @@ class Company extends Model
     public function isCorporate(): bool
     {
         return $this->company_type === 'corporate';
-    }
-
-    public function isIndividual(): bool
-    {
-        return $this->company_type === 'individual';
     }
 }

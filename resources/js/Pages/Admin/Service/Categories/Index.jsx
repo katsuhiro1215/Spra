@@ -1,199 +1,285 @@
-import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    EyeIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-} from "@heroicons/react/24/outline";
+// Components
+import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
+import { FlashMessage } from "@/Components/Notifications";
+import { DeleteAlert } from "@/Components/Alerts";
+import { CreateButton, SecondaryButton } from "@/Components/Buttons";
+import { Card } from "@/Components/Card";
+import TabNavigation from "@/Components/TabNavigation";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
+// Icons
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
+import { SERVICE_CATEGORY_STATUS_OPTIONS } from "@/Constants/SelectOptions";
+// ServiceCategory Components
+import ServiceCategoriesTable from "./_components/ServiceCategoriesTable";
 
-export default function Index({ serviceCategories }) {
+export default function Index({ serviceCategories, statuses, filters, stats }) {
+    const [activeTab, setActiveTab] = useState(
+        filters.trashed || "without_trashed",
+    );
     const [isDeleting, setIsDeleting] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
+    const { data, setData, get, processing } = useForm({
+        search: filters.search || "",
+        status: filters.status || "",
+        trashed: filters.trashed || "without_trashed",
+    });
+
+    // ========================================
+    // Effects
+    // ========================================
+    // propsが更新されたらstateも更新
+    useEffect(() => {
+        setActiveTab(filters.trashed || "without_trashed");
+        setData({
+            search: filters.search || "",
+            status: filters.status || "",
+            trashed: filters.trashed || "without_trashed",
+        });
+    }, [filters.trashed]);
+
+    // フィルター変更時に自動検索
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (data.status !== filters.status) {
+                handleSearch();
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [data.status]);
+
+    // ========================================
+    // Handlers - Tab
+    // ========================================
+    const handleTabChange = (tab) => {
+        router.get(
+            route("admin.service.category.index"),
+            {
+                search: data.search,
+                status: data.status,
+                trashed: tab,
+            },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            },
+        );
+    };
+
+    // ========================================
+    // Handlers - Search & Filter
+    // ========================================
+    const handleSearch = () => {
+        get(route("admin.service.category.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // フィルタークリア
+    const handleClearFilters = () => {
+        setData({
+            search: "",
+            status: "",
+            trashed: activeTab,
+        });
+        get(route("admin.service.category.index", { trashed: activeTab }), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // ========================================
+    // Handlers - Delete
+    // ========================================
     const handleDelete = (category) => {
-        if (
-            confirm(
-                `「${category.name}」を削除しますか？この操作は取り消せません。`
-            )
-        ) {
-            setIsDeleting(category.id);
+        setDeleteTarget(category);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deleteTarget) {
+            setIsDeleting(deleteTarget.id);
             router.delete(
-                route("admin.homepage.serviceCategories.destroy", category),
+                route("admin.service.category.destroy", deleteTarget.id),
                 {
-                    onFinish: () => setIsDeleting(null),
-                }
+                    onFinish: () => {
+                        setIsDeleting(null);
+                        setDeleteTarget(null);
+                    },
+                },
             );
         }
     };
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString("ja-JP", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        });
+    const handleCancelDelete = () => {
+        setDeleteTarget(null);
     };
+
+    // ========================================
+    // Constants - Header Actions & Breadcrumbs
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.serviceCategories.actions.create,
+            icon: PlusIcon,
+            variant: "primary",
+            route: route("admin.service.category.create"),
+        },
+    ];
+
+    // ========================================
+    // Constants - Tabs & Filters
+    // ========================================
+    const tabs = [
+        {
+            key: "with_trashed",
+            label: "すべて",
+            count: stats?.all || serviceCategories.total,
+        },
+        {
+            key: "without_trashed",
+            label: "一覧",
+            count: stats?.active || serviceCategories.total,
+        },
+        {
+            key: "only_trashed",
+            label: "削除済み",
+            count: stats?.trashed || 0,
+        },
+    ];
+
+    const hasActiveFilters = data.search || data.status;
 
     return (
         <AdminAuthenticatedLayout
             header={
-                <div className="flex justify-between items-center">
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        サービスカテゴリ管理
-                    </h2>
-                    <Link
-                        href={route("admin.homepage.serviceCategories.create")}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
-                    >
-                        <PlusIcon className="h-4 w-4 mr-2" />
-                        新規作成
-                    </Link>
-                </div>
+                <PageHeader
+                    title={PageConfig.serviceCategories.title}
+                    description={PageConfig.serviceCategories.description}
+                    actions={headerActions}
+                    breadcrumbs={PageConfig.serviceCategories.breadcrumbs}
+                />
             }
         >
-            <Head title="サービスカテゴリ管理" />
+            <Head title={PageConfig.serviceCategories.documentTitle} />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            {serviceCategories.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <div className="text-gray-500 mb-4">
-                                        サービスカテゴリが登録されていません
-                                    </div>
-                                    <Link
-                                        href={route(
-                                            "admin.homepage.serviceCategories.create"
-                                        )}
-                                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
-                                    >
-                                        <PlusIcon className="h-4 w-4 mr-2" />
-                                        最初のカテゴリを作成
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {serviceCategories.map((category) => (
-                                        <div
-                                            key={category.id}
-                                            className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
-                                        >
-                                            {/* カテゴリヘッダー */}
-                                            <div
-                                                className="p-4 border-b border-gray-100"
-                                                style={{
-                                                    borderLeftColor:
-                                                        category.color,
-                                                    borderLeftWidth: "4px",
-                                                }}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center space-x-3">
-                                                        {category.icon && (
-                                                            <div
-                                                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        category.color,
-                                                                }}
-                                                            >
-                                                                <i
-                                                                    className={`heroicon-${category.icon} h-5 w-5`}
-                                                                ></i>
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                                {category.name}
-                                                            </h3>
-                                                            <p className="text-sm text-gray-500">
-                                                                {category.slug}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        {category.is_active ? (
-                                                            <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                                                        ) : (
-                                                            <XCircleIcon className="h-5 w-5 text-red-500" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
-                                            {/* カテゴリ詳細 */}
-                                            <div className="p-4">
-                                                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                                                    {category.description ||
-                                                        "説明がありません"}
-                                                </p>
+            {/* 削除アラート */}
+            <DeleteAlert
+                show={!!deleteTarget}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                itemName={deleteTarget?.name}
+            />
 
-                                                <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                                                    <span>
-                                                        表示順:{" "}
-                                                        {category.sort_order}
-                                                    </span>
-                                                    <span>
-                                                        作成日:{" "}
-                                                        {formatDate(
-                                                            category.created_at
-                                                        )}
-                                                    </span>
-                                                </div>
+            <div className="w-full flex flex-col gap-4">
+                {/* タブナビゲーション + 検索バー */}
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 p-4">
+                    {/* タブナビゲーション */}
+                    <div className="flex-1">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                        />
+                    </div>
+                    {/* 検索バー */}
+                    <div className="flex-1">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder="カテゴリ名またはスラッグで検索..."
+                            disabled={processing}
+                        />
+                    </div>
+                </div>
+                {/* フィルター */}
+                <div className="border-t border-slate-200 dark:border-slate-700 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                        <FunnelIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            フィルター
+                        </span>
+                        {hasActiveFilters && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                フィルター中
+                            </span>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {/* ステータスフィルター */}
+                        <FilterSelect
+                            label="ステータス"
+                            value={data.status}
+                            onChange={(value) => setData("status", value)}
+                            options={SERVICE_CATEGORY_STATUS_OPTIONS}
+                            placeholder="すべてのステータス"
+                        />
 
-                                                {/* アクションボタン */}
-                                                <div className="flex items-center justify-end space-x-2">
-                                                    <Link
-                                                        href={route(
-                                                            "admin.homepage.serviceCategories.show",
-                                                            category
-                                                        )}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                    >
-                                                        <EyeIcon className="h-4 w-4 mr-1" />
-                                                        詳細
-                                                    </Link>
-                                                    <Link
-                                                        href={route(
-                                                            "admin.homepage.serviceCategories.edit",
-                                                            category
-                                                        )}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                    >
-                                                        <PencilIcon className="h-4 w-4 mr-1" />
-                                                        編集
-                                                    </Link>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                category
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            isDeleting ===
-                                                            category.id
-                                                        }
-                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4 mr-1" />
-                                                        {isDeleting ===
-                                                        category.id
-                                                            ? "削除中..."
-                                                            : "削除"}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                        {/* スペーサー */}
+                        <div className="hidden lg:block"></div>
+                        <div className="hidden lg:block"></div>
+
+                        {/* フィルタークリアボタン */}
+                        <div className="flex items-end">
+                            <SecondaryButton
+                                onClick={handleClearFilters}
+                                disabled={!hasActiveFilters}
+                                size="md"
+                                className="w-full"
+                            >
+                                <XMarkIcon className="h-4 w-4 mr-2" />
+                                フィルタークリア
+                            </SecondaryButton>
                         </div>
                     </div>
                 </div>
+
+                {/* サービスカテゴリー一覧テーブル */}
+                <ServiceCategoriesTable
+                    serviceCategories={serviceCategories}
+                    onDelete={handleDelete}
+                />
+
+                {/* ページネーション */}
+                {serviceCategories.data.length > 0 && (
+                    <Pagination paginationData={serviceCategories} />
+                )}
+
+                {/* データがない場合 */}
+                {serviceCategories.data.length === 0 && (
+                    <Card>
+                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
+                            👤
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 mb-4">
+                            {filters.search
+                                ? "検索条件に一致するサービスカテゴリが見つかりませんでした。"
+                                : activeTab === "only_trashed"
+                                  ? "削除されたサービスカテゴリはありません。"
+                                  : "まだサービスカテゴリが登録されていません。"}
+                        </p>
+                        {!filters.search && activeTab !== "only_trashed" && (
+                            <CreateButton
+                                href={route("admin.service.category.create")}
+                                size="md"
+                            >
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                最初のサービスカテゴリを作成
+                            </CreateButton>
+                        )}
+                    </Card>
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

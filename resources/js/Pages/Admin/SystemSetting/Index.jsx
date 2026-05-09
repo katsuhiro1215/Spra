@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";

@@ -2,6 +2,28 @@
 
 namespace App\Providers;
 
+use App\Repositories\AdminRepository;
+use App\Repositories\CompanyRepository;
+use App\Repositories\ContractRepository;
+use App\Repositories\InvoiceRepository;
+use App\Repositories\PaymentRepository;
+use App\Repositories\ProjectRepository;
+use App\Repositories\UserRepository;
+use App\Repositories\ServiceCategoryRepository;
+use App\Repositories\ServiceRepository;
+use App\Repositories\ServicePlanRepository;
+use App\Repositories\ServiceItemRepository;
+use App\Repositories\Contracts\AdminRepositoryInterface;
+use App\Repositories\Contracts\CompanyRepositoryInterface;
+use App\Repositories\Contracts\ContractRepositoryInterface;
+use App\Repositories\Contracts\InvoiceRepositoryInterface;
+use App\Repositories\Contracts\PaymentRepositoryInterface;
+use App\Repositories\Contracts\ProjectRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\ServiceCategoryRepositoryInterface;
+use App\Repositories\Contracts\ServiceRepositoryInterface;
+use App\Repositories\Contracts\ServicePlanRepositoryInterface;
+use App\Repositories\Contracts\ServiceItemRepositoryInterface;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -14,7 +36,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(AdminRepositoryInterface::class, AdminRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
+        $this->app->bind(ProjectRepositoryInterface::class, ProjectRepository::class);
+        $this->app->bind(ContractRepositoryInterface::class, ContractRepository::class);
+        $this->app->bind(InvoiceRepositoryInterface::class, InvoiceRepository::class);
+        $this->app->bind(PaymentRepositoryInterface::class, PaymentRepository::class);
+        $this->app->bind(ServiceCategoryRepositoryInterface::class, ServiceCategoryRepository::class);
+        $this->app->bind(ServiceRepositoryInterface::class, ServiceRepository::class);
+        $this->app->bind(ServicePlanRepositoryInterface::class, ServicePlanRepository::class);
+        $this->app->bind(ServiceItemRepositoryInterface::class, ServiceItemRepository::class);
     }
 
     /**
@@ -32,12 +64,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Viteのパフォーマンス最適化
         Vite::prefetch(concurrency: 3);
-        
+
         // 本番環境でのHTTPS強制
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
-        
+
         // 全ビューで現在のユーザー情報を共有
         View::composer('*', function ($view) {
             $view->with([

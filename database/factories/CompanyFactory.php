@@ -96,11 +96,6 @@ class CompanyFactory extends Factory
             'legal_name' => $isIndividual ? null : $name . ($this->faker->randomElement(['株式会社', '有限会社', '合同会社'])),
             'registration_number' => $isIndividual ? null : $this->faker->numerify('############'),
             'tax_number' => $isIndividual ? null : $this->faker->numerify('T############'),
-            'postal_code' => $this->faker->postcode,
-            'prefecture' => $this->faker->randomElement($prefectures),
-            'city' => $this->faker->city,
-            'district' => $this->faker->optional(0.7)->streetName,
-            'address_other' => $this->faker->secondaryAddress,
             'phone' => $this->faker->phoneNumber,
             'fax' => $this->faker->optional(0.3)->phoneNumber,
             'email' => $this->faker->companyEmail,
@@ -116,11 +111,6 @@ class CompanyFactory extends Factory
             'established_date' => $this->faker->dateTimeBetween('-20 years', 'now'),
             'status' => $this->faker->randomElement(['active', 'inactive', 'suspended']),
             'notes' => $this->faker->optional(0.3)->realText(100),
-            'metadata' => $this->faker->optional(0.2)->randomElements([
-                'verified' => true,
-                'source' => 'api_import',
-                'priority' => 'high',
-            ]),
         ];
     }
 

@@ -13,7 +13,7 @@ const Pagination = ({ paginationData, className = "" }) => {
 
     return (
         <div
-            className={`bg-white px-4 py-3 border-t border-gray-200 sm:px-6 ${className}`}
+            className={`px-4 py-3 sm:px-6 ${className}`}
         >
             <div className="flex items-center justify-between">
                 <div className="flex-1 flex justify-between sm:hidden">

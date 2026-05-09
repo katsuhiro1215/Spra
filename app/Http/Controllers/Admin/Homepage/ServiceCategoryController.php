@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Admin\Homepage;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceCategory;
-use App\Http\Requests\StoreServiceCategoryRequest;
-use App\Http\Requests\UpdateServiceCategoryRequest;
+use App\Http\Requests\ServiceCategoryRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,7 +32,7 @@ class ServiceCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreServiceCategoryRequest $request)
+    public function store(ServiceCategoryRequest $request)
     {
         ServiceCategory::create($request->validated());
 
@@ -65,7 +64,7 @@ class ServiceCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateServiceCategoryRequest $request, ServiceCategory $serviceCategory)
+    public function update(ServiceCategoryRequest $request, ServiceCategory $serviceCategory)
     {
         $serviceCategory->update($request->validated());
 

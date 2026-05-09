@@ -20,8 +20,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'レスポンシブデザインに対応したWebサイトの企画・制作を行います。',
                 'color' => '#3B82F6',
                 'icon' => 'globe-alt',
+                'status' => 'active',
                 'sort_order' => 1,
-                'is_active' => true,
             ],
             [
                 'name' => 'システム開発',
@@ -29,8 +29,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => '業務効率化を実現するWebアプリケーション・システムの開発を行います。',
                 'color' => '#10B981',
                 'icon' => 'code-bracket',
+                'status' => 'active',
                 'sort_order' => 2,
-                'is_active' => true,
             ],
             [
                 'name' => 'モバイルアプリ開発',
@@ -38,8 +38,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'iOS・Androidアプリの企画・開発・運用をサポートします。',
                 'color' => '#F59E0B',
                 'icon' => 'device-phone-mobile',
+                'status' => 'active',
                 'sort_order' => 3,
-                'is_active' => true,
             ],
             [
                 'name' => 'UI/UXデザイン',
@@ -47,8 +47,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'ユーザビリティを重視したUI/UXデザインを提供します。',
                 'color' => '#EF4444',
                 'icon' => 'paint-brush',
+                'status' => 'active',
                 'sort_order' => 4,
-                'is_active' => true,
             ],
             [
                 'name' => 'デジタルマーケティング',
@@ -56,8 +56,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'SEO対策・SNS運用・Web広告運用などのマーケティング支援を行います。',
                 'color' => '#8B5CF6',
                 'icon' => 'megaphone',
+                'status' => 'active',
                 'sort_order' => 5,
-                'is_active' => true,
             ],
             [
                 'name' => 'ITコンサルティング',
@@ -65,8 +65,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'IT戦略立案・システム導入支援・DX推進のコンサルティングを提供します。',
                 'color' => '#06B6D4',
                 'icon' => 'lightbulb',
+                'status' => 'active',
                 'sort_order' => 6,
-                'is_active' => true,
             ],
             [
                 'name' => 'システム保守・運用',
@@ -74,8 +74,8 @@ class ServiceCategorySeeder extends Seeder
                 'description' => 'システムの安定稼働を支える保守・運用サービスを提供します。',
                 'color' => '#F97316',
                 'icon' => 'wrench-screwdriver',
+                'status' => 'active',
                 'sort_order' => 7,
-                'is_active' => true,
             ],
         ];
 
