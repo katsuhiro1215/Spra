@@ -2,36 +2,89 @@
 
 namespace App\Repositories;
 
-use App\Models\BlogCategory;
+use App\Models\Contact;
+use App\Repositories\Contracts\ContactRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
-class BlogCategoryRepository
+class ContactRepository extends BaseRepository implements ContactRepositoryInterface
 {
     /**
-     * 基本的なクエリビルダーを取得
+     * モデルクラス名を返す
+     * 
+     * @return string
      */
-    public function query(): Builder
+    protected function getModelClass(): string
     {
-        return BlogCategory::query();
-    }
-
-  /**
-   * 検索条件を適用したクエリを取得
-   */
-    public function buildSearchQuery(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', '%' . $search . '%')
-              ->orWhere('description', 'like', '%' . $search . '%');
-        });
+        return Contact::class;
     }
 
     /**
-     * すべてのブログカテゴリを取得
-   */
-    public function getAll(): Builder
+     * 検索対象フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSearchableFields(): array
     {
-        return BlogCategory::with(['createdBy', 'updatedBy']);
+        return [
+            'name',
+            'email',
+            'subject',
+            'message',
+        ];
+    }
+
+    /**
+     * ソート可能フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSortableFields(): array
+    {
+        return [
+            'created_at',
+            'updated_at',
+            'status',
+            'source',
+        ];
+    }
+
+    /**
+     * メールアドレスで検索
+     * 
+     * @param string $email
+     * @return Contact|null
+     */
+    public function findByEmail(string $email): ?Contact
+    {
+        return Contact::where('email', $email)->first();
+    }
+
+    /**
+     * 未読お問い合わせ件数を取得
+     * 
+     * @return int
+     */
+    public function getUnreadCount(): int
+    {
+        return Contact::where('status', 'new')->count();
+    }
+
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
+    public function findWithFilters(array $filters): Builder
+    {
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
+
+        // ソースフィルター
+        if (!empty($filters['source'])) {
+            $query->where('source', $filters['source']);
+        }
+
+        return $query;
     }
 }

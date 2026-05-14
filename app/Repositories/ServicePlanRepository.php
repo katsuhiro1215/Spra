@@ -4,154 +4,111 @@ namespace App\Repositories;
 
 use App\Models\ServicePlan;
 use App\Repositories\Contracts\ServicePlanRepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 
-class ServicePlanRepository implements ServicePlanRepositoryInterface
+class ServicePlanRepository extends SoftDeletableRepository implements ServicePlanRepositoryInterface
 {
-  public function query()
-  {
-    return ServicePlan::query();
-  }
-
-  public function findById(string $id): ?ServicePlan
-  {
-    return ServicePlan::with(['service.serviceCategory', 'creator', 'updater'])->find($id);
-  }
-
-  public function findBySlug(string $slug): ?ServicePlan
-  {
-    return ServicePlan::with(['service.serviceCategory', 'creator', 'updater'])
-      ->where('slug', $slug)
-      ->first();
-  }
-
-  public function findWithFilters(array $filters)
-  {
-    $query = $this->query()->with(['service.serviceCategory', 'creator', 'updater']);
-
-    if (!empty($filters['search'])) {
-      $query = $this->buildSearchQuery($query, $filters['search']);
+    /**
+     * モデルクラス名を返す
+     * 
+     * @return string
+     */
+    protected function getModelClass(): string
+    {
+        return ServicePlan::class;
     }
 
-    if (!empty($filters['status'])) {
-      $query = $this->buildStatusFilter($query, $filters['status']);
+    /**
+     * 検索対象フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSearchableFields(): array
+    {
+        return [
+            'name',
+            'slug',
+            'description',
+            'service.name',
+        ];
     }
 
-    if (!empty($filters['service_id'])) {
-      $query = $this->buildServiceFilter($query, $filters['service_id']);
+    /**
+     * ソート可能フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSortableFields(): array
+    {
+        return [
+            'created_at',
+            'updated_at',
+            'name',
+            'status',
+            'base_price',
+        ];
     }
 
-    if (isset($filters['is_featured']) && $filters['is_featured'] !== '') {
-      $query = $this->buildFeaturedFilter($query, (bool) $filters['is_featured']);
+    /**
+     * デフォルトのリレーションを返す
+     * 
+     * @return array
+     */
+    protected function getDefaultRelations(): array
+    {
+        return ['service.serviceCategory', 'creator', 'updater'];
     }
 
-    return $query;
-  }
-
-  public function paginate(array $filters = [], array $sort = [], int $perPage = 15): LengthAwarePaginator
-  {
-    $query = $this->findWithFilters($filters);
-    $query = $this->applySorting($query, $sort);
-
-    return $query->paginate($perPage);
-  }
-
-  public function getAll(): Collection
-  {
-    return ServicePlan::with(['service.serviceCategory', 'creator', 'updater'])->get();
-  }
-
-  public function getActive(): Collection
-  {
-    return ServicePlan::with(['service.serviceCategory'])
-      ->active()
-      ->ordered()
-      ->get();
-  }
-
-  public function getByService(string $serviceId): Collection
-  {
-    return ServicePlan::with(['service.serviceCategory'])
-      ->byService($serviceId)
-      ->ordered()
-      ->get();
-  }
-
-  public function getFeatured(): Collection
-  {
-    return ServicePlan::with(['service.serviceCategory'])
-      ->featured()
-      ->active()
-      ->ordered()
-      ->get();
-  }
-
-  public function buildSearchQuery($query, string $search)
-  {
-    return $query->where(function ($q) use ($search) {
-      $q->where('name', 'like', "%{$search}%")
-        ->orWhere('slug', 'like', "%{$search}%")
-        ->orWhere('description', 'like', "%{$search}%")
-        ->orWhereHas('service', function ($serviceQuery) use ($search) {
-          $serviceQuery->where('name', 'like', "%{$search}%");
-        });
-    });
-  }
-
-  public function buildStatusFilter($query, string $status)
-  {
-    return $query->where('status', $status);
-  }
-
-  public function buildServiceFilter($query, string $serviceId)
-  {
-    return $query->where('service_id', $serviceId);
-  }
-
-  public function buildFeaturedFilter($query, bool $featured)
-  {
-    return $query->where('is_featured', $featured);
-  }
-
-  public function applySorting($query, array $sort)
-  {
-    $field = $sort['field'] ?? 'sort_order';
-    $direction = $sort['direction'] ?? 'asc';
-
-    if ($field === 'service_name') {
-      return $query->join('services', 'service_plans.service_id', '=', 'services.id')
-        ->orderBy('services.name', $direction)
-        ->select('service_plans.*');
+    /**
+     * スラッグで検索
+     * 
+     * @param string $slug
+     * @return ServicePlan|null
+     */
+    public function findBySlug(string $slug): ?ServicePlan
+    {
+        return $this->query()->where('slug', $slug)->first();
     }
 
-    return $query->orderBy($field, $direction);
-  }
+    /**
+     * スラッグが存在するか確認
+     * 
+     * @param string $slug
+     * @param string|null $excludeId
+     * @return bool
+     */
+    public function slugExists(string $slug, ?string $excludeId = null): bool
+    {
+        $query = ServicePlan::where('slug', $slug);
 
-  public function create(array $data): ServicePlan
-  {
-    return ServicePlan::create($data);
-  }
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
 
-  public function update(ServicePlan $servicePlan, array $data): ServicePlan
-  {
-    $servicePlan->update($data);
-    return $servicePlan->fresh(['service.serviceCategory', 'creator', 'updater']);
-  }
-
-  public function delete(ServicePlan $servicePlan): bool
-  {
-    return $servicePlan->delete();
-  }
-
-  public function slugExists(string $slug, ?string $excludeId = null): bool
-  {
-    $query = ServicePlan::where('slug', $slug);
-
-    if ($excludeId) {
-      $query->where('id', '!=', $excludeId);
+        return $query->exists();
     }
 
-    return $query->exists();
-  }
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
+    public function findWithFilters(array $filters): Builder
+    {
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
+
+        // サービスフィルター
+        if (!empty($filters['service_id'])) {
+            $query->where('service_id', $filters['service_id']);
+        }
+
+        // おすすめフィルター
+        if (isset($filters['is_featured'])) {
+            $query->where('is_featured', (bool) $filters['is_featured']);
+        }
+
+        return $query;
+    }
 }

@@ -5,110 +5,119 @@ namespace App\Repositories;
 use App\Models\Admin;
 use App\Repositories\Contracts\AdminRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-class AdminRepository implements AdminRepositoryInterface
+/**
+ * 管理者リポジトリ
+ * 
+ * SoftDeletableRepositoryを継承し、Admin固有の機能を追加
+ */
+class AdminRepository extends SoftDeletableRepository implements AdminRepositoryInterface
 {
-    public function query(): Builder
+    /**
+     * モデルクラス名を返す
+     * 
+     * @return string
+     */
+    protected function getModelClass(): string
     {
-        return Admin::query();
+        return Admin::class;
     }
 
-    public function findById(string $id): ?Admin
+    /**
+     * 検索対象フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSearchableFields(): array
     {
-        return Admin::find($id);
+        return [
+            'email',
+            'profile.last_name',  // リレーション検索
+            'profile.first_name', // リレーション検索
+        ];
     }
 
+    /**
+     * ソート可能フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSortableFields(): array
+    {
+        return [
+            'created_at',
+            'email',
+            'role',
+            'status',
+            'last_login_at',
+        ];
+    }
+
+    /**
+     * デフォルトのリレーションを返す
+     * 
+     * @return array
+     */
+    protected function getDefaultRelations(): array
+    {
+        return ['profile'];
+    }
+
+    /**
+     * メールアドレスで検索
+     * 
+     * @param string $email
+     * @return Admin|null
+     */
     public function findByEmail(string $email): ?Admin
     {
         return Admin::where('email', $email)->first();
     }
 
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
     public function findWithFilters(array $filters): Builder
     {
-        $query = Admin::query();
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
 
-        // ソフトデリートフィルター
-        if (isset($filters['trashed'])) {
-            if ($filters['trashed'] === 'with_trashed') {
-                $query->withTrashed();
-            } elseif ($filters['trashed'] === 'only_trashed') {
-                $query->onlyTrashed();
-            }
-            // 'without_trashed' の場合はデフォルト（削除されていないもののみ）
-        }
-
-        if (!empty($filters['search'])) {
-            $query = $this->buildSearchQuery($query, $filters['search']);
-        }
-
+        // 役割フィルタ（Admin固有）
         if (!empty($filters['role'])) {
             $query = $this->buildRoleFilter($query, $filters['role']);
-        }
-
-        if (!empty($filters['status'])) {
-            $query = $this->buildStatusFilter($query, $filters['status']);
         }
 
         return $query;
     }
 
-    public function paginate(int $perPage = 20, array $filters = [], array $sort = []): LengthAwarePaginator
-    {
-        $query = $this->findWithFilters($filters);
-        $query = $this->applySorting(
-            $query,
-            $sort['field'] ?? 'created_at',
-            $sort['direction'] ?? 'desc'
-        );
-
-        return $query->with('profile')->paginate($perPage)->withQueryString();
-    }
-
-    public function buildSearchQuery(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('email', 'like', "%{$search}%")
-                ->orWhereHas('profile', function ($pq) use ($search) {
-                    $pq->where('last_name', 'like', "%{$search}%")
-                        ->orWhere('first_name', 'like', "%{$search}%");
-                });
-        });
-    }
-
+    /**
+     * 役割フィルタを適用
+     * 
+     * @param Builder $query
+     * @param string $role
+     * @return Builder
+     */
     public function buildRoleFilter(Builder $query, string $role): Builder
     {
         return $query->where('role', $role);
     }
 
-    public function buildStatusFilter(Builder $query, string $status): Builder
+    /**
+     * 統計情報を取得（オーバーライド）
+     * 
+     * @return array
+     */
+    public function getStats(): array
     {
-        return $query->where('status', $status);
-    }
+        $baseStats = parent::getStats();
 
-    public function applySorting(Builder $query, string $field, string $direction = 'desc'): Builder
-    {
-        $allowed = ['created_at', 'email', 'role', 'status', 'last_login_at'];
-        $field = in_array($field, $allowed) ? $field : 'created_at';
-        $direction = $direction === 'asc' ? 'asc' : 'desc';
-
-        return $query->orderBy($field, $direction);
-    }
-
-    public function create(array $data): Admin
-    {
-        return Admin::create($data);
-    }
-
-    public function update(Admin $admin, array $data): Admin
-    {
-        $admin->update($data);
-        return $admin->fresh();
-    }
-
-    public function delete(Admin $admin): bool
-    {
-        return $admin->delete();
+        return array_merge($baseStats, [
+            'active' => Admin::where('status', 'active')->count(),
+            'inactive' => Admin::where('status', 'inactive')->count(),
+            'suspended' => Admin::where('status', 'suspended')->count(),
+        ]);
     }
 }

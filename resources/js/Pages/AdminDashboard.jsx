@@ -3,7 +3,8 @@ import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
+import { Card, CardHeader } from "@/Components/Card";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import SidebarLogs from "./Admin/Logs/SidebarLogs";
@@ -127,10 +128,7 @@ export default function Dashboard() {
                     {/* 統計カード */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         {stats.map((stat) => (
-                            <div
-                                key={stat.name}
-                                className="bg-white overflow-hidden shadow-sm rounded-lg"
-                            >
+                            <Card key={stat.name}>
                                 <div className="p-5">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0">
@@ -165,14 +163,14 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
 
                     {/* メインコンテンツグリッド */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 最近のアクティビティ */}
-                        <div className="bg-white shadow-sm rounded-lg">
+                        <Card>
                             <div className="px-4 py-5 sm:p-6">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                                     📋 最近のアクティビティ
@@ -230,10 +228,10 @@ export default function Dashboard() {
                                     </ul>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
                         {/* クイックアクション */}
-                        <div className="bg-white shadow-sm rounded-lg">
+                        <Card>
                             <div className="px-4 py-5 sm:p-6">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                                     ⚡ クイックアクション
@@ -257,11 +255,11 @@ export default function Dashboard() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
                     {/* システム情報 */}
-                    <div className="bg-white shadow-sm rounded-lg">
+                    <Card>
                         <div className="px-4 py-5 sm:p-6">
                             <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                                 🖥️ システム情報
@@ -293,7 +291,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 </div>
                 {/* 右側サイドバーにログ表示 */}
                 <SidebarLogs logs={logs} moreUrl="/admin/logs" />

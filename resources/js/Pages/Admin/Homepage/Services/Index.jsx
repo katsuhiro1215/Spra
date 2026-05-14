@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { Card } from "@/Components/Card";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     PlusIcon,
@@ -33,7 +32,7 @@ export default function Index({ services, serviceCategories, filters }) {
     const handleDelete = (service) => {
         if (
             confirm(
-                `「${service.name}」を削除しますか？この操作は取り消せません。`
+                `「${service.name}」を削除しますか？この操作は取り消せません。`,
             )
         ) {
             setIsDeleting(service.id);
@@ -49,7 +48,7 @@ export default function Index({ services, serviceCategories, filters }) {
 
         // 空の値は除外してクエリパラメータを構築
         const queryParams = Object.fromEntries(
-            Object.entries(newFilters).filter(([_, v]) => v !== "")
+            Object.entries(newFilters).filter(([_, v]) => v !== ""),
         );
 
         router.get(route("admin.homepage.services.index"), queryParams, {
@@ -66,7 +65,7 @@ export default function Index({ services, serviceCategories, filters }) {
             {
                 preserveState: true,
                 replace: true,
-            }
+            },
         );
     };
 
@@ -74,7 +73,7 @@ export default function Index({ services, serviceCategories, filters }) {
         if (!pricing || pricing.length === 0) return "お問い合わせ";
 
         const minPrice = Math.min(
-            ...pricing.map((p) => p.price).filter((p) => p > 0)
+            ...pricing.map((p) => p.price).filter((p) => p > 0),
         );
         if (minPrice === Infinity) return "お問い合わせ";
 
@@ -131,7 +130,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                     onChange={(e) =>
                                         handleFilterChange(
                                             "category",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -156,7 +155,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                     onChange={(e) =>
                                         handleFilterChange(
                                             "status",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -184,14 +183,14 @@ export default function Index({ services, serviceCategories, filters }) {
                             <div className="text-center py-12">
                                 <div className="text-gray-500 mb-4">
                                     {Object.values(currentFilters).some(
-                                        (v) => v !== ""
+                                        (v) => v !== "",
                                     )
                                         ? "フィルター条件に一致するサービスがありません"
                                         : "サービスが登録されていません"}
                                 </div>
                                 <Link
                                     href={route(
-                                        "admin.homepage.services.create"
+                                        "admin.homepage.services.create",
                                     )}
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                                 >
@@ -257,13 +256,13 @@ export default function Index({ services, serviceCategories, filters }) {
                                                     <CurrencyYenIcon className="h-4 w-4 text-gray-400" />
                                                     <span className="text-sm font-medium text-gray-900">
                                                         {formatPrice(
-                                                            service.pricing
+                                                            service.pricing,
                                                         )}
                                                     </span>
                                                 </div>
                                                 <span className="text-xs text-gray-500">
                                                     {formatDate(
-                                                        service.created_at
+                                                        service.created_at,
                                                     )}
                                                 </span>
                                             </div>
@@ -279,7 +278,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                                                 .map(
                                                                     (
                                                                         tech,
-                                                                        index
+                                                                        index,
                                                                     ) => (
                                                                         <span
                                                                             key={
@@ -291,7 +290,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                                                                 tech
                                                                             }
                                                                         </span>
-                                                                    )
+                                                                    ),
                                                                 )}
                                                             {service
                                                                 .technologies
@@ -313,7 +312,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                                 <Link
                                                     href={route(
                                                         "admin.homepage.services.show",
-                                                        service
+                                                        service,
                                                     )}
                                                     className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                 >
@@ -323,7 +322,7 @@ export default function Index({ services, serviceCategories, filters }) {
                                                 <Link
                                                     href={route(
                                                         "admin.homepage.services.edit",
-                                                        service
+                                                        service,
                                                     )}
                                                     className="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                 >

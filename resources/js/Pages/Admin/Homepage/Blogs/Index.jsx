@@ -7,7 +7,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import BasicButton from "@/Components/Buttons/BasicButton";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     MagnifyingGlassIcon,
@@ -90,7 +90,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                 },
                 {
                     onSuccess: () => setSelectedBlogs([]),
-                }
+                },
             );
         }
     };
@@ -99,7 +99,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
     const handleDelete = (blog) => {
         if (
             confirm(
-                `「${blog.title}」を削除しますか？この操作は取り消せません。`
+                `「${blog.title}」を削除しますか？この操作は取り消せません。`,
             )
         ) {
             router.delete(route("admin.homepage.blogs.destroy", blog.id));
@@ -196,7 +196,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                         onChange={(e) =>
                                             handleFilter(
                                                 "search",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         placeholder="タイトル、内容で検索..."
@@ -235,7 +235,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                     onChange={(e) =>
                                         handleFilter(
                                             "category_id",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -262,7 +262,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                     onChange={(e) =>
                                         handleFilter(
                                             "author_id",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -376,7 +376,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                             }
                                             onChange={(e) =>
                                                 handleSelectAll(
-                                                    e.target.checked
+                                                    e.target.checked,
                                                 )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -426,12 +426,12 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                             <input
                                                 type="checkbox"
                                                 checked={selectedBlogs.includes(
-                                                    blog.id
+                                                    blog.id,
                                                 )}
                                                 onChange={(e) =>
                                                     handleSelectBlog(
                                                         blog.id,
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -490,7 +490,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                         >
                                                             {category.name}
                                                         </span>
-                                                    )
+                                                    ),
                                                 )}
                                                 {blog.categories.length ===
                                                     0 && (
@@ -508,7 +508,7 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                     onChange={(e) =>
                                                         handleStatusChange(
                                                             blog,
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -536,9 +536,9 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                 <div className="flex items-center">
                                                     <CalendarIcon className="w-4 h-4 mr-1" />
                                                     {new Date(
-                                                        blog.published_at
+                                                        blog.published_at,
                                                     ).toLocaleDateString(
-                                                        "ja-JP"
+                                                        "ja-JP",
                                                     )}
                                                 </div>
                                             ) : (
@@ -552,8 +552,8 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                         router.get(
                                                             route(
                                                                 "admin.homepage.blogs.show",
-                                                                blog.id
-                                                            )
+                                                                blog.id,
+                                                            ),
                                                         )
                                                     }
                                                     className="text-blue-600 hover:text-blue-900"
@@ -566,8 +566,8 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                         router.get(
                                                             route(
                                                                 "admin.homepage.blogs.edit",
-                                                                blog.id
-                                                            )
+                                                                blog.id,
+                                                            ),
                                                         )
                                                     }
                                                     className="text-green-600 hover:text-green-900"
@@ -611,8 +611,8 @@ const BlogsIndex = ({ blogs, categories, authors, filters, flash }) => {
                                                 link.active
                                                     ? "bg-blue-600 text-white border-blue-600"
                                                     : link.url
-                                                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                                    : "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                                                      ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                                      : "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
                                             }`}
                                             dangerouslySetInnerHTML={{
                                                 __html: link.label,

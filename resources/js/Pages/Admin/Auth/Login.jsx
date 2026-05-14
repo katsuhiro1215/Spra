@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 // Components
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import {Card} from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import {
     Checkbox,
     InputError,
@@ -10,7 +10,7 @@ import {
     TextInput,
 } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 
 export default function Login({ status, canResetPassword }) {
     // フォーム状態管理

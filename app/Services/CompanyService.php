@@ -4,44 +4,39 @@ namespace App\Services;
 
 use App\Models\Address;
 use App\Models\Company;
-use App\Repositories\Contracts\CompanyRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Repositories\CompanyRepository;
 use Illuminate\Support\Facades\DB;
 
-class CompanyService
+class CompanyService extends BaseService
 {
-    public function __construct(
-        private CompanyRepositoryInterface $repository
-    ) {}
-
-    // -------------------------
-    // 一覧・取得
-    // -------------------------
-
-    public function getPaginated(
-        array $filters = [],
-        int $perPage = 15,
-        string $sortField = 'created_at',
-        string $sortDirection = 'desc'
-    ): LengthAwarePaginator {
-        return $this->repository->paginate($perPage, $filters, $sortField, $sortDirection);
-    }
-
-    public function findById(string $id, array $with = []): ?Company
+    /**
+     * コンストラクタ
+     * 
+     * @param CompanyRepository $repository
+     */
+    public function __construct(CompanyRepository $repository)
     {
-        return $this->repository->findById($id, $with);
+        parent::__construct($repository);
     }
 
-    public function getStats(): array
+    /**
+     * エンティティ名を返す
+     * 
+     * @return string
+     */
+    protected function getEntityName(): string
     {
-        return $this->repository->getStats();
+        return 'Company';
     }
 
-    // -------------------------
-    // 作成・更新・削除
-    // -------------------------
-
-    public function create(array $data): Company
+    /**
+     * 新しい会社を作成
+     * 
+     * @param array $data
+     * @return Company
+     * @throws \Exception
+     */
+    public function createCompany(array $data): Company
     {
         return DB::transaction(function () use ($data) {
             $addressesData = $data['addresses'] ?? [];
@@ -58,7 +53,14 @@ class CompanyService
         });
     }
 
-    public function update(Company $company, array $data): Company
+    /**
+     * 会社情報を更新
+     * 
+     * @param Company $company
+     * @param array $data
+     * @return Company
+     */
+    public function updateCompany(Company $company, array $data): Company
     {
         return DB::transaction(function () use ($company, $data) {
             $addressesData = $data['addresses'] ?? null;
@@ -74,9 +76,18 @@ class CompanyService
         });
     }
 
-    public function delete(Company $company): bool
+    /**
+     * 会社を削除
+     * 
+     * @param Company $company
+     * @return void
+     * @throws \Exception
+     */
+    public function deleteCompany(Company $company): void
     {
-        return $this->repository->delete($company);
+        DB::transaction(function () use ($company) {
+            $this->repository->delete($company);
+        });
     }
 
     public function bulkDelete(array $ids): int
@@ -154,5 +165,29 @@ class CompanyService
         if ($address->addressable_id !== $company->id || $address->addressable_type !== Company::class) {
             abort(404);
         }
+    }
+
+    /**
+     * アクティブな会社一覧を取得（選択肢用など）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveCompanies()
+    {
+        return $this->repository->findWithFilters(['status' => 'active'])->get();
+    }
+
+    /**
+     * ステータス定義を取得
+     * 
+     * @return array
+     */
+    public function getStatuses(): array
+    {
+        return [
+            ['value' => 'active', 'label' => '有効'],
+            ['value' => 'inactive', 'label' => '無効'],
+            ['value' => 'suspended', 'label' => '停止中'],
+        ];
     }
 }

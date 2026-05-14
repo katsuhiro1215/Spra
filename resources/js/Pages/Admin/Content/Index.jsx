@@ -1,11 +1,9 @@
-import { Head } from '@inertiajs/react';
+import { Head } from "@inertiajs/react";
 // Layouts
-import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout';
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 

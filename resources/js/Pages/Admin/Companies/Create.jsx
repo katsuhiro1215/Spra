@@ -5,7 +5,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import {FlashMessage} from "@/Components/Notifications";
 import CompanyForm from "./_components/CompanyForm";
 import AddressFormSection from "./_components/AddressFormSection";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";

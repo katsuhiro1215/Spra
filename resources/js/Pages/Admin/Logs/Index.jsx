@@ -4,9 +4,8 @@ import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { Card } from "@/Components/Card";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     ClockIcon,
@@ -210,7 +209,7 @@ export default function AdminLogsIndex({ logs = {}, filters = {} }) {
                                                 </Link>
                                             </td>
                                         </tr>
-                                    )
+                                    ),
                                 )
                             )}
                         </tbody>

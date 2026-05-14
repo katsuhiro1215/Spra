@@ -6,7 +6,7 @@ import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -64,10 +64,7 @@ export default function Show({ company, addressTypes }) {
     const handleDeleteAddress = (addressId) => {
         if (confirm("この住所を削除してもよろしいですか?")) {
             router.delete(
-                route("admin.company.address.destroy", [
-                    company.id,
-                    addressId,
-                ]),
+                route("admin.company.address.destroy", [company.id, addressId]),
                 {
                     preserveScroll: true,
                 },

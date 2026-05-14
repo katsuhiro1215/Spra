@@ -1,10 +1,9 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
 // Icons
 import {
@@ -346,7 +345,7 @@ export default function Show({ page }) {
                                 <BasicButton
                                     href={route(
                                         "admin.homepage.pages.edit",
-                                        page.id
+                                        page.id,
                                     )}
                                     variant="primary"
                                     className="w-full"
@@ -361,7 +360,7 @@ export default function Show({ page }) {
                                     onClick={() =>
                                         window.open(
                                             `/pages/${page.slug}`,
-                                            "_blank"
+                                            "_blank",
                                         )
                                     }
                                 >

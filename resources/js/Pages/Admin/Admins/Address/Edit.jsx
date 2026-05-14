@@ -3,7 +3,7 @@ import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 import ConfirmAlert from "@/Components/Alerts/ConfirmAlert";
 import AddressForm from "./_components/Form";
 // Icons

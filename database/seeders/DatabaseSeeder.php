@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
             // メディア
             MediaSeeder::class,
 
+            // お問い合わせ
+            ContactSeeder::class,
+
             // サービス関連
             ServiceCategorySeeder::class,
             ServiceSeeder::class,

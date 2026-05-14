@@ -3,179 +3,133 @@
 namespace App\Services;
 
 use App\Models\Service;
-use App\Repositories\Contracts\ServiceRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
+use App\Repositories\ServiceRepository;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-class ServiceService
+class ServiceService extends BaseService
 {
-  public function __construct(
-    private ServiceRepositoryInterface $serviceRepository
-  ) {}
-
-  /**
-   * Get paginated services with filters and sorting.
-   */
-  public function getPaginatedServices(array $filters = [], array $sort = [], int $perPage = 15): LengthAwarePaginator
-  {
-    return $this->serviceRepository->paginate($filters, $sort, $perPage);
-  }
-
-  /**
-   * Get all services.
-   */
-  public function getAllServices(): Collection
-  {
-    return $this->serviceRepository->getAll();
-  }
-
-  /**
-   * Get active services.
-   */
-  public function getActiveServices(): Collection
-  {
-    return $this->serviceRepository->getActive();
-  }
-
-  /**
-   * Get featured services.
-   */
-  public function getFeaturedServices(): Collection
-  {
-    return $this->serviceRepository->getFeatured();
-  }
-
-  /**
-   * Get services by category.
-   */
-  public function getServicesByCategory(string $categoryId): Collection
-  {
-    return $this->serviceRepository->getByCategory($categoryId);
-  }
-
-  /**
-   * Find service by ID.
-   */
-  public function findServiceById(string $id): ?Service
-  {
-    return $this->serviceRepository->findById($id);
-  }
-
-  /**
-   * Find service by slug.
-   */
-  public function findServiceBySlug(string $slug): ?Service
-  {
-    return $this->serviceRepository->findBySlug($slug);
-  }
+    /**
+     * コンストラクタ
+     * 
+     * @param ServiceRepository $repository
+     */
+    public function __construct(ServiceRepository $repository)
+    {
+        parent::__construct($repository);
+    }
 
     /**
-     * サービスの統計情報を取得
+     * エンティティ名を返す
+     * 
+     * @return string
      */
-    public function getServiceStats(): array
+    protected function getEntityName(): string
+    {
+        return 'Service';
+    }
+
+    /**
+     * スラッグでサービスを検索
+     * 
+     * @param string $slug
+     * @return Service|null
+     */
+    public function findServiceBySlug(string $slug): ?Service
+    {
+        return $this->repository->findBySlug($slug);
+    }
+
+    /**
+     * 新しいサービスを作成
+     * 
+     * @param array $data
+     * @return Service
+     * @throws \Exception
+     */
+    public function createService(array $data): Service
+    {
+        return DB::transaction(function () use ($data) {
+            // スラッグ生成
+            if (empty($data['slug'])) {
+                $data['slug'] = $this->generateUniqueSlug($data['name']);
+            }
+
+            return $this->repository->create($data);
+        });
+    }
+
+    /**
+     * サービスを更新
+     * 
+     * @param Service $service
+     * @param array $data
+     * @return Service
+     */
+    public function updateService(Service $service, array $data): Service
+    {
+        return DB::transaction(function () use ($service, $data) {
+            // 名前が変更されてslugが指定されていない場合は自動生成
+            if (isset($data['name']) && $data['name'] !== $service->name && empty($data['slug'])) {
+                $data['slug'] = $this->generateUniqueSlug($data['name'], $service->id);
+            }
+
+            $this->repository->update($service, $data);
+
+            return $service->fresh();
+        });
+    }
+
+    /**
+     * サービスを削除
+     * 
+     * @param Service $service
+     * @throws \Exception
+     */
+    public function deleteService(Service $service): void
+    {
+        // サービスプランが紐づいている場合は削除を防ぐ
+        if ($service->servicePlans()->count() > 0) {
+            throw new \Exception('このサービスには関連するプランが存在するため削除できません。');
+        }
+
+        DB::transaction(function () use ($service) {
+            $this->repository->delete($service);
+        });
+    }
+
+    /**
+     * ステータス定義を取得
+     * 
+     * @return array
+     */
+    public function getStatuses(): array
     {
         return [
-            'all' => Service::withTrashed()->count(),
-            'active' => Service::count(),
-            'trashed' => Service::onlyTrashed()->count(),
+            'active' => '稼働中',
+            'inactive' => '停止中',
+            'suspended' => '一時停止',
         ];
     }
 
-  /**
-   * Create new service.
-   */
-  public function createService(array $data): Service
-  {
-    return DB::transaction(function () use ($data) {
-      // Generate slug if not provided
-      if (empty($data['slug'])) {
-        $data['slug'] = $this->generateUniqueSlug($data['name']);
-      }
+    /**
+     * 一意のスラッグを生成
+     * 
+     * @param string $name
+     * @param string|null $excludeId
+     * @return string
+     */
+    private function generateUniqueSlug(string $name, ?string $excludeId = null): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
 
-      // Set created_by
-      if (Auth::guard('admins')->check()) {
-        $data['created_by'] = Auth::guard('admins')->id();
-        $data['updated_by'] = Auth::guard('admins')->id();
-      }
+        while ($this->repository->slugExists($slug, $excludeId)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
 
-      return $this->serviceRepository->create($data);
-    });
-  }
-
-  /**
-   * Update service.
-   */
-  public function updateService(Service $service, array $data): Service
-  {
-    return DB::transaction(function () use ($service, $data) {
-      // Update slug if name changed and slug not provided
-      if (isset($data['name']) && $data['name'] !== $service->name && empty($data['slug'])) {
-        $data['slug'] = $this->generateUniqueSlug($data['name'], $service->id);
-      }
-
-      // Set updated_by
-      if (Auth::guard('admins')->check()) {
-        $data['updated_by'] = Auth::guard('admins')->id();
-      }
-
-      $this->serviceRepository->update($service, $data);
-
-      return $service->fresh();
-    });
-  }
-
-  /**
-   * Delete service.
-   */
-  public function deleteService(Service $service): bool
-  {
-    return DB::transaction(function () use ($service) {
-      // Check if service has related service plans
-      if ($service->servicePlans()->count() > 0) {
-        throw new \Exception('このサービスには関連するプランが存在するため削除できません。');
-      }
-
-      return $this->serviceRepository->delete($service);
-    });
-  }
-
-  /**
-   * Restore soft deleted service.
-   */
-  public function restoreService(Service $service): bool
-  {
-    return $this->serviceRepository->restore($service);
-  }
-
-  /**
-   * Get available statuses.
-   */
-  public function getStatuses(): array
-  {
-    return [
-      ['value' => 'active', 'label' => '稼働中'],
-      ['value' => 'inactive', 'label' => '停止中'],
-      ['value' => 'suspended', 'label' => '一時停止'],
-    ];
-  }
-
-  /**
-   * Generate unique slug.
-   */
-  private function generateUniqueSlug(string $name, ?string $excludeId = null): string
-  {
-    $slug = Str::slug($name);
-    $originalSlug = $slug;
-    $counter = 1;
-
-    while ($this->serviceRepository->slugExists($slug, $excludeId)) {
-      $slug = $originalSlug . '-' . $counter;
-      $counter++;
+        return $slug;
     }
-
-    return $slug;
-  }
 }

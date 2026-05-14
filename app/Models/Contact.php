@@ -6,6 +6,7 @@ use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends Model
 {
@@ -22,7 +23,12 @@ class Contact extends Model
         'status',
         'admin_notes',
         'responded_at',
-        'assigned_to'
+        'assigned_to',
+        // 流入元トラッキング情報
+        'source',
+        'ip',
+        'user_agent',
+        'referrer',
     ];
 
     protected $casts = [
@@ -34,6 +40,11 @@ class Contact extends Model
     public function assignedAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'assigned_to');
+    }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(Response::class)->orderBy('created_at', 'desc');
     }
 
     // スコープ

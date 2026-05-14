@@ -3,97 +3,98 @@
 namespace App\Services;
 
 use App\Models\ServiceItem;
-use App\Repositories\Contracts\ServiceItemRepositoryInterface;
+use App\Repositories\ServiceItemRepository;
 use Illuminate\Support\Facades\DB;
 
-class ServiceItemService
+class ServiceItemService extends BaseService
 {
-  public function __construct(
-    private ServiceItemRepositoryInterface $repository
-  ) {}
+    /**
+     * コンストラクタ
+     * 
+     * @param ServiceItemRepository $repository
+     */
+    public function __construct(ServiceItemRepository $repository)
+    {
+        parent::__construct($repository);
+    }
 
-  public function getPaginatedServiceItems(array $filters = [], array $sort = [])
-  {
-    return $this->repository->paginate($filters, $sort);
-  }
+    /**
+     * エンティティ名を返す
+     * 
+     * @return string
+     */
+    protected function getEntityName(): string
+    {
+        return 'ServiceItem';
+    }
 
-  public function getAllServiceItems()
-  {
-    return $this->repository->getAll();
-  }
+    /**
+     * 新しいサービスアイテムを作成
+     * 
+     * @param array $data
+     * @return ServiceItem
+     * @throws \Exception
+     */
+    public function createServiceItem(array $data): ServiceItem
+    {
+        return DB::transaction(function () use ($data) {
+            return $this->repository->create($data);
+        });
+    }
 
-  public function getActiveServiceItems()
-  {
-    return $this->repository->getActive();
-  }
+    /**
+     * サービスアイテムを更新
+     * 
+     * @param ServiceItem $serviceItem
+     * @param array $data
+     * @return ServiceItem
+     */
+    public function updateServiceItem(ServiceItem $serviceItem, array $data): ServiceItem
+    {
+        return DB::transaction(function () use ($serviceItem, $data) {
+            $this->repository->update($serviceItem, $data);
+            return $serviceItem->fresh();
+        });
+    }
 
-  public function getServiceItemsByService(string $serviceId)
-  {
-    return $this->repository->getByService($serviceId);
-  }
+    /**
+     * サービスアイテムを削除
+     * 
+     * @param ServiceItem $serviceItem
+     * @throws \Exception
+     */
+    public function deleteServiceItem(ServiceItem $serviceItem): void
+    {
+        DB::transaction(function () use ($serviceItem) {
+            $this->repository->delete($serviceItem);
+        });
+    }
 
-  public function getServiceItemsByPlan(string $planId)
-  {
-    return $this->repository->getByPlan($planId);
-  }
+    /**
+     * ステータス定義を取得
+     * 
+     * @return array
+     */
+    public function getStatuses(): array
+    {
+        return [
+            'active' => '有効',
+            'inactive' => '無効',
+        ];
+    }
 
-  public function getServiceItemsByType(string $type)
-  {
-    return $this->repository->getByType($type);
-  }
-
-  public function getAddons(string $serviceId)
-  {
-    return $this->repository->getAddons($serviceId);
-  }
-
-  public function findServiceItem(string $id): ?ServiceItem
-  {
-    return $this->repository->findById($id);
-  }
-
-  public function createServiceItem(array $data): ServiceItem
-  {
-    return DB::transaction(function () use ($data) {
-      // 作成者を設定
-      $data['created_by'] = auth('admin')->id();
-
-      return $this->repository->create($data);
-    });
-  }
-
-  public function updateServiceItem(ServiceItem $serviceItem, array $data): ServiceItem
-  {
-    return DB::transaction(function () use ($serviceItem, $data) {
-      // 更新者を設定
-      $data['updated_by'] = auth('admin')->id();
-
-      return $this->repository->update($serviceItem, $data);
-    });
-  }
-
-  public function deleteServiceItem(ServiceItem $serviceItem): bool
-  {
-    return DB::transaction(function () use ($serviceItem) {
-      return $this->repository->delete($serviceItem);
-    });
-  }
-
-  public function getStatuses(): array
-  {
-    return [
-      ['value' => 'active', 'label' => '有効'],
-      ['value' => 'inactive', 'label' => '無効'],
-    ];
-  }
-
-  public function getItemTypes(): array
-  {
-    return [
-      ['value' => 'plan_base', 'label' => 'プラン基本料金'],
-      ['value' => 'included', 'label' => 'プラン含まれる項目'],
-      ['value' => 'optional', 'label' => 'プラン固有オプション'],
-      ['value' => 'addon', 'label' => '全プラン共通オプション'],
-    ];
-  }
+    /**
+     * アイテムタイプ定義を取得
+     * 
+     * @return array
+     */
+    public function getItemTypes(): array
+    {
+        return [
+            'plan_base' => 'プラン基本料金',
+            'included' => 'プラン含まれる項目',
+            'optional' => 'プラン固有オプション',
+            'addon' => '全プラン共通オプション',
+        ];
+    }
 }

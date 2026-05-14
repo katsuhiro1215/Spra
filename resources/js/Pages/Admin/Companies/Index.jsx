@@ -4,7 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import {FlashMessage} from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";

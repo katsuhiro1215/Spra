@@ -36,10 +36,10 @@ class UserController extends Controller
             'direction' => $request->input('sort_direction', 'desc'),
         ];
         // ユーザーのページネーション取得
-        $users = $this->userService->getPaginatedUsers($filters, $sort, 20);
+        $users = $this->userService->getPaginated($filters, $sort, 20);
 
         // 統計情報の取得
-        $stats = $this->userService->getUserStats();
+        $stats = $this->userService->getStats();
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,

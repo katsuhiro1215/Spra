@@ -7,7 +7,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import BasicButton from "@/Components/Buttons/BasicButton";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     MagnifyingGlassIcon,
@@ -26,7 +26,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
     const [sortableCategories, setSortableCategories] = useState(
-        categories.data || []
+        categories.data || [],
     );
 
     const { data, setData, get } = useForm({
@@ -49,7 +49,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
     const handleSelectAll = (checked) => {
         if (checked) {
             setSelectedCategories(
-                categories.data.map((category) => category.id)
+                categories.data.map((category) => category.id),
             );
         } else {
             setSelectedCategories([]);
@@ -61,7 +61,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
             setSelectedCategories((prev) => [...prev, id]);
         } else {
             setSelectedCategories((prev) =>
-                prev.filter((categoryId) => categoryId !== id)
+                prev.filter((categoryId) => categoryId !== id),
             );
         }
     };
@@ -92,7 +92,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                 },
                 {
                     onSuccess: () => setSelectedCategories([]),
-                }
+                },
             );
         }
     };
@@ -101,11 +101,11 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
     const handleDelete = (category) => {
         if (
             confirm(
-                `「${category.name}」を削除しますか？この操作は取り消せません。`
+                `「${category.name}」を削除しますか？この操作は取り消せません。`,
             )
         ) {
             router.delete(
-                route("admin.homepage.blogCategories.destroy", category.id)
+                route("admin.homepage.blogCategories.destroy", category.id),
             );
         }
     };
@@ -177,7 +177,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                         onChange={(e) =>
                                             handleFilter(
                                                 "search",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         placeholder="カテゴリ名で検索..."
@@ -302,7 +302,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                             }
                                             onChange={(e) =>
                                                 handleSelectAll(
-                                                    e.target.checked
+                                                    e.target.checked,
                                                 )
                                             }
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -355,12 +355,12 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                             <input
                                                 type="checkbox"
                                                 checked={selectedCategories.includes(
-                                                    category.id
+                                                    category.id,
                                                 )}
                                                 onChange={(e) =>
                                                     handleSelectCategory(
                                                         category.id,
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -413,7 +413,7 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(
-                                                category.created_at
+                                                category.created_at,
                                             ).toLocaleDateString("ja-JP")}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -423,8 +423,8 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                                         router.get(
                                                             route(
                                                                 "admin.homepage.blogCategories.show",
-                                                                category.id
-                                                            )
+                                                                category.id,
+                                                            ),
                                                         )
                                                     }
                                                     className="text-blue-600 hover:text-blue-900"
@@ -437,8 +437,8 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                                         router.get(
                                                             route(
                                                                 "admin.homepage.blogCategories.edit",
-                                                                category.id
-                                                            )
+                                                                category.id,
+                                                            ),
                                                         )
                                                     }
                                                     className="text-green-600 hover:text-green-900"
@@ -483,8 +483,8 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                                                 link.active
                                                     ? "bg-blue-600 text-white border-blue-600"
                                                     : link.url
-                                                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                                    : "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                                                      ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                                      : "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
                                             }`}
                                             dangerouslySetInnerHTML={{
                                                 __html: link.label,
@@ -508,7 +508,11 @@ const BlogCategoriesIndex = ({ categories, filters, flash }) => {
                             最初のブログカテゴリを作成しましょう。
                         </p>
                         <div className="mt-6">
-                            <Link href={route("admin.homepage.blogCategories.create")}>
+                            <Link
+                                href={route(
+                                    "admin.homepage.blogCategories.create",
+                                )}
+                            >
                                 <BasicButton variant="primary">
                                     最初のカテゴリを作成
                                 </BasicButton>

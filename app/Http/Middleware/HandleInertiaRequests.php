@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ContactService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,11 +30,13 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $admin = $request->user('admins');
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
-                'admin' => $request->user('admins'),
+                'admin' => $admin,
             ],
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
@@ -41,6 +44,9 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn() => $request->session()->get('error'),
                 'warning' => fn() => $request->session()->get('warning'),
                 'info' => fn() => $request->session()->get('info'),
+            ],
+            'notifications' => [
+                'unreadContacts' => $admin ? app(ContactService::class)->getUnreadCount() : 0,
             ],
         ];
     }

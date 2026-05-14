@@ -5,107 +5,109 @@ namespace App\Repositories;
 use App\Models\Company;
 use App\Repositories\Contracts\CompanyRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-class CompanyRepository implements CompanyRepositoryInterface
+class CompanyRepository extends SoftDeletableRepository implements CompanyRepositoryInterface
 {
-  public function query(): Builder
-  {
-    return Company::query();
-  }
-
-  public function all(array $filters = []): Collection
-  {
-    return $this->findWithFilters($filters)->get();
-  }
-
-  public function findById(string $id, array $with = []): ?Company
-  {
-    return Company::with($with)->find($id);
-  }
-
-  public function findWithFilters(array $filters): Builder
-  {
-    $query = Company::query();
-
-    if (!empty($filters['search'])) {
-      $query->search($filters['search']);
+    /**
+     * モデルクラス名を返す
+     * 
+     * @return string
+     */
+    protected function getModelClass(): string
+    {
+        return Company::class;
     }
 
-    if (!empty($filters['company_type'])) {
-      $query->byType($filters['company_type']);
+    /**
+     * 検索対象フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSearchableFields(): array
+    {
+        return [
+            'name',
+            'email',
+        ];
     }
 
-    if (!empty($filters['status'])) {
-      $query->where('status', $filters['status']);
+    /**
+     * ソート可能フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSortableFields(): array
+    {
+        return [
+            'created_at',
+            'email',
+            'status',
+        ];
     }
 
-    return $query;
-  }
+    /**
+     * メールアドレスで検索
+     * 
+     * @param string $email
+     * @return Company|null
+     */
+    public function findByEmail(string $email): ?Company
+    {
+        return Company::where('email', $email)->first();
+    }
 
-  public function paginate(
-    int $perPage = 15,
-    array $filters = [],
-    string $sortField = 'created_at',
-    string $sortDirection = 'desc'
-  ): LengthAwarePaginator {
-    return $this->findWithFilters($filters)
-      ->with(['addresses', 'users'])
-      ->orderBy($sortField, $sortDirection)
-      ->paginate($perPage)
-      ->withQueryString();
-  }
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
+    public function findWithFilters(array $filters): Builder
+    {
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
 
-  public function create(array $data): Company
-  {
-    return Company::create($data);
-  }
+        return $query;
+    }
 
-  public function update(Company $company, array $data): Company
-  {
-    $company->update($data);
-    return $company->fresh();
-  }
+    public function bulkDelete(array $ids): int
+    {
+        return Company::whereIn('id', $ids)->delete();
+    }
 
-  public function delete(Company $company): bool
-  {
-    return (bool) $company->delete();
-  }
+    public function attachUser(Company $company, string $userId, array $pivotData = []): void
+    {
+        // ULID PK のため attach() は使えない。DB::table を使う
+        \Illuminate\Support\Facades\DB::table('company_user')->insert(array_merge([
+            'id'         => (string) \Illuminate\Support\Str::ulid(),
+            'company_id' => $company->id,
+            'user_id'    => $userId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ], $pivotData));
+    }
 
-  public function bulkDelete(array $ids): int
-  {
-    return Company::whereIn('id', $ids)->delete();
-  }
+    public function detachUser(Company $company, string $userId): void
+    {
+        \Illuminate\Support\Facades\DB::table('company_user')
+            ->where('company_id', $company->id)
+            ->where('user_id', $userId)
+            ->delete();
+    }
 
-  public function attachUser(Company $company, string $userId, array $pivotData = []): void
-  {
-    // ULID PK のため attach() は使えない。DB::table を使う
-    \Illuminate\Support\Facades\DB::table('company_user')->insert(array_merge([
-      'id'         => (string) \Illuminate\Support\Str::ulid(),
-      'company_id' => $company->id,
-      'user_id'    => $userId,
-      'created_at' => now(),
-      'updated_at' => now(),
-    ], $pivotData));
-  }
+    /**
+     * 統計情報を取得（オーバーライド）
+     * 
+     * @return array
+     */
+    public function getStats(): array
+    {
+        $baseStats = parent::getStats();
 
-  public function detachUser(Company $company, string $userId): void
-  {
-    \Illuminate\Support\Facades\DB::table('company_user')
-      ->where('company_id', $company->id)
-      ->where('user_id', $userId)
-      ->delete();
-  }
-
-  public function getStats(): array
-  {
-    return [
-      'total'      => Company::count(),
-      'individual' => Company::byType('individual')->count(),
-      'corporate'  => Company::byType('corporate')->count(),
-      'active'     => Company::active()->count(),
-      'inactive'   => Company::where('status', 'inactive')->count(),
-    ];
-  }
+        return array_merge($baseStats, [
+            'active' => Company::where('status', 'active')->count(),
+            'inactive' => Company::where('status', 'inactive')->count(),
+            'suspended' => Company::where('status', 'suspended')->count(),
+        ]);
+    }
 }

@@ -3,7 +3,7 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 // Components
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 
 export default function VerifyEmail({ status }) {
     // フォーム状態管理

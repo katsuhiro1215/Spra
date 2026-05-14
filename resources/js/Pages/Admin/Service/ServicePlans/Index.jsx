@@ -5,7 +5,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import SearchFilter from "@/Components/Layout/SearchFilter";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
 // Constants

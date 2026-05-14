@@ -4,7 +4,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 // Components
 import { InputLabel, TextInput, InputError } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 
 export default function ResetPassword({ token, email }) {
     // フォーム状態管理
@@ -130,7 +130,7 @@ export default function ResetPassword({ token, email }) {
                                 onChange={(e) =>
                                     setData(
                                         "password_confirmation",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
                                 required

@@ -5,7 +5,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import RichTextEditor from "@/Components/Forms/RichTextEditor";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     ArrowLeftIcon,
@@ -218,7 +218,7 @@ const BlogCreate = ({ categories, media }) => {
                                                     dangerouslySetInnerHTML={{
                                                         __html: data.content.replace(
                                                             /\n/g,
-                                                            "<br>"
+                                                            "<br>",
                                                         ),
                                                     }}
                                                 />
@@ -263,7 +263,7 @@ const BlogCreate = ({ categories, media }) => {
                                             onChange={(e) =>
                                                 setData(
                                                     "meta_title",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -288,7 +288,7 @@ const BlogCreate = ({ categories, media }) => {
                                             onChange={(e) =>
                                                 setData(
                                                     "meta_description",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             rows={3}
@@ -326,7 +326,7 @@ const BlogCreate = ({ categories, media }) => {
                                             onChange={(e) =>
                                                 setData(
                                                     "status",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -360,7 +360,7 @@ const BlogCreate = ({ categories, media }) => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "published_at",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -391,11 +391,11 @@ const BlogCreate = ({ categories, media }) => {
                                             <input
                                                 type="checkbox"
                                                 checked={data.categories.includes(
-                                                    category.id
+                                                    category.id,
                                                 )}
                                                 onChange={() =>
                                                     handleCategoryToggle(
-                                                        category.id
+                                                        category.id,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -457,7 +457,7 @@ const BlogCreate = ({ categories, media }) => {
                                                 onClick={() =>
                                                     setData(
                                                         "featured_media_id",
-                                                        null
+                                                        null,
                                                     )
                                                 }
                                                 className="px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
@@ -513,7 +513,7 @@ const BlogCreate = ({ categories, media }) => {
                                                         type="button"
                                                         onClick={() =>
                                                             handleGalleryMediaToggle(
-                                                                mediaItem.id
+                                                                mediaItem.id,
                                                             )
                                                         }
                                                         className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
@@ -521,7 +521,7 @@ const BlogCreate = ({ categories, media }) => {
                                                         <XMarkIcon className="w-3 h-3" />
                                                     </button>
                                                 </div>
-                                            )
+                                            ),
                                         )}
                                     </div>
                                 )}

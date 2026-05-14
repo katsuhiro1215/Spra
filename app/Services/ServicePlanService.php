@@ -3,55 +3,54 @@
 namespace App\Services;
 
 use App\Models\ServicePlan;
-use App\Repositories\Contracts\ServicePlanRepositoryInterface;
-use Illuminate\Support\Str;
+use App\Repositories\ServicePlanRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-class ServicePlanService
+class ServicePlanService extends BaseService
 {
-  public function __construct(
-    private ServicePlanRepositoryInterface $repository
-  ) {}
-
-  public function getPaginatedServicePlans(array $filters = [], array $sort = [])
+  /**
+   * コンストラクタ
+   * 
+   * @param ServicePlanRepository $repository
+   */
+  public function __construct(ServicePlanRepository $repository)
   {
-    return $this->repository->paginate($filters, $sort);
+    parent::__construct($repository);
   }
 
-  public function getAllServicePlans()
+  /**
+   * エンティティ名を返す
+   * 
+   * @return string
+   */
+  protected function getEntityName(): string
   {
-    return $this->repository->getAll();
+    return 'ServicePlan';
   }
 
-  public function getActiveServicePlans()
-  {
-    return $this->repository->getActive();
-  }
-
-  public function getServicePlansByService(string $serviceId)
-  {
-    return $this->repository->getByService($serviceId);
-  }
-
-  public function getFeaturedServicePlans()
-  {
-    return $this->repository->getFeatured();
-  }
-
-  public function findServicePlan(string $id): ?ServicePlan
-  {
-    return $this->repository->findById($id);
-  }
-
+  /**
+   * スラッグでサービスプランを検索
+   * 
+   * @param string $slug
+   * @return ServicePlan|null
+   */
   public function findServicePlanBySlug(string $slug): ?ServicePlan
   {
     return $this->repository->findBySlug($slug);
   }
 
+  /**
+   * 新しいサービスプランを作成
+   * 
+   * @param array $data
+   * @return ServicePlan
+   * @throws \Exception
+   */
   public function createServicePlan(array $data): ServicePlan
   {
     return DB::transaction(function () use ($data) {
-      // Slug生成
+      // スラッグ生成
       if (empty($data['slug'])) {
         $data['slug'] = $this->generateUniqueSlug($data['name']);
       } else {
@@ -61,63 +60,86 @@ class ServicePlanService
         }
       }
 
-      // 作成者を設定
-      $data['created_by'] = auth('admin')->id();
-
       return $this->repository->create($data);
     });
   }
 
+  /**
+   * サービスプランを更新
+   * 
+   * @param ServicePlan $servicePlan
+   * @param array $data
+   * @return ServicePlan
+   */
   public function updateServicePlan(ServicePlan $servicePlan, array $data): ServicePlan
   {
     return DB::transaction(function () use ($servicePlan, $data) {
-      // Slugの重複チェック（自分以外）
+      // スラッグの重複チェック（自分以外）
       if (!empty($data['slug']) && $data['slug'] !== $servicePlan->slug) {
         if ($this->repository->slugExists($data['slug'], $servicePlan->id)) {
           $data['slug'] = $this->generateUniqueSlug($data['name'], $servicePlan->id);
         }
       }
 
-      // 更新者を設定
-      $data['updated_by'] = auth('admin')->id();
+      $this->repository->update($servicePlan, $data);
 
-      return $this->repository->update($servicePlan, $data);
+      return $servicePlan->fresh();
     });
   }
 
-  public function deleteServicePlan(ServicePlan $servicePlan): bool
+  /**
+   * サービスプランを削除
+   * 
+   * @param ServicePlan $servicePlan
+   * @throws \Exception
+   */
+  public function deleteServicePlan(ServicePlan $servicePlan): void
   {
-    return DB::transaction(function () use ($servicePlan) {
-      // 関連するServiceItemsがある場合は削除を防ぐ
-      if ($servicePlan->serviceItems()->exists()) {
-        throw new \Exception('このプランには関連するサービス項目があるため削除できません。');
-      }
+    // 関連するServiceItemsがある場合は削除を防ぐ
+    if ($servicePlan->serviceItems()->exists()) {
+      throw new \Exception('このプランには関連するサービス項目があるため削除できません。');
+    }
 
-      return $this->repository->delete($servicePlan);
+    DB::transaction(function () use ($servicePlan) {
+      $this->repository->delete($servicePlan);
     });
   }
 
+  /**
+   * ステータス定義を取得
+   * 
+   * @return array
+   */
   public function getStatuses(): array
   {
     return [
-      ['value' => 'active', 'label' => '稼働中'],
-      ['value' => 'inactive', 'label' => '停止中'],
-      ['value' => 'suspended', 'label' => '一時停止'],
-    ];
-  }
-
-  public function getBillingCycles(): array
-  {
-    return [
-      ['value' => 'one_time', 'label' => '一回限り'],
-      ['value' => 'monthly', 'label' => '月額'],
-      ['value' => 'quarterly', 'label' => '四半期'],
-      ['value' => 'yearly', 'label' => '年額'],
+      'active' => '稼働中',
+      'inactive' => '停止中',
+      'suspended' => '一時停止',
     ];
   }
 
   /**
-   * Generate unique slug.
+   * 支払いサイクル定義を取得
+   * 
+   * @return array
+   */
+  public function getBillingCycles(): array
+  {
+    return [
+      'one_time' => '一回限り',
+      'monthly' => '月額',
+      'quarterly' => '四半期',
+      'yearly' => '年額',
+    ];
+  }
+
+  /**
+   * 一意のスラッグを生成
+   * 
+   * @param string $name
+   * @param string|null $excludeId
+   * @return string
    */
   private function generateUniqueSlug(string $name, ?string $excludeId = null): string
   {

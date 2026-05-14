@@ -3,9 +3,9 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     ArrowLeftIcon,
@@ -122,10 +122,10 @@ export default function Create({ serviceCategories }) {
             gallery: data.gallery.filter((g) => g.trim() !== ""),
             technologies: data.technologies.filter((t) => t.trim() !== ""),
             pricing: data.pricing.filter(
-                (p) => p.name.trim() !== "" || p.price > 0
+                (p) => p.name.trim() !== "" || p.price > 0,
             ),
             demo_links: data.demo_links.filter(
-                (d) => d.name.trim() !== "" || d.url.trim() !== ""
+                (d) => d.name.trim() !== "" || d.url.trim() !== "",
             ),
         };
 
@@ -233,7 +233,7 @@ export default function Create({ serviceCategories }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "service_category_id",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -249,7 +249,7 @@ export default function Create({ serviceCategories }) {
                                                     >
                                                         {category.name}
                                                     </option>
-                                                )
+                                                ),
                                             )}
                                         </select>
                                         {errors.service_category_id && (
@@ -298,7 +298,7 @@ export default function Create({ serviceCategories }) {
                                         onChange={(e) =>
                                             setData(
                                                 "description",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -365,7 +365,7 @@ export default function Create({ serviceCategories }) {
                                                     updateArrayItem(
                                                         "features",
                                                         index,
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -376,7 +376,7 @@ export default function Create({ serviceCategories }) {
                                                 onClick={() =>
                                                     removeArrayItem(
                                                         "features",
-                                                        index
+                                                        index,
                                                     )
                                                 }
                                                 className="text-red-600 hover:text-red-800"
@@ -434,7 +434,7 @@ export default function Create({ serviceCategories }) {
                                                             updatePricingItem(
                                                                 index,
                                                                 "name",
-                                                                e.target.value
+                                                                e.target.value,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -455,8 +455,8 @@ export default function Create({ serviceCategories }) {
                                                                 "price",
                                                                 parseInt(
                                                                     e.target
-                                                                        .value
-                                                                ) || 0
+                                                                        .value,
+                                                                ) || 0,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -476,7 +476,7 @@ export default function Create({ serviceCategories }) {
                                                             updatePricingItem(
                                                                 index,
                                                                 "description",
-                                                                e.target.value
+                                                                e.target.value,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -516,7 +516,7 @@ export default function Create({ serviceCategories }) {
                                                     updateDemoLink(
                                                         index,
                                                         "name",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -530,7 +530,7 @@ export default function Create({ serviceCategories }) {
                                                         updateDemoLink(
                                                             index,
                                                             "url",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -580,7 +580,7 @@ export default function Create({ serviceCategories }) {
                                                     updateArrayItem(
                                                         "technologies",
                                                         index,
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -591,7 +591,7 @@ export default function Create({ serviceCategories }) {
                                                 onClick={() =>
                                                     removeArrayItem(
                                                         "technologies",
-                                                        index
+                                                        index,
                                                     )
                                                 }
                                                 className="text-red-600 hover:text-red-800"
@@ -624,7 +624,7 @@ export default function Create({ serviceCategories }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "status",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -662,7 +662,7 @@ export default function Create({ serviceCategories }) {
                                                 setData(
                                                     "sort_order",
                                                     parseInt(e.target.value) ||
-                                                        0
+                                                        0,
                                                 )
                                             }
                                             className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -682,7 +682,7 @@ export default function Create({ serviceCategories }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "is_featured",
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -699,7 +699,7 @@ export default function Create({ serviceCategories }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "is_active",
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"

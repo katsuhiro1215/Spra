@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Components - Forms
 import ValidatedInput from "@/Components/Forms/ValidatedInput";
 // Icons
@@ -144,7 +143,7 @@ export default function Edit({ page, templates }) {
     const handleDelete = () => {
         if (
             confirm(
-                "このページを削除してもよろしいですか？この操作は取り消せません。"
+                "このページを削除してもよろしいですか？この操作は取り消せません。",
             )
         ) {
             router.delete(route("admin.homepage.pages.destroy", page.id));
@@ -187,7 +186,7 @@ export default function Edit({ page, templates }) {
                         onChange={(e) =>
                             handleContentChange(
                                 field.key,
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                             )
                         }
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -325,7 +324,7 @@ export default function Edit({ page, templates }) {
                                                     type="button"
                                                     onClick={() =>
                                                         handleTemplateChange(
-                                                            key
+                                                            key,
                                                         )
                                                     }
                                                     className={`p-3 text-left border rounded-lg transition-colors ${
@@ -339,7 +338,7 @@ export default function Edit({ page, templates }) {
                                                         {name}
                                                     </div>
                                                 </button>
-                                            )
+                                            ),
                                         )}
                                     </div>
                                 </Card.Body>
@@ -423,7 +422,7 @@ export default function Edit({ page, templates }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "is_published",
-                                                    e.target.checked
+                                                    e.target.checked,
                                                 )
                                             }
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -480,7 +479,7 @@ export default function Edit({ page, templates }) {
                                         onChange={(e) =>
                                             setData(
                                                 "sort_order",
-                                                parseInt(e.target.value) || 0
+                                                parseInt(e.target.value) || 0,
                                             )
                                         }
                                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
