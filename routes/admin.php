@@ -198,6 +198,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/overdue', [InvoiceController::class, 'overdueList'])->name('overdue');
         Route::patch('/{id}/send', [InvoiceController::class, 'send'])->name('send');
         Route::post('/{id}/payments', [InvoiceController::class, 'recordPayment'])->name('payments.store');
+        Route::get('/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('pdf');
+        Route::get('/{id}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('pdf.preview');
     });
 
     // FAQs管理

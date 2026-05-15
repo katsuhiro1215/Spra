@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Services\PaymentService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -15,7 +18,8 @@ use Inertia\Response;
 class InvoiceController extends Controller
 {
   public function __construct(
-    private InvoiceService $service
+    private InvoiceService $service,
+    private PaymentService $paymentService
   ) {}
 
   public function index(Request $request): Response
@@ -24,10 +28,21 @@ class InvoiceController extends Controller
 
     $invoices = $this->service->getPaginated($filters, 20);
 
-    return Inertia::render('Admin/Invoice/Index', [
+    $stats = [
+      'total' => Invoice::count(),
+      'draft' => Invoice::where('status', 'draft')->count(),
+      'sent' => Invoice::where('status', 'sent')->count(),
+      'paid' => Invoice::where('status', 'paid')->count(),
+      'overdue' => Invoice::where('status', 'overdue')->count(),
+      'total_amount' => Invoice::whereIn('status', ['sent', 'viewed', 'overdue'])->sum('total_amount'),
+      'paid_amount' => Invoice::where('status', 'paid')->sum('total_amount'),
+    ];
+
+    return Inertia::render('Admin/Invoices/Index', [
       'invoices' => $invoices,
       'filters'  => $filters,
-      'statuses' => \App\Models\Invoice::STATUSES,
+      'stats'    => $stats,
+      'statuses' => Invoice::STATUSES,
     ]);
   }
 
@@ -36,18 +51,21 @@ class InvoiceController extends Controller
     $invoice = $this->service->findById($id);
     abort_unless($invoice, 404);
 
-    return Inertia::render('Admin/Invoice/Show', [
+    $payments = $this->paymentService->getByInvoiceId($invoice->id);
+
+    return Inertia::render('Admin/Invoices/Show', [
       'invoice' => $invoice,
+      'payments' => $payments,
     ]);
   }
 
   public function create(): Response
   {
-    return Inertia::render('Admin/Invoice/Create', [
-      'contracts' => Contract::where('status', 'active')->orderBy('title')->get(['id', 'title']),
+    return Inertia::render('Admin/Invoices/Create', [
+      'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
-      'statuses'  => \App\Models\Invoice::STATUSES,
+      'statuses'  => Invoice::STATUSES,
     ]);
   }
 
@@ -87,23 +105,34 @@ class InvoiceController extends Controller
       return $item;
     }, $items);
 
+    // Generate invoice number
+    $latestInvoice = Invoice::latest('id')->first();
+    $nextNumber = $latestInvoice ? ((int)substr($latestInvoice->invoice_number, -6)) + 1 : 1;
+    $validated['invoice_number'] = 'INV-' . date('Ym') . '-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
     $invoice = $this->service->create($validated, $items);
 
-    return redirect()->route('admin.invoices.show', $invoice->id)
+    return redirect()->route('admin.invoice.show', $invoice->id)
       ->with('success', '請求書を作成しました。');
   }
 
-  public function edit(string $id): Response
+  public function edit(string $id): Response|RedirectResponse
   {
     $invoice = $this->service->findById($id);
     abort_unless($invoice, 404);
 
-    return Inertia::render('Admin/Invoice/Edit', [
+    // 送付済みまたは支払い済みの請求書は編集不可
+    if (in_array($invoice->status, ['sent', 'viewed', 'paid', 'overdue'])) {
+      return redirect()->route('admin.invoice.show', $invoice->id)
+        ->with('error', 'この請求書は編集できません。');
+    }
+
+    return Inertia::render('Admin/Invoices/Edit', [
       'invoice'   => $invoice,
-      'contracts' => Contract::where('status', 'active')->orderBy('title')->get(['id', 'title']),
+      'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
-      'statuses'  => \App\Models\Invoice::STATUSES,
+      'statuses'  => Invoice::STATUSES,
     ]);
   }
 
@@ -111,6 +140,12 @@ class InvoiceController extends Controller
   {
     $invoice = $this->service->findById($id);
     abort_unless($invoice, 404);
+
+    // 送付済みまたは支払い済みの請求書は更新不可
+    if (in_array($invoice->status, ['sent', 'viewed', 'paid', 'overdue'])) {
+      return redirect()->route('admin.invoice.show', $invoice->id)
+        ->with('error', 'この請求書は編集できません。');
+    }
 
     $validated = $request->validate([
       'contract_id'           => 'nullable|ulid|exists:contracts,id',
@@ -148,8 +183,25 @@ class InvoiceController extends Controller
 
     $this->service->update($invoice, $validated, $items);
 
-    return redirect()->route('admin.invoices.show', $invoice->id)
+    return redirect()->route('admin.invoice.show', $invoice->id)
       ->with('success', '請求書を更新しました。');
+  }
+
+  public function destroy(string $id): RedirectResponse
+  {
+    $invoice = $this->service->findById($id);
+    abort_unless($invoice, 404);
+
+    // 下書き以外は削除不可
+    if ($invoice->status !== 'draft') {
+      return redirect()->route('admin.invoice.index')
+        ->with('error', '下書きの請求書のみ削除できます。');
+    }
+
+    $invoice->delete();
+
+    return redirect()->route('admin.invoice.index')
+      ->with('success', '請求書を削除しました。');
   }
 
   public function send(string $id): RedirectResponse
@@ -168,27 +220,52 @@ class InvoiceController extends Controller
     abort_unless($invoice, 404);
 
     $validated = $request->validate([
-      'amount'            => 'required|integer|min:1',
+      'amount'            => 'required|numeric|min:0',
       'payment_method'    => 'required|string|in:bank_transfer,credit_card,cash,other',
-      'paid_at'           => 'required|date',
+      'payment_date'      => 'required|date',
+      'payment_type'      => 'nullable|string|in:deposit,interim,final,full',
       'transaction_id'    => 'nullable|string|max:255',
       'notes'             => 'nullable|string',
     ]);
 
-    $validated['status'] = 'confirmed';
-    $validated['confirmed_by'] = auth('admins')->id();
-    $validated['confirmed_at'] = now();
-
-    $this->service->recordPayment($invoice, $validated);
+    $this->paymentService->create(array_merge($validated, [
+      'invoice_id' => $invoice->id,
+      'status' => 'completed',
+      'confirmed_by' => auth('admins')->id(),
+    ]));
 
     return back()->with('success', '入金を記録しました。');
+  }
+
+  public function downloadPdf(string $id)
+  {
+    $invoice = $this->service->findById($id);
+    abort_unless($invoice, 404);
+
+    $pdf = Pdf::loadView('pdfs.invoice', compact('invoice'))
+      ->setPaper('A4', 'portrait');
+
+    $filename = sprintf('請求書_%s_%s.pdf', $invoice->invoice_number, date('Ymd'));
+
+    return $pdf->download($filename);
+  }
+
+  public function previewPdf(string $id)
+  {
+    $invoice = $this->service->findById($id);
+    abort_unless($invoice, 404);
+
+    $pdf = Pdf::loadView('pdfs.invoice', compact('invoice'))
+      ->setPaper('A4', 'portrait');
+
+    return $pdf->stream();
   }
 
   public function overdueList(): Response
   {
     $invoices = $this->service->getOverdueInvoices();
 
-    return Inertia::render('Admin/Invoice/Overdue', [
+    return Inertia::render('Admin/Invoices/Overdue', [
       'invoices' => $invoices,
     ]);
   }

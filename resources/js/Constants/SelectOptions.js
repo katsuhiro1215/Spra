@@ -218,3 +218,45 @@ export const CONTRACT_TYPE_OPTIONS = [
     { value: "monthly", label: "月額" },
     { value: "annual", label: "年額" },
 ];
+
+/**
+ * 請求書ステータスのセレクトオプション
+ */
+export const INVOICE_STATUS_OPTIONS = [
+    { value: "draft", label: "下書き" },
+    { value: "sent", label: "送付済み" },
+    { value: "viewed", label: "確認済み" },
+    { value: "paid", label: "支払済み" },
+    { value: "overdue", label: "期限超過" },
+    { value: "cancelled", label: "キャンセル" },
+];
+
+/**
+ * 支払い方法のセレクトオプション
+ */
+export const PAYMENT_METHOD_OPTIONS = [
+    { value: "bank_transfer", label: "銀行振込" },
+    { value: "credit_card", label: "クレジットカード" },
+    { value: "cash", label: "現金" },
+    { value: "other", label: "その他" },
+];
+
+/**
+ * 支払いステータスのセレクトオプション
+ */
+export const PAYMENT_STATUS_OPTIONS = [
+    { value: "pending", label: "保留中" },
+    { value: "completed", label: "完了" },
+    { value: "failed", label: "失敗" },
+    { value: "refunded", label: "返金済み" },
+];
+
+/**
+ * 支払いタイプ（着手金/中間金/最終支払い）のセレクトオプション
+ */
+export const PAYMENT_TYPE_OPTIONS = [
+    { value: "deposit", label: "着手金" },
+    { value: "interim", label: "中間金" },
+    { value: "final", label: "最終支払い" },
+    { value: "full", label: "一括払い" },
+];
