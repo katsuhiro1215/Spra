@@ -197,3 +197,24 @@ export const QUOTE_BILLING_TYPE_OPTIONS = [
     { value: "hourly", label: "時間単位" },
     { value: "other", label: "その他" },
 ];
+
+/**
+ * 契約ステータスのセレクトオプション
+ */
+export const CONTRACT_STATUS_OPTIONS = [
+    { value: "draft", label: "下書き" },
+    { value: "pending_signature", label: "署名待ち" },
+    { value: "active", label: "契約中" },
+    { value: "suspended", label: "一時停止" },
+    { value: "completed", label: "完了" },
+    { value: "cancelled", label: "キャンセル" },
+];
+
+/**
+ * 契約タイプのセレクトオプション
+ */
+export const CONTRACT_TYPE_OPTIONS = [
+    { value: "one_time", label: "一括払い" },
+    { value: "monthly", label: "月額" },
+    { value: "annual", label: "年額" },
+];

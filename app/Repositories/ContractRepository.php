@@ -163,8 +163,12 @@ class ContractRepository implements ContractRepositoryInterface
         return [
             'total' => Contract::count(),
             'active' => Contract::where('status', 'active')->count(),
+            'pending' => Contract::where('status', 'pending_signature')->count(),
+            'completed' => Contract::where('status', 'completed')->count(),
             'draft' => Contract::where('status', 'draft')->count(),
-            'terminated' => Contract::where('status', 'terminated')->count(),
+            'suspended' => Contract::where('status', 'suspended')->count(),
+            'cancelled' => Contract::where('status', 'cancelled')->count(),
+            'total_amount' => Contract::whereIn('status', ['active', 'pending_signature'])->sum('amount'),
         ];
     }
 }
