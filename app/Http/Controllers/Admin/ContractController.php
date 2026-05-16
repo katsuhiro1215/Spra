@@ -24,10 +24,12 @@ class ContractController extends Controller
     $filters = $request->only(['search', 'status', 'type', 'user_id', 'company_id']);
 
     $contracts = $this->service->getPaginated($filters, 20);
+    $stats = $this->service->getStats();
 
-    return Inertia::render('Admin/Contract/Index', [
+    return Inertia::render('Admin/Contracts/Index', [
       'contracts' => $contracts,
       'filters'   => $filters,
+      'stats'     => $stats,
       'statuses'  => \App\Models\Contract::STATUSES,
     ]);
   }
@@ -37,17 +39,18 @@ class ContractController extends Controller
     $contract = $this->service->findById($id);
     abort_unless($contract, 404);
 
-    return Inertia::render('Admin/Contract/Show', [
+    return Inertia::render('Admin/Contracts/Show', [
       'contract' => $contract,
     ]);
   }
 
   public function create(): Response
   {
-    return Inertia::render('Admin/Contract/Create', [
-      'projects'  => Project::orderBy('title')->get(['id', 'title']),
+    return Inertia::render('Admin/Contracts/Create', [
+      'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'quotes'    => \App\Models\Quote::where('status', 'approved')->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title']),
       'statuses'  => \App\Models\Contract::STATUSES,
     ]);
   }
@@ -72,7 +75,7 @@ class ContractController extends Controller
 
     $contract = $this->service->create($validated);
 
-    return redirect()->route('admin.contracts.show', $contract->id)
+    return redirect()->route('admin.contract.show', $contract->id)
       ->with('success', '契約を作成しました。');
   }
 
@@ -81,11 +84,12 @@ class ContractController extends Controller
     $contract = $this->service->findById($id);
     abort_unless($contract, 404);
 
-    return Inertia::render('Admin/Contract/Edit', [
+    return Inertia::render('Admin/Contracts/Edit', [
       'contract'  => $contract,
-      'projects'  => Project::orderBy('title')->get(['id', 'title']),
+      'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'quotes'    => \App\Models\Quote::where('status', 'approved')->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title']),
       'statuses'  => \App\Models\Contract::STATUSES,
     ]);
   }
@@ -113,7 +117,7 @@ class ContractController extends Controller
 
     $this->service->update($contract, $validated);
 
-    return redirect()->route('admin.contracts.show', $contract->id)
+    return redirect()->route('admin.contract.show', $contract->id)
       ->with('success', '契約を更新しました。');
   }
 

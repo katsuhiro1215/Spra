@@ -38,7 +38,54 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             href: "admin.dashboard",
             icon: "M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z",
             current: route().current("admin.dashboard"),
-            children: [],
+            children: [
+                { name: "概要", href: "admin.dashboard" },
+                { name: "活動", href: "admin.dashboard" },
+                { name: "通知", href: "admin.dashboard" },
+                { name: "分析", href: "admin.dashboard" },
+                { name: "スケジュール", href: "admin.dashboard" },
+            ],
+        },
+        {
+            name: "CRM",
+            href: "admin.contact.index",
+            icon: "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z",
+            current: route().current("admin.contact.*"),
+            children: [
+                // contact lead client proposal contract maintenance
+                { name: "概要", href: "admin.contact.index" },
+                { name: "リード管理", href: "admin.contact.index" },
+                { name: "クライアント管理", href: "admin.contact.index" },
+                { name: "提案管理", href: "admin.contact.index" },
+                { name: "契約管理", href: "admin.contact.index" },
+                { name: "メンテナンス管理", href: "admin.contact.index" },
+            ],
+        },
+        {
+            name: "プロジェクト管理",
+            href: "admin.project.index",
+            icon: "M12 6v6h4m-2 14H6a2 2 0 01-2-2v-7a2 2 0 012-2h7l5 5v5a2 2 0 01-2 2z",
+            current: route().current("admin.project.*"),
+            children: [
+                { name: "プロジェクト一覧", href: "admin.project.index" },
+                { name: "タスク管理", href: "admin.project.index" },
+                { name: "ガンチャート", href: "admin.gantt.index" },
+                { name: "ファイル", href: "admin.project.index" },
+                { name: "メッセージ", href: "admin.project.index" },
+                { name: "リリース", href: "admin.project.index" },
+            ],
+        },
+        // Billing
+        {
+            name: "請求管理",
+            href: "admin.invoice.index",
+            icon: "M12 6v6h4m-2 14H6a2 2 0 01-2-2v-7a2 2 0 012-2h7l5 5v5a2 2 0 01-2 2z",
+            current: route().current("admin.invoice.*"),
+            children: [
+                { name: "見積一覧", href: "admin.quote.index" },
+                { name: "請求管理", href: "admin.invoice.index" },
+                { name: "支払い管理", href: "admin.payment.index" },
+            ],
         },
         {
             name: "ホームページ管理",
@@ -54,20 +101,19 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                     name: "ブログカテゴリ管理",
                     href: "admin.homepage.blogCategories.index",
                 },
-                { name: "FAQ管理", href: "admin.homepage.faqs.index" },
-                { name: "お問い合わせ", href: "admin.homepage.contacts.index" },
                 {
                     name: "サイト設定",
                     href: "admin.homepage.site-settings.index",
                 },
             ],
         },
-        // {
-        //     name: "プロジェクト管理",
-        //     href: "admin.project.index",
-        //     icon: "M12 6v6h4m-2 14H6a2 2 0 01-2-2v-7a2 2 0 012-2h7l5 5v5a2 2 0 01-2 2z",
-        //     current: route().current("admin.project.*"),
-        // },
+        {
+            name: "FAQ管理",
+            href: "admin.faq.index",
+            icon: "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z",
+            current: route().current("admin.faq.*"),
+            children: [],
+        },
         {
             name: "サービス管理",
             href: "admin.service.index",
@@ -99,13 +145,6 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                     href: "admin.contract.create",
                 },
             ],
-        },
-        {
-            name: "ガントチャート",
-            href: "admin.gantt.index",
-            icon: "M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25",
-            current: route().current("admin.gantt.*"),
-            children: [],
         },
         {
             name: "ユーザー管理",

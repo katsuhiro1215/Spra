@@ -5,42 +5,40 @@ namespace App\Services;
 use App\Models\User;
 use App\Mail\UserCreatedMail;
 use App\Repositories\UserRepository;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class UserService
+class UserService extends BaseService
 {
-    public function __construct(
-        private UserRepository $repository
-    ) {}
-
     /**
-     * ページネーション付きでユーザー一覧を取得
-     * フィルター・ソート・ページネーションの責務はRepositoryに委譲
+     * コンストラクタ
+     * 
+     * @param UserRepository $repository
      */
-    public function getPaginatedUsers(array $filters = [], array $sort = [], int $perPage = 20): LengthAwarePaginator
+    public function __construct(UserRepository $repository)
     {
-        return $this->repository->paginate($perPage, $filters, $sort);
+        parent::__construct($repository);
     }
 
     /**
-     * ユーザーの統計情報を取得
+     * エンティティ名を返す
+     * 
+     * @return string
      */
-    public function getUserStats(): array
+    protected function getEntityName(): string
     {
-        return [
-            'all' => User::withTrashed()->count(),
-            'active' => User::count(),
-            'trashed' => User::onlyTrashed()->count(),
-        ];
+        return 'User';
     }
 
     /**
      * 新しいユーザーを作成（ランダムパスワード自動生成）
+     * 
+     * @param array $data
+     * @return array
+     * @throws \Exception
      */
     public function createUser(array $data): array
     {
@@ -68,8 +66,8 @@ class UserService
             try {
                 Mail::to($user->email)->send(new UserCreatedMail($user, $randomPassword));
             } catch (\Exception $e) {
-                Log::error('Admin creation email failed: ' . $e->getMessage());
-                // メール送信失敗してもadmin作成は成功とする
+                Log::error('User creation email failed: ' . $e->getMessage());
+                // メール送信失敗してもuser作成は成功とする
             }
 
             return [
@@ -81,6 +79,10 @@ class UserService
 
     /**
      * ユーザー情報を更新
+     * 
+     * @param User $user
+     * @param array $data
+     * @return User
      */
     public function updateUser(User $user, array $data): User
     {
@@ -94,14 +96,21 @@ class UserService
                 $updateData['password'] = Hash::make($data['password']);
             }
 
-            $this->repository->update($user, $updateData);
+            $updated = $this->repository->update($user, $updateData);
 
-            return $user->fresh();
+            $this->logInfo('updated', $updated->id);
+
+            return $updated->fresh();
         });
     }
 
     /**
      * ユーザーを削除（自分自身は不可）
+     * 
+     * @param User $user
+     * @param string $currentUserId
+     * @return bool
+     * @throws \Exception
      */
     public function deleteUser(User $user, string $currentUserId): void
     {
@@ -116,6 +125,8 @@ class UserService
 
     /**
      * アクティブなユーザー一覧を取得（選択肢用など）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getActiveUsers()
     {
@@ -124,6 +135,8 @@ class UserService
 
     /**
      * ステータス定義を取得
+     * 
+     * @return array
      */
     public function getStatuses(): array
     {

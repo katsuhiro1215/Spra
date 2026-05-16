@@ -15,7 +15,7 @@ use Inertia\Response;
 class CompanyController extends Controller
 {
     public function __construct(
-        private CompanyService $service
+        private CompanyService $companyService
     ) {}
 
     /**
@@ -23,21 +23,27 @@ class CompanyController extends Controller
      */
     public function index(Request $request): Response
     {
-        $filters = $request->only(['search', 'company_type', 'status']);
-        $sortField     = $request->get('sort', 'created_at');
-        $sortDirection = $request->get('direction', 'desc');
+        // フィルター
+        $filters = [
+            'search' => $request->input('search'),
+            'status' => $request->input('status'),
+            'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
+        ];
+        // ソート
+        $sort = [
+            'field' => $request->input('sort_field', 'created_at'),
+            'direction' => $request->input('sort_direction', 'desc'),
+        ];
+        // 会社のページネーション取得
+        $companies = $this->companyService->getPaginated($filters, $sort, 20);
 
-        $companies = $this->service->getPaginated(
-            $filters,
-            15,
-            $sortField,
-            $sortDirection
-        );
+        $stats = $this->companyService->getStats();
 
         return Inertia::render('Admin/Companies/Index', [
             'companies' => $companies,
-            'stats'     => $this->service->getStats(),
+            'stats'     => $stats,
             'filters'   => $filters,
+            'statuses'  => $this->companyService->getStatuses(),
         ]);
     }
 

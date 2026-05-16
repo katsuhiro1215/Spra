@@ -4,9 +4,9 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Components - Forms
 import InputLabel from "@/Components/Forms/InputLabel";
 import TextInput from "@/Components/Forms/TextInput";
@@ -204,7 +204,7 @@ export default function Create({ templates }) {
                         onChange={(e) =>
                             handleContentChange(
                                 field.key,
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                             )
                         }
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -303,29 +303,29 @@ export default function Create({ templates }) {
                                         label="ページタイトル"
                                         name="title"
                                         type="text"
-                                            value={data.title}
-                                            onChange={handleTitleChange}
-                                            className="w-full"
-                                            placeholder="ページタイトルを入力"
-                                            required
-                                            error={errors.title}
-                                        />
-                                        <ValidatedInput
-                                            label="スラッグ（URL）"
-                                            name="slug"
-                                            type="text"
-                                            value={data.slug}
-                                            onChange={(e) =>
-                                                setData("slug", e.target.value)
-                                            }
-                                            className="w-full"
-                                            placeholder="page-slug"
-                                            required
-                                            error={errors.slug}
-                                        />
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            URL: /pages/{data.slug}
-                                        </p>
+                                        value={data.title}
+                                        onChange={handleTitleChange}
+                                        className="w-full"
+                                        placeholder="ページタイトルを入力"
+                                        required
+                                        error={errors.title}
+                                    />
+                                    <ValidatedInput
+                                        label="スラッグ（URL）"
+                                        name="slug"
+                                        type="text"
+                                        value={data.slug}
+                                        onChange={(e) =>
+                                            setData("slug", e.target.value)
+                                        }
+                                        className="w-full"
+                                        placeholder="page-slug"
+                                        required
+                                        error={errors.slug}
+                                    />
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        URL: /pages/{data.slug}
+                                    </p>
                                 </Card.Body>
                             </Card>
                             {/* テンプレート選択 */}
@@ -340,7 +340,7 @@ export default function Create({ templates }) {
                                                     type="button"
                                                     onClick={() =>
                                                         handleTemplateChange(
-                                                            key
+                                                            key,
                                                         )
                                                     }
                                                     className={`p-3 text-left border rounded-lg transition-colors ${
@@ -354,7 +354,7 @@ export default function Create({ templates }) {
                                                         {name}
                                                     </div>
                                                 </button>
-                                            )
+                                            ),
                                         )}
                                     </div>
                                 </Card.Body>
@@ -442,7 +442,7 @@ export default function Create({ templates }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "is_published",
-                                                    e.target.checked
+                                                    e.target.checked,
                                                 )
                                             }
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -501,7 +501,7 @@ export default function Create({ templates }) {
                                         onChange={(e) =>
                                             setData(
                                                 "sort_order",
-                                                parseInt(e.target.value) || 0
+                                                parseInt(e.target.value) || 0,
                                             )
                                         }
                                         className="w-full"

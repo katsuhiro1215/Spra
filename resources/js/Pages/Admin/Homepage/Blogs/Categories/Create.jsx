@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { Card } from "@/Components/Card";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import { ArrowLeftIcon, TagIcon, EyeIcon } from "@heroicons/react/24/outline";
 // Constants
@@ -137,7 +136,7 @@ const BlogCategoryCreate = () => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "slug",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -164,7 +163,7 @@ const BlogCategoryCreate = () => {
                                             onChange={(e) =>
                                                 setData(
                                                     "description",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             rows={4}
@@ -204,7 +203,7 @@ const BlogCategoryCreate = () => {
                                                                         target: {
                                                                             value: color,
                                                                         },
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                             className={`w-10 h-10 rounded-lg border-2 ${
@@ -219,7 +218,7 @@ const BlogCategoryCreate = () => {
                                                             }}
                                                             title={color}
                                                         />
-                                                    )
+                                                    ),
                                                 )}
                                             </div>
                                         </div>
@@ -241,10 +240,10 @@ const BlogCategoryCreate = () => {
                                                     onChange={(e) => {
                                                         setData(
                                                             "color",
-                                                            e.target.value
+                                                            e.target.value,
                                                         );
                                                         setPreviewColor(
-                                                            e.target.value
+                                                            e.target.value,
                                                         );
                                                     }}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -270,7 +269,7 @@ const BlogCategoryCreate = () => {
                                             onChange={(e) =>
                                                 setData(
                                                     "sort_order",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -297,7 +296,7 @@ const BlogCategoryCreate = () => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "is_active",
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -326,8 +325,8 @@ const BlogCategoryCreate = () => {
                                             onClick={() =>
                                                 router.get(
                                                     route(
-                                                        "admin.homepage.blogCategories.index"
-                                                    )
+                                                        "admin.homepage.blogCategories.index",
+                                                    ),
                                                 )
                                             }
                                             className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
@@ -368,7 +367,7 @@ const BlogCategoryCreate = () => {
                                             style={{
                                                 backgroundColor: previewColor,
                                                 color: getContrastColor(
-                                                    previewColor
+                                                    previewColor,
                                                 ),
                                             }}
                                         >

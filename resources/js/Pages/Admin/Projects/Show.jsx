@@ -5,7 +5,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badge";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
     PencilIcon,

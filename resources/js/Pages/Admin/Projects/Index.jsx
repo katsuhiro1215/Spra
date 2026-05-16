@@ -4,8 +4,10 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
-import { Badge } from "@/Components/Badge";
+import { FlashMessage } from "@/Components/Notifications";
+import { Card } from "@/Components/Card";
+import { Badge } from "@/Components/Badges";
+import { CreateButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
@@ -240,7 +242,31 @@ export default function Index({
                 <ProjectsTable projects={projects} onDelete={handleDelete} />
 
                 {/* ページネーション */}
-                <Pagination links={projects.links} />
+                {projects.last_page > 0 && (
+                    <Pagination paginationData={projects} />
+                )}
+
+                {/* データがない場合 */}
+                {projects.data.length === 0 && (
+                    <Card>
+                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
+                            🏢
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 mb-4">
+                            {filters.search
+                                ? "検索条件に一致するプロジェクトが見つかりませんでした。"
+                                : activeTab === "only_trashed"
+                                  ? "削除されたプロジェクトはありません。"
+                                  : "まだプロジェクトが登録されていません。"}
+                        </p>
+                        {!filters.search && activeTab !== "only_trashed" && (
+                            <CreateButton href={route("admin.project.create")} size="md">
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                最初のプロジェクトを作成
+                            </CreateButton>
+                        )}
+                    </Card>
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

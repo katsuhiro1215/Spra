@@ -1,7 +1,7 @@
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 import { TextInput, TextArea, InputLabel, InputError } from "@/Components/Form";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import {

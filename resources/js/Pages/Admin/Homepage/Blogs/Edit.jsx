@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import BasicButton from "@/Components/Buttons/BasicButton";
 import RichTextEditor from "@/Components/RichTextEditor";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     ArrowLeftIcon,
@@ -46,10 +43,10 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
     });
 
     const [selectedFeaturedMedia, setSelectedFeaturedMedia] = useState(
-        blog.featured_media || null
+        blog.featured_media || null,
     );
     const [selectedGalleryMedia, setSelectedGalleryMedia] = useState(
-        blog.media || []
+        blog.media || [],
     );
 
     useEffect(() => {
@@ -58,7 +55,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                 .toLowerCase()
                 .replace(
                     /[^a-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g,
-                    "-"
+                    "-",
                 )
                 .replace(/-+/g, "-")
                 .replace(/^-|-$/g, "");
@@ -93,13 +90,13 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
 
     const toggleGalleryMedia = (media) => {
         const isSelected = selectedGalleryMedia.some(
-            (item) => item.id === media.id
+            (item) => item.id === media.id,
         );
         let newSelection;
 
         if (isSelected) {
             newSelection = selectedGalleryMedia.filter(
-                (item) => item.id !== media.id
+                (item) => item.id !== media.id,
             );
         } else {
             newSelection = [...selectedGalleryMedia, media];
@@ -108,18 +105,18 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
         setSelectedGalleryMedia(newSelection);
         setData(
             "media_ids",
-            newSelection.map((item) => item.id)
+            newSelection.map((item) => item.id),
         );
     };
 
     const removeGalleryMedia = (mediaId) => {
         const newSelection = selectedGalleryMedia.filter(
-            (item) => item.id !== mediaId
+            (item) => item.id !== mediaId,
         );
         setSelectedGalleryMedia(newSelection);
         setData(
             "media_ids",
-            newSelection.map((item) => item.id)
+            newSelection.map((item) => item.id),
         );
     };
 
@@ -155,7 +152,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
     };
 
     const selectedCategories = blogCategories.filter((cat) =>
-        data.category_ids.includes(cat.id)
+        data.category_ids.includes(cat.id),
     );
 
     const MediaModal = () => (
@@ -184,11 +181,11 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                 selectedFeaturedMedia?.id === media.id
                                     ? "border-blue-500 ring-2 ring-blue-200"
                                     : mediaModalType === "gallery" &&
-                                      selectedGalleryMedia.some(
-                                          (item) => item.id === media.id
-                                      )
-                                    ? "border-green-500 ring-2 ring-green-200"
-                                    : "border-gray-200 hover:border-gray-300"
+                                        selectedGalleryMedia.some(
+                                            (item) => item.id === media.id,
+                                        )
+                                      ? "border-green-500 ring-2 ring-green-200"
+                                      : "border-gray-200 hover:border-gray-300"
                             }`}
                             onClick={() => {
                                 if (mediaModalType === "featured") {
@@ -208,7 +205,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
                                 {mediaModalType === "gallery" &&
                                     selectedGalleryMedia.some(
-                                        (item) => item.id === media.id
+                                        (item) => item.id === media.id,
                                     ) && (
                                         <div className="bg-green-500 text-white rounded-full p-1">
                                             <svg
@@ -268,7 +265,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                             <input
                                 type="checkbox"
                                 checked={data.category_ids.includes(
-                                    category.id
+                                    category.id,
                                 )}
                                 onChange={() => toggleCategory(category.id)}
                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
@@ -330,7 +327,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                         <button
                             onClick={() =>
                                 router.get(
-                                    route("admin.homepage.blogs.show", blog.id)
+                                    route("admin.homepage.blogs.show", blog.id),
                                 )
                             }
                             className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
@@ -377,7 +374,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "title",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -408,7 +405,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                     onChange={(e) =>
                                                         setData(
                                                             "slug",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="flex-1 border border-gray-300 rounded-r-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -432,7 +429,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "excerpt",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 rows={3}
@@ -486,7 +483,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                             type="button"
                                             onClick={() =>
                                                 setShowSeoSettings(
-                                                    !showSeoSettings
+                                                    !showSeoSettings,
                                                 )
                                             }
                                             className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-900"
@@ -510,7 +507,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                     onChange={(e) =>
                                                         setData(
                                                             "meta_title",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -534,7 +531,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                     onChange={(e) =>
                                                         setData(
                                                             "meta_description",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     rows={3}
@@ -603,7 +600,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                 onChange={(e) =>
                                                     setData(
                                                         "status",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -631,7 +628,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                     onChange={(e) =>
                                                         setData(
                                                             "published_at",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -725,7 +722,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                         >
                                                             {category.name}
                                                         </span>
-                                                    )
+                                                    ),
                                                 )}
                                             </div>
                                         ) : (
@@ -779,7 +776,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                                 type="button"
                                                                 onClick={() =>
                                                                     removeGalleryMedia(
-                                                                        media.id
+                                                                        media.id,
                                                                     )
                                                                 }
                                                                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
@@ -787,7 +784,7 @@ const BlogEdit = ({ blog, blogCategories, allMedia }) => {
                                                                 <XMarkIcon className="w-3 h-3" />
                                                             </button>
                                                         </div>
-                                                    )
+                                                    ),
                                                 )}
                                             </div>
                                         ) : (

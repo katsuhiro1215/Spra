@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import BasicButton from "@/Components/Buttons/BasicButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { Card } from "@/Components/Card";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import {
     ArrowLeftIcon,
@@ -137,10 +135,10 @@ export default function Edit({ service, serviceCategories }) {
             gallery: data.gallery.filter((g) => g.trim() !== ""),
             technologies: data.technologies.filter((t) => t.trim() !== ""),
             pricing: data.pricing.filter(
-                (p) => p.name.trim() !== "" || p.price > 0
+                (p) => p.name.trim() !== "" || p.price > 0,
             ),
             demo_links: data.demo_links.filter(
-                (d) => d.name.trim() !== "" || d.url.trim() !== ""
+                (d) => d.name.trim() !== "" || d.url.trim() !== "",
             ),
         };
 
@@ -231,7 +229,7 @@ export default function Edit({ service, serviceCategories }) {
                                                     setAutoSlug(true);
                                                     setData(
                                                         "slug",
-                                                        generateSlug(data.name)
+                                                        generateSlug(data.name),
                                                     );
                                                 }}
                                                 className="mt-1 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-md"
@@ -262,7 +260,7 @@ export default function Edit({ service, serviceCategories }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "service_category_id",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -278,7 +276,7 @@ export default function Edit({ service, serviceCategories }) {
                                                     >
                                                         {category.name}
                                                     </option>
-                                                )
+                                                ),
                                             )}
                                         </select>
                                         {errors.service_category_id && (
@@ -328,7 +326,7 @@ export default function Edit({ service, serviceCategories }) {
                                         onChange={(e) =>
                                             setData(
                                                 "description",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -397,7 +395,7 @@ export default function Edit({ service, serviceCategories }) {
                                                     updateArrayItem(
                                                         "features",
                                                         index,
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -408,7 +406,7 @@ export default function Edit({ service, serviceCategories }) {
                                                 onClick={() =>
                                                     removeArrayItem(
                                                         "features",
-                                                        index
+                                                        index,
                                                     )
                                                 }
                                                 className="text-red-600 hover:text-red-800"
@@ -467,7 +465,7 @@ export default function Edit({ service, serviceCategories }) {
                                                             updatePricingItem(
                                                                 index,
                                                                 "name",
-                                                                e.target.value
+                                                                e.target.value,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -488,8 +486,8 @@ export default function Edit({ service, serviceCategories }) {
                                                                 "price",
                                                                 parseInt(
                                                                     e.target
-                                                                        .value
-                                                                ) || 0
+                                                                        .value,
+                                                                ) || 0,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -509,7 +507,7 @@ export default function Edit({ service, serviceCategories }) {
                                                             updatePricingItem(
                                                                 index,
                                                                 "description",
-                                                                e.target.value
+                                                                e.target.value,
                                                             )
                                                         }
                                                         className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -550,7 +548,7 @@ export default function Edit({ service, serviceCategories }) {
                                                     updateDemoLink(
                                                         index,
                                                         "name",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -564,7 +562,7 @@ export default function Edit({ service, serviceCategories }) {
                                                         updateDemoLink(
                                                             index,
                                                             "url",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -615,7 +613,7 @@ export default function Edit({ service, serviceCategories }) {
                                                     updateArrayItem(
                                                         "technologies",
                                                         index,
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -626,7 +624,7 @@ export default function Edit({ service, serviceCategories }) {
                                                 onClick={() =>
                                                     removeArrayItem(
                                                         "technologies",
-                                                        index
+                                                        index,
                                                     )
                                                 }
                                                 className="text-red-600 hover:text-red-800"
@@ -660,7 +658,7 @@ export default function Edit({ service, serviceCategories }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "status",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -698,7 +696,7 @@ export default function Edit({ service, serviceCategories }) {
                                                 setData(
                                                     "sort_order",
                                                     parseInt(e.target.value) ||
-                                                        0
+                                                        0,
                                                 )
                                             }
                                             className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -718,7 +716,7 @@ export default function Edit({ service, serviceCategories }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "is_featured",
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -735,7 +733,7 @@ export default function Edit({ service, serviceCategories }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "is_active",
-                                                        e.target.checked
+                                                        e.target.checked,
                                                     )
                                                 }
                                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -755,7 +753,7 @@ export default function Edit({ service, serviceCategories }) {
                                 <Link
                                     href={route(
                                         "admin.homepage.services.show",
-                                        service
+                                        service,
                                     )}
                                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                 >
@@ -764,7 +762,7 @@ export default function Edit({ service, serviceCategories }) {
                                 <div className="flex items-center space-x-4">
                                     <Link
                                         href={route(
-                                            "admin.homepage.services.index"
+                                            "admin.homepage.services.index",
                                         )}
                                         className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                     >

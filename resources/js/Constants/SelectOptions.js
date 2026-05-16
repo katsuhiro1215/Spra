@@ -141,3 +141,80 @@ export const IS_FEATURED_OPTIONS = [
     { value: "1", label: "注目" },
     { value: "0", label: "通常" },
 ];
+
+/**
+ * お問い合わせ流入元のセレクトオプション
+ */
+export const CONTACT_SOURCE_OPTIONS = [
+    { value: "web", label: "Webフォーム" },
+    { value: "phone", label: "電話" },
+    { value: "email", label: "メール" },
+    { value: "sns", label: "SNS" },
+    { value: "referral", label: "紹介" },
+    { value: "other", label: "その他" },
+];
+
+/**
+ * お問い合わせステータスのセレクトオプション
+ */
+export const CONTACT_STATUS_OPTIONS = [
+    { value: "new", label: "新規" },
+    { value: "in_progress", label: "対応中" },
+    { value: "replied", label: "返信済み" },
+    { value: "closed", label: "クローズ" },
+];
+
+/**
+ * お問い合わせカテゴリのセレクトオプション
+ */
+export const CONTACT_CATEGORY_OPTIONS = [
+    { value: "estimate", label: "見積もり" },
+    { value: "partnership", label: "業務提携" },
+    { value: "support", label: "サポート" },
+    { value: "other", label: "その他" },
+];
+
+/**
+ * 見積もりステータスのセレクトオプション
+ */
+export const QUOTE_STATUS_OPTIONS = [
+    { value: "draft", label: "下書き" },
+    { value: "sent", label: "送信済み" },
+    { value: "reviewed", label: "確認済み" },
+    { value: "approved", label: "承認済み" },
+    { value: "rejected", label: "却下" },
+    { value: "expired", label: "期限切れ" },
+];
+
+/**
+ * 見積もり品目の課金形態のセレクトオプション
+ */
+export const QUOTE_BILLING_TYPE_OPTIONS = [
+    { value: "one_time", label: "一括" },
+    { value: "monthly", label: "月額" },
+    { value: "yearly", label: "年額" },
+    { value: "per_unit", label: "単位あたり" },
+    { value: "hourly", label: "時間単位" },
+    { value: "other", label: "その他" },
+];
+
+/**
+ * 契約ステータスのセレクトオプション
+ */
+export const CONTRACT_STATUS_OPTIONS = [
+    { value: "draft", label: "下書き" },
+    { value: "pending_signature", label: "署名待ち" },
+    { value: "active", label: "契約中" },
+    { value: "suspended", label: "一時停止" },
+    { value: "completed", label: "完了" },
+    { value: "cancelled", label: "キャンセル" },
+];
+
+/**
+ * 契約タイプのセレクトオプション
+ */
+export const CONTRACT_TYPE_OPTIONS = [
+    { value: "one_time", label: "一括払い" },
+    { value: "monthly", label: "月額" },
+    { value: "annual", label: "年額" },
+];

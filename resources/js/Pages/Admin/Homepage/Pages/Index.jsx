@@ -7,7 +7,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import BasicButton from "@/Components/Buttons/BasicButton";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
 // Constants
@@ -29,7 +29,7 @@ export default function Index({ pages }) {
             router.delete(
                 route("admin.homepage.pages.destroy", {
                     page: deletingItem.id,
-                })
+                }),
             );
             setShowDeleteAlert(false);
             setDeletingItem(null);

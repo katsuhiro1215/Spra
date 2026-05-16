@@ -5,42 +5,45 @@ namespace App\Services;
 use App\Models\Admin;
 use App\Mail\AdminCreatedMail;
 use App\Repositories\AdminRepository;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class AdminService
+/**
+ * 管理者サービス
+ * 
+ * BaseServiceを継承し、Admin固有のビジネスロジックを実装
+ */
+class AdminService extends BaseService
 {
-    public function __construct(
-        private AdminRepository $repository
-    ) {}
-
     /**
-     * ページネーション付きで管理者一覧を取得
-     * フィルター・ソート・ページネーションの責務はRepositoryに委譲
+     * コンストラクタ
+     * 
+     * @param AdminRepository $repository
      */
-    public function getPaginatedAdmins(array $filters = [], array $sort = [], int $perPage = 20): LengthAwarePaginator
+    public function __construct(AdminRepository $repository)
     {
-        return $this->repository->paginate($perPage, $filters, $sort);
+        parent::__construct($repository);
     }
 
     /**
-     * 管理者の統計情報を取得
+     * エンティティ名を返す
+     * 
+     * @return string
      */
-    public function getAdminStats(): array
+    protected function getEntityName(): string
     {
-        return [
-            'all' => Admin::withTrashed()->count(),
-            'active' => Admin::count(),
-            'trashed' => Admin::onlyTrashed()->count(),
-        ];
+        return 'Admin';
     }
 
     /**
      * 新しい管理者を作成（ランダムパスワード自動生成）
+     * 
+     * @param array $data
+     * @return array
+     * @throws \Exception
      */
     public function createAdmin(array $data): array
     {
@@ -73,6 +76,8 @@ class AdminService
                 // メール送信失敗してもadmin作成は成功とする
             }
 
+            $this->logInfo('created with password', $admin->id);
+
             return [
                 'admin'    => $admin->load('profile'),
                 'password' => $randomPassword,
@@ -82,6 +87,10 @@ class AdminService
 
     /**
      * 管理者情報を更新
+     * 
+     * @param Admin $admin
+     * @param array $data
+     * @return Admin
      */
     public function updateAdmin(Admin $admin, array $data): Admin
     {
@@ -96,28 +105,35 @@ class AdminService
                 $updateData['password'] = Hash::make($data['password']);
             }
 
-            $this->repository->update($admin, $updateData);
+            $updated = $this->repository->update($admin, $updateData);
 
-            return $admin->fresh();
+            $this->logInfo('updated', $updated->id);
+
+            return $updated;
         });
     }
 
     /**
      * 管理者を削除（自分自身は不可）
+     * 
+     * @param Admin $admin
+     * @param string $currentAdminId
+     * @return bool
+     * @throws \Exception
      */
-    public function deleteAdmin(Admin $admin, string $currentAdminId): void
+    public function deleteAdmin(Admin $admin, string $currentAdminId): bool
     {
         if ($admin->id === $currentAdminId) {
             throw new \Exception('自分自身を削除することはできません。');
         }
 
-        DB::transaction(function () use ($admin) {
-            $this->repository->delete($admin);
-        });
+        return $this->delete($admin);
     }
 
     /**
      * アクティブな管理者一覧を取得（選択肢用など）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getActiveAdmins()
     {
@@ -126,6 +142,8 @@ class AdminService
 
     /**
      * ロール定義を取得
+     * 
+     * @return array
      */
     public function getRoles(): array
     {
@@ -139,6 +157,8 @@ class AdminService
 
     /**
      * ステータス定義を取得
+     * 
+     * @return array
      */
     public function getStatuses(): array
     {

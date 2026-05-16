@@ -3,10 +3,11 @@ import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
-import AddressForm from "./_components/Form";
+import { FlashMessage } from "@/Components/Notifications";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Address Components
+import AddressForm from "./_components/Form";
 
 export default function Edit({ user, address, types }) {
     const { data, setData, put, processing, errors } = useForm({

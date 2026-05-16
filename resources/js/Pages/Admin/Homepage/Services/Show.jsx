@@ -4,15 +4,13 @@ import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import Card from "@/Components/Card";
-import BasicButton from "@/Components/Buttons/BasicButton";
+import { Card } from "@/Components/Card";
 // Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     CheckCircleIcon,
     XCircleIcon,
-    StarIcon,
     CurrencyYenIcon,
     TagIcon,
     LinkIcon,
@@ -122,7 +120,7 @@ export default function Show({ service }) {
                                             </span>
                                             <span
                                                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                                                    service.status
+                                                    service.status,
                                                 )}`}
                                             >
                                                 {getStatusText(service.status)}
@@ -195,7 +193,7 @@ export default function Show({ service }) {
                                                                 {feature}
                                                             </span>
                                                         </li>
-                                                    )
+                                                    ),
                                                 )}
                                             </ul>
                                         </div>
@@ -218,7 +216,7 @@ export default function Show({ service }) {
                                                             <CodeBracketIcon className="h-4 w-4 mr-1" />
                                                             {tech}
                                                         </span>
-                                                    )
+                                                    ),
                                                 )}
                                             </div>
                                         </div>
@@ -244,7 +242,7 @@ export default function Show({ service }) {
                                                     <CurrencyYenIcon className="h-5 w-5 text-gray-400 mr-1" />
                                                     <span className="text-2xl font-bold text-gray-900">
                                                         {formatPrice(
-                                                            plan.price
+                                                            plan.price,
                                                         )}
                                                     </span>
                                                 </div>
@@ -289,7 +287,7 @@ export default function Show({ service }) {
                                                         </div>
                                                         <LinkIcon className="h-4 w-4 text-gray-400" />
                                                     </div>
-                                                )
+                                                ),
                                             )}
                                         </div>
                                     </div>
@@ -375,7 +373,7 @@ export default function Show({ service }) {
                                 <Link
                                     href={route(
                                         "admin.homepage.services.edit",
-                                        service
+                                        service,
                                     )}
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                                 >

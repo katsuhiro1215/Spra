@@ -14,6 +14,7 @@ import {
 export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     const { props } = usePage();
     const admin = props.auth?.admin;
+    const unreadContacts = props.notifications?.unreadContacts || 0;
 
     // ダークモード状態管理
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -206,8 +207,14 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                 <Dropdown.Trigger>
                                     <button className="relative p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
                                         <BellIcon className="h-6 w-6" />
-                                        {/* 通知バッジ（例：未読3件） */}
-                                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800"></span>
+                                        {/* 通知バッジ（未読件数） */}
+                                        {unreadContacts > 0 && (
+                                            <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold ring-2 ring-white dark:ring-gray-800">
+                                                {unreadContacts > 9
+                                                    ? "9+"
+                                                    : unreadContacts}
+                                            </span>
+                                        )}
                                     </button>
                                 </Dropdown.Trigger>
                                 <Dropdown.Content align="right" width="80">
@@ -216,11 +223,35 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                             通知
                                         </p>
                                     </div>
-                                    <div className="p-3">
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                                            通知機能は近日実装予定です
-                                        </p>
-                                    </div>
+                                    {unreadContacts > 0 ? (
+                                        <div className="p-3">
+                                            <a
+                                                href={route(
+                                                    "admin.contact.index",
+                                                )}
+                                                className="flex items-center justify-between p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                            >
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        未読お問い合わせ
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {unreadContacts}
+                                                        件の新しいお問い合わせ
+                                                    </p>
+                                                </div>
+                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-bold">
+                                                    {unreadContacts}
+                                                </span>
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                                                未読通知はありません
+                                            </p>
+                                        </div>
+                                    )}
                                 </Dropdown.Content>
                             </Dropdown>
 

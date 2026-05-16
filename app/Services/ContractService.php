@@ -100,4 +100,12 @@ class ContractService
 
     return in_array($newStatus, $allowedTransitions[$contract->status] ?? []);
   }
+
+  /**
+   * 契約の統計情報を取得
+   */
+  public function getStats(): array
+  {
+    return $this->repository->getStats();
+  }
 }

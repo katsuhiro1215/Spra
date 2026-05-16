@@ -5,118 +5,70 @@ namespace App\Repositories;
 use App\Models\ServiceCategory;
 use App\Repositories\Contracts\ServiceCategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-class ServiceCategoryRepository implements ServiceCategoryRepositoryInterface
+class ServiceCategoryRepository extends SoftDeletableRepository implements ServiceCategoryRepositoryInterface
 {
-    public function query(): Builder
+    /**
+     * モデルクラス名を返す
+     * 
+     * @return string
+     */
+    protected function getModelClass(): string
     {
-        return ServiceCategory::query();
+        return ServiceCategory::class;
     }
 
-    public function findById(string $id): ?ServiceCategory
+    /**
+     * 検索対象フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSearchableFields(): array
     {
-        return ServiceCategory::with(['creator', 'updater'])->find($id);
+        return [
+            'name',
+            'slug',
+            'description',
+        ];
     }
 
-    public function findBySlug(string $slug): ?ServiceCategory
+    /**
+     * ソート可能フィールドを返す
+     * 
+     * @return array
+     */
+    protected function getSortableFields(): array
     {
-        return ServiceCategory::where('slug', $slug)->first();
+        return [
+            'created_at',
+            'updated_at',
+            'status',
+        ];
     }
 
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
     public function findWithFilters(array $filters): Builder
     {
-        $query = ServiceCategory::query();
-
-        // Apply trashed filter
-        $query = $this->applyTrashedFilter($query, $filters['trashed'] ?? 'without_trashed');
-
-        if (!empty($filters['search'])) {
-            $query = $this->buildSearchQuery($query, $filters['search']);
-        }
-
-        if (!empty($filters['status'])) {
-            $query = $this->buildStatusFilter($query, $filters['status']);
-        }
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
 
         return $query;
     }
 
-    public function paginate(int $perPage = 20, array $filters = [], array $sort = []): LengthAwarePaginator
+    public function getStats(): array
     {
-        $query = $this->findWithFilters($filters);
-        $query = $this->applySorting(
-            $query,
-            $sort['field'] ?? 'sort_order',
-            $sort['direction'] ?? 'asc'
-        );
+        $baseStats = parent::getStats();
 
-        return $query->with(['creator', 'updater'])
-            ->paginate($perPage)
-            ->withQueryString();
-    }
-
-    public function getAll(): Collection
-    {
-        return ServiceCategory::orderBy('sort_order')->get();
-    }
-
-    public function getActive(): Collection
-    {
-        return ServiceCategory::where('status', 'active')
-            ->orderBy('sort_order')
-            ->get();
-    }
-
-    public function buildSearchQuery(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('slug', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
-        });
-    }
-
-    public function buildStatusFilter(Builder $query, string $status): Builder
-    {
-        return $query->where('status', $status);
-    }
-
-    /**
-     * Apply trashed filter.
-     */
-    public function applyTrashedFilter(Builder $query, string $trashed): Builder
-    {
-        return match ($trashed) {
-            'only_trashed' => $query->onlyTrashed(),
-            'with_trashed' => $query->withTrashed(),
-            default => $query, // 'without_trashed'
-        };
-    }
-
-    public function applySorting(Builder $query, string $field, string $direction = 'asc'): Builder
-    {
-        $allowed = ['name', 'slug', 'sort_order', 'status', 'created_at', 'updated_at'];
-        $field = in_array($field, $allowed) ? $field : 'sort_order';
-        $direction = $direction === 'desc' ? 'desc' : 'asc';
-
-        return $query->orderBy($field, $direction);
-    }
-
-    public function create(array $data): ServiceCategory
-    {
-        return ServiceCategory::create($data);
-    }
-
-    public function update(ServiceCategory $serviceCategory, array $data): ServiceCategory
-    {
-        $serviceCategory->update($data);
-        return $serviceCategory->fresh(['creator', 'updater']);
-    }
-
-    public function delete(ServiceCategory $serviceCategory): bool
-    {
-        return $serviceCategory->delete();
+        return array_merge($baseStats, [
+            'total' => ServiceCategory::count(),
+            'active' => ServiceCategory::where('status', 'active')->count(),
+            'inactive' => ServiceCategory::where('status', 'inactive')->count(),
+            'suspended' => ServiceCategory::where('status', 'suspended')->count(),
+        ]);
     }
 }

@@ -31,16 +31,18 @@ class AdminController extends Controller
             'status' => $request->input('status'),
             'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
         ];
+
         // ソート
         $sort = [
             'field' => $request->input('sort_field', 'created_at'),
             'direction' => $request->input('sort_direction', 'desc'),
         ];
+
         // 管理者のページネーション取得
-        $admins = $this->adminService->getPaginatedAdmins($filters, $sort, 20);
+        $admins = $this->adminService->getPaginated($filters, $sort, 20);
 
         // 統計情報の取得
-        $stats = $this->adminService->getAdminStats();
+        $stats = $this->adminService->getStats();
 
         return Inertia::render('Admin/Admins/Index', [
             'admins' => $admins,

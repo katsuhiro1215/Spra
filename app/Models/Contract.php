@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Contract extends Model
 {
@@ -18,7 +19,6 @@ class Contract extends Model
         'contract_group_id',
         'parent_contract_id',
         'quote_id',
-        'project_id',
         'user_id',
         'company_id',
         'service_id',
@@ -66,9 +66,9 @@ class Contract extends Model
         'cancelled'         => 'キャンセル',
     ];
 
-    public function project(): BelongsTo
+    public function project(): HasOne
     {
-        return $this->belongsTo(Project::class);
+        return $this->hasOne(Project::class);
     }
 
     public function contractGroup(): BelongsTo

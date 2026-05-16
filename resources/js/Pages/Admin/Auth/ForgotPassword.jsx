@@ -4,7 +4,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 // Components
 import { TextInput, InputError } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import FlashMessage from "@/Components/Notifications/FlashMessage";
+import { FlashMessage } from "@/Components/Notifications";
 
 export default function ForgotPassword({ status }) {
     // フォーム状態管理

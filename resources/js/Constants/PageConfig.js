@@ -143,6 +143,21 @@ export const PageConfig = {
     },
 
     /**
+     * 見積もり管理
+     */
+    quotes: {
+        title: "📄 見積もり管理",
+        description: "見積もりを管理します",
+        documentTitle: "見積もり管理",
+        breadcrumbs: ["ホーム", "見積もり管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("見積もり"),
+        search: createSearchTemplate("見積もり"),
+    },
+
+    /**
      * コンテンツ管理
      */
     //固定ページ管理
