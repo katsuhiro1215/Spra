@@ -14,6 +14,7 @@ class Contact extends Model
     protected $fillable = [
         'name',
         'email',
+        'user_id',
         'phone',
         'company',
         'category',
@@ -42,9 +43,19 @@ class Contact extends Model
         return $this->belongsTo(Admin::class, 'assigned_to');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function responses(): HasMany
     {
         return $this->hasMany(Response::class)->orderBy('created_at', 'desc');
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class)->orderBy('created_at', 'desc');
     }
 
     // スコープ
@@ -56,6 +67,11 @@ class Contact extends Model
     public function scopeInProgress($query)
     {
         return $query->where('status', 'in_progress');
+    }
+
+    public function scopeReplied($query)
+    {
+        return $query->where('status', 'replied');
     }
 
     public function scopeResolved($query)
@@ -82,7 +98,7 @@ class Contact extends Model
     protected function isResolved(): Attribute
     {
         return Attribute::make(
-            get: fn() => in_array($this->status, ['resolved', 'closed'])
+            get: fn() => in_array($this->status, ['replied', 'resolved', 'closed'])
         );
     }
 
@@ -92,6 +108,7 @@ class Contact extends Model
             get: fn() => match ($this->status) {
                 'new' => '新規',
                 'in_progress' => '対応中',
+                'replied' => '返信済み',
                 'resolved' => '解決済み',
                 'closed' => 'クローズ',
                 default => $this->status

@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Http\Controllers\Admin\Schedule;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\HolidayRequest;
+use App\Models\Holiday;
+use App\Services\HolidayService;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Response;
+use Inertia\Inertia;
+
+class HolidayController extends Controller
+{
+    /**
+     * 初期化
+     * @param  \App\Services\HolidayService  $holidayService
+     * @return void
+     */
+    public function __construct(
+        private HolidayService $holidayService
+    ) {}
+
+    /**
+     * 休業日一覧表示
+     */
+    public function index(Request $request): Response
+    {
+        // フィルタとソートの処理
+        $filters = [
+            'search' => $request->input('search'),
+            'type' => $request->input('type'),
+            'is_recurring' => $request->input('is_recurring'),
+        ];
+
+        $sort = [
+            'field' => $request->input('sort_field', 'date'),
+            'direction' => $request->input('sort_direction', 'asc'),
+        ];
+
+        $holidays = $this->holidayService->getPaginatedHolidays($filters, $sort, 20);
+
+        return Inertia::render('Admin/Schedules/Holidays/Index', [
+            'holidays' => $holidays,
+            'filters' => $filters,
+            'sort' => $sort,
+        ]);
+    }
+
+    /**
+     * 休業日作成画面表示
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Schedules/Holidays/Create');
+    }
+
+    /**
+     * 休業日作成処理
+     */
+    public function store(HolidayRequest $request): RedirectResponse
+    {
+        // 一括登録の場合
+        if ($request->has('holidays')) {
+            $result = $this->holidayService->createBulkHolidays($request->validated()['holidays']);
+
+            $message = "{$result['created']}件の祝日を登録しました。";
+            if ($result['skipped'] > 0) {
+                $message .= " ({$result['skipped']}件は既に存在するためスキップされました)";
+            }
+
+            if (!empty($result['errors'])) {
+                return redirect()->route('admin.holidays.index')
+                    ->with('warning', $message)
+                    ->with('import_errors', $result['errors']);
+            }
+
+            return redirect()->route('admin.holidays.index')
+                ->with('success', $message);
+        }
+
+        // 単一登録の場合
+        $holiday = $this->holidayService->createHoliday($request->validated());
+
+        return redirect()->route('admin.holidays.index')
+            ->with('success', '祝日を登録しました。');
+    }
+
+    /**
+     * Excelファイルからインポート
+     */
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:2048',
+        ], [
+            'file.required' => 'ファイルを選択してください。',
+            'file.mimes' => 'Excel形式のファイル(.xlsx, .xls)を選択してください。',
+            'file.max' => 'ファイルサイズは2MB以下にしてください。',
+        ]);
+
+        try {
+            $result = $this->holidayService->importFromExcel($request->file('file'));
+
+            $message = "{$result['created']}件の祝日をインポートしました。";
+            if ($result['skipped'] > 0) {
+                $message .= " ({$result['skipped']}件は既に存在するためスキップされました)";
+            }
+
+            if (!empty($result['errors'])) {
+                return redirect()->route('owner.holidays.index')
+                    ->with('warning', $message)
+                    ->with('import_errors', $result['errors']);
+            }
+
+            return redirect()->route('admin.holidays.index')
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'インポートに失敗しました: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 休業日編集画面表示
+     */
+    public function edit(Holiday $holiday): Response
+    {
+        return Inertia::render('Admin/Schedules/Holidays/Edit', [
+            'holiday' => $holiday,
+        ]);
+    }
+
+    /**
+     * 休業日更新処理
+     */
+    public function update(HolidayRequest $request, Holiday $holiday): RedirectResponse
+    {
+        $this->holidayService->updateHoliday($holiday, $request->validated());
+
+        return redirect()->route('admin.holidays.index')
+            ->with('success', '祝日を更新しました。');
+    }
+
+    /**
+     * 休業日削除処理
+     */
+    public function destroy(Holiday $holiday): RedirectResponse
+    {
+        try {
+            $this->holidayService->deleteHoliday($holiday);
+
+            return redirect()->route('admin.holidays.index')
+                ->with('success', '祝日を削除しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+}

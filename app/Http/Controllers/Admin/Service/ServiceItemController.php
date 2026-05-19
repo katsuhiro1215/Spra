@@ -33,11 +33,11 @@ class ServiceItemController extends Controller
         'direction' => $request->get('direction', 'asc')
       ];
 
-      $serviceItems = $this->serviceItemService->getPaginatedServiceItems($filters, $sort);
+      $serviceItems = $this->serviceItemService->getPaginated($filters, $sort, 20);
       $statuses = $this->serviceItemService->getStatuses();
       $itemTypes = $this->serviceItemService->getItemTypes();
-      $services = $this->serviceService->getActiveServices();
-      $servicePlans = $this->servicePlanService->getActiveServicePlans();
+      $services = $this->serviceService->getActiveForSelect();
+      $servicePlans = $this->servicePlanService->getActiveForSelect();
 
       return Inertia::render('Admin/Service/ServiceItems/Index', [
         'serviceItems' => $serviceItems,
@@ -70,8 +70,8 @@ class ServiceItemController extends Controller
   {
     $statuses = $this->serviceItemService->getStatuses();
     $itemTypes = $this->serviceItemService->getItemTypes();
-    $services = $this->serviceService->getActiveServices();
-    $servicePlans = $this->servicePlanService->getActiveServicePlans();
+    $services = $this->serviceService->getActiveForSelect();
+    $servicePlans = $this->servicePlanService->getActiveForSelect();
 
     return Inertia::render('Admin/Service/ServiceItems/Create', [
       'statuses' => $statuses,
@@ -116,8 +116,8 @@ class ServiceItemController extends Controller
   {
     $statuses = $this->serviceItemService->getStatuses();
     $itemTypes = $this->serviceItemService->getItemTypes();
-    $services = $this->serviceService->getActiveServices();
-    $servicePlans = $this->servicePlanService->getActiveServicePlans();
+    $services = $this->serviceService->getActiveForSelect();
+    $servicePlans = $this->servicePlanService->getActiveForSelect();
 
     return Inertia::render('Admin/Service/ServiceItems/Edit', [
       'serviceItem' => $serviceItem,

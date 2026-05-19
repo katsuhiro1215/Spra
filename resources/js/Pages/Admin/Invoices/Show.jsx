@@ -399,21 +399,29 @@ export default function Show({ invoice, payments }) {
                             <div className="space-y-2 max-w-md ml-auto">
                                 <div className="flex justify-between text-gray-700">
                                     <span>小計</span>
-                                    <span>{formatAmount(invoice.subtotal)}</span>
+                                    <span>
+                                        {formatAmount(invoice.subtotal)}
+                                    </span>
                                 </div>
                                 {invoice.discount_amount > 0 && (
                                     <div className="flex justify-between text-red-600">
                                         <span>値引き</span>
                                         <span>
-                                            -{formatAmount(invoice.discount_amount)}
+                                            -
+                                            {formatAmount(
+                                                invoice.discount_amount,
+                                            )}
                                         </span>
                                     </div>
                                 )}
                                 <div className="flex justify-between text-gray-700">
                                     <span>
-                                        消費税 ({(invoice.tax_rate * 100).toFixed(1)}%)
+                                        消費税 (
+                                        {(invoice.tax_rate * 100).toFixed(1)}%)
                                     </span>
-                                    <span>{formatAmount(invoice.tax_amount)}</span>
+                                    <span>
+                                        {formatAmount(invoice.tax_amount)}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t-2">
                                     <span>合計金額</span>
@@ -435,7 +443,9 @@ export default function Show({ invoice, payments }) {
                         <CardBody>
                             <div className="mb-6">
                                 <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-gray-700">入金済み</span>
+                                    <span className="text-gray-700">
+                                        入金済み
+                                    </span>
                                     <span className="font-semibold">
                                         {formatAmount(totalPaid)} /{" "}
                                         {formatAmount(invoice.total_amount)}
@@ -455,7 +465,8 @@ export default function Show({ invoice, payments }) {
                                     </span>
                                     {remainingAmount > 0 && (
                                         <span className="text-red-600 font-semibold">
-                                            残高: {formatAmount(remainingAmount)}
+                                            残高:{" "}
+                                            {formatAmount(remainingAmount)}
                                         </span>
                                     )}
                                 </div>
@@ -478,7 +489,10 @@ export default function Show({ invoice, payments }) {
                                                 name="amount"
                                                 value={data.amount}
                                                 onChange={(e) =>
-                                                    setData("amount", e.target.value)
+                                                    setData(
+                                                        "amount",
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 error={errors.amount}
                                                 min="0"
@@ -491,7 +505,10 @@ export default function Show({ invoice, payments }) {
                                                 name="payment_date"
                                                 value={data.payment_date}
                                                 onChange={(e) =>
-                                                    setData("payment_date", e.target.value)
+                                                    setData(
+                                                        "payment_date",
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 error={errors.payment_date}
                                                 required
@@ -515,7 +532,10 @@ export default function Show({ invoice, payments }) {
                                                 name="payment_type"
                                                 value={data.payment_type}
                                                 onChange={(e) =>
-                                                    setData("payment_type", e.target.value)
+                                                    setData(
+                                                        "payment_type",
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 error={errors.payment_type}
                                                 options={PAYMENT_TYPE_OPTIONS}
@@ -558,7 +578,9 @@ export default function Show({ invoice, payments }) {
                                                 type="submit"
                                                 disabled={processing}
                                             >
-                                                {processing ? "処理中..." : "記録"}
+                                                {processing
+                                                    ? "処理中..."
+                                                    : "記録"}
                                             </PrimaryButton>
                                         </div>
                                     </form>
@@ -582,10 +604,14 @@ export default function Show({ invoice, payments }) {
                                         {payments.map((payment) => (
                                             <Tr key={payment.id}>
                                                 <Td>
-                                                    {formatDate(payment.payment_date)}
+                                                    {formatDate(
+                                                        payment.payment_date,
+                                                    )}
                                                 </Td>
                                                 <Td className="font-semibold">
-                                                    {formatAmount(payment.amount)}
+                                                    {formatAmount(
+                                                        payment.amount,
+                                                    )}
                                                 </Td>
                                                 <Td>
                                                     {getPaymentMethodLabel(
@@ -600,7 +626,8 @@ export default function Show({ invoice, payments }) {
                                                         : "-"}
                                                 </Td>
                                                 <Td>
-                                                    {payment.transaction_id || "-"}
+                                                    {payment.transaction_id ||
+                                                        "-"}
                                                 </Td>
                                                 <Td className="text-sm text-gray-600">
                                                     {payment.notes || "-"}

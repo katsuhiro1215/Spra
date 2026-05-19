@@ -29,7 +29,7 @@ class ServiceCategoryController extends Controller
                 'direction' => $request->get('direction', 'asc')
             ];
 
-            $serviceCategories = $this->serviceCategoryService->getPaginatedServiceCategories($filters, $sort);
+            $serviceCategories = $this->serviceCategoryService->getPaginated($filters, $sort, 20);
             $statuses = $this->serviceCategoryService->getStatuses();
             $stats = $this->serviceCategoryService->getServiceCategoryStats();
 

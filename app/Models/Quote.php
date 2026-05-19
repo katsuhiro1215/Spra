@@ -25,13 +25,11 @@ class Quote extends Model
         'quote_number',
         'user_id',
         'company_id',
-        'title',
-        'client_name',
-        'client_email',
-        'client_phone',
-        'requirements',
-        'custom_specifications',
+        'subject',
+        'message',
+        'notes',
         'base_amount',
+        'discount_type',
         'discount_amount',
         'tax_rate',
         'tax_amount',
@@ -40,21 +38,20 @@ class Quote extends Model
         'client_feedback',
         'sent_at',
         'responded_at',
-        'expires_at',
+        'valid_until',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
-        'custom_specifications' => 'array',
         'base_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
-        'tax_rate' => 'decimal:2',
+        'tax_rate' => 'integer',
         'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'sent_at' => 'datetime',
         'responded_at' => 'datetime',
-        'expires_at' => 'datetime',
+        'valid_until' => 'date',
     ];
 
     // -------------------------

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResponseRequest;
 use App\Models\Contact;
 use App\Models\Response;
 use App\Services\ContactService;
@@ -19,19 +20,6 @@ class ResponseController extends Controller
         private ContactService $contactService,
         private ResponseTemplateService $responseTemplateService
     ) {}
-
-    /**
-     * Display a listing of responses for a contact.
-     */
-    public function index(Contact $contact): InertiaResponse
-    {
-        $responses = $this->responseService->getByContact($contact->id);
-
-        return Inertia::render('Admin/Contacts/Responses/Index', [
-            'contact' => $contact->load(['assignedAdmin', 'responses']),
-            'responses' => $responses,
-        ]);
-    }
 
     /**
      * Show the form for creating a new response.
@@ -51,14 +39,9 @@ class ResponseController extends Controller
     /**
      * Store a newly created response (draft).
      */
-    public function store(Request $request, Contact $contact)
+    public function store(ResponseRequest $request, Contact $contact)
     {
-        $validated = $request->validate([
-            'response_template_id' => 'nullable|exists:response_templates,id',
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
-            'send_now' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         try {
             $data = [
@@ -78,28 +61,15 @@ class ResponseController extends Controller
             // 即座に送信する場合
             if ($request->boolean('send_now')) {
                 $this->responseService->sendResponse($response);
-                return redirect()->route('admin.homepage.contacts.show', $contact)
+                return redirect()->route('admin.contact.show', $contact)
                     ->with('success', '返答を送信しました。');
             }
 
-            return redirect()->route('admin.homepage.contacts.show', $contact)
+            return redirect()->route('admin.contact.show', $contact)
                 ->with('success', '返答を下書き保存しました。');
         } catch (\Exception $e) {
             return back()->with('error', '返答の保存に失敗しました: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Display the specified response.
-     */
-    public function show(Contact $contact, Response $response): InertiaResponse
-    {
-        $response->load(['admin', 'responseTemplate', 'creator']);
-
-        return Inertia::render('Admin/Contacts/Responses/Show', [
-            'contact' => $contact,
-            'response' => $response,
-        ]);
     }
 
     /**
@@ -109,7 +79,7 @@ class ResponseController extends Controller
     {
         // 送信済みの返答は編集できない
         if ($response->isSent()) {
-            return redirect()->route('admin.homepage.contacts.show', $contact)
+            return redirect()->route('admin.contact.show', $contact)
                 ->with('error', '送信済みの返答は編集できません。');
         }
 
@@ -127,22 +97,29 @@ class ResponseController extends Controller
     /**
      * Update the specified response.
      */
-    public function update(Request $request, Contact $contact, Response $response)
+    public function update(ResponseRequest $request, Contact $contact, Response $response)
     {
         // 送信済みの返答は編集できない
         if ($response->isSent()) {
             return back()->with('error', '送信済みの返答は編集できません。');
         }
 
-        $validated = $request->validate([
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         try {
-            $this->responseService->updateResponse($response, $validated);
+            $this->responseService->updateResponse($response, [
+                'subject' => $validated['subject'],
+                'body' => $validated['body'],
+            ]);
 
-            return redirect()->route('admin.homepage.contacts.show', $contact)
+            // 即座に送信する場合
+            if ($request->boolean('send_now')) {
+                $this->responseService->sendResponse($response);
+                return redirect()->route('admin.contact.show', $contact)
+                    ->with('success', '返答を送信しました。');
+            }
+
+            return redirect()->route('admin.contact.show', $contact)
                 ->with('success', '返答を更新しました。');
         } catch (\Exception $e) {
             return back()->with('error', '返答の更新に失敗しました: ' . $e->getMessage());
@@ -157,7 +134,7 @@ class ResponseController extends Controller
         try {
             $this->responseService->deleteResponse($response);
 
-            return redirect()->route('admin.homepage.contacts.show', $contact)
+            return redirect()->route('admin.contact.show', $contact)
                 ->with('success', '返答を削除しました。');
         } catch (\Exception $e) {
             return back()->with('error', '返答の削除に失敗しました: ' . $e->getMessage());
@@ -177,7 +154,7 @@ class ResponseController extends Controller
         try {
             $this->responseService->sendResponse($response);
 
-            return redirect()->route('admin.homepage.contacts.show', $contact)
+            return redirect()->route('admin.contact.show', $contact)
                 ->with('success', '返答を送信しました。');
         } catch (\Exception $e) {
             return back()->with('error', '返答の送信に失敗しました: ' . $e->getMessage());

@@ -56,6 +56,7 @@ class ContactController extends Controller
             'total' => Contact::count(),
             'new' => Contact::new()->count(),
             'in_progress' => Contact::inProgress()->count(),
+            'replied' => Contact::replied()->count(),
             'resolved' => Contact::resolved()->count(),
             'recent' => Contact::recent()->count(),
         ];
@@ -73,7 +74,12 @@ class ContactController extends Controller
      */
     public function show(Contact $contact): Response
     {
-        $contact->load(['assignedAdmin']);
+        $contact->load([
+            'assignedAdmin',
+            'responses.admin',
+            'invitations.invitedBy',
+            'invitations.user',
+        ]);
 
         return Inertia::render('Admin/Contacts/Show', [
             'contact' => $contact,
@@ -87,15 +93,15 @@ class ContactController extends Controller
     public function update(Request $request, Contact $contact): RedirectResponse
     {
         $request->validate([
-            'status' => 'required|in:new,in_progress,resolved,closed',
+            'status' => 'required|in:new,in_progress,replied,resolved,closed',
             'admin_notes' => 'nullable|string',
             'assigned_to' => 'nullable|exists:admins,id',
         ]);
 
         $updateData = $request->only(['status', 'admin_notes', 'assigned_to']);
 
-        // ステータスが解決済みまたはクローズの場合、responded_atを設定
-        if (in_array($request->status, ['resolved', 'closed']) && !$contact->responded_at) {
+        // ステータスが返信済み、解決済みまたはクローズの場合、responded_atを設定
+        if (in_array($request->status, ['replied', 'resolved', 'closed']) && !$contact->responded_at) {
             $updateData['responded_at'] = now();
         }
 
@@ -123,7 +129,7 @@ class ContactController extends Controller
         $request->validate([
             'contact_ids' => 'required|array',
             'contact_ids.*' => 'exists:contacts,id',
-            'status' => 'required|in:new,in_progress,resolved,closed',
+            'status' => 'required|in:new,in_progress,replied,resolved,closed',
             'assigned_to' => 'nullable|exists:admins,id',
         ]);
 
@@ -133,8 +139,8 @@ class ContactController extends Controller
             $updateData['assigned_to'] = $request->assigned_to;
         }
 
-        // ステータスが解決済みまたはクローズの場合、responded_atを設定
-        if (in_array($request->status, ['resolved', 'closed'])) {
+        // ステータスが返信済み、解決済みまたはクローズの場合、responded_atを設定
+        if (in_array($request->status, ['replied', 'resolved', 'closed'])) {
             $updateData['responded_at'] = now();
         }
 

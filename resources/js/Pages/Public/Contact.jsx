@@ -2,18 +2,16 @@ import { useState } from "react";
 import { useForm, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
+import { PublicFlashMessage } from "@/Components/Notifications";
 import {
     EnvelopeIcon,
     PhoneIcon,
     MapPinIcon,
     ClockIcon,
     PaperAirplaneIcon,
-    CheckCircleIcon,
-    ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Contact({ auth }) {
-    const { flash } = usePage().props;
     const breadcrumbs = [{ label: "お問い合わせ" }];
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
@@ -26,7 +24,7 @@ export default function Contact({ auth }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("public.contact.store"), {
+        post(route("user.public.contact.store"), {
             onSuccess: () => {
                 reset();
             },
@@ -68,38 +66,12 @@ export default function Contact({ auth }) {
                 breadcrumbs={breadcrumbs}
             />
 
+            {/* フラッシュメッセージ（中央モーダル表示） */}
+            <PublicFlashMessage />
+
             <section className="py-20 bg-gray-50">
                 <div className="container mx-auto px-6">
                     <div className="max-w-6xl mx-auto">
-                        {/* フラッシュメッセージ */}
-                        {flash?.success && (
-                            <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-start">
-                                <CheckCircleIcon className="h-6 w-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <h4 className="text-green-800 font-semibold mb-1">
-                                        送信完了
-                                    </h4>
-                                    <p className="text-green-700 text-sm">
-                                        {flash.success}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {flash?.error && (
-                            <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start">
-                                <ExclamationCircleIcon className="h-6 w-6 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <h4 className="text-red-800 font-semibold mb-1">
-                                        エラー
-                                    </h4>
-                                    <p className="text-red-700 text-sm">
-                                        {flash.error}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
                         <div className="grid lg:grid-cols-2 gap-12">
                             {/* Left - フォーム */}
                             <div>

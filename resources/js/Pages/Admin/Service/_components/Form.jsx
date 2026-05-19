@@ -114,7 +114,12 @@ const ServiceForm = ({
                 <CardBody>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* サービス名 */}
-                        <FormGroup label="サービス名" required>
+                        <FormGroup
+                            label="サービス名"
+                            htmlFor="name"
+                            required
+                            help="サービスの名前を入力してください"
+                        >
                             <TextInput
                                 id="name"
                                 value={data.name}
@@ -137,6 +142,8 @@ const ServiceForm = ({
                                     </span>
                                 </>
                             }
+                            htmlFor="slug"
+                            help="URLに使用される識別子です。英小文字、数字、ハイフンのみ使用できます。空白の場合はサービス名から自動生成されます。"
                         >
                             <div className="flex items-center space-x-2">
                                 <TextInput

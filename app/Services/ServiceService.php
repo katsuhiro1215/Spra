@@ -113,6 +113,20 @@ class ServiceService extends BaseService
     }
 
     /**
+     * セレクトボックス用にアクティブなサービスのみを取得（id/nameのみ）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveForSelect()
+    {
+        return $this->repository->query()
+            ->select('id', 'name', 'slug')
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    /**
      * 一意のスラッグを生成
      * 
      * @param string $name

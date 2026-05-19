@@ -31,10 +31,10 @@ class ServicePlanController extends Controller
                 'direction' => $request->get('direction', 'asc')
             ];
 
-            $servicePlans = $this->servicePlanService->getPaginatedServicePlans($filters, $sort);
+            $servicePlans = $this->servicePlanService->getPaginated($filters, $sort, 20);
             $statuses = $this->servicePlanService->getStatuses();
             $billingCycles = $this->servicePlanService->getBillingCycles();
-            $services = $this->serviceService->getActiveServices();
+            $services = $this->serviceService->getActiveForSelect();
 
             return Inertia::render('Admin/Service/ServicePlans/Index', [
                 'servicePlans' => $servicePlans,
@@ -65,7 +65,7 @@ class ServicePlanController extends Controller
     {
         $statuses = $this->servicePlanService->getStatuses();
         $billingCycles = $this->servicePlanService->getBillingCycles();
-        $services = $this->serviceService->getActiveServices();
+        $services = $this->serviceService->getActiveForSelect();
 
         return Inertia::render('Admin/Service/ServicePlans/Create', [
             'statuses' => $statuses,
@@ -109,7 +109,7 @@ class ServicePlanController extends Controller
     {
         $statuses = $this->servicePlanService->getStatuses();
         $billingCycles = $this->servicePlanService->getBillingCycles();
-        $services = $this->serviceService->getActiveServices();
+        $services = $this->serviceService->getActiveForSelect();
 
         return Inertia::render('Admin/Service/ServicePlans/Edit', [
             'servicePlan' => $servicePlan,

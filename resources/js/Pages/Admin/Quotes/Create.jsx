@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
@@ -11,36 +11,45 @@ import { PageConfig } from "@/Constants/PageConfig";
 // Quote Components
 import QuoteForm from "./_components/Form";
 
-export default function Create() {
+export default function Create({
+    users,
+    serviceCategories,
+    serviceItems,
+    projectInquiry = null,
+}) {
     const { data, setData, post, processing, errors } = useForm({
-        title: "",
+        user_id: "",
+        company_id: "",
+        subject: "",
+        message: "",
+        valid_until: "",
+        notes: "",
         status: "draft",
-        expires_at: "",
-        client_name: "",
-        client_company: "",
-        client_email: "",
-        client_phone: "",
-        client_address: "",
-        requirements: "",
+        discount_type: "fixed",
         discount_amount: 0,
-        tax_rate: 0.1,
+        tax_rate: 10,
         base_amount: 0,
         tax_amount: 0,
         total_amount: 0,
-        items: [
-            {
-                name: "",
-                description: "",
-                item_type: "service",
-                billing_type: "one_time",
-                quantity: 1,
-                unit_price: 0,
-                amount: 0,
-                estimated_days: 0,
-                sort_order: 0,
-            },
-        ],
+        items: [],
+        from_inquiry_id: projectInquiry?.id || null,
     });
+
+    // ProjectInquiryから見積もりを作成する場合、初期値を設定
+    useEffect(() => {
+        if (projectInquiry) {
+            setData({
+                ...data,
+                user_id: projectInquiry.user_id,
+                subject:
+                    projectInquiry.title ||
+                    `${projectInquiry.service?.name} - ${projectInquiry.service_plan?.name}`,
+                message: projectInquiry.summary || "",
+                notes: `見積もり依頼 ${projectInquiry.inquiry_code} から作成\n概算金額: ¥${projectInquiry.estimated_price?.toLocaleString()}\n想定納期: 約${projectInquiry.estimated_days}日`,
+                from_inquiry_id: projectInquiry.id,
+            });
+        }
+    }, [projectInquiry]);
 
     const submit = () => {
         post(route("admin.quote.store"));
@@ -75,7 +84,7 @@ export default function Create() {
                 />
             }
         >
-            <Head title={PageConfig.quotes.create.title} />
+            <Head title={PageConfig.quotes.create} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
@@ -88,6 +97,10 @@ export default function Create() {
                     processing={processing}
                     onSubmit={submit}
                     cancelRoute={route("admin.quote.index")}
+                    users={users}
+                    serviceCategories={serviceCategories}
+                    serviceItems={serviceItems}
+                    projectInquiry={projectInquiry}
                     isEdit={false}
                 />
             </div>

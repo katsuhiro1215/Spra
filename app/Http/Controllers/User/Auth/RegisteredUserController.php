@@ -4,11 +4,15 @@ namespace App\Http\Controllers\User\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserInvitation;
+use App\Models\Company;
+use App\Models\Profile;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,9 +22,47 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('User/Auth/Register');
+        return Inertia::render('User/Auth/Register', [
+            'invitation' => null,
+        ]);
+    }
+
+    /**
+     * Display the registration view with invitation token.
+     */
+    public function createWithInvitation(string $token): Response|RedirectResponse
+    {
+        $invitation = UserInvitation::where('token', $token)
+            ->with('contact')
+            ->first();
+
+        // 招待が存在しない、または無効な場合
+        if (!$invitation) {
+            return redirect()->route('user.register')
+                ->with('error', '無効な招待リンクです。');
+        }
+
+        if (!$invitation->isValid()) {
+            $message = $invitation->isExpired()
+                ? '招待リンクの有効期限が切れています。'
+                : 'この招待は既に使用されています。';
+
+            return redirect()->route('user.register')
+                ->with('error', $message);
+        }
+
+        return Inertia::render('User/Auth/Register', [
+            'invitation' => [
+                'token' => $invitation->token,
+                'email' => $invitation->email,
+                'contact' => [
+                    'name' => $invitation->contact->name,
+                    'company' => $invitation->contact->company,
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -30,22 +72,110 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+        // 基本バリデーション
+        $validated = $request->validate([
+            'invitation_token' => 'nullable|string',
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+
+            // Company情報（任意）
+            'has_company' => 'nullable|boolean',
+            'company_name' => 'required_if:has_company,true|nullable|string|max:255',
+            'company_type' => 'required_if:has_company,true|nullable|in:individual,corporate',
+            'company_registration_number' => 'nullable|string|max:50',
+            'company_phone' => 'nullable|string|max:20',
+            'company_address' => 'nullable|string|max:500',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        DB::beginTransaction();
+        try {
+            // 招待トークンがある場合は検証
+            $invitation = null;
+            if ($request->filled('invitation_token')) {
+                $invitation = UserInvitation::where('token', $request->invitation_token)
+                    ->valid()
+                    ->first();
 
-        event(new Registered($user));
+                if (!$invitation) {
+                    return back()->withErrors(['invitation_token' => '無効または期限切れの招待です。'])->withInput();
+                }
 
-        Auth::login($user);
+                // 招待のメールアドレスと一致するか確認
+                if ($invitation->email !== $request->email) {
+                    return back()->withErrors(['email' => '招待されたメールアドレスと一致しません。'])->withInput();
+                }
+            }
 
-        return redirect(user_home_url());
+            // ユーザー作成
+            $user = User::create([
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'status' => 'active',
+            ]);
+
+            // プロフィール作成（名前を保存）
+            $user->profile()->create([
+                'full_name' => $invitation ? $invitation->contact->name : $request->input('name', ''),
+            ]);
+
+            // Company情報がある場合は作成して紐付け
+            if ($request->boolean('has_company') && $request->filled('company_name')) {
+                $company = Company::create([
+                    'name' => $request->company_name,
+                    'company_type' => $request->company_type ?? 'individual',
+                    'registration_number' => $request->company_registration_number,
+                    'phone' => $request->company_phone,
+                    'status' => 'active',
+                ]);
+
+                // Company住所がある場合
+                if ($request->filled('company_address')) {
+                    $company->addresses()->create([
+                        'address' => $request->company_address,
+                        'is_default' => true,
+                        'is_active' => true,
+                    ]);
+                }
+
+                // ユーザーとCompanyを紐付け
+                $user->companies()->attach($company->id, [
+                    'role' => 'owner',
+                    'is_primary' => true,
+                    'joined_at' => now(),
+                ]);
+            }
+
+            // 招待がある場合は承認処理
+            if ($invitation) {
+                $invitation->markAsAccepted($user);
+
+                // Contactにuser_idを紐付け
+                $invitation->contact->update([
+                    'user_id' => $user->id,
+                ]);
+
+                // IPアドレスとユーザーエージェントを記録
+                $invitation->update([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+            }
+
+            event(new Registered($user));
+
+            Auth::login($user);
+
+            DB::commit();
+
+            return redirect(user_home_url())->with('success', 'アカウントを作成しました。');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('User registration failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'アカウント作成に失敗しました。もう一度お試しください。')->withInput();
+        }
     }
 }

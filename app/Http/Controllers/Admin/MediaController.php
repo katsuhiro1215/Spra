@@ -37,10 +37,10 @@ class MediaController extends Controller
             'direction' => $request->query('sort_direction', 'desc'),
         ];
 
-        $mediaList = $this->mediaService->getPaginatedMedia(
+        $mediaList = $this->mediaService->getPaginated(
             $filters,
             $sort,
-            perPage: 20
+            20
         );
 
         // 統計情報を取得

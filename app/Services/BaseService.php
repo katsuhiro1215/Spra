@@ -78,6 +78,16 @@ abstract class BaseService
   }
 
   /**
+   * リポジトリインスタンスを取得
+   * 
+   * @return BaseRepositoryInterface
+   */
+  public function getRepository(): BaseRepositoryInterface
+  {
+    return $this->repository;
+  }
+
+  /**
    * 統計情報を取得
    * 
    * @return array

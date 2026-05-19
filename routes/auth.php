@@ -17,6 +17,8 @@ Route::middleware('guest:users')->group(function () {
     Route::controller(RegisteredUserController::class)->group(function () {
         Route::get('register', 'create')->name('register');
         Route::post('register', 'store');
+        // 招待経由の登録
+        Route::get('register/invited/{token}', 'createWithInvitation')->name('register.invited');
     });
     // ログイン
     Route::controller(AuthenticatedSessionController::class)->group(function () {
@@ -49,8 +51,8 @@ Route::middleware('auth:users')->group(function () {
         ->name('verification.send');
     // パスワード確認
     Route::controller(ConfirmablePasswordController::class)->group(function () {
-       Route::get('confirm-password', 'show')->name('password.confirm');
-       Route::post('confirm-password', 'store'); 
+        Route::get('confirm-password', 'show')->name('password.confirm');
+        Route::post('confirm-password', 'store');
     });
     // パスワード更新
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');

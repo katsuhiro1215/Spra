@@ -28,10 +28,9 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
     {
         return [
             'quote_number',
-            'title',
-            'client_name',
-            'client_email',
-            'requirements',
+            'subject',
+            'message',
+            'notes',
         ];
     }
 
@@ -49,7 +48,7 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
             'status',
             'total_amount',
             'sent_at',
-            'expires_at',
+            'valid_until',
         ];
     }
 
@@ -60,7 +59,7 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
      */
     protected function getDefaultRelations(): array
     {
-        return ['user', 'company', 'items', 'creator', 'updater'];
+        return ['user.profile', 'company', 'items', 'creator.profile', 'updater.profile'];
     }
 
     /**

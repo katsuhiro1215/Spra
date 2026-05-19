@@ -112,6 +112,16 @@ class User extends Authenticatable
         return $this->hasMany(UserLoginHistory::class);
     }
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class);
+    }
+
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
+    }
+
     // -------------------------
     // Scopes
     // -------------------------

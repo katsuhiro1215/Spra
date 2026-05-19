@@ -7,7 +7,8 @@ import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
-import { CreateButton } from "@/Components/Buttons";
+import { CreateButton, SecondaryButton } from "@/Components/Buttons";
+import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
@@ -20,7 +21,13 @@ export default function Index({
     filters = {},
     categories = [],
     admins = [],
+    stats,
 }) {
+    const [activeTab, setActiveTab] = useState(
+        filters.trashed || "without_trashed",
+    );
+    const [showFilters, setShowFilters] = useState(false);
+
     // ========================================
     // State & Form
     // ========================================
@@ -35,6 +42,25 @@ export default function Index({
     // ========================================
     // Effects
     // ========================================
+    // propsが更新されたらstateも更新
+    useEffect(() => {
+        setActiveTab(filters.trashed || "without_trashed");
+        setData({
+            search: filters.search || "",
+            status: filters.status || "",
+            category: filters.category || "",
+            is_featured: filters.is_featured || "",
+            trashed: filters.trashed || "without_trashed",
+        });
+    }, [filters.trashed]);
+
+    // フィルターがアクティブな場合は自動的に開く
+    useEffect(() => {
+        if (data.status || data.category || data.is_featured) {
+            setShowFilters(true);
+        }
+    }, [data.status, data.category, data.is_featured]);
+
     useEffect(() => {
         const timer = setTimeout(() => {
             if (
@@ -50,10 +76,31 @@ export default function Index({
     }, [data.status, data.priority, data.category_id, data.admin_id]);
 
     // ========================================
+    // Handlers - Tab
+    // ========================================
+    const handleTabChange = (tab) => {
+        router.get(
+            route("admin.project.index"),
+            {
+                search: data.search,
+                status: data.status,
+                priority: data.priority,
+                category_id: data.category_id,
+                admin_id: data.admin_id,
+                trashed: tab,
+            },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            },
+        );
+    };
+
+    // ========================================
     // Handlers - Search & Filter
     // ========================================
     const handleSearch = () => {
-        get(route("admin.projects.index"), {
+        get(route("admin.project.index"), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -67,7 +114,7 @@ export default function Index({
             category_id: "",
             admin_id: "",
         });
-        get(route("admin.projects.index"), {
+        get(route("admin.project.index"), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -81,7 +128,7 @@ export default function Index({
             `${project.title} を削除してもよろしいですか？`,
         );
         if (confirmed) {
-            router.delete(route("admin.projects.destroy", project.id));
+            router.delete(route("admin.project.destroy", project.id));
         }
     };
 
@@ -93,7 +140,7 @@ export default function Index({
             label: "新規作成",
             icon: PlusIcon,
             variant: "primary",
-            route: route("admin.projects.create"),
+            route: route("admin.project.create"),
         },
     ];
 
@@ -102,12 +149,40 @@ export default function Index({
         { label: "プロジェクト", href: null },
     ];
 
+    // ========================================
+    // Constants - Tabs & Filters
+    // ========================================
+    const tabs = [
+        {
+            key: "with_trashed",
+            label: "すべて",
+            count: stats?.all || projects.total,
+        },
+        {
+            key: "without_trashed",
+            label: "一覧",
+            count: stats?.active || projects.total,
+        },
+        {
+            key: "only_trashed",
+            label: "削除済み",
+            count: stats?.trashed || 0,
+        },
+    ];
+
     const hasActiveFilters =
         data.search ||
         data.status ||
         data.priority ||
         data.category_id ||
         data.admin_id;
+
+    const activeFilterCount = [
+        data.status,
+        data.priority,
+        data.category_id,
+        data.admin_id,
+    ].filter(Boolean).length;
 
     const statusOptions = [
         { value: "", label: "すべて" },
@@ -164,79 +239,109 @@ export default function Index({
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                {/* 検索とフィルター */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <FunnelIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                検索・フィルター
-                            </h3>
-                        </div>
-                        {hasActiveFilters && (
-                            <Badge
-                                variant="info"
-                                size="sm"
-                                className="flex items-center gap-1"
-                            >
-                                フィルター中
-                            </Badge>
-                        )}
-                    </div>
+                {/* 検索・フィルターカード */}
+                <Card>
+                    <div className="p-4 space-y-4">
+                        {/* タブ + 検索 + フィルタートグル */}
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                            <div className="flex-shrink-0">
+                                <TabNavigation
+                                    tabs={tabs}
+                                    activeTab={activeTab}
+                                    onChange={handleTabChange}
+                                />
+                            </div>
 
-                    <div className="space-y-4">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder="プロジェクト名、説明、コードで検索..."
-                        />
+                            {/* 検索バー */}
+                            <div className="flex-1 max-w-md">
+                                <SearchBar
+                                    value={data.search}
+                                    onChange={(value) =>
+                                        setData("search", value)
+                                    }
+                                    onSearch={handleSearch}
+                                    placeholder="サービス名またはスラッグで検索..."
+                                    disabled={processing}
+                                />
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <FilterSelect
-                                label="ステータス"
-                                value={data.status}
-                                onChange={(value) => setData("status", value)}
-                                options={statusOptions}
-                            />
-
-                            <FilterSelect
-                                label="優先度"
-                                value={data.priority}
-                                onChange={(value) => setData("priority", value)}
-                                options={priorityOptions}
-                            />
-
-                            <FilterSelect
-                                label="カテゴリ"
-                                value={data.category_id}
-                                onChange={(value) =>
-                                    setData("category_id", value)
-                                }
-                                options={categoryOptions}
-                            />
-
-                            <FilterSelect
-                                label="担当者"
-                                value={data.admin_id}
-                                onChange={(value) => setData("admin_id", value)}
-                                options={adminOptions}
-                            />
-                        </div>
-
-                        {hasActiveFilters && (
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={handleClearFilters}
-                                    className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                            {/* フィルタートグルボタン */}
+                            <div className="flex-shrink-0">
+                                <SecondaryButton
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    size="sm"
+                                    className="relative"
                                 >
-                                    フィルターをクリア
-                                </button>
+                                    <FunnelIcon className="h-4 w-4 mr-2" />
+                                    フィルター
+                                    {activeFilterCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </SecondaryButton>
+                            </div>
+                        </div>
+
+                        {/* フィルターセクション（折りたたみ可能）*/}
+                        {showFilters && (
+                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    {/* カテゴリフィルター */}
+                                    <FilterSelect
+                                        label="カテゴリ"
+                                        value={data.category}
+                                        onChange={(value) =>
+                                            setData("category", value)
+                                        }
+                                        options={
+                                            categories?.map((cat) => ({
+                                                value: cat.id,
+                                                label: cat.name,
+                                            })) || []
+                                        }
+                                        placeholder="すべて"
+                                    />
+
+                                    {/* ステータスフィルター */}
+                                    <FilterSelect
+                                        label="ステータス"
+                                        value={data.status}
+                                        onChange={(value) =>
+                                            setData("status", value)
+                                        }
+                                        options={SERVICE_STATUS_OPTIONS}
+                                        placeholder="すべて"
+                                    />
+
+                                    {/* 注目フィルター */}
+                                    <FilterSelect
+                                        label="注目"
+                                        value={data.is_featured}
+                                        onChange={(value) =>
+                                            setData("is_featured", value)
+                                        }
+                                        options={IS_FEATURED_OPTIONS}
+                                        placeholder="すべて"
+                                    />
+
+                                    {/* フィルタークリアボタン */}
+                                    <div className="flex items-end">
+                                        <SecondaryButton
+                                            onClick={handleClearFilters}
+                                            disabled={!hasActiveFilters}
+                                            size="md"
+                                            className="w-full"
+                                        >
+                                            <XMarkIcon className="h-4 w-4 mr-2" />
+                                            クリア
+                                        </SecondaryButton>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
-                </div>
+                </Card>
 
                 {/* プロジェクトテーブル */}
                 <ProjectsTable projects={projects} onDelete={handleDelete} />
@@ -248,7 +353,7 @@ export default function Index({
 
                 {/* データがない場合 */}
                 {projects.data.length === 0 && (
-                    <Card>
+                    <Card className="text-center py-12">
                         <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
                             🏢
                         </div>
@@ -260,8 +365,10 @@ export default function Index({
                                   : "まだプロジェクトが登録されていません。"}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
-                            <CreateButton href={route("admin.project.create")} size="md">
-                                <PlusIcon className="h-4 w-4 mr-2" />
+                            <CreateButton
+                                href={route("admin.project.create")}
+                                size="md"
+                            >
                                 最初のプロジェクトを作成
                             </CreateButton>
                         )}

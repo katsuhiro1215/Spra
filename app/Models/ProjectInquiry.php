@@ -17,6 +17,12 @@ class ProjectInquiry extends Model
         'inquiry_code',
         'user_id',
         'company_id',
+        'service_category_id',
+        'service_id',
+        'service_plan_id',
+        'simulator_data',
+        'estimated_price',
+        'estimated_days',
         'title',
         'summary',
         'budget_min',
@@ -34,6 +40,8 @@ class ProjectInquiry extends Model
         'desired_delivery_date' => 'date',
         'budget_min'            => 'decimal:2',
         'budget_max'            => 'decimal:2',
+        'estimated_price'       => 'decimal:2',
+        'simulator_data'        => 'array',
     ];
 
     public const STATUSES = [
@@ -52,6 +60,21 @@ class ProjectInquiry extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function serviceCategory(): BelongsTo
+    {
+        return $this->belongsTo(ServiceCategory::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function servicePlan(): BelongsTo
+    {
+        return $this->belongsTo(ServicePlan::class);
     }
 
     public function assignedAdmin(): BelongsTo

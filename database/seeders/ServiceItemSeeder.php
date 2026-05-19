@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\ServiceItem;
 use App\Models\Service;
 use App\Models\ServicePlan;
+use App\Models\Admin;
 
 class ServiceItemSeeder extends Seeder
 {
@@ -15,6 +16,9 @@ class ServiceItemSeeder extends Seeder
      */
     public function run(): void
     {
+        // 管理者IDを取得
+        $adminId = Admin::first()->id;
+
         // コーポレートサイト制作のアイテム
         $corporateWebsite = Service::where('slug', 'corporate-website')->first();
         if ($corporateWebsite) {
@@ -35,6 +39,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -48,6 +54,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -61,6 +69,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 3,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -74,6 +84,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => false,
                     'sort_order' => 10,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -90,6 +102,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -103,6 +117,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -116,6 +132,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 3,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -129,6 +147,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 4,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -142,6 +162,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => false,
                     'sort_order' => 10,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -158,6 +180,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -171,6 +195,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -184,6 +210,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 3,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -197,6 +225,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 4,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -210,6 +240,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => false,
                     'sort_order' => 10,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -225,6 +257,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 1,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
 
             ServiceItem::create([
@@ -238,6 +272,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 2,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
 
             ServiceItem::create([
@@ -251,6 +287,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 3,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
 
             ServiceItem::create([
@@ -264,6 +302,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 4,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
         }
 
@@ -286,6 +326,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -299,6 +341,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -312,6 +356,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 3,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -325,6 +371,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => false,
                     'sort_order' => 10,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -341,6 +389,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -354,6 +404,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -367,6 +419,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 3,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -380,6 +434,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => false,
                     'sort_order' => 10,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -395,6 +451,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 1,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
 
             ServiceItem::create([
@@ -408,6 +466,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 2,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
 
             ServiceItem::create([
@@ -421,6 +481,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 3,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
         }
 
@@ -442,6 +504,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -455,6 +519,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -470,6 +536,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 1,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
 
                 ServiceItem::create([
@@ -483,6 +551,8 @@ class ServiceItemSeeder extends Seeder
                     'is_required' => true,
                     'sort_order' => 2,
                     'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
                 ]);
             }
 
@@ -498,6 +568,8 @@ class ServiceItemSeeder extends Seeder
                 'is_required' => false,
                 'sort_order' => 1,
                 'status' => 'active',
+                'created_by' => $adminId,
+                'updated_by' => $adminId,
             ]);
         }
     }

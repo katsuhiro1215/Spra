@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
-import { Badge } from "@/Components/Badge";
+import { Badge } from "@/Components/Badges";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const statusConfig = {
@@ -164,7 +164,7 @@ const ProjectsTable = ({ projects, onDelete }) => {
                                     <div className="flex justify-end items-center gap-2">
                                         <Link
                                             href={route(
-                                                "admin.projects.show",
+                                                "admin.project.show",
                                                 project.id,
                                             )}
                                             className="p-1 text-cyan-600 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded transition-colors"
@@ -174,7 +174,7 @@ const ProjectsTable = ({ projects, onDelete }) => {
                                         </Link>
                                         <Link
                                             href={route(
-                                                "admin.projects.edit",
+                                                "admin.project.edit",
                                                 project.id,
                                             )}
                                             className="p-1 text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded transition-colors"

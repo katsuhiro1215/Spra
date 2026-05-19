@@ -199,6 +199,14 @@ export const QUOTE_BILLING_TYPE_OPTIONS = [
 ];
 
 /**
+ * 見積もり割引タイプのセレクトオプション
+ */
+export const QUOTE_DISCOUNT_TYPE_OPTIONS = [
+    { value: "fixed", label: "固定額" },
+    { value: "percentage", label: "割合 (%)" },
+];
+
+/**
  * 契約ステータスのセレクトオプション
  */
 export const CONTRACT_STATUS_OPTIONS = [

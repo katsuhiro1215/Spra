@@ -101,4 +101,31 @@ class ServiceCategoryService extends BaseService
             'suspended' => '一時停止',
         ];
     }
+
+    /**
+     * セレクトボックス用にカテゴリを取得（全ステータス、id/nameのみ）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getForSelect()
+    {
+        return $this->repository->query()
+            ->select('id', 'name', 'slug')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    /**
+     * セレクトボックス用にアクティブなカテゴリのみを取得（id/nameのみ）
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveForSelect()
+    {
+        return $this->repository->query()
+            ->select('id', 'name', 'slug')
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
 }

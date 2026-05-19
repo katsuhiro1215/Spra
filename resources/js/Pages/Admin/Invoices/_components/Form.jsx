@@ -137,7 +137,9 @@ export default function InvoiceForm({
                             label="契約"
                             name="contract_id"
                             value={data.contract_id || ""}
-                            onChange={(e) => setData("contract_id", e.target.value)}
+                            onChange={(e) =>
+                                setData("contract_id", e.target.value)
+                            }
                             error={errors.contract_id}
                             options={[
                                 { value: "", label: "選択してください" },
@@ -175,7 +177,9 @@ export default function InvoiceForm({
                             type="date"
                             name="due_date"
                             value={data.due_date || ""}
-                            onChange={(e) => setData("due_date", e.target.value)}
+                            onChange={(e) =>
+                                setData("due_date", e.target.value)
+                            }
                             error={errors.due_date}
                             required
                         />
@@ -219,7 +223,9 @@ export default function InvoiceForm({
                             label="会社"
                             name="company_id"
                             value={data.company_id || ""}
-                            onChange={(e) => setData("company_id", e.target.value)}
+                            onChange={(e) =>
+                                setData("company_id", e.target.value)
+                            }
                             error={errors.company_id}
                             options={[
                                 { value: "", label: "選択してください" },
@@ -252,7 +258,9 @@ export default function InvoiceForm({
                                     {items.length > 1 && (
                                         <DangerButton
                                             type="button"
-                                            onClick={() => handleRemoveItem(index)}
+                                            onClick={() =>
+                                                handleRemoveItem(index)
+                                            }
                                         >
                                             <TrashIcon className="h-4 w-4" />
                                         </DangerButton>
@@ -285,7 +293,9 @@ export default function InvoiceForm({
                                                 e.target.value,
                                             )
                                         }
-                                        error={errors[`items.${index}.quantity`]}
+                                        error={
+                                            errors[`items.${index}.quantity`]
+                                        }
                                         min="0"
                                         step="0.01"
                                         required
@@ -302,7 +312,9 @@ export default function InvoiceForm({
                                                 e.target.value,
                                             )
                                         }
-                                        error={errors[`items.${index}.unit_price`]}
+                                        error={
+                                            errors[`items.${index}.unit_price`]
+                                        }
                                         min="0"
                                         step="1"
                                         required
@@ -327,7 +339,11 @@ export default function InvoiceForm({
                                                     e.target.value,
                                                 )
                                             }
-                                            error={errors[`items.${index}.description`]}
+                                            error={
+                                                errors[
+                                                    `items.${index}.description`
+                                                ]
+                                            }
                                             rows={2}
                                         />
                                     </div>
@@ -431,7 +447,10 @@ export default function InvoiceForm({
 
             {/* アクションボタン */}
             <div className="flex justify-end space-x-3">
-                <SecondaryButton type="button" onClick={() => window.location.href = cancelRoute}>
+                <SecondaryButton
+                    type="button"
+                    onClick={() => (window.location.href = cancelRoute)}
+                >
                     キャンセル
                 </SecondaryButton>
                 <PrimaryButton type="submit" disabled={processing}>

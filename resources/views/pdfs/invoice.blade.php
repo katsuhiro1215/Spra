@@ -275,13 +275,16 @@
                     <p><strong>請求書番号:</strong> {{ $invoice->invoice_number }}</p>
                     <p><strong>発行日:</strong> {{ $invoice->created_at->format('Y年m月d日') }}</p>
                     @if ($invoice->due_date)
-                        <p class="due-date"><strong>お支払期限:</strong> {{ \Carbon\Carbon::parse($invoice->due_date)->format('Y年m月d日') }}</p>
+                        <p class="due-date"><strong>お支払期限:</strong>
+                            {{ \Carbon\Carbon::parse($invoice->due_date)->format('Y年m月d日') }}</p>
                     @endif
                 </div>
                 <div class="header-right">
                     <p><strong>{{ config('app.name') }}</strong></p>
                     @if ($invoice->created_by_admin)
-                        <p>担当者: {{ $invoice->created_by_admin->profile->full_name ?? $invoice->created_by_admin->email }}</p>
+                        <p>担当者:
+                            {{ $invoice->created_by_admin->profile->full_name ?? $invoice->created_by_admin->email }}
+                        </p>
                     @endif
                 </div>
             </div>
@@ -323,7 +326,8 @@
                 @if ($invoice->billing_period_start && $invoice->billing_period_end)
                     <tr>
                         <td>請求期間</td>
-                        <td>{{ \Carbon\Carbon::parse($invoice->billing_period_start)->format('Y年m月d日') }} ～ {{ \Carbon\Carbon::parse($invoice->billing_period_end)->format('Y年m月d日') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($invoice->billing_period_start)->format('Y年m月d日') }} ～
+                            {{ \Carbon\Carbon::parse($invoice->billing_period_end)->format('Y年m月d日') }}</td>
                     </tr>
                 @endif
             </table>

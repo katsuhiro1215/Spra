@@ -3,10 +3,25 @@ import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
-import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
-import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+    ChatBubbleLeftRightIcon,
+} from "@heroicons/react/24/outline";
 
 const ContactsTable = ({ contacts, onDelete }) => {
+    const getContactStatusBadge = (status) => {
+        const statusMap = {
+            new: { text: "新規", variant: "info" },
+            in_progress: { text: "対応中", variant: "warning" },
+            replied: { text: "返信済み", variant: "success" },
+            resolved: { text: "解決済み", variant: "success" },
+            closed: { text: "クローズ", variant: "secondary" },
+        };
+        return statusMap[status] || { text: status, variant: "default" };
+    };
+
     return (
         <Card>
             <CardHeader>お問い合わせ一覧 ({contacts.total}件)</CardHeader>
@@ -15,11 +30,10 @@ const ContactsTable = ({ contacts, onDelete }) => {
                     <Tr hover={false}>
                         <Th>受信日時</Th>
                         <Th>名前</Th>
-                        <Th>フリガナ</Th>
-                        <Th>電話番号</Th>
-                        <Th>メールアドレス</Th>
+                        <Th>カテゴリ</Th>
+                        <Th>件名</Th>
                         <Th>ステータス</Th>
-                        <Th>登録日</Th>
+                        <Th>担当者</Th>
                         <Th className="text-right">操作</Th>
                     </Tr>
                 </THead>
@@ -27,11 +41,23 @@ const ContactsTable = ({ contacts, onDelete }) => {
                     {contacts.data.map((contact) => (
                         <Tr key={contact.id}>
                             <Td>
+                                {new Date(contact.created_at).toLocaleString(
+                                    "ja-JP",
+                                    {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    },
+                                )}
+                            </Td>
+                            <Td>
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 h-10 w-10">
                                         <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
                                             <span className="text-indigo-600 dark:text-indigo-300 font-medium text-sm">
-                                                {contact.name}
+                                                {contact.name?.charAt(0) || "?"}
                                             </span>
                                         </div>
                                     </div>
@@ -45,23 +71,31 @@ const ContactsTable = ({ contacts, onDelete }) => {
                                     </div>
                                 </div>
                             </Td>
-                            <Td>{contact.kana}</Td>
-                            <Td>{contact.phone}</Td>
-                            <Td>{contact.email}</Td>
+                            <Td>
+                                <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    {contact.category_label || contact.category}
+                                </span>
+                            </Td>
+                            <Td>
+                                <div className="max-w-xs truncate text-sm text-slate-900 dark:text-slate-100">
+                                    {contact.subject || "-"}
+                                </div>
+                            </Td>
                             <Td>
                                 <Badge
                                     variant={
-                                        getStatusBadge(contact.status).variant
+                                        getContactStatusBadge(contact.status)
+                                            .variant
                                     }
                                     size="xs"
                                 >
-                                    {getStatusBadge(contact.status).text}
+                                    {getContactStatusBadge(contact.status).text}
                                 </Badge>
                             </Td>
-                            <Td className="text-slate-500 dark:text-slate-400">
-                                {new Date(
-                                    contact.created_at,
-                                ).toLocaleDateString("ja-JP")}
+                            <Td>
+                                <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    {contact.assigned_admin?.email || "未割当"}
+                                </span>
                             </Td>
                             <Td>
                                 <div className="flex justify-end items-center gap-2">
@@ -75,6 +109,18 @@ const ContactsTable = ({ contacts, onDelete }) => {
                                     >
                                         <EyeIcon className="h-5 w-5" />
                                     </Link>
+                                    {!contact.responded_at && (
+                                        <Link
+                                            href={route(
+                                                "admin.contact.responses.create",
+                                                contact.id,
+                                            )}
+                                            className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                            title="返信"
+                                        >
+                                            <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                                        </Link>
+                                    )}
                                 </div>
                             </Td>
                         </Tr>

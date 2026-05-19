@@ -11,19 +11,23 @@ import { PageConfig } from "@/Constants/PageConfig";
 // Quote Components
 import QuoteForm from "./_components/Form";
 
-export default function Edit({ quote }) {
+export default function Edit({
+    quote,
+    users,
+    serviceCategories,
+    serviceItems,
+}) {
     const { data, setData, put, processing, errors } = useForm({
-        title: quote.title || "",
+        user_id: quote.user_id || "",
+        company_id: quote.company_id || "",
+        subject: quote.subject || "",
+        message: quote.message || "",
+        valid_until: quote.valid_until || "",
+        notes: quote.notes || "",
         status: quote.status || "draft",
-        expires_at: quote.expires_at || "",
-        client_name: quote.client_name || "",
-        client_company: quote.client_company || "",
-        client_email: quote.client_email || "",
-        client_phone: quote.client_phone || "",
-        client_address: quote.client_address || "",
-        requirements: quote.requirements || "",
+        discount_type: quote.discount_type || "fixed",
         discount_amount: quote.discount_amount || 0,
-        tax_rate: quote.tax_rate || 0.1,
+        tax_rate: quote.tax_rate || 10,
         base_amount: quote.base_amount || 0,
         tax_amount: quote.tax_amount || 0,
         total_amount: quote.total_amount || 0,
@@ -80,6 +84,10 @@ export default function Edit({ quote }) {
                     processing={processing}
                     onSubmit={submit}
                     cancelRoute={route("admin.quote.show", quote.id)}
+                    users={users}
+                    serviceCategories={serviceCategories}
+                    serviceItems={serviceItems}
+                    projectInquiry={null}
                     isEdit={true}
                 />
             </div>

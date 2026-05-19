@@ -5,7 +5,13 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import InvoiceForm from "./_components/Form";
 
-export default function Edit({ invoice, contracts, users, companies, statuses }) {
+export default function Edit({
+    invoice,
+    contracts,
+    users,
+    companies,
+    statuses,
+}) {
     const { data, setData, put, processing, errors } = useForm({
         title: invoice.title || "",
         contract_id: invoice.contract_id || "",

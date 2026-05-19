@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
@@ -28,7 +29,8 @@ Route::name('public.')->prefix('/')->group(function () {
     Route::get('/contact', fn() => inertiaPublic('Contact'))->name('contact');
     Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
     Route::get('/privacy-policy', fn() => inertiaPublic('PrivacyPolicy'))->name('privacy.policy');
-    Route::get('/estimate-simulator', fn() => inertiaPublic('EstimateSimulator'))->name('estimate.simulator');
+    Route::get('/estimate-simulator', [EstimateSimulatorController::class, 'index'])->name('estimate.simulator');
+    Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->middleware('auth:users')->name('estimate.simulator.save');
     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
     Route::get('/terms', fn() => inertiaPublic('Terms'))->name('terms');

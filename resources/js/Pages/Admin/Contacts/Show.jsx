@@ -1,11 +1,19 @@
 import React, { useState } from "react";
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage, router } from "@inertiajs/react";
 // Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
+import {
+    EditButton,
+    DeleteButton,
+    SecondaryButton,
+    TextButton,
+} from "@/Components/Buttons";
+import { Badge } from "@/Components/Badges";
+import InvitationModal from "./_components/InvitationModal";
 // Icons
 import {
     ArrowLeftIcon,
@@ -21,6 +29,10 @@ import {
     TrashIcon,
     GlobeAltIcon,
     ComputerDesktopIcon,
+    PaperAirplaneIcon,
+    UserPlusIcon,
+    ArrowPathIcon,
+    XCircleIcon,
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
@@ -33,6 +45,7 @@ import {
 export default function Show() {
     const { contact = {}, admins = [] } = usePage().props;
     const [isEditing, setIsEditing] = useState(false);
+    const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         status: contact.status,
         admin_notes: contact.admin_notes || "",
@@ -64,15 +77,9 @@ export default function Show() {
 
         const data = {
             status: formData.status,
+            admin_notes: formData.admin_notes || null,
+            assigned_to: formData.assigned_to || null,
         };
-
-        // 空でない値のみ追加
-        if (formData.admin_notes) {
-            data.admin_notes = formData.admin_notes;
-        }
-        if (formData.assigned_to) {
-            data.assigned_to = formData.assigned_to;
-        }
 
         router.patch(route("admin.contact.update", contact.id), data, {
             onSuccess: () => {
@@ -96,6 +103,34 @@ export default function Show() {
         }
     };
 
+    const handleResendInvitation = (invitationId) => {
+        if (confirm("この招待を再送信しますか？")) {
+            router.post(
+                route("admin.invitations.resend", invitationId),
+                {},
+                {
+                    preserveScroll: true,
+                },
+            );
+        }
+    };
+
+    const handleRevokeInvitation = (invitationId) => {
+        if (
+            confirm(
+                "この招待を取り消しますか？取り消し後は使用できなくなります。",
+            )
+        ) {
+            router.patch(
+                route("admin.invitations.revoke", invitationId),
+                {},
+                {
+                    preserveScroll: true,
+                },
+            );
+        }
+    };
+
     const getStatusBadge = (status) => {
         const statusOption = statusOptions.find((opt) => opt.value === status);
         return (
@@ -109,6 +144,37 @@ export default function Show() {
         );
     };
 
+    const getInvitationStatusBadge = (invitation) => {
+        const now = new Date();
+        const expiresAt = new Date(invitation.expires_at);
+
+        if (invitation.status === "accepted") {
+            return (
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                    ✓ 承認済み
+                </Badge>
+            );
+        } else if (invitation.status === "revoked") {
+            return (
+                <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                    ✗ 取り消し済み
+                </Badge>
+            );
+        } else if (now > expiresAt) {
+            return (
+                <Badge className="bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-gray-300">
+                    期限切れ
+                </Badge>
+            );
+        } else {
+            return (
+                <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                    保留中
+                </Badge>
+            );
+        }
+    };
+
     const getCategoryLabel = (category) => {
         const categoryOption = categoryOptions.find(
             (opt) => opt.value === category,
@@ -118,9 +184,15 @@ export default function Show() {
 
     const headerActions = [
         {
+            label: "返信する",
+            icon: PaperAirplaneIcon,
+            variant: "primary",
+            route: route("admin.contact.responses.create", contact.id),
+        },
+        {
             label: PageConfig.contacts.actions.back,
             icon: ArrowLeftIcon,
-            variant: "primary",
+            variant: "secondary",
             route: route("admin.contact.index"),
         },
     ];
@@ -148,23 +220,13 @@ export default function Show() {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
-            
+
             {/* メイン */}
             <div className="flex space-x-2">
-                <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                    <PencilIcon className="h-4 w-4 mr-2" />
+                <EditButton onClick={() => setIsEditing(!isEditing)}>
                     {isEditing ? "キャンセル" : "編集"}
-                </button>
-                <button
-                    onClick={handleDelete}
-                    className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50"
-                >
-                    <TrashIcon className="h-4 w-4 mr-2" />
-                    削除
-                </button>
+                </EditButton>
+                <DeleteButton onClick={handleDelete}>削除</DeleteButton>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* メインコンテンツ */}
@@ -178,37 +240,37 @@ export default function Show() {
                             <div className="space-y-4">
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <TagIcon className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <TagIcon className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             カテゴリ
                                         </span>
                                     </div>
-                                    <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-800">
+                                    <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-gray-300">
                                         {getCategoryLabel(contact.category)}
                                     </span>
                                 </div>
 
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <ChatBubbleLeftRightIcon className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <ChatBubbleLeftRightIcon className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             件名
                                         </span>
                                     </div>
-                                    <p className="text-gray-900">
+                                    <p className="text-gray-900 dark:text-white">
                                         {contact.subject}
                                     </p>
                                 </div>
 
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <ChatBubbleLeftRightIcon className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <ChatBubbleLeftRightIcon className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             メッセージ
                                         </span>
                                     </div>
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <p className="text-gray-900 whitespace-pre-wrap">
+                                    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
+                                        <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
                                             {contact.message}
                                         </p>
                                     </div>
@@ -262,7 +324,7 @@ export default function Show() {
                                 <form onSubmit={handleSubmit}>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                                 ステータス
                                             </label>
                                             <select
@@ -273,7 +335,7 @@ export default function Show() {
                                                         status: e.target.value,
                                                     })
                                                 }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                                                 required
                                             >
                                                 {statusOptions.map((option) => (
@@ -288,7 +350,7 @@ export default function Show() {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                                 担当者
                                             </label>
                                             <select
@@ -300,7 +362,7 @@ export default function Show() {
                                                             e.target.value,
                                                     })
                                                 }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                                             >
                                                 <option value="">未割当</option>
                                                 {admins.map((admin) => (
@@ -308,14 +370,14 @@ export default function Show() {
                                                         key={admin.id}
                                                         value={admin.id}
                                                     >
-                                                        {admin.name}
+                                                        {admin.email}
                                                     </option>
                                                 ))}
                                             </select>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                                 管理者メモ
                                             </label>
                                             <textarea
@@ -328,7 +390,7 @@ export default function Show() {
                                                     })
                                                 }
                                                 rows={6}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                                                 placeholder="対応内容や特記事項を入力してください..."
                                             />
                                         </div>
@@ -336,7 +398,7 @@ export default function Show() {
                                         <div className="flex space-x-3">
                                             <button
                                                 type="submit"
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                                             >
                                                 更新
                                             </button>
@@ -345,7 +407,7 @@ export default function Show() {
                                                 onClick={() =>
                                                     setIsEditing(false)
                                                 }
-                                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
                                             >
                                                 キャンセル
                                             </button>
@@ -355,7 +417,7 @@ export default function Show() {
                             ) : (
                                 <div className="space-y-4">
                                     <div>
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             現在のステータス:{" "}
                                         </span>
                                         {getStatusBadge(contact.status)}
@@ -363,31 +425,254 @@ export default function Show() {
 
                                     {contact.assigned_admin && (
                                         <div>
-                                            <span className="text-sm font-medium text-gray-700">
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                                 担当者:{" "}
                                             </span>
-                                            <span className="text-gray-900">
-                                                {contact.assigned_admin.name}
+                                            <span className="text-gray-900 dark:text-white">
+                                                {contact.assigned_admin.email}
                                             </span>
                                         </div>
                                     )}
 
                                     {contact.admin_notes ? (
                                         <div>
-                                            <span className="text-sm font-medium text-gray-700">
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                                 メモ:
                                             </span>
-                                            <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                                                <p className="text-gray-900 whitespace-pre-wrap">
+                                            <div className="mt-2 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                                <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
                                                     {contact.admin_notes}
                                                 </p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-gray-500 italic">
+                                        <p className="text-gray-500 dark:text-gray-400 italic">
                                             管理者メモはありません
                                         </p>
                                     )}
+                                </div>
+                            )}
+                        </CardBody>
+                    </Card>
+
+                    {/* 返信履歴 */}
+                    {contact.responses && contact.responses.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>返信履歴</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="space-y-4">
+                                    {contact.responses.map((response) => (
+                                        <div
+                                            key={response.id}
+                                            className="border border-gray-200 dark:border-slate-600 rounded-lg p-4 bg-gray-50 dark:bg-slate-800"
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <h4 className="font-medium text-gray-900 dark:text-white">
+                                                        {response.subject}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                        {response.sent_at
+                                                            ? new Date(
+                                                                  response.sent_at,
+                                                              ).toLocaleString(
+                                                                  "ja-JP",
+                                                              )
+                                                            : "下書き"}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        className={
+                                                            response.status ===
+                                                            "sent"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                                                : "bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-gray-300"
+                                                        }
+                                                        size="xs"
+                                                    >
+                                                        {response.status ===
+                                                        "sent"
+                                                            ? "送信済み"
+                                                            : "下書き"}
+                                                    </Badge>
+                                                    {response.status ===
+                                                        "draft" && (
+                                                        <TextButton
+                                                            href={route(
+                                                                "admin.contact.responses.edit",
+                                                                [
+                                                                    contact.id,
+                                                                    response.id,
+                                                                ],
+                                                            )}
+                                                            variant="warning"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </TextButton>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                                {response.body?.substring(
+                                                    0,
+                                                    200,
+                                                )}
+                                                {response.body?.length > 200 &&
+                                                    "..."}
+                                            </div>
+                                            {response.admin && (
+                                                <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                                    担当: {response.admin.email}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardBody>
+                        </Card>
+                    )}
+
+                    {/* ユーザー招待 */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <CardTitle>ユーザー招待</CardTitle>
+                                <button
+                                    onClick={() =>
+                                        setIsInvitationModalOpen(true)
+                                    }
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                >
+                                    <UserPlusIcon className="h-4 w-4" />
+                                    招待を送信
+                                </button>
+                            </div>
+                        </CardHeader>
+                        <CardBody>
+                            {contact.invitations &&
+                            contact.invitations.length > 0 ? (
+                                <div className="space-y-3">
+                                    {contact.invitations.map((invitation) => (
+                                        <div
+                                            key={invitation.id}
+                                            className="border border-gray-200 dark:border-slate-600 rounded-lg p-4 bg-gray-50 dark:bg-slate-800"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        {getInvitationStatusBadge(
+                                                            invitation,
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                        送信先:{" "}
+                                                        {invitation.email}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    {invitation.status ===
+                                                        "pending" &&
+                                                        new Date(
+                                                            invitation.expires_at,
+                                                        ) > new Date() && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleResendInvitation(
+                                                                            invitation.id,
+                                                                        )
+                                                                    }
+                                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded dark:text-blue-400 dark:hover:bg-blue-900/20"
+                                                                    title="再送信"
+                                                                >
+                                                                    <ArrowPathIcon className="h-4 w-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleRevokeInvitation(
+                                                                            invitation.id,
+                                                                        )
+                                                                    }
+                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded dark:text-red-400 dark:hover:bg-red-900/20"
+                                                                    title="取り消し"
+                                                                >
+                                                                    <XCircleIcon className="h-4 w-4" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                                                <p>
+                                                    <span className="font-medium">
+                                                        送信日時:
+                                                    </span>{" "}
+                                                    {new Date(
+                                                        invitation.created_at,
+                                                    ).toLocaleString("ja-JP")}
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">
+                                                        有効期限:
+                                                    </span>{" "}
+                                                    {new Date(
+                                                        invitation.expires_at,
+                                                    ).toLocaleString("ja-JP")}
+                                                </p>
+                                                {invitation.invited_by && (
+                                                    <p>
+                                                        <span className="font-medium">
+                                                            送信者:
+                                                        </span>{" "}
+                                                        {
+                                                            invitation
+                                                                .invited_by
+                                                                .email
+                                                        }
+                                                    </p>
+                                                )}
+                                                {invitation.used_at && (
+                                                    <p>
+                                                        <span className="font-medium">
+                                                            使用日時:
+                                                        </span>{" "}
+                                                        {new Date(
+                                                            invitation.used_at,
+                                                        ).toLocaleString(
+                                                            "ja-JP",
+                                                        )}
+                                                    </p>
+                                                )}
+                                                {invitation.notes && (
+                                                    <p>
+                                                        <span className="font-medium">
+                                                            メモ:
+                                                        </span>{" "}
+                                                        {invitation.notes}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <UserPlusIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
+                                        まだ招待が送信されていません
+                                    </p>
+                                    <button
+                                        onClick={() =>
+                                            setIsInvitationModalOpen(true)
+                                        }
+                                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                                    >
+                                        最初の招待を送信する
+                                    </button>
                                 </div>
                             )}
                         </CardBody>
@@ -402,27 +687,27 @@ export default function Show() {
                         </CardHeader>
                         <CardBody>
                             <div className="flex items-start">
-                                <UserIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                <UserIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                 <div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         お名前
                                     </div>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-white">
                                         {contact.name}
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-start">
-                                <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                <EnvelopeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                 <div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         メールアドレス
                                     </div>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-white">
                                         <a
                                             href={`mailto:${contact.email}`}
-                                            className="text-blue-600 hover:text-blue-800"
+                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         >
                                             {contact.email}
                                         </a>
@@ -432,15 +717,15 @@ export default function Show() {
 
                             {contact.phone && (
                                 <div className="flex items-start">
-                                    <PhoneIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <PhoneIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             電話番号
                                         </div>
-                                        <div className="text-gray-900">
+                                        <div className="text-gray-900 dark:text-white">
                                             <a
                                                 href={`tel:${contact.phone}`}
-                                                className="text-blue-600 hover:text-blue-800"
+                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                             >
                                                 {contact.phone}
                                             </a>
@@ -451,12 +736,12 @@ export default function Show() {
 
                             {contact.company && (
                                 <div className="flex items-start">
-                                    <BuildingOfficeIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <BuildingOfficeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             会社名
                                         </div>
-                                        <div className="text-gray-900">
+                                        <div className="text-gray-900 dark:text-white">
                                             {contact.company}
                                         </div>
                                     </div>
@@ -473,12 +758,12 @@ export default function Show() {
                         <CardBody>
                             {contact.source && (
                                 <div className="flex items-start">
-                                    <GlobeAltIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <GlobeAltIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             流入元
                                         </div>
-                                        <div className="text-gray-900">
+                                        <div className="text-gray-900 dark:text-white">
                                             {sourceOptions.find(
                                                 (opt) =>
                                                     opt.value ===
@@ -491,12 +776,12 @@ export default function Show() {
 
                             {contact.ip && (
                                 <div className="flex items-start">
-                                    <ComputerDesktopIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <ComputerDesktopIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             IPアドレス
                                         </div>
-                                        <div className="text-gray-900 font-mono text-xs">
+                                        <div className="text-gray-900 dark:text-white font-mono text-xs">
                                             {contact.ip}
                                         </div>
                                     </div>
@@ -505,12 +790,12 @@ export default function Show() {
 
                             {contact.referrer && (
                                 <div className="flex items-start">
-                                    <GlobeAltIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <GlobeAltIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             リファラー
                                         </div>
-                                        <div className="text-gray-900 text-xs break-all">
+                                        <div className="text-gray-900 dark:text-white text-xs break-all">
                                             {contact.referrer}
                                         </div>
                                     </div>
@@ -519,12 +804,12 @@ export default function Show() {
 
                             {contact.user_agent && (
                                 <div className="flex items-start">
-                                    <ComputerDesktopIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                    <ComputerDesktopIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             ユーザーエージェント
                                         </div>
-                                        <div className="text-gray-700 text-xs break-all">
+                                        <div className="text-gray-700 dark:text-gray-300 text-xs break-all">
                                             {contact.user_agent}
                                         </div>
                                     </div>
@@ -540,12 +825,12 @@ export default function Show() {
                         </CardHeader>
                         <CardBody>
                             <div className="flex items-start">
-                                <ClockIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                <ClockIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                 <div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         受信日時
                                     </div>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-white">
                                         {contact.created_at
                                             ? new Date(
                                                   contact.created_at,
@@ -557,12 +842,12 @@ export default function Show() {
 
                             {contact.responded_at && (
                                 <div className="flex items-start">
-                                    <CheckCircleIcon className="h-5 w-5 text-green-400 mr-3 mt-0.5" />
+                                    <CheckCircleIcon className="h-5 w-5 text-green-400 dark:text-green-500 mr-3 mt-0.5" />
                                     <div>
-                                        <div className="text-sm font-medium text-gray-700">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             返信日時
                                         </div>
-                                        <div className="text-gray-900">
+                                        <div className="text-gray-900 dark:text-white">
                                             {new Date(
                                                 contact.responded_at,
                                             ).toLocaleString("ja-JP")}
@@ -572,12 +857,12 @@ export default function Show() {
                             )}
 
                             <div className="flex items-start">
-                                <ClockIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                                <ClockIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3 mt-0.5" />
                                 <div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         最終更新
                                     </div>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-white">
                                         {contact.updated_at
                                             ? new Date(
                                                   contact.updated_at,
@@ -590,6 +875,13 @@ export default function Show() {
                     </Card>
                 </div>
             </div>
+
+            {/* Invitation Modal */}
+            <InvitationModal
+                contact={contact}
+                isOpen={isInvitationModalOpen}
+                onClose={() => setIsInvitationModalOpen(false)}
+            />
         </AdminAuthenticatedLayout>
     );
 }

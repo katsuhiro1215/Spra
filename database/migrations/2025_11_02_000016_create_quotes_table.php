@@ -14,18 +14,13 @@ return new class extends Migration
         Schema::create('quotes', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('quote_number')->unique();        // 見積番号 Q2026-001
-            $table->uuid('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->uuid('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->ulid('company_id')->nullable();
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
 
             // 見積タイトル（複数サービスの場合の概要）
             $table->string('title');
-
-            // クライアント情報（非会員の場合）
-            $table->string('client_name');
-            $table->string('client_email');
-            $table->string('client_phone')->nullable();
 
             // 要件
             $table->text('requirements')->nullable();
@@ -54,7 +49,6 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['status', 'created_at']);
-            $table->index('client_email');
             $table->index(['user_id', 'status']);
         });
     }

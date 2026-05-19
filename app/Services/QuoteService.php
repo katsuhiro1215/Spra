@@ -233,7 +233,7 @@ class QuoteService extends BaseService
     {
         $baseAmount = $quote->items()->sum('amount');
         $discountAmount = $quote->discount_amount ?? 0;
-        $taxRate = $quote->tax_rate ?? config('app.default_tax_rate', 0.10);
+        $taxRate = ($quote->tax_rate ?? 10) / 100; // 整数（10）を小数（0.10）に変換
 
         $subtotal = $baseAmount - $discountAmount;
         $taxAmount = round($subtotal * $taxRate);
@@ -242,7 +242,7 @@ class QuoteService extends BaseService
         $quote->update([
             'base_amount' => $baseAmount,
             'discount_amount' => $discountAmount,
-            'tax_rate' => $taxRate,
+            'tax_rate' => $quote->tax_rate ?? 10, // 元の整数値を保存
             'tax_amount' => $taxAmount,
             'total_amount' => $totalAmount,
         ]);
@@ -263,5 +263,70 @@ class QuoteService extends BaseService
             'rejected' => '却下',
             'expired' => '期限切れ',
         ];
+    }
+
+    /**
+     * ServiceItemから見積もり明細データを作成
+     * 
+     * @param \App\Models\ServiceItem $serviceItem
+     * @param array $overrides 上書きするデータ（quantity, unit_priceなど）
+     * @return array
+     */
+    public function createQuoteItemFromServiceItem($serviceItem, array $overrides = []): array
+    {
+        $quantity = $overrides['quantity'] ?? 1;
+        $unitPrice = $overrides['unit_price'] ?? $serviceItem->price;
+        $amount = $quantity * $unitPrice;
+
+        // ServicePlanからbilling_cycleを取得
+        $billingType = 'one_time';
+        if ($serviceItem->service_plan_id && $serviceItem->servicePlan) {
+            $billingType = $serviceItem->servicePlan->billing_cycle ?? 'one_time';
+        }
+
+        return array_merge([
+            'service_id' => $serviceItem->service_id,
+            'service_plan_id' => $serviceItem->service_plan_id,
+            'service_item_id' => $serviceItem->id,
+            'name' => $serviceItem->name,
+            'description' => $serviceItem->description,
+            'item_type' => $serviceItem->item_type,
+            'billing_type' => $billingType,
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'amount' => $amount,
+            'estimated_days' => $serviceItem->estimated_days,
+        ], $overrides);
+    }
+
+    /**
+     * 複数のServiceItemから見積もり明細データを一括作成
+     * 
+     * @param array $serviceItemIds ServiceItem IDの配列 or ['id' => ID, 'quantity' => 数量]の配列
+     * @return array
+     */
+    public function createQuoteItemsFromServiceItems(array $serviceItemIds): array
+    {
+        $items = [];
+        $sortOrder = 0;
+
+        foreach ($serviceItemIds as $key => $value) {
+            // ['id' => ID, 'quantity' => 数量] 形式
+            if (is_array($value)) {
+                $serviceItemId = $value['id'];
+                $overrides = array_merge($value, ['sort_order' => $sortOrder++]);
+            } else {
+                // シンプルなID配列
+                $serviceItemId = $value;
+                $overrides = ['sort_order' => $sortOrder++];
+            }
+
+            $serviceItem = \App\Models\ServiceItem::find($serviceItemId);
+            if ($serviceItem) {
+                $items[] = $this->createQuoteItemFromServiceItem($serviceItem, $overrides);
+            }
+        }
+
+        return $items;
     }
 }

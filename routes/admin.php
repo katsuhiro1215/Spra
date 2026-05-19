@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\Service\ServiceItemController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\ResponseController;
 use App\Http\Controllers\Admin\ResponseTemplateController;
+use App\Http\Controllers\Admin\UserInvitationController;
 
 use App\Http\Controllers\Admin\Project\ProjectCategoryController;
 use App\Http\Controllers\Admin\Project\ProjectController;
@@ -135,8 +136,17 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
 
     // お問い合わせ返答管理（Contact配下）
     Route::prefix('contact/{contact}')->name('contact.')->group(function () {
-        Route::resource('responses', ResponseController::class)->except(['index']);
+        Route::resource('responses', ResponseController::class)->except(['index', 'show']);
         Route::post('responses/{response}/send', [ResponseController::class, 'send'])->name('responses.send');
+
+        // ユーザー招待管理
+        Route::post('invitations', [UserInvitationController::class, 'store'])->name('invitations.store');
+    });
+
+    // ユーザー招待管理（グローバル）
+    Route::prefix('invitations')->name('invitations.')->group(function () {
+        Route::post('{invitation}/resend', [UserInvitationController::class, 'resend'])->name('resend');
+        Route::patch('{invitation}/revoke', [UserInvitationController::class, 'revoke'])->name('revoke');
     });
 
     // 返答テンプレート管理（Settings配下）

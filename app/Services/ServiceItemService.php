@@ -97,4 +97,53 @@ class ServiceItemService extends BaseService
             'addon' => '全プラン共通オプション',
         ];
     }
+
+    /**
+     * 見積もり作成用にアクティブなServiceItemを取得（カテゴリ別グループ化）
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    public function getActiveForQuote()
+    {
+        return $this->repository->query()
+            ->with(['service.serviceCategory', 'servicePlan'])
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'asc')
+            ->get()
+            ->groupBy('service.service_category_id');
+    }
+
+    /**
+     * 特定のサービスに紐づくアクティブなServiceItemを取得
+     * 
+     * @param string $serviceId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveByService(string $serviceId)
+    {
+        return $this->repository->query()
+            ->with(['servicePlan'])
+            ->where('service_id', $serviceId)
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    /**
+     * 特定のカテゴリに紐づくアクティブなServiceItemを取得
+     * 
+     * @param string $categoryId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveByCategory(string $categoryId)
+    {
+        return $this->repository->query()
+            ->with(['service', 'servicePlan'])
+            ->whereHas('service', function ($query) use ($categoryId) {
+                $query->where('service_category_id', $categoryId);
+            })
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
 }
