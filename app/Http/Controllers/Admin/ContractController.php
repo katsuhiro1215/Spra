@@ -171,4 +171,35 @@ class ContractController extends Controller
 
     return back()->with('success', '書類をアップロードしました。');
   }
+
+  /**
+   * 請求設定を更新
+   */
+  public function updateBillingSettings(Request $request, string $id): RedirectResponse
+  {
+    $contract = $this->service->findById($id);
+    abort_unless($contract, 404);
+
+    // 月額契約のみ請求設定を更新可能
+    if ($contract->type !== 'monthly') {
+      return back()->with('error', '月額契約のみ請求設定を更新できます。');
+    }
+
+    $validated = $request->validate([
+      'billing_day' => 'required|integer|min:1|max:31',
+      'payment_due_days' => 'required|integer|min:1|max:90',
+      'auto_invoice_generation' => 'required|boolean',
+    ]);
+
+    // 次回請求日を計算
+    if ($validated['auto_invoice_generation']) {
+      $validated['next_billing_date'] = $contract->calculateNextBillingDate();
+    } else {
+      $validated['next_billing_date'] = null;
+    }
+
+    $contract->update($validated);
+
+    return back()->with('success', '請求設定を更新しました。');
+  }
 }

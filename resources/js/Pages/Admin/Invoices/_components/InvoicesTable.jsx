@@ -9,9 +9,17 @@ import {
     TrashIcon,
     DocumentArrowDownIcon,
     PaperAirplaneIcon,
+    CheckCircleIcon,
+    ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
-const InvoicesTable = ({ invoices, onDelete, onSend }) => {
+const InvoicesTable = ({
+    invoices,
+    onDelete,
+    onSend,
+    onConfirmPayment,
+    onResend,
+}) => {
     // ステータスのバッジカラーを取得
     const getInvoiceStatusColor = (status) => {
         const colors = {
@@ -162,13 +170,20 @@ const InvoicesTable = ({ invoices, onDelete, onSend }) => {
                                     )}
                                 </Td>
                                 <Td>
-                                    <Badge
-                                        className={getInvoiceStatusColor(
-                                            invoice.status,
+                                    <div className="flex flex-col gap-1">
+                                        <Badge
+                                            className={getInvoiceStatusColor(
+                                                invoice.status,
+                                            )}
+                                        >
+                                            {getStatusLabel(invoice.status)}
+                                        </Badge>
+                                        {invoice.receipt && (
+                                            <Badge className="bg-green-100 text-green-800 text-xs">
+                                                📄 領収書発行済
+                                            </Badge>
                                         )}
-                                    >
-                                        {getStatusLabel(invoice.status)}
-                                    </Badge>
+                                    </div>
                                 </Td>
                                 <Td>
                                     <div className="flex justify-end space-x-2">
@@ -217,18 +232,53 @@ const InvoicesTable = ({ invoices, onDelete, onSend }) => {
                                         )}
 
                                         {invoice.status !== "draft" && (
-                                            <a
-                                                href={route(
-                                                    "admin.invoice.pdf",
-                                                    invoice.id,
+                                            <>
+                                                <a
+                                                    href={route(
+                                                        "admin.invoice.pdf",
+                                                        invoice.id,
+                                                    )}
+                                                    className="text-purple-600 hover:text-purple-800"
+                                                    title="PDF"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <DocumentArrowDownIcon className="h-5 w-5" />
+                                                </a>
+
+                                                {/* 送付済み/期限超過の請求書は再送可能 */}
+                                                {(invoice.status === "sent" ||
+                                                    invoice.status ===
+                                                        "overdue") && (
+                                                    <button
+                                                        onClick={() =>
+                                                            onResend(invoice)
+                                                        }
+                                                        className="text-orange-600 hover:text-orange-800"
+                                                        title="再送信"
+                                                    >
+                                                        <ArrowPathIcon className="h-5 w-5" />
+                                                    </button>
                                                 )}
-                                                className="text-purple-600 hover:text-purple-800"
-                                                title="PDF"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                <DocumentArrowDownIcon className="h-5 w-5" />
-                                            </a>
+
+                                                {/* 送付済み/期限超過で未払いの請求書は入金確認可能 */}
+                                                {(invoice.status === "sent" ||
+                                                    invoice.status ===
+                                                        "overdue") &&
+                                                    !invoice.receipt && (
+                                                        <button
+                                                            onClick={() =>
+                                                                onConfirmPayment(
+                                                                    invoice,
+                                                                )
+                                                            }
+                                                            className="text-emerald-600 hover:text-emerald-800"
+                                                            title="入金確認"
+                                                        >
+                                                            <CheckCircleIcon className="h-5 w-5" />
+                                                        </button>
+                                                    )}
+                                            </>
                                         )}
                                     </div>
                                 </Td>

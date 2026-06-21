@@ -195,6 +195,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::patch('/{id}/activate', [ContractController::class, 'activate'])->name('activate');
         Route::patch('/{id}/cancel', [ContractController::class, 'cancel'])->name('cancel');
         Route::post('/{id}/documents', [ContractController::class, 'uploadDocument'])->name('documents.upload');
+        Route::patch('/{id}/billing-settings', [ContractController::class, 'updateBillingSettings'])->name('billing-settings.update');
     });
 
     // 見積もり管理
@@ -218,6 +219,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{id}/payments', [InvoiceController::class, 'recordPayment'])->name('payments.store');
         Route::get('/{id}/pdf', [InvoiceController::class, 'downloadPdf'])->name('pdf');
         Route::get('/{id}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('pdf.preview');
+        Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
+        Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
     });
 
     // FAQs管理

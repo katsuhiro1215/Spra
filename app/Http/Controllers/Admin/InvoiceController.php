@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Services\PaymentService;
+use App\Services\ReceiptService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,8 @@ class InvoiceController extends Controller
 {
   public function __construct(
     private InvoiceService $service,
-    private PaymentService $paymentService
+    private PaymentService $paymentService,
+    private ReceiptService $receiptService
   ) {}
 
   public function index(Request $request): Response
@@ -268,5 +270,68 @@ class InvoiceController extends Controller
     return Inertia::render('Admin/Invoices/Overdue', [
       'invoices' => $invoices,
     ]);
+  }
+
+  /**
+   * 入金確認して領収書を発行
+   */
+  public function confirmPayment(string $id): RedirectResponse
+  {
+    $invoice = $this->service->findById($id);
+    abort_unless($invoice, 404);
+
+    // すでに支払い済みの場合はエラー
+    if ($invoice->status === 'paid') {
+      return back()->with('error', 'この請求書はすでに支払い済みです。');
+    }
+
+    try {
+      \DB::transaction(function () use ($invoice) {
+        // 請求書のステータスを支払い済みに更新
+        $invoice->update([
+          'status' => 'paid',
+          'paid_at' => now(),
+        ]);
+
+        // 領収書を発行（自動的にPDF生成・保存）
+        $receipt = $this->receiptService->issueReceipt($invoice);
+
+        // 領収書のPDFを生成
+        $this->receiptService->generateAndSavePdf($receipt);
+
+        // 領収書を発行済みに更新して送信
+        $receipt->update(['status' => 'issued']);
+        $this->receiptService->sendReceipt($receipt);
+      });
+
+      return back()->with('success', '入金を確認し、領収書を発行・送信しました。');
+    } catch (\Exception $e) {
+      return back()->with('error', '入金確認処理に失敗しました: ' . $e->getMessage());
+    }
+  }
+
+  /**
+   * 請求書を再送信
+   */
+  public function resend(string $id): RedirectResponse
+  {
+    $invoice = $this->service->findById($id);
+    abort_unless($invoice, 404);
+
+    // 下書きまたは支払い済みの請求書は再送不可
+    if ($invoice->status === 'draft') {
+      return back()->with('error', '下書きの請求書は再送信できません。');
+    }
+
+    if ($invoice->status === 'paid') {
+      return back()->with('error', 'すでに支払い済みの請求書は再送信できません。');
+    }
+
+    try {
+      $this->service->resendInvoice($invoice);
+      return back()->with('success', '請求書を再送信しました。');
+    } catch (\Exception $e) {
+      return back()->with('error', '請求書の再送信に失敗しました: ' . $e->getMessage());
+    }
   }
 }

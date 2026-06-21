@@ -72,6 +72,24 @@ export default function Index({ invoices, filters, stats }) {
         }
     };
 
+    const handleConfirmPayment = (invoice) => {
+        const confirmed = confirm(
+            `請求書「${invoice.invoice_number}」の入金を確認し、領収書を発行・送付しますか？`,
+        );
+        if (confirmed) {
+            router.post(route("admin.invoice.confirm-payment", invoice.id));
+        }
+    };
+
+    const handleResend = (invoice) => {
+        const confirmed = confirm(
+            `請求書「${invoice.invoice_number}」を再送信しますか？`,
+        );
+        if (confirmed) {
+            router.post(route("admin.invoice.resend", invoice.id));
+        }
+    };
+
     // ========================================
     // Constants - Header Actions & Breadcrumbs
     // ========================================
@@ -262,6 +280,8 @@ export default function Index({ invoices, filters, stats }) {
                 invoices={invoices}
                 onDelete={handleDelete}
                 onSend={handleSend}
+                onConfirmPayment={handleConfirmPayment}
+                onResend={handleResend}
             />
 
             {/* ページネーション */}

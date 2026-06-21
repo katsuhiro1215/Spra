@@ -16,12 +16,21 @@ import {
     DocumentArrowUpIcon,
     DocumentTextIcon,
     TrashIcon,
+    CurrencyYenIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Show({ contract }) {
     const [uploading, setUploading] = useState(false);
+    const [editingBilling, setEditingBilling] = useState(false);
+
     const { data, setData, post, reset } = useForm({
         document: null,
+    });
+
+    const billingForm = useForm({
+        billing_day: contract.billing_day || 10,
+        payment_due_days: contract.payment_due_days || 15,
+        auto_invoice_generation: contract.auto_invoice_generation ?? true,
     });
 
     // ステータスのバッジカラーを取得
@@ -128,6 +137,19 @@ export default function Show({ contract }) {
                 setUploading(false);
             },
         });
+    };
+
+    const handleBillingSettingsUpdate = (e) => {
+        e.preventDefault();
+        billingForm.patch(
+            route("admin.contract.billing-settings.update", contract.id),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setEditingBilling(false);
+                },
+            },
+        );
     };
 
     // ========================================
@@ -325,6 +347,216 @@ export default function Show({ contract }) {
                         </div>
                     </CardBody>
                 </Card>
+
+                {/* 請求設定 (月額契約のみ) */}
+                {contract.type === "monthly" && (
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <CurrencyYenIcon className="h-5 w-5 text-gray-500" />
+                                請求設定
+                            </CardTitle>
+                            {!editingBilling && (
+                                <SecondaryButton
+                                    onClick={() => setEditingBilling(true)}
+                                    size="sm"
+                                >
+                                    <PencilIcon className="h-4 w-4 mr-1" />
+                                    編集
+                                </SecondaryButton>
+                            )}
+                        </CardHeader>
+                        <CardBody>
+                            {editingBilling ? (
+                                <form
+                                    onSubmit={handleBillingSettingsUpdate}
+                                    className="space-y-4"
+                                >
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            請求日
+                                        </label>
+                                        <select
+                                            value={billingForm.data.billing_day}
+                                            onChange={(e) =>
+                                                billingForm.setData(
+                                                    "billing_day",
+                                                    parseInt(e.target.value),
+                                                )
+                                            }
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        >
+                                            {Array.from(
+                                                { length: 31 },
+                                                (_, i) => i + 1,
+                                            ).map((day) => (
+                                                <option key={day} value={day}>
+                                                    毎月 {day} 日
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {billingForm.errors.billing_day && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {billingForm.errors.billing_day}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            支払期限 (請求日から)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="90"
+                                            value={
+                                                billingForm.data
+                                                    .payment_due_days
+                                            }
+                                            onChange={(e) =>
+                                                billingForm.setData(
+                                                    "payment_due_days",
+                                                    parseInt(e.target.value),
+                                                )
+                                            }
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            {billingForm.data.payment_due_days}{" "}
+                                            日後
+                                        </p>
+                                        {billingForm.errors
+                                            .payment_due_days && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {
+                                                    billingForm.errors
+                                                        .payment_due_days
+                                                }
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={
+                                                    billingForm.data
+                                                        .auto_invoice_generation
+                                                }
+                                                onChange={(e) =>
+                                                    billingForm.setData(
+                                                        "auto_invoice_generation",
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">
+                                                自動請求書発行を有効にする
+                                            </span>
+                                        </label>
+                                        <p className="mt-1 ml-6 text-sm text-gray-500">
+                                            毎月自動的に請求書を生成・送付します
+                                        </p>
+                                        {billingForm.errors
+                                            .auto_invoice_generation && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {
+                                                    billingForm.errors
+                                                        .auto_invoice_generation
+                                                }
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {contract.next_billing_date && (
+                                        <div className="bg-blue-50 p-3 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <span className="font-medium">
+                                                    次回請求日:
+                                                </span>{" "}
+                                                {formatDate(
+                                                    contract.next_billing_date,
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2 pt-2">
+                                        <PrimaryButton
+                                            type="submit"
+                                            disabled={billingForm.processing}
+                                        >
+                                            保存
+                                        </PrimaryButton>
+                                        <SecondaryButton
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingBilling(false);
+                                                billingForm.reset();
+                                            }}
+                                            disabled={billingForm.processing}
+                                        >
+                                            キャンセル
+                                        </SecondaryButton>
+                                    </div>
+                                </form>
+                            ) : (
+                                <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">
+                                            請求日
+                                        </dt>
+                                        <dd className="mt-1 text-sm text-gray-900">
+                                            毎月 {contract.billing_day} 日
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">
+                                            支払期限
+                                        </dt>
+                                        <dd className="mt-1 text-sm text-gray-900">
+                                            請求日から{" "}
+                                            {contract.payment_due_days} 日後
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">
+                                            自動請求書発行
+                                        </dt>
+                                        <dd className="mt-1">
+                                            {contract.auto_invoice_generation ? (
+                                                <Badge className="bg-green-100 text-green-800">
+                                                    <CheckCircleIcon className="h-4 w-4 mr-1 inline" />
+                                                    有効
+                                                </Badge>
+                                            ) : (
+                                                <Badge className="bg-gray-100 text-gray-800">
+                                                    <XCircleIcon className="h-4 w-4 mr-1 inline" />
+                                                    無効
+                                                </Badge>
+                                            )}
+                                        </dd>
+                                    </div>
+                                    {contract.next_billing_date && (
+                                        <div>
+                                            <dt className="text-sm font-medium text-gray-500">
+                                                次回請求日
+                                            </dt>
+                                            <dd className="mt-1 text-sm font-medium text-blue-600">
+                                                {formatDate(
+                                                    contract.next_billing_date,
+                                                )}
+                                            </dd>
+                                        </div>
+                                    )}
+                                </dl>
+                            )}
+                        </CardBody>
+                    </Card>
+                )}
 
                 {/* 契約期間 */}
                 <Card>
