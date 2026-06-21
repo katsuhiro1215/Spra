@@ -1,0 +1,122 @@
+import { useMemo } from "react";
+import { router } from "@inertiajs/react";
+
+export default function YearlyCalendar({ year, calendar }) {
+    // 12ヶ月分のカレンダーを生成
+    const months = useMemo(() => {
+        const monthsData = [];
+        for (let month = 0; month < 12; month++) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+
+            // カレンダーグリッドを生成
+            const grid = [];
+
+            // 前月の空白
+            for (let i = 0; i < startDay; i++) {
+                grid.push(null);
+            }
+
+            // 当月の日付
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                const dayData = calendar[dateStr] || {
+                    date: dateStr,
+                    is_business_day: false,
+                    is_holiday: false,
+                    day_of_week: new Date(year, month, day).getDay(),
+                };
+                grid.push(dayData);
+            }
+
+            monthsData.push({
+                month: month + 1,
+                name: `${month + 1}月`,
+                grid,
+            });
+        }
+        return monthsData;
+    }, [year, calendar]);
+
+    const getDayCellStyle = (day) => {
+        if (!day) return "text-gray-300";
+
+        const classes = [];
+
+        if (day.is_holiday) {
+            classes.push("bg-red-100 text-red-800 font-semibold");
+        } else if (!day.is_business_day) {
+            classes.push("bg-gray-100 text-gray-500");
+        } else {
+            classes.push("text-gray-700");
+        }
+
+        // 土日の色
+        if (day.day_of_week === 0) {
+            classes.push("text-red-600");
+        } else if (day.day_of_week === 6) {
+            classes.push("text-blue-600");
+        }
+
+        return classes.join(" ");
+    };
+
+    const handleMonthClick = (month) => {
+        router.get(route("admin.schedules.index"), {
+            year,
+            month,
+            view: "month",
+        });
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {months.map((monthData) => (
+                <div
+                    key={monthData.month}
+                    className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => handleMonthClick(monthData.month)}
+                >
+                    {/* 月ヘッダー */}
+                    <div className="text-center font-bold text-gray-800 mb-2">
+                        {monthData.name}
+                    </div>
+
+                    {/* 曜日ヘッダー */}
+                    <div className="grid grid-cols-7 gap-px mb-1">
+                        {["日", "月", "火", "水", "木", "金", "土"].map(
+                            (day, index) => (
+                                <div
+                                    key={day}
+                                    className={`text-center text-xs font-medium ${
+                                        index === 0
+                                            ? "text-red-600"
+                                            : index === 6
+                                              ? "text-blue-600"
+                                              : "text-gray-600"
+                                    }`}
+                                >
+                                    {day}
+                                </div>
+                            ),
+                        )}
+                    </div>
+
+                    {/* カレンダーグリッド */}
+                    <div className="grid grid-cols-7 gap-px">
+                        {monthData.grid.map((day, index) => (
+                            <div
+                                key={index}
+                                className={`text-center text-xs py-1 rounded ${getDayCellStyle(day)}`}
+                            >
+                                {day ? new Date(day.date).getDate() : ""}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}

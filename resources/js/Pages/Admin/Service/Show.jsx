@@ -16,6 +16,7 @@ import {
     StarIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ service, servicePlansCount = 0 }) {
     const formatDate = (dateString) => {
@@ -33,31 +34,28 @@ export default function Show({ service, servicePlansCount = 0 }) {
     // ========================================
     const headerActions = [
         {
-            label: "一覧に戻る",
+            label: PageConfig.services.actions.back,
             icon: ArrowLeftIcon,
             variant: "default",
             route: route("admin.service.index"),
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス一覧", href: route("admin.service.index") },
-        { label: "詳細", href: null },
-    ];
-
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービス管理"
-                    description="サービスの作成、編集、削除を行います"
+                    title={PageConfig.services.pages.show.title}
+                    description={PageConfig.services.pages.show.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={[
+                        ...PageConfig.services.breadcrumbs,
+                        PageConfig.services.pages.show.breadcrumb,
+                    ]}
                 />
             }
         >
-            <Head title={`サービス詳細 - ${service.name}`} />
+            <Head title={`${PageConfig.services.pages.show.title} - ${service.name}`} />
 
             <FlashMessage />
 

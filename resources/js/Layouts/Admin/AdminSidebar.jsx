@@ -81,6 +81,10 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                 { name: "プロジェクト一覧", href: "admin.project.index" },
                 { name: "新規プロジェクト", href: "admin.project.create" },
                 { name: "ガンチャート", href: "admin.gantt.index" },
+                {
+                    name: "カテゴリ管理",
+                    href: "admin.project.category.index",
+                },
             ],
         },
         // 顧客管理
@@ -111,6 +115,28 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                     name: "カテゴリ管理",
                     href: "admin.service.category.index",
                 },
+            ],
+        },
+        // スケジュール管理
+        {
+            name: "スケジュール管理",
+            href: "admin.schedules.index",
+            icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5",
+            current: route().current("admin.schedules.*"),
+            children: [
+                {
+                    name: "スケジュールカレンダー",
+                    href: "admin.schedules.index",
+                },
+                {
+                    name: "営業時間設定",
+                    href: "admin.schedules.defaults.index",
+                },
+                {
+                    name: "例外日設定",
+                    href: "admin.schedules.exceptions.index",
+                },
+                { name: "祝日管理", href: "admin.schedules.holidays.index" },
             ],
         },
         // コンテンツ管理

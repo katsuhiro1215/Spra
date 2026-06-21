@@ -42,6 +42,13 @@ use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
 use App\Http\Controllers\Admin\Homepage\BlogController;
 use App\Http\Controllers\Admin\Homepage\SiteSettingController;
 
+use App\Http\Controllers\Admin\Schedule\HolidayController;
+use App\Http\Controllers\Admin\Schedule\ScheduleDefaultController;
+use App\Http\Controllers\Admin\Schedule\ScheduleExceptionController;
+
+use App\Http\Controllers\Admin\AppointmentSlotController;
+use App\Http\Controllers\Admin\AppointmentController;
+
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SystemSettingController;
 
@@ -154,11 +161,12 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         'response-templates' => 'responseTemplate'
     ]);
 
-    // プロジェクト問い合わせ管理
-    Route::resource('project-inquiries', ProjectInquiryController::class);
-
-    // プロジェクトカテゴリ管理
-    Route::resource('project-categories', ProjectCategoryController::class);
+    Route::prefix('project')->name('project.')->group(function () {
+        // プロジェクトカテゴリ管理
+        Route::resource('category', ProjectCategoryController::class)->parameters(['category' => 'projectCategory']);
+        // プロジェクト問い合わせ管理
+        Route::resource('inquiry', ProjectInquiryController::class)->parameters(['inquiries' => 'projectInquiry'])->only(['index', 'show', 'destroy']);
+    });
 
     // プロジェクト管理
     Route::resource('project', ProjectController::class);
@@ -216,6 +224,33 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::resource('faq', FaqController::class);
     Route::delete('/faqs/bulk-destroy', [FaqController::class, 'bulkDestroy'])->name('faq.bulk-destroy');
     Route::patch('/faqs/bulk-status', [FaqController::class, 'bulkUpdateStatus'])->name('faq.bulk-status');
+
+    // スケジュール管理
+    Route::prefix('schedules')->name('schedules.')->group(function () {
+        // スケジュールカレンダー統合画面
+        Route::get('/', [ScheduleDefaultController::class, 'calendar'])->name('index');
+
+        // 祝日・休業日管理
+        Route::resource('holidays', HolidayController::class);
+        Route::post('/holidays/import', [HolidayController::class, 'import'])->name('holidays.import');
+        Route::get('/holidays/export', [HolidayController::class, 'export'])->name('holidays.export');
+
+        // デフォルトスケジュール管理
+        Route::get('/defaults', [ScheduleDefaultController::class, 'index'])->name('defaults.index');
+        Route::post('/defaults/bulk-update', [ScheduleDefaultController::class, 'bulkUpdate'])->name('defaults.bulk-update');
+
+        // 例外スケジュール管理
+        Route::resource('exceptions', ScheduleExceptionController::class);
+    });
+
+    // 予約枠管理
+    Route::resource('appointment-slots', AppointmentSlotController::class);
+
+    // 予約管理
+    Route::resource('appointments', AppointmentController::class);
+    Route::post('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
+    Route::post('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+    Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
 
     // ホームページ管理
     Route::prefix('homepage')->name('homepage.')->group(function () {

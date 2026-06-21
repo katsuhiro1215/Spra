@@ -54,6 +54,26 @@ class HolidayRepository
   }
 
   /**
+   * 年フィルタを適用
+   */
+  public function buildYearFilter(Builder $query, int $year): Builder
+  {
+    return $query->whereYear('date', $year);
+  }
+
+  /**
+   * 利用可能な年の一覧を取得
+   */
+  public function getAvailableYears(): array
+  {
+    return Holiday::selectRaw('YEAR(date) as year')
+      ->distinct()
+      ->orderBy('year', 'desc')
+      ->pluck('year')
+      ->toArray();
+  }
+
+  /**
    * ソートを適用
    */
   public function applySorting(Builder $query, string $field, string $direction = 'asc'): Builder
@@ -84,7 +104,7 @@ class HolidayRepository
   {
     return Holiday::count();
   }
-  
+
   /**
    * 更新
    */

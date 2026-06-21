@@ -5,7 +5,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 // Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
@@ -35,10 +35,10 @@ export default function Edit({ serviceCategory }) {
 
     const headerActions = [
         {
-            label: PageConfig.serviceCategories.actions.create,
-            icon: PlusIcon,
-            variant: "primary",
-            route: route("admin.service.categories.create"),
+            label: PageConfig.serviceCategories.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "default",
+            route: route("admin.service.category.show", serviceCategory.id),
         },
     ];
 
@@ -65,18 +65,19 @@ export default function Edit({ serviceCategory }) {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <ServiceCategoryForm
-                        data={data}
-                        setData={setData}
-                        errors={errors}
-                        processing={processing}
-                        onSubmit={submit}
-                        cancelRoute={route("admin.service.categories.index")}
-                        isEdit={true}
-                    />
-                </div>
+            <div className="max-w-7xl">
+                <ServiceCategoryForm
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    processing={processing}
+                    onSubmit={submit}
+                    cancelRoute={route(
+                        "admin.service.category.show",
+                        serviceCategory.id,
+                    )}
+                    isEdit={true}
+                />
             </div>
         </AdminAuthenticatedLayout>
     );

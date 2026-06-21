@@ -5,9 +5,10 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 // Icons
-import { PlusIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Service Components
 import ServiceForm from "./_components/Form";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ categories }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -31,37 +32,28 @@ export default function Create({ categories }) {
     // ========================================
     const headerActions = [
         {
-            label: "サービス一覧に戻る",
+            label: PageConfig.services.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.service.index"),
         },
-        {
-            label: "サービスを追加",
-            icon: PlusIcon,
-            variant: "primary",
-            route: route("admin.service.create"),
-        },
-    ];
-
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス管理", href: route("admin.service.index") },
-        { label: "新規作成", href: null },
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービス作成"
-                    description="新しいサービスを作成します"
+                    title={PageConfig.services.pages.create.title}
+                    description={PageConfig.services.pages.create.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={[
+                        ...PageConfig.services.breadcrumbs,
+                        PageConfig.services.pages.create.breadcrumb,
+                    ]}
                 />
             }
         >
-            <Head title="サービス作成" />
+            <Head title={PageConfig.services.pages.create.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />

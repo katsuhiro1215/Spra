@@ -1,9 +1,10 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
-import {FlashMessage} from "@/Components/Notifications";
+import { Card, CardHeader, CardBody } from "@/Components/Card";
+import { TextButton } from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
@@ -27,10 +28,16 @@ export default function Show({ serviceCategory, servicesCount }) {
 
     const headerActions = [
         {
-            label: "一覧に戻る",
+            label: PageConfig.serviceCategories.actions.back,
             icon: ArrowLeftIcon,
             variant: "default",
             route: route("admin.service.category.index"),
+        },
+        {
+            label: PageConfig.serviceCategories.actions.edit,
+            icon: PencilIcon,
+            variant: "warning",
+            route: route("admin.service.category.edit", serviceCategory.id),
         },
     ];
 
@@ -47,11 +54,10 @@ export default function Show({ serviceCategory, servicesCount }) {
         >
             <Head title={`サービスカテゴリ詳細 - ${serviceCategory.name}`} />
 
-            <div className="py-12">
-                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6">
-                            {/* ヘッダー部分 */}
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader>
                             <div className="mb-8">
                                 <div className="flex items-center space-x-4 mb-4">
                                     {serviceCategory.icon && (
@@ -68,11 +74,11 @@ export default function Show({ serviceCategory, servicesCount }) {
                                         </div>
                                     )}
                                     <div>
-                                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                                             {serviceCategory.name}
                                         </h1>
                                         <div className="flex items-center space-x-4">
-                                            <span className="text-sm text-gray-500">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
                                                 {serviceCategory.slug}
                                             </span>
                                             <div className="flex items-center space-x-1">
@@ -82,7 +88,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                         稼働中
                                                     </span>
                                                 ) : serviceCategory.status ===
-                                                  "inactive" ? (
+                                                    "inactive" ? (
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                                         停止中
                                                     </span>
@@ -97,55 +103,56 @@ export default function Show({ serviceCategory, servicesCount }) {
                                 </div>
 
                                 {serviceCategory.description && (
-                                    <p className="text-gray-700 leading-relaxed">
+                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                                         {serviceCategory.description}
                                     </p>
                                 )}
                             </div>
-
+                        </CardHeader>
+                        <CardBody>
                             {/* 詳細情報 */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                                         基本情報
                                     </h3>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 カテゴリ名
                                             </label>
-                                            <p className="text-gray-900">
+                                            <p className="text-gray-900 dark:text-white">
                                                 {serviceCategory.name}
                                             </p>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 スラッグ
                                             </label>
-                                            <p className="text-gray-900 font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                                            <p className="text-gray-900 dark:text-white font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                                                 {serviceCategory.slug}
                                             </p>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 表示順
                                             </label>
-                                            <p className="text-gray-900">
+                                            <p className="text-gray-900 dark:text-white">
                                                 {serviceCategory.sort_order}
                                             </p>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 関連サービス数
                                             </label>
-                                            <p className="text-gray-900">
+                                            <p className="text-gray-900 dark:text-white">
                                                 {servicesCount}件
                                                 {servicesCount > 0 && (
-                                                    <Link
+                                                    <TextButton
                                                         href={route(
                                                             "admin.service.category.index",
                                                             {
@@ -153,10 +160,9 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                                     serviceCategory.id,
                                                             },
                                                         )}
-                                                        className="ml-2 text-sm text-blue-600 hover:text-blue-800"
                                                     >
                                                         →サービス一覧を見る
-                                                    </Link>
+                                                    </TextButton>
                                                 )}
                                             </p>
                                         </div>
@@ -164,13 +170,13 @@ export default function Show({ serviceCategory, servicesCount }) {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                                         表示設定
                                     </h3>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 カラー
                                             </label>
                                             <div className="flex items-center space-x-3">
@@ -188,7 +194,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 アイコン
                                             </label>
                                             <div className="flex items-center space-x-3">
@@ -220,7 +226,7 @@ export default function Show({ serviceCategory, servicesCount }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 ステータス
                                             </label>
                                             <div className="flex items-center space-x-2">
@@ -233,17 +239,17 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                         </span>
                                                     </>
                                                 ) : serviceCategory.status ===
-                                                  "inactive" ? (
+                                                    "inactive" ? (
                                                     <>
                                                         <XCircleIcon className="h-5 w-5 text-gray-500" />
-                                                        <span className="text-gray-600 font-medium">
+                                                        <span className="text-gray-600 dark:text-gray-400 font-medium">
                                                             停止中
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <XCircleIcon className="h-5 w-5 text-red-500" />
-                                                        <span className="text-red-600 font-medium">
+                                                        <span className="text-red-600 dark:text-red-400 font-medium">
                                                             一時停止
                                                         </span>
                                                     </>
@@ -255,11 +261,11 @@ export default function Show({ serviceCategory, servicesCount }) {
                             </div>
 
                             {/* メタ情報 */}
-                            <div className="border-t border-gray-200 pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                     システム情報
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
                                     <div>
                                         <span className="font-medium">
                                             作成日時:
@@ -282,30 +288,8 @@ export default function Show({ serviceCategory, servicesCount }) {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* アクションボタン */}
-                            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
-                                <Link
-                                    href={route(
-                                        "admin.service.category.index",
-                                    )}
-                                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                >
-                                    一覧に戻る
-                                </Link>
-                                <Link
-                                    href={route(
-                                        "admin.service.category.edit",
-                                        serviceCategory.id,
-                                    )}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                                >
-                                    <PencilIcon className="h-4 w-4 mr-2" />
-                                    編集
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </AdminAuthenticatedLayout>

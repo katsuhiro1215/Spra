@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, router } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
-import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Table";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 

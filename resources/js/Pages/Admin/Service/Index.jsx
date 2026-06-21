@@ -154,16 +154,11 @@ export default function Index({
     // ========================================
     const headerActions = [
         {
-            label: "サービスを追加",
+            label: PageConfig.services.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.service.create"),
         },
-    ];
-
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス一覧管理", href: null },
     ];
 
     // ========================================
@@ -172,17 +167,17 @@ export default function Index({
     const tabs = [
         {
             key: "with_trashed",
-            label: "すべて",
+            label: PageConfig.services.ui.tabs.all,
             count: stats?.all || services.total,
         },
         {
             key: "without_trashed",
-            label: "一覧",
+            label: PageConfig.services.ui.tabs.list,
             count: stats?.active || services.total,
         },
         {
             key: "only_trashed",
-            label: "削除済み",
+            label: PageConfig.services.ui.tabs.trashed,
             count: stats?.trashed || 0,
         },
     ];
@@ -200,14 +195,14 @@ export default function Index({
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービス管理"
-                    description="サービスの作成、編集、削除を行います"
+                    title={PageConfig.services.title}
+                    description={PageConfig.services.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.services.breadcrumbs}
                 />
             }
         >
-            <Head title="サービス管理" />
+            <Head title={PageConfig.services.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
@@ -243,7 +238,10 @@ export default function Index({
                                         setData("search", value)
                                     }
                                     onSearch={handleSearch}
-                                    placeholder="サービス名またはスラッグで検索..."
+                                    placeholder={
+                                        PageConfig.services.ui.search
+                                            .placeholder
+                                    }
                                     disabled={processing}
                                 />
                             </div>
@@ -256,7 +254,7 @@ export default function Index({
                                     className="relative"
                                 >
                                     <FunnelIcon className="h-4 w-4 mr-2" />
-                                    フィルター
+                                    {PageConfig.services.ui.filter.button}
                                     {activeFilterCount > 0 && (
                                         <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
                                             {activeFilterCount}
@@ -272,7 +270,10 @@ export default function Index({
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                     {/* カテゴリフィルター */}
                                     <FilterSelect
-                                        label="カテゴリ"
+                                        label={
+                                            PageConfig.services.filters.category
+                                                .label
+                                        }
                                         value={data.category}
                                         onChange={(value) =>
                                             setData("category", value)
@@ -283,29 +284,44 @@ export default function Index({
                                                 label: cat.name,
                                             })) || []
                                         }
-                                        placeholder="すべて"
+                                        placeholder={
+                                            PageConfig.services.filters.category
+                                                .placeholder
+                                        }
                                     />
 
                                     {/* ステータスフィルター */}
                                     <FilterSelect
-                                        label="ステータス"
+                                        label={
+                                            PageConfig.services.filters.status
+                                                .label
+                                        }
                                         value={data.status}
                                         onChange={(value) =>
                                             setData("status", value)
                                         }
                                         options={SERVICE_STATUS_OPTIONS}
-                                        placeholder="すべて"
+                                        placeholder={
+                                            PageConfig.services.filters.status
+                                                .placeholder
+                                        }
                                     />
 
                                     {/* 注目フィルター */}
                                     <FilterSelect
-                                        label="注目"
+                                        label={
+                                            PageConfig.services.filters.featured
+                                                .label
+                                        }
                                         value={data.is_featured}
                                         onChange={(value) =>
                                             setData("is_featured", value)
                                         }
                                         options={IS_FEATURED_OPTIONS}
-                                        placeholder="すべて"
+                                        placeholder={
+                                            PageConfig.services.filters.featured
+                                                .placeholder
+                                        }
                                     />
 
                                     {/* フィルタークリアボタン */}
@@ -317,7 +333,10 @@ export default function Index({
                                             className="w-full"
                                         >
                                             <XMarkIcon className="h-4 w-4 mr-2" />
-                                            クリア
+                                            {
+                                                PageConfig.services.ui.filter
+                                                    .clear
+                                            }
                                         </SecondaryButton>
                                     </div>
                                 </div>
@@ -342,17 +361,18 @@ export default function Index({
                         </div>
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
-                                ? "検索条件に一致するサービスが見つかりませんでした。"
+                                ? PageConfig.services.ui.empty.noResults
                                 : activeTab === "only_trashed"
-                                  ? "削除されたサービスはありません。"
-                                  : "まだサービスが登録されていません。"}
+                                  ? PageConfig.services.ui.empty.noTrashed
+                                  : PageConfig.services.ui.empty.noData}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
                             <CreateButton
                                 href={route("admin.service.create")}
                                 size="md"
                             >
-                                最初のサービスを作成
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                {PageConfig.services.ui.empty.createFirst}
                             </CreateButton>
                         )}
                     </Card>

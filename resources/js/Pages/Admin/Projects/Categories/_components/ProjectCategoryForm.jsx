@@ -1,8 +1,8 @@
 import React from "react";
-import FormGroup from "@/Components/FormGroup";
-import TextInput from "@/Components/Inputs/TextInput";
-import TextArea from "@/Components/Inputs/TextArea";
-import ColorInput from "@/Components/Inputs/ColorInput";
+import FormGroup from "@/Components/Forms/FormGroup";
+import TextInput from "@/Components/Forms/TextInput";
+import TextArea from "@/Components/Forms/TextArea";
+import ColorInput from "@/Components/Forms/ColorInput";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 
 export default function ProjectCategoryForm({ data, setData, errors }) {

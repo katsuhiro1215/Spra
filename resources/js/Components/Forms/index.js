@@ -10,6 +10,10 @@ export { default as SelectInput } from "./SelectInput";
 export { default as InputError } from "./InputError";
 export { default as Checkbox } from "./Checkbox";
 
+// Form Field Components
+export { default as FormSelect } from "./FormSelect";
+export { default as FormTextarea } from "./FormTextarea";
+
 // Validated Components
 export { default as ValidatedInput } from "./ValidatedInput";
 export { default as ValidatedTextArea } from "./ValidatedTextArea";

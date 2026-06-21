@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ScheduleDefault extends Model
 {
-    use HasFactory;
-    
+    use HasFactory, SoftDeletes;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -21,6 +23,9 @@ class ScheduleDefault extends Model
         'close_time',
         'break_start',
         'break_end',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     /**
@@ -43,6 +48,30 @@ class ScheduleDefault extends Model
     {
         $days = ['日', '月', '火', '水', '木', '金', '土'];
         return $days[$this->day_of_week] ?? '';
+    }
+
+    /**
+     * Get the creator of the schedule.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * Get the updater of the schedule.
+     */
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    /**
+     * Get the deleter of the schedule.
+     */
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'deleted_by');
     }
 
     /**

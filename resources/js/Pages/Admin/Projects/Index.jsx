@@ -12,7 +12,9 @@ import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
-import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 // Project Components
 import ProjectsTable from "./_components/ProjectsTable";
 
@@ -155,17 +157,17 @@ export default function Index({
     const tabs = [
         {
             key: "with_trashed",
-            label: "すべて",
+            label: PageConfig.projects.ui.tabs.all,
             count: stats?.all || projects.total,
         },
         {
             key: "without_trashed",
-            label: "一覧",
+            label: PageConfig.projects.ui.tabs.list,
             count: stats?.active || projects.total,
         },
         {
             key: "only_trashed",
-            label: "削除済み",
+            label: PageConfig.projects.ui.tabs.trashed,
             count: stats?.trashed || 0,
         },
     ];
@@ -227,14 +229,14 @@ export default function Index({
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="プロジェクト"
-                    description="プロジェクトの管理"
+                    title={PageConfig.projects.title}
+                    description={PageConfig.projects.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="プロジェクト一覧" />
+            <Head title={PageConfig.projects.documentTitle} />
 
             <FlashMessage />
 
@@ -260,7 +262,10 @@ export default function Index({
                                         setData("search", value)
                                     }
                                     onSearch={handleSearch}
-                                    placeholder="サービス名またはスラッグで検索..."
+                                    placeholder={
+                                        PageConfig.projects.ui.search
+                                            .placeholder
+                                    }
                                     disabled={processing}
                                 />
                             </div>
@@ -273,7 +278,7 @@ export default function Index({
                                     className="relative"
                                 >
                                     <FunnelIcon className="h-4 w-4 mr-2" />
-                                    フィルター
+                                    {PageConfig.projects.ui.filter.button}
                                     {activeFilterCount > 0 && (
                                         <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
                                             {activeFilterCount}
@@ -287,42 +292,72 @@ export default function Index({
                         {showFilters && (
                             <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* カテゴリフィルター */}
-                                    <FilterSelect
-                                        label="カテゴリ"
-                                        value={data.category}
-                                        onChange={(value) =>
-                                            setData("category", value)
-                                        }
-                                        options={
-                                            categories?.map((cat) => ({
-                                                value: cat.id,
-                                                label: cat.name,
-                                            })) || []
-                                        }
-                                        placeholder="すべて"
-                                    />
-
                                     {/* ステータスフィルター */}
                                     <FilterSelect
-                                        label="ステータス"
+                                        label={
+                                            PageConfig.projects.filters.status
+                                                .label
+                                        }
                                         value={data.status}
                                         onChange={(value) =>
                                             setData("status", value)
                                         }
-                                        options={SERVICE_STATUS_OPTIONS}
-                                        placeholder="すべて"
+                                        options={statusOptions}
+                                        placeholder={
+                                            PageConfig.projects.filters.status
+                                                .placeholder
+                                        }
                                     />
 
-                                    {/* 注目フィルター */}
+                                    {/* 優先度フィルター */}
                                     <FilterSelect
-                                        label="注目"
-                                        value={data.is_featured}
-                                        onChange={(value) =>
-                                            setData("is_featured", value)
+                                        label={
+                                            PageConfig.projects.filters.priority
+                                                .label
                                         }
-                                        options={IS_FEATURED_OPTIONS}
-                                        placeholder="すべて"
+                                        value={data.priority}
+                                        onChange={(value) =>
+                                            setData("priority", value)
+                                        }
+                                        options={priorityOptions}
+                                        placeholder={
+                                            PageConfig.projects.filters.priority
+                                                .placeholder
+                                        }
+                                    />
+
+                                    {/* カテゴリフィルター */}
+                                    <FilterSelect
+                                        label={
+                                            PageConfig.projects.filters.category
+                                                .label
+                                        }
+                                        value={data.category_id}
+                                        onChange={(value) =>
+                                            setData("category_id", value)
+                                        }
+                                        options={categoryOptions}
+                                        placeholder={
+                                            PageConfig.projects.filters.category
+                                                .placeholder
+                                        }
+                                    />
+
+                                    {/* 担当者フィルター */}
+                                    <FilterSelect
+                                        label={
+                                            PageConfig.projects.filters.admin
+                                                .label
+                                        }
+                                        value={data.admin_id}
+                                        onChange={(value) =>
+                                            setData("admin_id", value)
+                                        }
+                                        options={adminOptions}
+                                        placeholder={
+                                            PageConfig.projects.filters.admin
+                                                .placeholder
+                                        }
                                     />
 
                                     {/* フィルタークリアボタン */}
@@ -334,7 +369,10 @@ export default function Index({
                                             className="w-full"
                                         >
                                             <XMarkIcon className="h-4 w-4 mr-2" />
-                                            クリア
+                                            {
+                                                PageConfig.projects.ui.filter
+                                                    .clear
+                                            }
                                         </SecondaryButton>
                                     </div>
                                 </div>
@@ -355,21 +393,22 @@ export default function Index({
                 {projects.data.length === 0 && (
                     <Card className="text-center py-12">
                         <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
-                            🏢
+                            📁
                         </div>
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
-                                ? "検索条件に一致するプロジェクトが見つかりませんでした。"
+                                ? PageConfig.projects.ui.empty.noResults
                                 : activeTab === "only_trashed"
-                                  ? "削除されたプロジェクトはありません。"
-                                  : "まだプロジェクトが登録されていません。"}
+                                  ? PageConfig.projects.ui.empty.noTrashed
+                                  : PageConfig.projects.ui.empty.noData}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
                             <CreateButton
                                 href={route("admin.project.create")}
                                 size="md"
                             >
-                                最初のプロジェクトを作成
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                {PageConfig.projects.ui.empty.createFirst}
                             </CreateButton>
                         )}
                     </Card>

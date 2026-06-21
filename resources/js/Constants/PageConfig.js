@@ -53,6 +53,27 @@ const createNotificationTemplates = (baseName) => ({
     bulkUpdated: (count) => `${count}件の${baseName}を更新しました`,
 });
 
+const createIndexPageUITemplates = (baseName, searchPlaceholder = null) => ({
+    tabs: {
+        all: "すべて",
+        list: "一覧",
+        trashed: "削除済み",
+    },
+    search: {
+        placeholder: searchPlaceholder || `${baseName}名で検索...`,
+    },
+    filter: {
+        button: "フィルター",
+        clear: "クリア",
+    },
+    empty: {
+        noResults: `検索条件に一致する${baseName}が見つかりませんでした。`,
+        noTrashed: `削除された${baseName}はありません。`,
+        noData: `まだ${baseName}が登録されていません。`,
+        createFirst: `最初の${baseName}を作成`,
+    },
+});
+
 export const PageConfig = {
     /**
      * ダッシュボード管理
@@ -80,6 +101,20 @@ export const PageConfig = {
         },
         pages: createPageTemplates("管理者"),
         search: createSearchTemplate("管理者"),
+        ui: createIndexPageUITemplates(
+            "管理者",
+            "ユーザー名またはメールアドレスで検索...",
+        ),
+        filters: {
+            role: {
+                label: "役割",
+                placeholder: "すべての役割",
+            },
+            status: {
+                label: "ステータス",
+                placeholder: "すべてのステータス",
+            },
+        },
     },
 
     /**
@@ -95,6 +130,16 @@ export const PageConfig = {
         },
         pages: createPageTemplates("ユーザー"),
         search: createSearchTemplate("ユーザー"),
+        ui: createIndexPageUITemplates(
+            "ユーザー",
+            "ユーザー名またはメールアドレスで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべてのステータス",
+            },
+        },
     },
 
     /**
@@ -140,6 +185,154 @@ export const PageConfig = {
         },
         pages: createPageTemplates("サービスカテゴリ"),
         search: createSearchTemplate("サービスカテゴリ"),
+        ui: createIndexPageUITemplates(
+            "サービスカテゴリ",
+            "カテゴリ名またはスラッグで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべてのステータス",
+            },
+        },
+    },
+
+    /**
+     * スケジュール管理
+     */
+    schedules: {
+        title: "📅 スケジュール管理",
+        description: "スケジュールを管理します",
+        documentTitle: "スケジュール管理",
+        breadcrumbs: ["ホーム", "スケジュール管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("スケジュール"),
+        search: createSearchTemplate("スケジュール"),
+    },
+
+    /**
+     * 祝日・休業日管理
+     */
+    holidays: {
+        title: "🎉 祝日・休業日管理",
+        description: "祝日・休業日を管理します",
+        documentTitle: "祝日・休業日管理",
+        breadcrumbs: ["ホーム", "祝日・休業日管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("祝日・休業日"),
+        search: createSearchTemplate("祝日・休業日"),
+        ui: createIndexPageUITemplates("祝日・休業日", "祝日名で検索..."),
+    },
+
+    /**
+     * 例外日管理
+     */
+    exceptions: {
+        title: "⚠️ 例外日管理",
+        description: "例外日を管理します",
+        documentTitle: "例外日管理",
+        breadcrumbs: ["ホーム", "例外日管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("例外日"),
+        search: createSearchTemplate("例外日"),
+        ui: createIndexPageUITemplates("例外日", "理由で検索..."),
+    },
+
+    /**
+     * デフォルトスケジュール管理
+     */
+    defaults: {
+        title: "📅 デフォルトスケジュール管理",
+        description: "曜日ごとのデフォルト営業時間を管理します",
+        documentTitle: "デフォルトスケジュール設定",
+        breadcrumbs: ["ホーム", "デフォルトスケジュール管理"],
+        actions: {
+            save: "保存",
+        },
+        labels: {
+            sectionTitle: "営業時間の設定",
+            sectionDescription: "曜日ごとのデフォルト営業時間を設定します。",
+            closedDay: "定休日",
+            businessHours: "営業時間",
+            breakTime: "休憩時間",
+        },
+        hints: {
+            toggleHelp:
+                "スイッチをオンにすると営業日、オフにすると定休日になります。",
+            saveHelp: "変更は保存ボタンを押すまで反映されません。",
+        },
+        dayNames: ["日", "月", "火", "水", "木", "金", "土"],
+    },
+
+    /**
+     * 予約枠管理
+     */
+    appointmentSlots: {
+        title: "📅 予約枠管理",
+        description: "予約枠を管理します",
+        documentTitle: "予約枠管理",
+        breadcrumbs: ["ホーム", "スケジュール管理", "予約枠管理"],
+        actions: {
+            create: "予約枠を作成",
+            edit: "予約枠を編集",
+            delete: "予約枠を削除",
+            view: "予約枠を表示",
+        },
+        ui: createIndexPageUITemplates("予約枠", "日付、時間、タイプで検索..."),
+        filters: {
+            slotType: {
+                label: "予約タイプ",
+                placeholder: "すべて",
+            },
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            assignedAdmin: {
+                label: "担当者",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    /**
+     * 予約管理
+     */
+    appointments: {
+        title: "📝 予約管理",
+        description: "予約を管理します",
+        documentTitle: "予約管理",
+        breadcrumbs: ["ホーム", "スケジュール管理", "予約管理"],
+        actions: {
+            create: "予約を作成",
+            edit: "予約を編集",
+            delete: "予約を削除",
+            view: "予約を表示",
+            confirm: "予約を確定",
+            cancel: "予約をキャンセル",
+            complete: "予約を完了",
+        },
+        ui: createIndexPageUITemplates("予約", "件名、企業名で検索..."),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            company: {
+                label: "企業",
+                placeholder: "すべて",
+            },
+            project: {
+                label: "プロジェクト",
+                placeholder: "すべて",
+            },
+        },
     },
 
     /**
@@ -248,12 +441,30 @@ export const PageConfig = {
         title: "🛠️ サービス管理",
         description: "ホームページのサービス内容を管理します",
         documentTitle: "サービス管理",
-        breadcrumbs: ["ホーム", "サービス"],
+        breadcrumbs: ["ホーム", "サービス管理"],
         actions: {
             ...CommonUIConstants.actions,
         },
         pages: createPageTemplates("サービス"),
         form: createFormTemplates("サービス"),
+        ui: createIndexPageUITemplates(
+            "サービス",
+            "サービス名またはスラッグで検索...",
+        ),
+        filters: {
+            category: {
+                label: "カテゴリ",
+                placeholder: "すべて",
+            },
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            featured: {
+                label: "注目",
+                placeholder: "すべて",
+            },
+        },
     },
     // FAQ管理
     faqs: {
@@ -310,6 +521,79 @@ export const PageConfig = {
         breadcrumbs: ["ホーム", "会社管理"],
         actions: {
             ...CommonUIConstants.actions,
+        },
+        ui: createIndexPageUITemplates("会社", "企業名、代表者名で検索..."),
+        filters: {
+            companyType: {
+                label: "企業タイプ",
+                placeholder: "すべて",
+            },
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            industry: {
+                label: "業界",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    /**
+     * プロジェクト管理
+     */
+    projects: {
+        title: "📁 プロジェクト管理",
+        description: "プロジェクトを管理します",
+        documentTitle: "プロジェクト管理",
+        breadcrumbs: ["ホーム", "プロジェクト管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        ui: createIndexPageUITemplates(
+            "プロジェクト",
+            "プロジェクト名で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            priority: {
+                label: "優先度",
+                placeholder: "すべて",
+            },
+            category: {
+                label: "カテゴリ",
+                placeholder: "すべて",
+            },
+            admin: {
+                label: "担当者",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    /**
+     * プロジェクトカテゴリ管理
+     */
+    projectCategories: {
+        title: "📂 プロジェクトカテゴリ管理",
+        description: "プロジェクトの分類を管理します",
+        documentTitle: "プロジェクトカテゴリ管理",
+        breadcrumbs: ["ホーム", "プロジェクトカテゴリ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        ui: createIndexPageUITemplates(
+            "プロジェクトカテゴリ",
+            "カテゴリ名、スラッグ、説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
         },
     },
 

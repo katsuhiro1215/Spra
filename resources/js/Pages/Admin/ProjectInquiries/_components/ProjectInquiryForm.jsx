@@ -1,9 +1,9 @@
 import React from "react";
-import FormGroup from "@/Components/FormGroup";
-import TextInput from "@/Components/Inputs/TextInput";
-import TextArea from "@/Components/Inputs/TextArea";
-import SelectInput from "@/Components/Inputs/SelectInput";
-import NumberInput from "@/Components/Inputs/NumberInput";
+import FormGroup from "@/Components/Forms/FormGroup";
+import TextInput from "@/Components/Forms/TextInput";
+import TextArea from "@/Components/Forms/TextArea";
+import SelectInput from "@/Components/Forms/SelectInput";
+import NumberInput from "@/Components/Forms/NumberInput";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 
 export default function ProjectInquiryForm({

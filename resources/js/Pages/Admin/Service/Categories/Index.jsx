@@ -25,6 +25,7 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
     );
     const [isDeleting, setIsDeleting] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [showFilters, setShowFilters] = useState(false);
 
     const { data, setData, get, processing } = useForm({
         search: filters.search || "",
@@ -140,22 +141,24 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
     const tabs = [
         {
             key: "with_trashed",
-            label: "すべて",
+            label: PageConfig.serviceCategories.ui.tabs.all,
             count: stats?.all || serviceCategories.total,
         },
         {
             key: "without_trashed",
-            label: "一覧",
+            label: PageConfig.serviceCategories.ui.tabs.list,
             count: stats?.active || serviceCategories.total,
         },
         {
             key: "only_trashed",
-            label: "削除済み",
+            label: PageConfig.serviceCategories.ui.tabs.trashed,
             count: stats?.trashed || 0,
         },
     ];
 
     const hasActiveFilters = data.search || data.status;
+
+    const activeFilterCount = [data.status].filter(Boolean).length;
 
     return (
         <AdminAuthenticatedLayout
@@ -182,68 +185,85 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
             />
 
             <div className="w-full flex flex-col gap-4">
-                {/* タブナビゲーション + 検索バー */}
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 p-4">
-                    {/* タブナビゲーション */}
-                    <div className="flex-1">
-                        <TabNavigation
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onChange={handleTabChange}
-                        />
-                    </div>
-                    {/* 検索バー */}
-                    <div className="flex-1">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder="カテゴリ名またはスラッグで検索..."
-                            disabled={processing}
-                        />
-                    </div>
-                </div>
-                {/* フィルター */}
-                <div className="border-t border-slate-200 dark:border-slate-700 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                        <FunnelIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            フィルター
-                        </span>
-                        {hasActiveFilters && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
-                                フィルター中
-                            </span>
+                {/* 検索・フィルターカード */}
+                <Card>
+                    <div className="p-4 space-y-3">
+                        {/* タブ + 検索 + フィルタートグル */}
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                            {/* タブナビゲーション */}
+                            <div className="flex-shrink-0">
+                                <TabNavigation
+                                    tabs={tabs}
+                                    activeTab={activeTab}
+                                    onChange={handleTabChange}
+                                />
+                            </div>
+
+                            {/* 検索バー */}
+                            <div className="flex-1 max-w-md">
+                                <SearchBar
+                                    value={data.search}
+                                    onChange={(value) =>
+                                        setData("search", value)
+                                    }
+                                    onSearch={handleSearch}
+                                    placeholder={PageConfig.serviceCategories.ui.search.placeholder}
+                                    disabled={processing}
+                                />
+                            </div>
+
+                            {/* フィルタートグルボタン */}
+                            <div className="flex-shrink-0">
+                                <SecondaryButton
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    size="sm"
+                                    className="relative"
+                                >
+                                    <FunnelIcon className="h-4 w-4 mr-2" />
+                                    {PageConfig.serviceCategories.ui.filter.button}
+                                    {activeFilterCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </SecondaryButton>
+                            </div>
+                        </div>
+
+                        {/* フィルターセクション（折りたたみ可能）*/}
+                        {showFilters && (
+                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    {/* ステータスフィルター */}
+                                    <FilterSelect
+                                        label={PageConfig.serviceCategories.filters.status.label}
+                                        value={data.status}
+                                        onChange={(value) =>
+                                            setData("status", value)
+                                        }
+                                        options={
+                                            SERVICE_CATEGORY_STATUS_OPTIONS
+                                        }
+                                        placeholder={PageConfig.serviceCategories.filters.status.placeholder}
+                                    />
+
+                                    {/* フィルタークリアボタン */}
+                                    <div className="flex items-end">
+                                        <SecondaryButton
+                                            onClick={handleClearFilters}
+                                            disabled={!hasActiveFilters}
+                                            size="md"
+                                            className="w-full"
+                                        >
+                                            <XMarkIcon className="h-4 w-4 mr-2" />
+                                            {PageConfig.serviceCategories.ui.filter.clear}
+                                        </SecondaryButton>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {/* ステータスフィルター */}
-                        <FilterSelect
-                            label="ステータス"
-                            value={data.status}
-                            onChange={(value) => setData("status", value)}
-                            options={SERVICE_CATEGORY_STATUS_OPTIONS}
-                            placeholder="すべてのステータス"
-                        />
-
-                        {/* スペーサー */}
-                        <div className="hidden lg:block"></div>
-                        <div className="hidden lg:block"></div>
-
-                        {/* フィルタークリアボタン */}
-                        <div className="flex items-end">
-                            <SecondaryButton
-                                onClick={handleClearFilters}
-                                disabled={!hasActiveFilters}
-                                size="md"
-                                className="w-full"
-                            >
-                                <XMarkIcon className="h-4 w-4 mr-2" />
-                                フィルタークリア
-                            </SecondaryButton>
-                        </div>
-                    </div>
-                </div>
+                </Card>
 
                 {/* サービスカテゴリー一覧テーブル */}
                 <ServiceCategoriesTable
@@ -258,16 +278,16 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
 
                 {/* データがない場合 */}
                 {serviceCategories.data.length === 0 && (
-                    <Card>
+                    <Card className="text-center py-12">
                         <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
                             👤
                         </div>
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
-                                ? "検索条件に一致するサービスカテゴリが見つかりませんでした。"
+                                ? PageConfig.serviceCategories.ui.empty.noResults
                                 : activeTab === "only_trashed"
-                                  ? "削除されたサービスカテゴリはありません。"
-                                  : "まだサービスカテゴリが登録されていません。"}
+                                  ? PageConfig.serviceCategories.ui.empty.noTrashed
+                                  : PageConfig.serviceCategories.ui.empty.noData}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
                             <CreateButton
@@ -275,7 +295,7 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
                                 size="md"
                             >
                                 <PlusIcon className="h-4 w-4 mr-2" />
-                                最初のサービスカテゴリを作成
+                                {PageConfig.serviceCategories.ui.empty.createFirst}
                             </CreateButton>
                         )}
                     </Card>

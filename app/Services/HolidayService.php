@@ -38,6 +38,10 @@ class HolidayService
       $query = $this->repository->buildIsRecurringFilter($query, (bool)$filters['is_recurring']);
     }
 
+    if (!empty($filters['year'])) {
+      $query = $this->repository->buildYearFilter($query, (int)$filters['year']);
+    }
+
     // ソート適用
     if (!empty($sort['field']) && !empty($sort['direction'])) {
       $query = $this->repository->applySorting($query, $sort['field'], $sort['direction']);
@@ -47,6 +51,53 @@ class HolidayService
     }
 
     return $query->paginate($perPage)->withQueryString();
+  }
+
+  /**
+   * フィルター条件に基づいて全てのHolidayを取得（ページネーションなし）
+   *
+   * @return Collection
+   */
+  public function getFilteredHolidays(array $filters, array $sort): Collection
+  {
+    $query = Holiday::query();
+
+    // フィルター適用
+    if (!empty($filters['search'])) {
+      $query = $this->repository->buildSearchQuery($query, $filters['search']);
+    }
+
+    if (!empty($filters['type'])) {
+      $query = $this->repository->buildTypeFilter($query, $filters['type']);
+    }
+
+    if (isset($filters['is_recurring']) && $filters['is_recurring'] !== '') {
+      $query = $this->repository->buildIsRecurringFilter($query, (bool)$filters['is_recurring']);
+    }
+
+    if (!empty($filters['year'])) {
+      $query = $this->repository->buildYearFilter($query, (int)$filters['year']);
+    }
+
+    // ソート適用
+    if (!empty($sort['field']) && !empty($sort['direction'])) {
+      $query = $this->repository->applySorting($query, $sort['field'], $sort['direction']);
+    } else {
+      // デフォルトのソート
+      $query = $this->repository->applySorting($query, 'date', 'asc');
+    }
+
+    return $query->get();
+  }
+
+  /**
+   * 利用可能な年の一覧を取得
+   *
+   * @return array
+   */
+  public function getAvailableYears(): array
+  {
+    return $this->repository->getAvailableYears();
   }
 
   /**

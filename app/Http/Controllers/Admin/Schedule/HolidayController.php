@@ -31,6 +31,7 @@ class HolidayController extends Controller
         $filters = [
             'search' => $request->input('search'),
             'type' => $request->input('type'),
+            'year' => $request->input('year', date('Y')), // デフォルトは今年
             'is_recurring' => $request->input('is_recurring'),
         ];
 
@@ -39,12 +40,22 @@ class HolidayController extends Controller
             'direction' => $request->input('sort_direction', 'asc'),
         ];
 
-        $holidays = $this->holidayService->getPaginatedHolidays($filters, $sort, 20);
+        // 年でフィルタリングした全件を取得（ページネーションなし）
+        $holidays = $this->holidayService->getFilteredHolidays($filters, $sort);
+
+        // 利用可能な年の一覧を取得
+        $availableYears = $this->holidayService->getAvailableYears();
+
+        // 年がない場合は現在の年を追加
+        if (empty($availableYears)) {
+            $availableYears = [(int)date('Y')];
+        }
 
         return Inertia::render('Admin/Schedules/Holidays/Index', [
             'holidays' => $holidays,
             'filters' => $filters,
             'sort' => $sort,
+            'availableYears' => $availableYears,
         ]);
     }
 

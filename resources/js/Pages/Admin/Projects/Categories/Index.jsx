@@ -9,7 +9,10 @@ import { Badge } from "@/Components/Badges";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
-import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Card } from "@/Components/Card";
+import SecondaryButton from "@/Components/Buttons/SecondaryButton";
+import { PageConfig } from "@/Constants/PageConfig";
 // Table Component
 import ProjectCategoriesTable from "./_components/ProjectCategoriesTable";
 
@@ -38,7 +41,7 @@ export default function Index({ categories, filters = {} }) {
     // Handlers - Search & Filter
     // ========================================
     const handleSearch = () => {
-        get(route("admin.project-categories.index"), {
+        get(route("admin.project.category.index"), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -49,7 +52,7 @@ export default function Index({ categories, filters = {} }) {
             search: "",
             is_active: "",
         });
-        get(route("admin.project-categories.index"), {
+        get(route("admin.project.category.index"), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -63,9 +66,7 @@ export default function Index({ categories, filters = {} }) {
             `${category.name} を削除してもよろしいですか？`,
         );
         if (confirmed) {
-            router.delete(
-                route("admin.project-categories.destroy", category.id),
-            );
+            router.delete(route("admin.project.category.destroy", category.id));
         }
     };
 
@@ -74,10 +75,10 @@ export default function Index({ categories, filters = {} }) {
     // ========================================
     const headerActions = [
         {
-            label: "新規作成",
+            label: PageConfig.projectCategories.actions.create,
             icon: PlusIcon,
             variant: "primary",
-            route: route("admin.project-categories.create"),
+            route: route("admin.project.category.create"),
         },
     ];
 
@@ -101,69 +102,69 @@ export default function Index({ categories, filters = {} }) {
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="プロジェクトカテゴリ"
-                    description="プロジェクトの分類を管理"
+                    title={PageConfig.projectCategories.title}
+                    description={PageConfig.projectCategories.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="プロジェクトカテゴリ一覧" />
+            <Head title={PageConfig.projectCategories.documentTitle} />
 
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索とフィルター */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <FunnelIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                検索・フィルター
-                            </h3>
-                        </div>
-                        {hasActiveFilters && (
-                            <Badge
-                                variant="info"
-                                size="sm"
-                                className="flex items-center gap-1"
-                            >
-                                フィルター中
-                            </Badge>
-                        )}
-                    </div>
-
-                    <div className="space-y-4">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder="カテゴリ名、スラッグ、説明で検索..."
-                        />
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <FilterSelect
-                                label="ステータス"
-                                value={data.is_active}
-                                onChange={(value) =>
-                                    setData("is_active", value)
+                <Card>
+                    <div className="p-6">
+                        <div className="space-y-4">
+                            <SearchBar
+                                value={data.search}
+                                onChange={(value) => setData("search", value)}
+                                onSearch={handleSearch}
+                                placeholder={
+                                    PageConfig.projectCategories.ui.search
+                                        .placeholder
                                 }
-                                options={statusOptions}
                             />
 
-                            {hasActiveFilters && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FilterSelect
+                                    label={
+                                        PageConfig.projectCategories.filters
+                                            .status.label
+                                    }
+                                    value={data.is_active}
+                                    onChange={(value) =>
+                                        setData("is_active", value)
+                                    }
+                                    options={statusOptions}
+                                    placeholder={
+                                        PageConfig.projectCategories.filters
+                                            .status.placeholder
+                                    }
+                                />
+
+                                <div className="hidden md:block"></div>
+
                                 <div className="flex items-end">
-                                    <button
+                                    <SecondaryButton
                                         onClick={handleClearFilters}
-                                        className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                                        disabled={!hasActiveFilters}
+                                        size="md"
+                                        className="w-full"
                                     >
-                                        フィルターをクリア
-                                    </button>
+                                        <XMarkIcon className="h-4 w-4 mr-2" />
+                                        {
+                                            PageConfig.projectCategories.ui
+                                                .filter.clear
+                                        }
+                                    </SecondaryButton>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Card>
 
                 {/* テーブル */}
                 <ProjectCategoriesTable

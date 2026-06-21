@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ScheduleException extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -15,7 +17,6 @@ class ScheduleException extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'store_id',
         'exception_date',
         'is_open',
         'open_time',
@@ -24,6 +25,9 @@ class ScheduleException extends Model
         'break_end',
         'reason',
         'notes',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     /**
@@ -37,5 +41,29 @@ class ScheduleException extends Model
             'exception_date' => 'date:Y-m-d',
             'is_open' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the creator of the exception.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * Get the updater of the exception.
+     */
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    /**
+     * Get the deleter of the exception.
+     */
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'deleted_by');
     }
 }

@@ -5,7 +5,10 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 // Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
+import { CommonUIConstants } from "@/Constants/CommonUIConstants";
 // Service Components
 import ServiceForm from "./_components/Form";
 
@@ -23,7 +26,7 @@ export default function Edit({ service, categories }) {
     });
 
     const submit = () => {
-        put(route("admin.service.services.update", service.id));
+        put(route("admin.service.update", service.id));
     };
 
     // ========================================
@@ -31,51 +34,45 @@ export default function Edit({ service, categories }) {
     // ========================================
     const headerActions = [
         {
-            label: "サービスを追加",
-            icon: PlusIcon,
-            variant: "primary",
-            route: route("admin.service.services.create"),
+            label: PageConfig.services.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.service.index"),
         },
-    ];
-
-    const breadcrumbs = [
-        { label: "サービス管理", href: null },
-        {
-            label: "サービス一覧",
-            href: route("admin.service.services.index"),
-        },
-        { label: "サービス編集", href: null },
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title={`サービス編集: ${service.name}`}
-                    description="サービス情報を編集します"
+                    title={`${PageConfig.services.pages.edit.title}: ${service.name}`}
+                    description={PageConfig.services.pages.edit.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={[
+                        ...PageConfig.services.breadcrumbs,
+                        PageConfig.services.pages.edit.breadcrumb,
+                    ]}
                 />
             }
         >
-            <Head title={`サービス編集 - ${service.name}`} />
+            <Head
+                title={`${PageConfig.services.pages.edit.title} - ${service.name}`}
+            />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <ServiceForm
-                        data={data}
-                        setData={setData}
-                        errors={errors}
-                        processing={processing}
-                        onSubmit={submit}
-                        cancelRoute={route("admin.service.services.index")}
-                        categories={categories}
-                        isEdit={true}
-                    />
-                </div>
+            <div className="max-w-7xl">
+                <ServiceForm
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    processing={processing}
+                    onSubmit={submit}
+                    cancelRoute={route("admin.service.show", service.id)}
+                    categories={categories}
+                    isEdit={true}
+                />
             </div>
         </AdminAuthenticatedLayout>
     );

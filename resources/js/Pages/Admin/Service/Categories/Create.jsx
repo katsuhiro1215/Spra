@@ -5,7 +5,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 // Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
@@ -29,10 +29,10 @@ export default function Create() {
 
     const headerActions = [
         {
-            label: PageConfig.serviceCategories.actions.create,
-            icon: PlusIcon,
-            variant: "primary",
-            route: route("admin.service.category.create"),
+            label: PageConfig.serviceCategories.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "default",
+            route: route("admin.service.category.index"),
         },
     ];
 
