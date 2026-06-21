@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
 {
@@ -31,6 +32,9 @@ class Invoice extends Model
         'viewed_at',
         'paid_at',
         'notes',
+        'pdf_path',
+        'resend_count',
+        'last_resent_at',
         'created_by',
     ];
 
@@ -41,6 +45,7 @@ class Invoice extends Model
         'sent_at'              => 'datetime',
         'viewed_at'            => 'datetime',
         'paid_at'              => 'datetime',
+        'last_resent_at'       => 'datetime',
         'subtotal'             => 'decimal:2',
         'discount_amount'      => 'decimal:2',
         'tax_rate'             => 'decimal:2',
@@ -82,6 +87,11 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
     public function scopeForClient($query, string $userId)
     {
         return $query->where('user_id', $userId);
@@ -101,6 +111,11 @@ class Invoice extends Model
     {
         return $this->status === 'overdue'
             || ($this->due_date < now() && !in_array($this->status, ['paid', 'cancelled']));
+    }
+
+    public function hasReceipt(): bool
+    {
+        return $this->receipt()->exists();
     }
 
     public function getStatusNameAttribute(): string

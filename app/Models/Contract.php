@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class Contract extends Model
 {
@@ -38,17 +39,25 @@ class Contract extends Model
         'renewal_notice_days',
         'terms_and_conditions',
         'notes',
+        'billing_day',
+        'payment_due_days',
+        'auto_invoice_generation',
+        'next_billing_date',
+        'last_invoiced_at',
         'created_by',
     ];
 
     protected $casts = [
-        'start_date'    => 'date',
-        'end_date'      => 'date',
-        'signed_at'     => 'datetime',
-        'terminated_at' => 'datetime',
-        'amount'        => 'decimal:2',
-        'tax_rate'      => 'decimal:2',
-        'auto_renewal'  => 'boolean',
+        'start_date'             => 'date',
+        'end_date'               => 'date',
+        'signed_at'              => 'datetime',
+        'terminated_at'          => 'datetime',
+        'next_billing_date'      => 'datetime',
+        'last_invoiced_at'       => 'datetime',
+        'amount'                 => 'decimal:2',
+        'tax_rate'               => 'decimal:2',
+        'auto_renewal'           => 'boolean',
+        'auto_invoice_generation' => 'boolean',
     ];
 
     public const TYPES = [
@@ -202,5 +211,44 @@ class Contract extends Model
     public function getTypeNameAttribute(): string
     {
         return self::TYPES[$this->type] ?? $this->type;
+    }
+
+    /**
+     * 次回請求日を計算
+     */
+    public function calculateNextBillingDate(): Carbon
+    {
+        $baseDate = $this->last_invoiced_at ?? $this->start_date;
+        $nextDate = Carbon::parse($baseDate)->addMonth();
+
+        // 指定された日付に設定（月末を超える場合は月末に）
+        $daysInMonth = $nextDate->daysInMonth;
+        $billingDay = min($this->billing_day, $daysInMonth);
+
+        return $nextDate->day($billingDay);
+    }
+
+    /**
+     * 請求対象かチェック
+     */
+    public function shouldGenerateInvoice(): bool
+    {
+        // 自動生成がオフの場合
+        if (!$this->auto_invoice_generation) {
+            return false;
+        }
+
+        // 月額契約でない場合
+        if ($this->type !== 'monthly') {
+            return false;
+        }
+
+        // 契約が有効でない場合
+        if ($this->status !== 'active') {
+            return false;
+        }
+
+        // 次回請求日が設定されていない、または次回請求日が過ぎている
+        return !$this->next_billing_date || now()->gte($this->next_billing_date);
     }
 }
