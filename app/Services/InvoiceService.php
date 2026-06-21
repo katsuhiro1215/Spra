@@ -4,11 +4,17 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\Contract;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
+use App\Mail\InvoiceMail;
+use App\Mail\InvoiceReminderMail;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceService
 {
@@ -106,5 +112,146 @@ class InvoiceService
   public function getOverdueInvoices(): Collection
   {
     return $this->invoiceRepository->getOverdueInvoices();
+  }
+
+  /**
+   * 月額契約から請求書を自動生成
+   */
+  public function generateMonthlyInvoice(Contract $contract): Invoice
+  {
+    return DB::transaction(function () use ($contract) {
+      // 請求書番号を生成
+      $invoiceNumber = $this->generateInvoiceNumber();
+
+      // 請求日と支払期限を計算
+      $issueDate = now();
+      $dueDate = now()->addDays($contract->payment_due_days);
+
+      // 税額計算
+      $amount = $contract->amount;
+      $taxAmount = $amount * ($contract->tax_rate / 100);
+      $totalAmount = $amount + $taxAmount;
+
+      // 請求書作成
+      $invoice = $this->invoiceRepository->create([
+        'invoice_number' => $invoiceNumber,
+        'contract_id' => $contract->id,
+        'user_id' => $contract->user_id,
+        'company_id' => $contract->company_id,
+        'title' => $contract->title . ' - ' . now()->format('Y年m月分'),
+        'description' => 'Webサイト管理費（月額）',
+        'issue_date' => $issueDate,
+        'due_date' => $dueDate,
+        'amount' => $amount,
+        'tax_rate' => $contract->tax_rate,
+        'tax_amount' => $taxAmount,
+        'total_amount' => $totalAmount,
+        'status' => 'draft',
+        'created_by' => 'system',
+      ]);
+
+      // 請求書明細を作成
+      $invoice->items()->create([
+        'description' => 'Webサイト管理費（' . now()->format('Y年m月分') . '）',
+        'quantity' => 1,
+        'unit_price' => $amount,
+        'amount' => $amount,
+      ]);
+
+      // 契約の次回請求日と最終請求日を更新
+      $contract->update([
+        'last_invoiced_at' => now(),
+        'next_billing_date' => $contract->calculateNextBillingDate(),
+      ]);
+
+      return $invoice->load('items');
+    });
+  }
+
+  /**
+   * 請求書のPDFを生成して保存
+   */
+  public function generateAndSavePdf(Invoice $invoice): string
+  {
+    // PDF生成
+    $pdf = Pdf::loadView('pdf.invoice', [
+      'invoice' => $invoice->load(['user', 'company', 'contract', 'items']),
+    ]);
+
+    // 保存パス生成
+    $directory = "invoices/{$invoice->user_id}";
+    $filename = "invoice_{$invoice->invoice_number}_" . now()->format('YmdHis') . ".pdf";
+    $path = "{$directory}/{$filename}";
+
+    // プライベートディスクに保存
+    Storage::disk('private')->put($path, $pdf->output());
+
+    // Invoiceモデルのpdf_pathを更新
+    $invoice->update(['pdf_path' => $path]);
+
+    return $path;
+  }
+
+  /**
+   * 請求書を送付
+   */
+  public function sendInvoice(Invoice $invoice): bool
+  {
+    return DB::transaction(function () use ($invoice) {
+      // PDFがまだ生成されていなければ生成
+      if (!$invoice->pdf_path) {
+        $this->generateAndSavePdf($invoice);
+        $invoice->refresh();
+      }
+
+      // メール送信
+      Mail::to($invoice->user->email)->send(new InvoiceMail($invoice));
+
+      // ステータスを送付済みに更新
+      $this->invoiceRepository->update($invoice, [
+        'status' => 'sent',
+        'sent_at' => now(),
+      ]);
+
+      return true;
+    });
+  }
+
+  /**
+   * 請求書を再送
+   */
+  public function resendInvoice(Invoice $invoice): bool
+  {
+    return DB::transaction(function () use ($invoice) {
+      // メール再送信
+      Mail::to($invoice->user->email)->send(new InvoiceReminderMail($invoice));
+
+      // 再送カウントと最終再送日時を更新
+      $this->invoiceRepository->update($invoice, [
+        'resend_count' => $invoice->resend_count + 1,
+        'last_resent_at' => now(),
+      ]);
+
+      return true;
+    });
+  }
+
+  /**
+   * 請求書番号を生成
+   */
+  private function generateInvoiceNumber(): string
+  {
+    $year = date('Y');
+    $lastInvoice = Invoice::whereYear('created_at', $year)
+      ->orderBy('invoice_number', 'desc')
+      ->first();
+
+    if ($lastInvoice && preg_match('/INV(\d{4})-(\d+)/', $lastInvoice->invoice_number, $matches)) {
+      $nextNumber = intval($matches[2]) + 1;
+    } else {
+      $nextNumber = 1;
+    }
+
+    return sprintf('INV%s-%04d', $year, $nextNumber);
   }
 }

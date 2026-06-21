@@ -220,11 +220,11 @@ class Contract extends Model
     {
         $baseDate = $this->last_invoiced_at ?? $this->start_date;
         $nextDate = Carbon::parse($baseDate)->addMonth();
-        
+
         // 指定された日付に設定（月末を超える場合は月末に）
         $daysInMonth = $nextDate->daysInMonth;
         $billingDay = min($this->billing_day, $daysInMonth);
-        
+
         return $nextDate->day($billingDay);
     }
 
@@ -237,17 +237,17 @@ class Contract extends Model
         if (!$this->auto_invoice_generation) {
             return false;
         }
-        
+
         // 月額契約でない場合
         if ($this->type !== 'monthly') {
             return false;
         }
-        
+
         // 契約が有効でない場合
         if ($this->status !== 'active') {
             return false;
         }
-        
+
         // 次回請求日が設定されていない、または次回請求日が過ぎている
         return !$this->next_billing_date || now()->gte($this->next_billing_date);
     }
