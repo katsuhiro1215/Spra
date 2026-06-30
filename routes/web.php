@@ -2,11 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\QuoteResponseController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
-use App\Http\Controllers\User\ContractController as UserContractController;
+use App\Http\Controllers\User\ContractController;
 use App\Http\Controllers\User\InvoiceController as UserInvoiceController;
 use Inertia\Inertia;
 
@@ -34,6 +36,18 @@ Route::name('public.')->prefix('/')->group(function () {
     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
     Route::get('/terms', fn() => inertiaPublic('Terms'))->name('terms');
+
+    // Quote Response (public, no auth required)
+    Route::get('/quote-response/{token}', [QuoteResponseController::class, 'show'])->name('quote.response.show');
+    Route::post('/quote-response/{token}', [QuoteResponseController::class, 'store'])->name('quote.response.store');
+
+    // Onboarding (public, no auth required)
+    Route::get('/onboarding/{token}', [OnboardingController::class, 'show'])->name('onboarding.show');
+    Route::post('/onboarding/{token}', [OnboardingController::class, 'store'])->name('onboarding.store');
+});
+
+// More public routes
+Route::name('public.')->prefix('/')->group(function () {
     Route::get('/lp', fn() => inertiaPublic('LandingPage'))->name('landing.page');
     Route::get('/lp-minimal', fn() => inertiaPublic('LandingPageMinimal'))->name('landing.minimal');
     Route::get('/lp-creative', fn() => inertiaPublic('LandingPageCreative'))->name('landing.creative');
@@ -61,8 +75,7 @@ Route::middleware(['auth:users', 'verified'])->group(function () {
     Route::get('/my/projects/{id}', [UserProjectController::class, 'show'])->name('projects.show');
 
     // 契約（クライアント向け）
-    Route::get('/my/contracts', [UserContractController::class, 'index'])->name('contracts.index');
-    Route::get('/my/contracts/{id}', [UserContractController::class, 'show'])->name('contracts.show');
+    Route::resource('contract', ContractController::class)->only(['index', 'show']);
 
     // 請求書（クライアント向け）
     Route::get('/my/invoices', [UserInvoiceController::class, 'index'])->name('invoices.index');

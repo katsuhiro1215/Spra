@@ -24,12 +24,12 @@ class Quote extends Model
     protected $fillable = [
         'quote_number',
         'user_id',
+        'contact_id',
         'company_id',
-        'subject',
-        'message',
-        'notes',
+        'title',
+        'requirements',
+        'custom_specifications',
         'base_amount',
-        'discount_type',
         'discount_amount',
         'tax_rate',
         'tax_amount',
@@ -38,7 +38,7 @@ class Quote extends Model
         'client_feedback',
         'sent_at',
         'responded_at',
-        'valid_until',
+        'expires_at',
         'created_by',
         'updated_by',
     ];
@@ -51,7 +51,8 @@ class Quote extends Model
         'total_amount' => 'decimal:2',
         'sent_at' => 'datetime',
         'responded_at' => 'datetime',
-        'valid_until' => 'date',
+        'expires_at' => 'datetime',
+        'custom_specifications' => 'json',
     ];
 
     // -------------------------
@@ -61,6 +62,11 @@ class Quote extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
     }
 
     public function company(): BelongsTo
@@ -96,6 +102,47 @@ class Quote extends Model
   // -------------------------
   // ヘルパーメソッド
   // -------------------------
+
+    /**
+     * 連絡先情報を取得（UserまたはContactから）
+     *
+     * @return array{name: string|null, email: string|null, phone: string|null, company: string|null}
+     */
+    public function getContactInfo(): array
+    {
+        if ($this->user_id && $this->user) {
+            return [
+                'name' => $this->user->profile->name ?? null,
+                'email' => $this->user->email,
+                'phone' => $this->user->profile->phone ?? null,
+                'company' => $this->company->name ?? null,
+            ];
+        }
+
+        if ($this->contact_id && $this->contact) {
+            return [
+                'name' => $this->contact->name,
+                'email' => $this->contact->email,
+                'phone' => $this->contact->phone,
+                'company' => $this->contact->company,
+            ];
+        }
+
+        return [
+            'name' => null,
+            'email' => null,
+            'phone' => null,
+            'company' => null,
+        ];
+    }
+
+    /**
+     * 連絡先が存在するかチェック
+     */
+    public function hasContactInfo(): bool
+    {
+        return $this->user_id || $this->contact_id;
+    }
 
     /**
      * 見積に含まれる全サービスを取得

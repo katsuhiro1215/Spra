@@ -57,14 +57,27 @@ export default function ContractForm({
                 </CardHeader>
                 <CardBody>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            label="契約タイトル"
-                            name="title"
-                            value={data.title || ""}
-                            onChange={(e) => setData("title", e.target.value)}
-                            error={errors.title}
-                            required
-                        />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                契約タイトル
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={data.title || ""}
+                                onChange={(e) =>
+                                    setData("title", e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                required
+                            />
+                            {errors.title && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.title}
+                                </p>
+                            )}
+                        </div>
 
                         <FormSelect
                             label="ステータス"
@@ -101,7 +114,8 @@ export default function ContractForm({
                                     <option value="">選択しない</option>
                                     {quotes.map((quote) => (
                                         <option key={quote.id} value={quote.id}>
-                                            {quote.quote_number} - {quote.title}
+                                            {quote.quote_number} - {quote.title}{" "}
+                                            ({quote.status})
                                         </option>
                                     ))}
                                 </select>

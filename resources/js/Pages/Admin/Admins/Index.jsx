@@ -135,11 +135,6 @@ export default function Index({ admins, filters, stats }) {
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: null },
-    ];
-
     // ========================================
     // Constants - Tabs & Filters
     // ========================================
@@ -172,7 +167,7 @@ export default function Index({ admins, filters, stats }) {
                     title={PageConfig.admins.title}
                     description={PageConfig.admins.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.admins.breadcrumbs}
                 />
             }
         >

@@ -39,6 +39,11 @@ export default function Create({ categories }) {
         },
     ];
 
+    const breadcrumbs = [
+        ...PageConfig.services.breadcrumbs,
+        PageConfig.services.pages.create.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
             header={
@@ -46,10 +51,7 @@ export default function Create({ categories }) {
                     title={PageConfig.services.pages.create.title}
                     description={PageConfig.services.pages.create.description}
                     actions={headerActions}
-                    breadcrumbs={[
-                        ...PageConfig.services.breadcrumbs,
-                        PageConfig.services.pages.create.breadcrumb,
-                    ]}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >

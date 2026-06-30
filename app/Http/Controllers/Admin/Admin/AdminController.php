@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreAdminRequest;
@@ -31,16 +31,13 @@ class AdminController extends Controller
             'status' => $request->input('status'),
             'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
         ];
-
         // ソート
         $sort = [
             'field' => $request->input('sort_field', 'created_at'),
             'direction' => $request->input('sort_direction', 'desc'),
         ];
-
         // 管理者のページネーション取得
         $admins = $this->adminService->getPaginated($filters, $sort, 20);
-
         // 統計情報の取得
         $stats = $this->adminService->getStats();
 
@@ -81,12 +78,10 @@ class AdminController extends Controller
     public function show(Admin $admin): Response
     {
         $admin->load(['profile.media', 'addresses']);
-
         // プロフィール画像URLを明示的に追加
         if ($admin->profile && $admin->profile->media) {
             $admin->profile->media->makeVisible(['url', 'original_url']);
         }
-
         // テナントのメディア一覧を取得（画像選択用）
         $mediaList = Media::where('type', 'image')
             ->orderBy('created_at', 'desc')

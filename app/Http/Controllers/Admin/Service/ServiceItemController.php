@@ -66,7 +66,7 @@ class ServiceItemController extends Controller
   /**
    * Show the form for creating a new resource.
    */
-  public function create(): Response
+  public function create(Request $request): Response
   {
     $statuses = $this->serviceItemService->getStatuses();
     $itemTypes = $this->serviceItemService->getItemTypes();
@@ -78,6 +78,8 @@ class ServiceItemController extends Controller
       'itemTypes' => $itemTypes,
       'services' => $services,
       'servicePlans' => $servicePlans,
+      'service_id' => $request->query('service_id'),
+      'service_plan_id' => $request->query('service_plan_id'),
     ]);
   }
 

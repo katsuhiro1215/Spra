@@ -1,10 +1,13 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
+// Components
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
-import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
+// Icons
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+// Constants
+import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
 
 const AdminsTable = ({ admins, onDelete }) => {
     const getFullName = (admin) => {

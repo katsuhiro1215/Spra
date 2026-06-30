@@ -42,7 +42,7 @@ export default function Index({
     // 検索実行
     const handleSearch = () => {
         setProcessing(true);
-        router.get(route("admin.service.service-plans.index"), data, {
+        router.get(route("admin.service.plan.index"), data, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -53,7 +53,7 @@ export default function Index({
     // フィルター適用（debounce付き）
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            router.get(route("admin.service.service-plans.index"), data, {
+            router.get(route("admin.service.plan.index"), data, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
@@ -70,12 +70,9 @@ export default function Index({
             )
         ) {
             setIsDeleting(servicePlan.id);
-            router.delete(
-                route("admin.service.service-plans.destroy", servicePlan.id),
-                {
-                    onFinish: () => setIsDeleting(null),
-                },
-            );
+            router.delete(route("admin.service.plan.destroy", servicePlan.id), {
+                onFinish: () => setIsDeleting(null),
+            });
         }
     };
 
@@ -109,7 +106,7 @@ export default function Index({
             label: "サービスプランを追加",
             icon: PlusIcon,
             variant: "primary",
-            route: route("admin.service.service-plans.create"),
+            route: route("admin.service.plan.create"),
         },
     ];
 

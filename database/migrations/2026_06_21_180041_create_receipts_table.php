@@ -38,6 +38,11 @@ return new class extends Migration
             $table->timestamp('issued_at')->nullable()->comment('発行日時');
             $table->timestamp('sent_at')->nullable()->comment('送付日時');
 
+            // クライアントダウンロードトラッキング
+            $table->timestamp('client_downloaded_at')->nullable()->comment('クライアントダウンロード日時');
+            $table->uuid('client_downloaded_by')->nullable()->comment('ダウンロードしたユーザー');
+            $table->foreign('client_downloaded_by')->references('id')->on('users')->onDelete('set null');
+
             $table->text('notes')->nullable()->comment('備考');
             $table->uuid('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');

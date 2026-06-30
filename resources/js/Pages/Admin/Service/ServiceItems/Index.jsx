@@ -44,7 +44,7 @@ export default function Index({
     // 検索実行
     const handleSearch = () => {
         setProcessing(true);
-        router.get(route("admin.service.service-items.index"), data, {
+        router.get(route("admin.service.item.index"), data, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -55,7 +55,7 @@ export default function Index({
     // フィルター適用（debounce付き）
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            router.get(route("admin.service.service-items.index"), data, {
+            router.get(route("admin.service.item.index"), data, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
@@ -107,9 +107,7 @@ export default function Index({
                         breadcrumbs={breadcrumbs}
                         action={
                             <Link
-                                href={route(
-                                    "admin.service.service-items.create",
-                                )}
+                                href={route("admin.service.item.create")}
                                 className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />

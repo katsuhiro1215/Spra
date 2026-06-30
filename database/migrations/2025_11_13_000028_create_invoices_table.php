@@ -15,6 +15,7 @@ return new class extends Migration
     Schema::create('invoices', function (Blueprint $table) {
       $table->ulid('id')->primary();
       $table->string('invoice_number')->unique();
+      $table->date('issue_date')->comment('発行日');
       $table->ulid('contract_id');
       $table->foreign('contract_id')->references('id')->on('contracts')->onDelete('restrict');
       $table->uuid('user_id');
@@ -47,7 +48,17 @@ return new class extends Migration
       $table->timestamp('viewed_at')->nullable();
       $table->timestamp('paid_at')->nullable();
 
+      // クライアントダウンロードトラッキング
+      $table->timestamp('client_downloaded_at')->nullable()->comment('クライアントダウンロード日時');
+      $table->uuid('client_downloaded_by')->nullable()->comment('ダウンロードしたユーザー');
+      $table->foreign('client_downloaded_by')->references('id')->on('users')->onDelete('set null');
+
       $table->text('notes')->nullable();
+
+      // PDF管理
+      $table->string('pdf_path')->nullable()->comment('PDFファイルパス');
+      $table->integer('resend_count')->default(0)->comment('再送信回数');
+      $table->timestamp('last_resent_at')->nullable()->comment('最終再送信日時');
 
       $table->uuid('created_by')->nullable();
       $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
@@ -58,6 +69,7 @@ return new class extends Migration
       $table->index(['contract_id', 'status']);
       $table->index(['status', 'due_date']);
       $table->index('billing_period_start');
+      $table->index('issue_date');
     });
   }
 

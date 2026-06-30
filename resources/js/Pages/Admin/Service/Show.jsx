@@ -6,7 +6,11 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
-import { EditButton, SecondaryButton } from "@/Components/Buttons";
+import {
+    EditButton,
+    PrimaryButton,
+    SecondaryButton,
+} from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
@@ -18,7 +22,11 @@ import {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Show({ service, servicePlansCount = 0 }) {
+export default function Show({
+    service,
+    servicePlans = [],
+    serviceItems = [],
+}) {
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString("ja-JP", {
             year: "numeric",
@@ -55,7 +63,9 @@ export default function Show({ service, servicePlansCount = 0 }) {
                 />
             }
         >
-            <Head title={`${PageConfig.services.pages.show.title} - ${service.name}`} />
+            <Head
+                title={`${PageConfig.services.pages.show.title} - ${service.name}`}
+            />
 
             <FlashMessage />
 
@@ -191,7 +201,7 @@ export default function Show({ service, servicePlansCount = 0 }) {
                                                 関連プラン数
                                             </label>
                                             <p className="text-gray-900">
-                                                {servicePlansCount}件
+                                                {servicePlans.length}件
                                             </p>
                                         </div>
                                     </div>
@@ -324,6 +334,150 @@ export default function Show({ service, servicePlansCount = 0 }) {
                                     編集
                                 </EditButton>
                             </div>
+                        </CardBody>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold">
+                                    サービスプラン
+                                </h2>
+                                <PrimaryButton
+                                    href={route("admin.service.plan.create", {
+                                        service_id: service.id,
+                                    })}
+                                >
+                                    プランを作成
+                                </PrimaryButton>
+                            </div>
+                        </CardHeader>
+                        <CardBody>
+                            {servicePlans.length > 0 ? (
+                                <div className="space-y-4">
+                                    {servicePlans.map((plan) => (
+                                        <Link
+                                            key={plan.id}
+                                            href={route(
+                                                "admin.service.plan.show",
+                                                plan.id,
+                                            )}
+                                            className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                                                        {plan.name}
+                                                    </h3>
+                                                    {plan.description && (
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                            {plan.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    {plan.base_price && (
+                                                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                                            ¥
+                                                            {Number(
+                                                                plan.base_price,
+                                                            ).toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                    <span
+                                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                            plan.status ===
+                                                            "active"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                                        }`}
+                                                    >
+                                                        {plan.status ===
+                                                        "active"
+                                                            ? "有効"
+                                                            : "無効"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                                    このサービスに関連するプランはまだ登録されていません。
+                                </p>
+                            )}
+                        </CardBody>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold">
+                                    サービス項目
+                                </h2>
+                                <PrimaryButton
+                                    href={route("admin.service.item.create", {
+                                        service_id: service.id,
+                                    })}
+                                >
+                                    項目を作成
+                                </PrimaryButton>
+                            </div>
+                        </CardHeader>
+                        <CardBody>
+                            {serviceItems.length > 0 ? (
+                                <div className="space-y-4">
+                                    {serviceItems.map((item) => (
+                                        <Link
+                                            key={item.id}
+                                            href={route(
+                                                "admin.service.item.show",
+                                                item.id,
+                                            )}
+                                            className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                                                        {item.name}
+                                                    </h3>
+                                                    {item.description && (
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                            {item.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    {item.price && (
+                                                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                                            ¥
+                                                            {Number(
+                                                                item.price,
+                                                            ).toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                    <span
+                                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                            item.status ===
+                                                            "active"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                                        }`}
+                                                    >
+                                                        {item.status ===
+                                                        "active"
+                                                            ? "有効"
+                                                            : "無効"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                                    このサービスに関連する項目はまだ登録されていません。
+                                </p>
+                            )}
                         </CardBody>
                     </Card>
                 </div>

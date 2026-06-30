@@ -1,9 +1,9 @@
 import { Head, useForm } from "@inertiajs/react";
-import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { Card, CardTitle, CardHeader, CardBody } from "@/Components/Card";
 import ValidatedInput from "@/Components/Forms/ValidatedInput";
 // Icons
 import {
@@ -14,23 +14,28 @@ import {
     CurrencyYenIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Create({ serviceType, billingCycles }) {
+export default function Create({
+    services,
+    billingCycles,
+    statuses,
+    service_id,
+}) {
     const { data, setData, post, processing, errors } = useForm({
+        service_id: service_id || "",
         name: "",
         slug: "",
         description: "",
-        detailed_description: "",
+        details: "",
         base_price: "",
-        price_unit: "",
         billing_cycle: "one_time",
         setup_fee: "",
-        features: [""],
-        included_items: [""],
-        limitations: [""],
+        features: [],
+        included_items: [],
+        limitations: [],
         max_revisions: "",
         estimated_delivery_days: "",
-        is_popular: false,
-        is_recommended: false,
+        is_featured: false,
+        status: "active",
         sort_order: "",
         color: "#3B82F6",
         badge_text: "",
@@ -39,8 +44,8 @@ export default function Create({ serviceType, billingCycles }) {
 
     const headerActions = [
         {
-            label: "戻る",
-            href: route("admin.service.plans.index", serviceType.id),
+            label: "一覧に戻る",
+            href: route("admin.service.plan.index"),
             variant: "secondary",
             icon: ArrowLeftIcon,
         },
@@ -48,7 +53,7 @@ export default function Create({ serviceType, billingCycles }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.service.plans.store", serviceType.id));
+        post(route("admin.service.plan.store"));
     };
 
     const addArrayItem = (field) => {
@@ -73,25 +78,54 @@ export default function Create({ serviceType, billingCycles }) {
             header={
                 <PageHeader
                     title="サービスプラン作成"
-                    description={`${serviceType.name}の新しいプランを作成します`}
+                    description="新しいプランを作成します"
                     actions={headerActions}
                 />
             }
         >
-            <Head title={`サービスプラン作成 - ${serviceType.name}`} />
+            <Head title="サービスプラン作成" />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <div className="max-w-7xl">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* 基本情報 */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                <SwatchIcon className="w-5 h-5 mr-2" />
-                                基本情報
-                            </h3>
+                    <Card>
+                        <CardHeader>
+                            <SwatchIcon className="w-5 h-5 mr-2" />
+                            基本情報
+                        </CardHeader>
+                        <CardBody>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    サービス{" "}
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={data.service_id}
+                                    onChange={(e) =>
+                                        setData("service_id", e.target.value)
+                                    }
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    required
+                                >
+                                    <option value="">サービスを選択</option>
+                                    {services?.map((service) => (
+                                        <option
+                                            key={service.id}
+                                            value={service.id}
+                                        >
+                                            {service.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.service_id && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                        {errors.service_id}
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <ValidatedInput
@@ -125,10 +159,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     name="description"
                                     value={data.description}
                                     onChange={(e) =>
-                                        setData(
-                                            "description",
-                                            e.target.value,
-                                        )
+                                        setData("description", e.target.value)
                                     }
                                     error={errors.description}
                                     required
@@ -141,34 +172,30 @@ export default function Create({ serviceType, billingCycles }) {
                                     詳細説明
                                 </label>
                                 <textarea
-                                    value={data.detailed_description}
+                                    value={data.details}
                                     onChange={(e) =>
-                                        setData(
-                                            "detailed_description",
-                                            e.target.value,
-                                        )
+                                        setData("details", e.target.value)
                                     }
                                     rows={3}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="プランの詳細な説明..."
                                 />
-                                {errors.detailed_description && (
+                                {errors.details && (
                                     <p className="mt-1 text-sm text-red-600">
-                                        {errors.detailed_description}
+                                        {errors.details}
                                     </p>
                                 )}
                             </div>
-                        </div>
-                    </div>
+                        </CardBody>
+                    </Card>
 
                     {/* 価格設定 */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                <CurrencyYenIcon className="w-5 h-5 mr-2" />
-                                価格設定
-                            </h3>
-
+                    <Card>
+                        <CardHeader>
+                            <CurrencyYenIcon className="w-5 h-5 mr-2" />
+                            価格設定
+                        </CardHeader>
+                        <CardBody>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <ValidatedInput
                                     label="基本価格"
@@ -176,10 +203,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     type="number"
                                     value={data.base_price}
                                     onChange={(e) =>
-                                        setData(
-                                            "base_price",
-                                            e.target.value,
-                                        )
+                                        setData("base_price", e.target.value)
                                     }
                                     error={errors.base_price}
                                     required
@@ -193,10 +217,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     name="price_unit"
                                     value={data.price_unit}
                                     onChange={(e) =>
-                                        setData(
-                                            "price_unit",
-                                            e.target.value,
-                                        )
+                                        setData("price_unit", e.target.value)
                                     }
                                     error={errors.price_unit}
                                     placeholder="例: 式、月、時間"
@@ -221,9 +242,7 @@ export default function Create({ serviceType, billingCycles }) {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         請求サイクル{" "}
-                                        <span className="text-red-500">
-                                            *
-                                        </span>
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         value={data.billing_cycle}
@@ -237,10 +256,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     >
                                         {Object.entries(billingCycles).map(
                                             ([key, label]) => (
-                                                <option
-                                                    key={key}
-                                                    value={key}
-                                                >
+                                                <option key={key} value={key}>
                                                     {label}
                                                 </option>
                                             ),
@@ -259,26 +275,20 @@ export default function Create({ serviceType, billingCycles }) {
                                     type="number"
                                     value={data.max_revisions}
                                     onChange={(e) =>
-                                        setData(
-                                            "max_revisions",
-                                            e.target.value,
-                                        )
+                                        setData("max_revisions", e.target.value)
                                     }
                                     error={errors.max_revisions}
                                     min="0"
                                     placeholder="3"
                                 />
                             </div>
-                        </div>
-                    </div>
+                        </CardBody>
+                    </Card>
 
                     {/* プラン詳細 */}
-                    <div className="bg-white shadow rounded-lg">
+                    <Card>
+                        <CardTitle>プラン詳細</CardTitle>
                         <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                プラン詳細
-                            </h3>
-
                             {/* 機能・特徴 */}
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-2">
@@ -287,9 +297,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     </label>
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            addArrayItem("features")
-                                        }
+                                        onClick={() => addArrayItem("features")}
                                         className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                     >
                                         <PlusIcon className="h-3 w-3 mr-1" />
@@ -352,43 +360,40 @@ export default function Create({ serviceType, billingCycles }) {
                                     </button>
                                 </div>
                                 <div className="space-y-2">
-                                    {data.included_items.map(
-                                        (item, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center space-x-2"
-                                            >
-                                                <input
-                                                    type="text"
-                                                    value={item}
-                                                    onChange={(e) =>
-                                                        updateArrayItem(
+                                    {data.included_items.map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center space-x-2"
+                                        >
+                                            <input
+                                                type="text"
+                                                value={item}
+                                                onChange={(e) =>
+                                                    updateArrayItem(
+                                                        "included_items",
+                                                        index,
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="例: デザイン設計"
+                                            />
+                                            {data.included_items.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeArrayItem(
                                                             "included_items",
                                                             index,
-                                                            e.target.value,
                                                         )
                                                     }
-                                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="例: デザイン設計"
-                                                />
-                                                {data.included_items
-                                                    .length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeArrayItem(
-                                                                "included_items",
-                                                                index,
-                                                            )
-                                                        }
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ),
-                                    )}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -474,10 +479,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     type="number"
                                     value={data.sort_order}
                                     onChange={(e) =>
-                                        setData(
-                                            "sort_order",
-                                            e.target.value,
-                                        )
+                                        setData("sort_order", e.target.value)
                                     }
                                     error={errors.sort_order}
                                     min="0"
@@ -489,10 +491,7 @@ export default function Create({ serviceType, billingCycles }) {
                                     name="badge_text"
                                     value={data.badge_text}
                                     onChange={(e) =>
-                                        setData(
-                                            "badge_text",
-                                            e.target.value,
-                                        )
+                                        setData("badge_text", e.target.value)
                                     }
                                     error={errors.badge_text}
                                     placeholder="例: 人気、推奨"
@@ -576,7 +575,7 @@ export default function Create({ serviceType, billingCycles }) {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
 
                     {/* 送信ボタン */}
                     <div className="flex items-center justify-end space-x-3">

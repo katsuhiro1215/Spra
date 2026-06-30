@@ -294,7 +294,6 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
                                 href={route("admin.service.category.create")}
                                 size="md"
                             >
-                                <PlusIcon className="h-4 w-4 mr-2" />
                                 {PageConfig.serviceCategories.ui.empty.createFirst}
                             </CreateButton>
                         )}

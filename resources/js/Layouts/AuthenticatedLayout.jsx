@@ -34,9 +34,9 @@ export default function AuthenticatedLayout({ header, children }) {
         },
         {
             name: "契約管理",
-            href: "/user/contracts",
+            href: route("user.contract.index"),
             icon: ChartBarIcon,
-            current: false,
+            current: route().current("user.contract.index"),
         },
         {
             name: "進捗状況",

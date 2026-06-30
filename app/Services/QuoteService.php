@@ -2,15 +2,18 @@
 
 namespace App\Services;
 
+use App\Mail\SendQuoteMail;
 use App\Models\Quote;
+use App\Models\QuoteResponse;
 use App\Repositories\QuoteRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class QuoteService extends BaseService
 {
     /**
      * コンストラクタ
-     * 
+     *
      * @param QuoteRepository $repository
      */
     public function __construct(QuoteRepository $repository)
@@ -20,7 +23,7 @@ class QuoteService extends BaseService
 
     /**
      * エンティティ名を返す
-     * 
+     *
      * @return string
      */
     protected function getEntityName(): string
@@ -30,7 +33,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積番号で検索
-     * 
+     *
      * @param string $quoteNumber
      * @return Quote|null
      */
@@ -41,7 +44,7 @@ class QuoteService extends BaseService
 
     /**
      * ユーザーの見積もりを取得
-     * 
+     *
      * @param string $userId
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -52,7 +55,7 @@ class QuoteService extends BaseService
 
     /**
      * 会社の見積もりを取得
-     * 
+     *
      * @param string $companyId
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -63,7 +66,7 @@ class QuoteService extends BaseService
 
     /**
      * 新しい見積もりを作成
-     * 
+     *
      * @param array $data
      * @return Quote
      */
@@ -82,11 +85,31 @@ class QuoteService extends BaseService
             $data['created_by'] = $data['created_by'] ?? auth('admins')->id();
             $data['updated_by'] = $data['updated_by'] ?? auth('admins')->id();
 
+            // 金額フィールドのデフォルト値を設定
+            if (!isset($data['base_amount'])) {
+                $data['base_amount'] = 0;
+            }
+            if (!isset($data['tax_amount'])) {
+                $data['tax_amount'] = 0;
+            }
+            if (!isset($data['total_amount'])) {
+                $data['total_amount'] = 0;
+            }
+
+            // custom_specificationsは既にJSON文字列なのでそのまま渡す
+            // (Quote::$castsで自動的にJSONとして処理される)
+
             $quote = $this->repository->create($data);
 
             // QuoteItemsがあれば作成
             if (!empty($data['items'])) {
                 foreach ($data['items'] as $item) {
+                    // amountを計算（quantity × unit_price）
+                    if (!isset($item['amount'])) {
+                        $quantity = (float)($item['quantity'] ?? 1);
+                        $unitPrice = (float)($item['unit_price'] ?? 0);
+                        $item['amount'] = $quantity * $unitPrice;
+                    }
                     $quote->items()->create($item);
                 }
 
@@ -100,7 +123,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを更新
-     * 
+     *
      * @param Quote $quote
      * @param array $data
      * @return Quote
@@ -111,6 +134,20 @@ class QuoteService extends BaseService
             // 更新者を設定
             $data['updated_by'] = $data['updated_by'] ?? auth('admins')->id();
 
+            // 金額フィールドのデフォルト値を設定
+            if (!isset($data['base_amount'])) {
+                $data['base_amount'] = $quote->base_amount ?? 0;
+            }
+            if (!isset($data['tax_amount'])) {
+                $data['tax_amount'] = $quote->tax_amount ?? 0;
+            }
+            if (!isset($data['total_amount'])) {
+                $data['total_amount'] = $quote->total_amount ?? 0;
+            }
+
+            // custom_specificationsは既にJSON文字列なのでそのまま渡す
+            // (Quote::$castsで自動的にJSONとして処理される)
+
             $this->repository->update($quote, $data);
 
             // QuoteItemsの更新
@@ -120,6 +157,12 @@ class QuoteService extends BaseService
 
                 // 新しいアイテムを作成
                 foreach ($data['items'] as $item) {
+                    // amountを計算（quantity × unit_price）
+                    if (!isset($item['amount'])) {
+                        $quantity = (float)($item['quantity'] ?? 1);
+                        $unitPrice = (float)($item['unit_price'] ?? 0);
+                        $item['amount'] = $quantity * $unitPrice;
+                    }
                     $quote->items()->create($item);
                 }
 
@@ -133,7 +176,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを削除
-     * 
+     *
      * @param Quote $quote
      * @throws \Exception
      */
@@ -157,17 +200,52 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを送信
-     * 
+     *
      * @param Quote $quote
+     * @param string|null $token
+     * @param string $responseFormUrl
      * @return Quote
      */
-    public function sendQuote(Quote $quote): Quote
+    public function sendQuote(Quote $quote, ?string $token = null, string $responseFormUrl = ''): Quote
     {
-        if ($quote->status !== 'draft') {
-            throw new \Exception('下書き状態の見積もりのみ送信できます。');
+        if (!in_array($quote->status, ['draft', 'reviewed'])) {
+            throw new \Exception('下書き或いは確認済み状態の見積もりのみ送信できます。');
         }
 
-        return DB::transaction(function () use ($quote) {
+        return DB::transaction(function () use ($quote, $token, $responseFormUrl) {
+            // Load relationships for email
+            $quote->load(['user.profile', 'contact', 'items']);
+
+            // Get recipient email
+            $recipientEmail = $quote->user?->email ?? $quote->contact?->email;
+
+            if (!$recipientEmail) {
+                throw new \Exception('送信先のメールアドレスが指定されていません。');
+            }
+
+            // Generate token if not provided
+            if (!$token) {
+                $token = \Illuminate\Support\Str::random(60);
+            }
+
+            // Create QuoteResponse with token
+            $quoteResponse = \App\Models\QuoteResponse::create([
+                'quote_id' => $quote->id,
+                'token' => $token,
+                'email' => $recipientEmail,
+                'response_type' => null,
+            ]);
+
+            // Use provided responseFormUrl or generate one (fallback)
+            $formUrl = $responseFormUrl ?: route('user.public.quote.response.show', $token);
+
+            // Send email with response form URL
+            Mail::to($recipientEmail)->send(new SendQuoteMail(
+                $quote,
+                $formUrl
+            ));
+
+            // Update quote status
             $quote->update([
                 'status' => 'sent',
                 'sent_at' => now(),
@@ -181,7 +259,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを承認
-     * 
+     *
      * @param Quote $quote
      * @param string|null $clientFeedback
      * @return Quote
@@ -203,7 +281,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを却下
-     * 
+     *
      * @param Quote $quote
      * @param string|null $clientFeedback
      * @return Quote
@@ -225,7 +303,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりの金額を再計算
-     * 
+     *
      * @param Quote $quote
      * @return void
      */
@@ -250,7 +328,7 @@ class QuoteService extends BaseService
 
     /**
      * ステータス定義を取得
-     * 
+     *
      * @return array
      */
     public function getStatuses(): array
@@ -267,7 +345,7 @@ class QuoteService extends BaseService
 
     /**
      * ServiceItemから見積もり明細データを作成
-     * 
+     *
      * @param \App\Models\ServiceItem $serviceItem
      * @param array $overrides 上書きするデータ（quantity, unit_priceなど）
      * @return array
@@ -301,7 +379,7 @@ class QuoteService extends BaseService
 
     /**
      * 複数のServiceItemから見積もり明細データを一括作成
-     * 
+     *
      * @param array $serviceItemIds ServiceItem IDの配列 or ['id' => ID, 'quantity' => 数量]の配列
      * @return array
      */

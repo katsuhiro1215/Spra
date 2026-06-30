@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
 import PageHeader from "@/Components/Layout/PageHeader";
+import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-import {FlashMessage} from "@/Components/Notifications";
-import CompanyForm from "./_components/CompanyForm";
-import AddressFormSection from "./_components/AddressFormSection";
+import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Constants
 import { PageConfig } from "@/Constants/PageConfig";
+// Company Components
+import CompanyForm from "./_components/CompanyForm";
 
-export default function Create({ companyTypes, statuses, addressTypes }) {
+export default function Create({ companyTypes, statuses }) {
     const { data, setData, post, processing, errors } = useForm({
         name: "",
         company_type: "corporate",
@@ -33,36 +35,11 @@ export default function Create({ companyTypes, statuses, addressTypes }) {
         established_date: "",
         status: "active",
         notes: "",
-        addresses: [],
-    });
-
-    const [addressData, setAddressData] = useState({
-        type: "office",
-        label: "",
-        postal_code: "",
-        prefecture: "",
-        city: "",
-        district: "",
-        address_other: "",
-        phone: "",
-        contact_person: "",
-        is_default: true,
-        is_active: true,
-        notes: "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-
-        // 住所データを配列に追加して送信
-        const formData = {
-            ...data,
-            addresses: [addressData],
-        };
-
-        post(route("admin.company.store"), {
-            data: formData,
-        });
+        post(route("admin.company.store"));
     };
     // オプション変換
     const companyTypeOptions = Object.entries(companyTypes).map(
@@ -77,15 +54,8 @@ export default function Create({ companyTypes, statuses, addressTypes }) {
         label,
     }));
 
-    const addressTypeOptions = Object.entries(addressTypes).map(
-        ([value, label]) => ({
-            value,
-            label,
-        }),
-    );
-
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
@@ -96,12 +66,6 @@ export default function Create({ companyTypes, statuses, addressTypes }) {
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "企業管理", href: route("admin.company.index") },
-        { label: "企業登録", href: null },
-    ];
-
     return (
         <AdminAuthenticatedLayout
             header={
@@ -109,40 +73,28 @@ export default function Create({ companyTypes, statuses, addressTypes }) {
                     title={PageConfig.companies.title}
                     description={PageConfig.companies.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={[
+                        ...PageConfig.companies.breadcrumbs,
+                        PageConfig.companies.pages.create.breadcrumb,
+                    ]}
                 />
             }
         >
-            <Head title="企業登録" />
+            <Head title={PageConfig.companies.documentTitle} />
 
             <FlashMessage />
 
-            <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl">
                 <form onSubmit={submit} className="space-y-6">
                     {/* 企業情報 */}
                     <Card>
-                        <div className="p-6">
-                            <CompanyForm
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                                companyTypes={companyTypeOptions}
-                                statuses={statusOptions}
-                            />
-                        </div>
-                    </Card>
-
-                    {/* 住所情報 */}
-                    <Card>
-                        <div className="p-6">
-                            <AddressFormSection
-                                addressData={addressData}
-                                setAddressData={setAddressData}
-                                errors={errors}
-                                addressTypes={addressTypeOptions}
-                                index={0}
-                            />
-                        </div>
+                        <CompanyForm
+                            data={data}
+                            setData={setData}
+                            errors={errors}
+                            companyTypes={companyTypeOptions}
+                            statuses={statusOptions}
+                        />
                     </Card>
 
                     {/* アクションボタン */}

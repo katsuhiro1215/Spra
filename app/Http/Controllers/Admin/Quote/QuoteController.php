@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Quote;
 
 use App\Http\Controllers\Controller;
 use App\Models\Quote;
 use App\Models\User;
+use App\Models\Contact;
+use App\Models\Company;
 use App\Models\ProjectInquiry;
 use App\Services\QuoteService;
 use App\Services\ServiceCategoryService;
 use App\Services\ServiceItemService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -89,12 +92,36 @@ class QuoteController extends Controller
             ])->find($request->input('from_inquiry_id'));
         }
 
+        // Contactから見積もりを作成する場合
+        $contact = null;
+        if ($request->has('contact_id')) {
+            $contact = Contact::with(['user.profile'])
+                ->find($request->input('contact_id'));
+        }
+
+        // Userから見積もりを作成する場合
+        $user = null;
+        if ($request->has('user_id')) {
+            $user = User::with(['profile', 'companies'])
+                ->find($request->input('user_id'));
+        }
+
+        // Companyから見積もりを作成する場合
+        $company = null;
+        if ($request->has('company_id')) {
+            $company = Company::with(['users.profile'])
+                ->find($request->input('company_id'));
+        }
+
         return Inertia::render('Admin/Quotes/Create', [
             'statuses' => $this->quoteService->getStatuses(),
             'serviceCategories' => $serviceCategories,
             'serviceItems' => $serviceItems,
             'users' => $users,
             'projectInquiry' => $projectInquiry,
+            'contact' => $contact,
+            'user' => $user,
+            'company' => $company,
         ]);
     }
 
@@ -104,13 +131,13 @@ class QuoteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
+            'contact_id' => 'nullable|exists:contacts,id',
             'company_id' => 'nullable|exists:companies,id',
-            'subject' => 'nullable|string|max:255',
-            'message' => 'nullable|string',
-            'notes' => 'nullable|string',
-            'valid_until' => 'nullable|date',
-            'discount_type' => 'required|in:fixed,percentage',
+            'title' => 'nullable|string|max:255',
+            'requirements' => 'nullable|string',
+            'custom_specifications' => 'nullable|string',
+            'expires_at' => 'nullable|date',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'status' => 'required|in:draft,sent,reviewed,approved,rejected,expired',
@@ -126,6 +153,14 @@ class QuoteController extends Controller
             'items.*.sort_order' => 'nullable|integer',
             'from_inquiry_id' => 'nullable|exists:project_inquiries,id',
         ]);
+
+        // user_idとcontact_idのどちらか一方は必須
+        if (empty($validated['user_id']) && empty($validated['contact_id'])) {
+            return back()->withErrors([
+                'user_id' => 'ユーザーまたはお問い合わせのいずれかを選択してください。',
+                'contact_id' => 'ユーザーまたはお問い合わせのいずれかを選択してください。',
+            ])->withInput();
+        }
 
         try {
             $quote = $this->quoteService->createQuote($validated);
@@ -155,6 +190,7 @@ class QuoteController extends Controller
     {
         $quote->load([
             'user.profile',
+            'contact',
             'company',
             'items.serviceItem',
             'creator.profile',
@@ -178,7 +214,7 @@ class QuoteController extends Controller
                 ->with('error', '承認済みの見積もりは編集できません。');
         }
 
-        $quote->load(['items', 'user.profile']);
+        $quote->load(['items', 'user.profile', 'contact', 'company']);
 
         // サービスカテゴリとServiceItemを取得
         $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
@@ -218,13 +254,13 @@ class QuoteController extends Controller
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
+            'contact_id' => 'nullable|exists:contacts,id',
             'company_id' => 'nullable|exists:companies,id',
-            'subject' => 'nullable|string|max:255',
-            'message' => 'nullable|string',
-            'notes' => 'nullable|string',
-            'valid_until' => 'nullable|date',
-            'discount_type' => 'required|in:fixed,percentage',
+            'title' => 'nullable|string|max:255',
+            'requirements' => 'nullable|string',
+            'custom_specifications' => 'nullable|string',
+            'expires_at' => 'nullable|date',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'status' => 'required|in:draft,sent,reviewed,approved,rejected,expired',
@@ -239,6 +275,14 @@ class QuoteController extends Controller
             'items.*.estimated_days' => 'nullable|integer|min:0',
             'items.*.sort_order' => 'nullable|integer',
         ]);
+
+        // user_idとcontact_idのどちらか一方は必須
+        if (empty($validated['user_id']) && empty($validated['contact_id'])) {
+            return back()->withErrors([
+                'user_id' => 'ユーザーまたはお問い合わせのいずれかを選択してください。',
+                'contact_id' => 'ユーザーまたはお問い合わせのいずれかを選択してください。',
+            ])->withInput();
+        }
 
         try {
             $this->quoteService->updateQuote($quote, $validated);
@@ -266,16 +310,42 @@ class QuoteController extends Controller
     }
 
     /**
+     * Show quote preview before sending.
+     */
+    public function preview(Quote $quote): InertiaResponse
+    {
+        $quote->load([
+            'user.profile',
+            'contact',
+            'company',
+            'items.serviceItem',
+        ]);
+
+        return Inertia::render('Admin/Quotes/Preview', [
+            'quote' => $quote,
+            'statuses' => $this->quoteService->getStatuses(),
+        ]);
+    }
+
+    /**
      * Send the quote to client.
      */
     public function send(Quote $quote)
     {
         try {
-            $this->quoteService->sendQuote($quote);
+            // Generate token and response form URL in Controller (where route() is reliable)
+            $token = \Illuminate\Support\Str::random(60);
+            $responseFormUrl = route('user.public.quote.response.show', $token);
+
+            $this->quoteService->sendQuote($quote, $token, $responseFormUrl);
 
             return redirect()->route('admin.quote.show', $quote)
                 ->with('success', '見積もりを送信しました。');
         } catch (\Exception $e) {
+            Log::error('Quote send error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return back()->with('error', '見積もりの送信に失敗しました: ' . $e->getMessage());
         }
     }

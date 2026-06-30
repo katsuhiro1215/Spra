@@ -29,11 +29,11 @@ export default function Edit({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route("admin.service.service-items.update", serviceItem.id));
+        put(route("admin.service.item.update", serviceItem.id));
     };
 
     const handleCancel = () => {
-        router.visit(route("admin.service.service-items.index"));
+        router.visit(route("admin.service.item.index"));
     };
 
     const breadcrumbs = [
@@ -41,7 +41,7 @@ export default function Edit({
         { label: "サービス管理", href: null },
         {
             label: "サービス項目一覧",
-            href: route("admin.service.service-items.index"),
+            href: route("admin.service.item.index"),
         },
         { label: "編集", href: null },
     ];

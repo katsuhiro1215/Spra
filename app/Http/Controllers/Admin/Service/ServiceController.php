@@ -85,8 +85,20 @@ class ServiceController extends Controller
      */
     public function show(Service $service): Response
     {
+        $servicePlans = $service->servicePlans()
+            ->with(['creator', 'updater'])
+            ->orderBy('sort_order')
+            ->get();
+
+        $serviceItems = $service->serviceItems()
+            ->with(['servicePlan', 'creator', 'updater'])
+            ->orderBy('sort_order')
+            ->get();
+
         return Inertia::render('Admin/Service/Show', [
             'service' => $service->load(['serviceCategory', 'creator', 'updater']),
+            'servicePlans' => $servicePlans,
+            'serviceItems' => $serviceItems,
         ]);
     }
 

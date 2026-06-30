@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
@@ -15,6 +15,7 @@ export default function Create({
     companies,
     quotes,
     statuses,
+    quote = null,
 }) {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
@@ -24,7 +25,7 @@ export default function Create({
         user_id: "",
         company_id: "",
         project_id: "",
-        quote_id: "",
+        quote_id: quote?.id || "",
         amount: "",
         tax_rate: "10",
         start_date: "",
@@ -35,6 +36,23 @@ export default function Create({
         terms_and_conditions: "",
         notes: "",
     });
+
+    // Quote情報から自動入力
+    useEffect(() => {
+        if (quote) {
+            setData((prev) => ({
+                ...prev,
+                quote_id: quote.id,
+                title: quote.title || "",
+                user_id: quote.user_id || "",
+                company_id: quote.company_id || "",
+                amount: quote.total_amount || "",
+                tax_rate: quote.tax_rate?.toString() || "10",
+                description: quote.requirements || "",
+                notes: `見積もり: ${quote.quote_number}\n${quote.custom_specifications ? `カスタム仕様: ${typeof quote.custom_specifications === "string" ? quote.custom_specifications : JSON.stringify(quote.custom_specifications)}` : ""}`,
+            }));
+        }
+    }, [quote]);
 
     const submit = () => {
         post(route("admin.contract.store"));

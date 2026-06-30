@@ -246,7 +246,7 @@
     <table class="summary-table">
         <tr>
             <td>小計</td>
-            <td class="text-right">¥{{ number_format($invoice->amount) }}</td>
+            <td class="text-right">¥{{ number_format($invoice->subtotal) }}</td>
         </tr>
         <tr>
             <td>消費税（{{ $invoice->tax_rate }}%）</td>

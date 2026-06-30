@@ -104,8 +104,8 @@ export default function Index({ companies, filters = {}, stats = {} }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "企業一覧", href: null },
+        ...PageConfig.companies.breadcrumbs,
+        PageConfig.companies.pages.create.breadcrumb,
     ];
 
     // ========================================
@@ -168,6 +168,7 @@ export default function Index({ companies, filters = {}, stats = {} }) {
         >
             <Head title={PageConfig.companies.documentTitle} />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">

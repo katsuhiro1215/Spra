@@ -147,20 +147,14 @@ export default function ServicePlansTable({
                         {/* アクションボタン */}
                         <div className="flex items-center gap-2">
                             <Link
-                                href={route(
-                                    "admin.service.service-plans.show",
-                                    plan.id,
-                                )}
+                                href={route("admin.service.plan.show", plan.id)}
                                 className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                             >
                                 <EyeIcon className="h-4 w-4 mr-1" />
                                 詳細
                             </Link>
                             <Link
-                                href={route(
-                                    "admin.service.service-plans.edit",
-                                    plan.id,
-                                )}
+                                href={route("admin.service.plan.edit", plan.id)}
                                 className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                             >
                                 <PencilIcon className="h-4 w-4 mr-1" />

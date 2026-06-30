@@ -13,6 +13,7 @@ use App\Services\ReceiptService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -61,13 +62,35 @@ class InvoiceController extends Controller
     ]);
   }
 
-  public function create(): Response
+  public function create(Request $request): Response
   {
+    $company = null;
+    $user = null;
+    $contract = null;
+
+    // company_idパラメータがある場合、会社情報を取得
+    if ($request->has('company_id')) {
+      $company = Company::with(['addresses', 'users'])->find($request->company_id);
+    }
+
+    // user_idパラメータがある場合、ユーザー情報を取得
+    if ($request->has('user_id')) {
+      $user = User::with(['profile', 'companies'])->find($request->user_id);
+    }
+
+    // contract_idパラメータがある場合、契約情報を取得
+    if ($request->has('contract_id')) {
+      $contract = Contract::with(['user', 'company'])->find($request->contract_id);
+    }
+
     return Inertia::render('Admin/Invoices/Create', [
       'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
       'statuses'  => Invoice::STATUSES,
+      'company'   => $company,
+      'user'      => $user,
+      'contract'  => $contract,
     ]);
   }
 
@@ -286,7 +309,7 @@ class InvoiceController extends Controller
     }
 
     try {
-      \DB::transaction(function () use ($invoice) {
+      DB::transaction(function () use ($invoice) {
         // 請求書のステータスを支払い済みに更新
         $invoice->update([
           'status' => 'paid',

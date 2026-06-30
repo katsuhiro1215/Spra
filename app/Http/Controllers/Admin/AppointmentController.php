@@ -108,12 +108,12 @@ class AppointmentController extends Controller
         'label' => $company->name
       ]);
 
-    $projects = Project::select('id', 'name')
-      ->orderBy('name')
+    $projects = Project::select('id', 'title')
+      ->orderBy('title')
       ->get()
       ->map(fn($project) => [
         'value' => $project->id,
-        'label' => $project->name
+        'label' => $project->title
       ]);
 
     $statuses = [
@@ -184,8 +184,8 @@ class AppointmentController extends Controller
         'label' => $company->name
       ]);
 
-    $projects = Project::select('id', 'name', 'company_id')
-      ->orderBy('name')
+    $projects = Project::select('id', 'title', 'company_id')
+      ->orderBy('title')
       ->get();
 
     return Inertia::render('Admin/Appointments/Create', [

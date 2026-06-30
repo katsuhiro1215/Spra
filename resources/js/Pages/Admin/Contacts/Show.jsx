@@ -33,6 +33,7 @@ import {
     UserPlusIcon,
     ArrowPathIcon,
     XCircleIcon,
+    DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
@@ -184,15 +185,21 @@ export default function Show() {
 
     const headerActions = [
         {
+            label: "見積もりを作成",
+            icon: DocumentTextIcon,
+            variant: "primary",
+            route: route("admin.quote.create", { contact_id: contact.id }),
+        },
+        {
             label: "返信する",
             icon: PaperAirplaneIcon,
-            variant: "primary",
+            variant: "secondary",
             route: route("admin.contact.responses.create", contact.id),
         },
         {
             label: PageConfig.contacts.actions.back,
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.contact.index"),
         },
     ];

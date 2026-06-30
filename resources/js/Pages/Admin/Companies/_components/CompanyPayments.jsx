@@ -1,0 +1,319 @@
+import React from "react";
+import { Link } from "@inertiajs/react";
+import { Card, CardHeader, CardBody } from "@/Components/Card";
+import { Badge } from "@/Components/Badges";
+import {
+    CreditCardIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    XCircleIcon,
+    BanknotesIcon,
+} from "@heroicons/react/24/outline";
+
+export default function CompanyPayments({ payments = [] }) {
+    const formatCurrency = (amount) => {
+        if (!amount) return "¥0";
+        return new Intl.NumberFormat("ja-JP", {
+            style: "currency",
+            currency: "JPY",
+        }).format(amount);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "-";
+        return new Date(dateString).toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        });
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "-";
+        return new Date(dateString).toLocaleString("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const getStatusBadge = (status) => {
+        const badges = {
+            pending: { text: "保留中", variant: "warning" },
+            completed: { text: "完了", variant: "success" },
+            failed: { text: "失敗", variant: "danger" },
+            refunded: { text: "返金済み", variant: "neutral" },
+            cancelled: { text: "キャンセル", variant: "neutral" },
+        };
+        return badges[status] || { text: status, variant: "neutral" };
+    };
+
+    const getPaymentMethodLabel = (method) => {
+        const labels = {
+            credit_card: "クレジットカード",
+            bank_transfer: "銀行振込",
+            cash: "現金",
+            other: "その他",
+        };
+        return labels[method] || method;
+    };
+
+    const totalAmount = payments.reduce(
+        (sum, payment) => sum + parseFloat(payment.amount || 0),
+        0,
+    );
+
+    const completedAmount = payments
+        .filter((p) => p.status === "completed")
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+
+    const confirmedCount = payments.filter((p) => p.confirmed_at).length;
+    const unconfirmedCount = payments.filter(
+        (p) => !p.confirmed_at && p.status === "completed",
+    ).length;
+
+    return (
+        <div className="space-y-6">
+            {/* 決済統計 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                    <CardBody>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    総決済額
+                                </p>
+                                <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                    {formatCurrency(totalAmount)}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                                <BanknotesIcon className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    完了済み決済額
+                                </p>
+                                <p className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">
+                                    {formatCurrency(completedAmount)}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-full">
+                                <CheckCircleIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                決済確認状況
+                            </p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                        確認済み: {confirmedCount}件
+                                    </p>
+                                    {unconfirmedCount > 0 && (
+                                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                            未確認: {unconfirmedCount}件
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+
+            {/* 決済一覧 */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <CreditCardIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                決済一覧
+                            </h2>
+                            <Badge
+                                text={`${payments.length}件`}
+                                variant="neutral"
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardBody>
+                    {payments && payments.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-800">
+                                    <tr>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            決済日
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            金額
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            決済方法
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            関連請求書
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            ステータス
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            決済確認
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                                        >
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                                    {payments.map((payment) => (
+                                        <tr
+                                            key={payment.id}
+                                            className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-100">
+                                                {formatDate(
+                                                    payment.payment_date,
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+                                                {formatCurrency(payment.amount)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-100">
+                                                {getPaymentMethodLabel(
+                                                    payment.payment_method,
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {payment.invoice ? (
+                                                    <Link
+                                                        href={route(
+                                                            "admin.invoice.show",
+                                                            payment.invoice.id,
+                                                        )}
+                                                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                                    >
+                                                        {
+                                                            payment.invoice
+                                                                .invoice_number
+                                                        }
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                                        -
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <Badge
+                                                    {...getStatusBadge(
+                                                        payment.status,
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                {payment.confirmed_at ? (
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                                            <CheckCircleIcon className="h-4 w-4" />
+                                                            確認済み
+                                                        </div>
+                                                        <div className="text-xs">
+                                                            {formatDateTime(
+                                                                payment.confirmed_at,
+                                                            )}
+                                                        </div>
+                                                        {payment.confirmed_by && (
+                                                            <div className="text-xs">
+                                                                by{" "}
+                                                                {
+                                                                    payment
+                                                                        .confirmed_by
+                                                                        .name
+                                                                }
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : payment.status ===
+                                                  "completed" ? (
+                                                    <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                                                        <ClockIcon className="h-4 w-4" />
+                                                        未確認
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-slate-400 dark:text-slate-500">
+                                                        -
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <Link
+                                                    href={route(
+                                                        "admin.payment.show",
+                                                        payment.id,
+                                                    )}
+                                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                                >
+                                                    詳細
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <CreditCardIcon className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-600" />
+                            <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                決済がありません
+                            </h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                この企業からの決済はまだ記録されていません。
+                            </p>
+                        </div>
+                    )}
+                </CardBody>
+            </Card>
+        </div>
+    );
+}

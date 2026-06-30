@@ -168,7 +168,7 @@ export default function ServiceItemsTable({
                                 <div className="flex items-center justify-end gap-2">
                                     <Link
                                         href={route(
-                                            "admin.service.service-items.show",
+                                            "admin.service.item.show",
                                             item.id,
                                         )}
                                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
@@ -177,7 +177,7 @@ export default function ServiceItemsTable({
                                     </Link>
                                     <Link
                                         href={route(
-                                            "admin.service.service-items.edit",
+                                            "admin.service.item.edit",
                                             item.id,
                                         )}
                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"

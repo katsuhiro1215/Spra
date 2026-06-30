@@ -19,13 +19,18 @@ export default function Edit({
 }) {
     const { data, setData, put, processing, errors } = useForm({
         user_id: quote.user_id || "",
+        contact_id: quote.contact_id || "",
         company_id: quote.company_id || "",
-        subject: quote.subject || "",
-        message: quote.message || "",
-        valid_until: quote.valid_until || "",
-        notes: quote.notes || "",
+        title: quote.title || "",
+        requirements: quote.requirements || "",
+        expires_at: quote.expires_at || "",
+        custom_specifications:
+            typeof quote.custom_specifications === "string"
+                ? quote.custom_specifications
+                : quote.custom_specifications
+                  ? JSON.stringify(quote.custom_specifications)
+                  : "",
         status: quote.status || "draft",
-        discount_type: quote.discount_type || "fixed",
         discount_amount: quote.discount_amount || 0,
         tax_rate: quote.tax_rate || 10,
         base_amount: quote.base_amount || 0,
@@ -35,7 +40,15 @@ export default function Edit({
     });
 
     const submit = () => {
-        put(route("admin.quote.update", quote.id));
+        const submitData = {
+            ...data,
+            custom_specifications: data.custom_specifications
+                ? JSON.stringify(data.custom_specifications)
+                : null,
+        };
+        put(route("admin.quote.update", quote.id), {
+            data: submitData,
+        });
     };
 
     // ========================================

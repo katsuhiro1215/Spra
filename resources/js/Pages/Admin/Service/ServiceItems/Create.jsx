@@ -12,10 +12,12 @@ export default function Create({
     itemTypes,
     services,
     servicePlans,
+    service_id,
+    service_plan_id,
 }) {
     const { data, setData, post, processing, errors } = useForm({
-        service_id: "",
-        service_plan_id: "",
+        service_id: service_id || "",
+        service_plan_id: service_plan_id || "",
         item_type: "included",
         name: "",
         description: "",
@@ -28,11 +30,11 @@ export default function Create({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.service.service-items.store"));
+        post(route("admin.service.item.store"));
     };
 
     const handleCancel = () => {
-        router.visit(route("admin.service.service-items.index"));
+        router.visit(route("admin.service.item.index"));
     };
 
     const breadcrumbs = [
@@ -40,7 +42,7 @@ export default function Create({
         { label: "サービス管理", href: null },
         {
             label: "サービス項目一覧",
-            href: route("admin.service.service-items.index"),
+            href: route("admin.service.item.index"),
         },
         { label: "新規作成", href: null },
     ];

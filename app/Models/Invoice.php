@@ -16,6 +16,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'issue_date',
         'contract_id',
         'user_id',
         'company_id',
@@ -31,6 +32,8 @@ class Invoice extends Model
         'sent_at',
         'viewed_at',
         'paid_at',
+        'client_downloaded_at',
+        'client_downloaded_by',
         'notes',
         'pdf_path',
         'resend_count',
@@ -39,12 +42,14 @@ class Invoice extends Model
     ];
 
     protected $casts = [
+        'issue_date'           => 'date',
         'billing_period_start' => 'date',
         'billing_period_end'   => 'date',
         'due_date'             => 'date',
         'sent_at'              => 'datetime',
         'viewed_at'            => 'datetime',
         'paid_at'              => 'datetime',
+        'client_downloaded_at' => 'datetime',
         'last_resent_at'       => 'datetime',
         'subtotal'             => 'decimal:2',
         'discount_amount'      => 'decimal:2',
@@ -90,6 +95,11 @@ class Invoice extends Model
     public function receipt(): HasOne
     {
         return $this->hasOne(Receipt::class);
+    }
+
+    public function clientDownloadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_downloaded_by');
     }
 
     public function scopeForClient($query, string $userId)

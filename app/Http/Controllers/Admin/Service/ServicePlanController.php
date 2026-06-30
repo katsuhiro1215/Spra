@@ -61,7 +61,7 @@ class ServicePlanController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $statuses = $this->servicePlanService->getStatuses();
         $billingCycles = $this->servicePlanService->getBillingCycles();
@@ -71,6 +71,7 @@ class ServicePlanController extends Controller
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
             'services' => $services,
+            'service_id' => $request->query('service_id'),
         ]);
     }
 
@@ -81,8 +82,9 @@ class ServicePlanController extends Controller
     {
         try {
             $this->servicePlanService->createServicePlan($request->validated());
+            $service = $request->service_id;
 
-            return redirect()->route('admin.service.service-plans.index')
+            return redirect()->route('admin.service.show', $service)
                 ->with('success', 'サービスプランが作成されました。');
         } catch (\Exception $e) {
             Log::error('ServicePlan store error: ' . $e->getMessage());
@@ -126,8 +128,9 @@ class ServicePlanController extends Controller
     {
         try {
             $this->servicePlanService->updateServicePlan($servicePlan, $request->validated());
+            $service = $request->service_id;
 
-            return redirect()->route('admin.service.service-plans.index')
+            return redirect()->route('admin.service.show', $service)
                 ->with('success', 'サービスプランが更新されました。');
         } catch (\Exception $e) {
             Log::error('ServicePlan update error: ' . $e->getMessage());
@@ -144,8 +147,9 @@ class ServicePlanController extends Controller
     {
         try {
             $this->servicePlanService->deleteServicePlan($servicePlan);
+            $service = $servicePlan->service_id;
 
-            return redirect()->route('admin.service.service-plans.index')
+            return redirect()->route('admin.service.show', $service)
                 ->with('success', 'サービスプランが削除されました。');
         } catch (\Exception $e) {
             Log::error('ServicePlan destroy error: ' . $e->getMessage());

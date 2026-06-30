@@ -16,7 +16,6 @@ import {
 import {
     QUOTE_STATUS_OPTIONS,
     QUOTE_BILLING_TYPE_OPTIONS,
-    QUOTE_DISCOUNT_TYPE_OPTIONS,
 } from "@/Constants/SelectOptions";
 
 export default function QuoteForm({
@@ -267,21 +266,21 @@ export default function QuoteForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormGroup
                             label="件名"
-                            htmlFor="subject"
+                            htmlFor="title"
                             help="見積もりの件名を入力してください"
                         >
                             <TextInput
-                                id="subject"
-                                name="subject"
-                                value={data.subject || ""}
+                                id="title"
+                                name="title"
+                                value={data.title || ""}
                                 onChange={(e) =>
-                                    setData("subject", e.target.value)
+                                    setData("title", e.target.value)
                                 }
                                 placeholder="例: Webサイト制作見積もり"
                             />
                             <InputError
                                 className="mt-2"
-                                message={errors.subject}
+                                message={errors.title}
                             />
                         </FormGroup>
 
@@ -303,55 +302,61 @@ export default function QuoteForm({
                         </FormGroup>
 
                         <div className="md:col-span-2">
-                            <FormGroup label="メッセージ" htmlFor="message">
+                            <FormGroup label="要件" htmlFor="requirements">
                                 <TextArea
-                                    id="message"
-                                    name="message"
-                                    value={data.message || ""}
+                                    id="requirements"
+                                    name="requirements"
+                                    value={data.requirements || ""}
                                     onChange={(e) =>
-                                        setData("message", e.target.value)
+                                        setData("requirements", e.target.value)
                                     }
                                     rows={3}
-                                    placeholder="見積もりに添えるメッセージを入力してください"
+                                    placeholder="見積もりの要件を入力してください"
                                 />
                                 <InputError
                                     className="mt-2"
-                                    message={errors.message}
+                                    message={errors.requirements}
                                 />
                             </FormGroup>
                         </div>
 
-                        <FormGroup label="有効期限" htmlFor="valid_until">
+                        <FormGroup label="有効期限" htmlFor="expires_at">
                             <TextInput
-                                id="valid_until"
+                                id="expires_at"
                                 type="date"
-                                name="valid_until"
-                                value={data.valid_until || ""}
+                                name="expires_at"
+                                value={data.expires_at || ""}
                                 onChange={(e) =>
-                                    setData("valid_until", e.target.value)
+                                    setData("expires_at", e.target.value)
                                 }
                             />
                             <InputError
                                 className="mt-2"
-                                message={errors.valid_until}
+                                message={errors.expires_at}
                             />
                         </FormGroup>
 
                         <div className="md:col-span-2">
-                            <FormGroup label="備考" htmlFor="notes">
+                            <FormGroup
+                                label="カスタム仕様"
+                                htmlFor="custom_specifications"
+                            >
                                 <TextArea
-                                    id="notes"
-                                    name="notes"
-                                    value={data.notes || ""}
+                                    id="custom_specifications"
+                                    name="custom_specifications"
+                                    value={data.custom_specifications || ""}
                                     onChange={(e) =>
-                                        setData("notes", e.target.value)
+                                        setData(
+                                            "custom_specifications",
+                                            e.target.value,
+                                        )
                                     }
                                     rows={3}
-                                    placeholder="管理用の備考を入力してください"
+                                    placeholder="カスタム仕様やメモを入力してください"
                                 />
                                 <InputError
                                     className="mt-2"
-                                    message={errors.notes}
+                                    message={errors.custom_specifications}
                                 />
                             </FormGroup>
                         </div>
@@ -608,24 +613,6 @@ export default function QuoteForm({
                     <div className="mt-6 pt-6 border-t border-gray-200">
                         <div className="space-y-4 max-w-md ml-auto">
                             <div className="grid grid-cols-2 gap-4">
-                                <FormGroup
-                                    label="値引きタイプ"
-                                    htmlFor="discount_type"
-                                >
-                                    <SelectInput
-                                        id="discount_type"
-                                        name="discount_type"
-                                        value={data.discount_type || "fixed"}
-                                        onChange={(e) =>
-                                            setData(
-                                                "discount_type",
-                                                e.target.value,
-                                            )
-                                        }
-                                        options={QUOTE_DISCOUNT_TYPE_OPTIONS}
-                                    />
-                                </FormGroup>
-
                                 <FormGroup
                                     label="値引き額"
                                     htmlFor="discount_amount"

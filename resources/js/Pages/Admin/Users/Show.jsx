@@ -88,6 +88,12 @@ export default function Show({ user, mediaList = [], projectInquiries = [] }) {
     // ========================================
     const headerActions = [
         {
+            label: "見積もりを作成",
+            icon: DocumentTextIcon,
+            variant: "primary",
+            route: route("admin.quote.create", { user_id: user.id }),
+        },
+        {
             label: PageConfig.users.actions.back,
             icon: ArrowLeftIcon,
             variant: "secondary",

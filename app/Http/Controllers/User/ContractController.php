@@ -21,7 +21,7 @@ class ContractController extends Controller
 
     $contracts = $this->service->getPaginatedForClient($userId, $filters, 15);
 
-    return Inertia::render('User/Contract/Index', [
+    return Inertia::render('User/Contracts/Index', [
       'contracts' => $contracts,
       'filters'   => $filters,
     ]);

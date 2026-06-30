@@ -1,73 +1,81 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AddressRequest;
-use App\Models\User;
+use App\Models\Admin;
 use App\Models\Address;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class UserAddressController extends Controller
+class AdminAddressController extends Controller
 {
     /**
      * 住所作成画面
      */
-    public function create(User $user): Response
+    public function create(Admin $admin): Response
     {
-        return Inertia::render('Admin/Users/Address/Create', [
-            'user' => $user,
+        $currentAdminId = auth('admins')->id();
+        $isOtherAdmin = $admin->id !== $currentAdminId;
+
+        return Inertia::render('Admin/Admins/Address/Create', [
+            'admin' => $admin,
             'types' => $this->getAddressTypes(),
+            'isOtherAdmin' => $isOtherAdmin,
         ]);
     }
 
     /**
      * 住所作成処理
      */
-    public function store(AddressRequest $request, User $user): RedirectResponse
+    public function store(AddressRequest $request, Admin $admin): RedirectResponse
     {
-        $user->addresses()->create($request->validated());
+        $admin->addresses()->create($request->validated());
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.admins.show', $admin)
             ->with('success', '住所を追加しました。');
     }
 
     /**
      * 住所編集画面
      */
-    public function edit(User $user, Address $address): Response
+    public function edit(Admin $admin, Address $address): Response
     {
-        return Inertia::render('Admin/Users/Address/Edit', [
-            'user' => $user,
+        $currentAdminId = auth('admins')->id();
+        $isOtherAdmin = $admin->id !== $currentAdminId;
+
+        return Inertia::render('Admin/Admins/Address/Edit', [
+            'admin' => $admin,
             'address' => $address,
             'types' => $this->getAddressTypes(),
+            'isOtherAdmin' => $isOtherAdmin,
         ]);
     }
 
     /**
      * 住所更新処理
      */
-    public function update(AddressRequest $request, User $user, Address $address): RedirectResponse
+    public function update(AddressRequest $request, Admin $admin, Address $address): RedirectResponse
     {
         $address->update($request->validated());
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.admins.show', $admin)
             ->with('success', '住所を更新しました。');
     }
 
     /**
      * 住所削除処理
      */
-    public function destroy(User $user, Address $address): RedirectResponse
+    public function destroy(Admin $admin, Address $address): RedirectResponse
     {
         $address->delete();
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.admins.show', $admin)
             ->with('success', '住所を削除しました。');
     }
 

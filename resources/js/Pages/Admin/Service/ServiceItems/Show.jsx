@@ -14,7 +14,7 @@ export default function Show({ serviceItem }) {
         { label: "サービス管理", href: null },
         {
             label: "サービス項目一覧",
-            href: route("admin.service.service-items.index"),
+            href: route("admin.service.item.index"),
         },
         { label: serviceItem.name, href: null },
     ];
@@ -73,7 +73,7 @@ export default function Show({ serviceItem }) {
                     action={
                         <Link
                             href={route(
-                                "admin.service.service-items.edit",
+                                "admin.service.item.edit",
                                 serviceItem.id,
                             )}
                             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
@@ -119,7 +119,7 @@ export default function Show({ serviceItem }) {
                                         <dd className="mt-1 text-sm">
                                             <Link
                                                 href={route(
-                                                    "admin.service.services.show",
+                                                    "admin.service.show",
                                                     serviceItem.service.id,
                                                 )}
                                                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
@@ -149,7 +149,7 @@ export default function Show({ serviceItem }) {
                                             <dd className="mt-1 text-sm">
                                                 <Link
                                                     href={route(
-                                                        "admin.service.service-plans.show",
+                                                        "admin.service.plan.show",
                                                         serviceItem.service_plan
                                                             .id,
                                                     )}

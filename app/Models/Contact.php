@@ -58,6 +58,11 @@ class Contact extends Model
         return $this->hasMany(UserInvitation::class)->orderBy('created_at', 'desc');
     }
 
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class)->orderBy('created_at', 'desc');
+    }
+
     // スコープ
     public function scopeNew($query)
     {

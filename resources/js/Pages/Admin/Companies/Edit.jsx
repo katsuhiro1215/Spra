@@ -97,19 +97,17 @@ export default function Edit({ company, companyTypes, statuses }) {
 
             <FlashMessage />
 
-            <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl">
                 <form onSubmit={submit} className="space-y-6">
                     {/* 企業情報 */}
                     <Card>
-                        <div className="p-6">
-                            <CompanyForm
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                                companyTypes={companyTypeOptions}
-                                statuses={statusOptions}
-                            />
-                        </div>
+                        <CompanyForm
+                            data={data}
+                            setData={setData}
+                            errors={errors}
+                            companyTypes={companyTypeOptions}
+                            statuses={statusOptions}
+                        />
                     </Card>
 
                     {/* アクションボタン */}

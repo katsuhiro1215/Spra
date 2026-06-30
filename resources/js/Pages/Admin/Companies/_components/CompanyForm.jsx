@@ -1,5 +1,12 @@
-import React from "react";
-import { FormGroup, TextInput, TextArea, SelectInput, NumberInput } from "@/Components/Forms";
+import React, { useState } from "react";
+import {
+    FormGroup,
+    TextInput,
+    TextArea,
+    SelectInput,
+    InputError,
+} from "@/Components/Forms";
+import * as validation from "./validation";
 
 const PREFECTURES = [
     "北海道",
@@ -76,8 +83,87 @@ export default function CompanyForm({
     companyTypes,
     statuses,
 }) {
+    // クライアント側のバリデーションエラー
+    const [localErrors, setLocalErrors] = useState({});
+
     const handleChange = (field, value) => {
         setData(field, value);
+    };
+
+    // バリデーション実行（onBlur時）
+    const handleBlur = (fieldName) => {
+        // 一時的なデータオブジェクト（validation関数用）
+        const tempData = { ...data, errors: {} };
+
+        // バリデーション関数を呼び出し
+        switch (fieldName) {
+            case "name":
+                validation.validateName(tempData);
+                break;
+            case "company_type":
+                validation.validateCompanyType(tempData);
+                break;
+            case "legal_name":
+                validation.validateLegalName(tempData);
+                break;
+            case "registration_number":
+                validation.validateRegistrationNumber(tempData);
+                break;
+            case "tax_number":
+                validation.validateTaxNumber(tempData);
+                break;
+            case "phone":
+                validation.validatePhone(tempData);
+                break;
+            case "fax":
+                validation.validateFax(tempData);
+                break;
+            case "email":
+                validation.validateEmail(tempData);
+                break;
+            case "website":
+                validation.validateWebsite(tempData);
+                break;
+            case "representative_name":
+                validation.validateRepresentativeName(tempData);
+                break;
+            case "representative_title":
+                validation.validateRepresentativeTitle(tempData);
+                break;
+            case "representative_email":
+                validation.validateRepresentativeEmail(tempData);
+                break;
+            case "representative_phone":
+                validation.validateRepresentativePhone(tempData);
+                break;
+            case "business_description":
+                validation.validateBusinessDescription(tempData);
+                break;
+            case "industry":
+                validation.validateIndustry(tempData);
+                break;
+            case "employee_count":
+                validation.validateEmployeeCount(tempData);
+                break;
+            case "capital":
+                validation.validateCapital(tempData);
+                break;
+            case "established_date":
+                validation.validateEstablishedDate(tempData);
+                break;
+            case "status":
+                validation.validateStatus(tempData);
+                break;
+            case "notes":
+                validation.validateNotes(tempData);
+                break;
+        }
+
+        // エラーを更新
+        setLocalErrors((prev) => ({
+            ...prev,
+            [fieldName]: tempData.errors[fieldName],
+        }));
     };
 
     const isIndividual = data.company_type === "individual";
@@ -96,8 +182,13 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("name", e.target.value)
                             }
+                            onBlur={() => handleBlur("name")}
                             placeholder="株式会社サンプル"
                             error={errors.name}
+                        />
+                        <InputError
+                            message={errors.name || localErrors.name}
+                            className="mt-2"
                         />
                     </FormGroup>
 
@@ -111,8 +202,15 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("company_type", e.target.value)
                             }
+                            onBlur={() => handleBlur("company_type")}
                             options={companyTypes}
                             error={errors.company_type}
+                        />
+                        <InputError
+                            message={
+                                errors.company_type || localErrors.company_type
+                            }
+                            className="mt-2"
                         />
                     </FormGroup>
 
@@ -130,10 +228,17 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("legal_name", e.target.value)
                             }
+                            onBlur={() => handleBlur("legal_name")}
                             placeholder={
                                 isIndividual ? "山田 太郎" : "株式会社サンプル"
                             }
                             error={errors.legal_name}
+                        />
+                        <InputError
+                            message={
+                                errors.legal_name || localErrors.legal_name
+                            }
+                            className="mt-2"
                         />
                     </FormGroup>
 
@@ -155,10 +260,18 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() => handleBlur("registration_number")}
                                 placeholder={
                                     isIndividual ? "" : "1234567890123"
                                 }
                                 error={errors.registration_number}
+                            />
+                            <InputError
+                                message={
+                                    errors.registration_number ||
+                                    localErrors.registration_number
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -172,8 +285,15 @@ export default function CompanyForm({
                                 onChange={(e) =>
                                     handleChange("tax_number", e.target.value)
                                 }
+                                onBlur={() => handleBlur("tax_number")}
                                 placeholder="T1234567890123"
                                 error={errors.tax_number}
+                            />
+                            <InputError
+                                message={
+                                    errors.tax_number || localErrors.tax_number
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -188,8 +308,13 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("status", e.target.value)
                             }
+                            onBlur={() => handleBlur("status")}
                             options={statuses}
                             error={errors.status}
+                        />
+                        <InputError
+                            message={errors.status || localErrors.status}
+                            className="mt-2"
                         />
                     </FormGroup>
                 </div>
@@ -209,8 +334,13 @@ export default function CompanyForm({
                                 onChange={(e) =>
                                     handleChange("phone", e.target.value)
                                 }
+                                onBlur={() => handleBlur("phone")}
                                 placeholder="03-1234-5678"
                                 error={errors.phone}
+                            />
+                            <InputError
+                                message={errors.phone || localErrors.phone}
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -221,8 +351,13 @@ export default function CompanyForm({
                                 onChange={(e) =>
                                     handleChange("fax", e.target.value)
                                 }
+                                onBlur={() => handleBlur("fax")}
                                 placeholder="03-1234-5679"
                                 error={errors.fax}
+                            />
+                            <InputError
+                                message={errors.fax || localErrors.fax}
+                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -234,8 +369,13 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("email", e.target.value)
                             }
+                            onBlur={() => handleBlur("email")}
                             placeholder="info@example.com"
                             error={errors.email}
+                        />
+                        <InputError
+                            message={errors.email || localErrors.email}
+                            className="mt-2"
                         />
                     </FormGroup>
 
@@ -246,8 +386,13 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("website", e.target.value)
                             }
+                            onBlur={() => handleBlur("website")}
                             placeholder="https://example.com"
                             error={errors.website}
+                        />
+                        <InputError
+                            message={errors.website || localErrors.website}
+                            className="mt-2"
                         />
                     </FormGroup>
                 </div>
@@ -272,8 +417,16 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() => handleBlur("representative_name")}
                                 placeholder="山田 太郎"
                                 error={errors.representative_name}
+                            />
+                            <InputError
+                                message={
+                                    errors.representative_name ||
+                                    localErrors.representative_name
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -289,8 +442,18 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() =>
+                                    handleBlur("representative_title")
+                                }
                                 placeholder="代表取締役"
                                 error={errors.representative_title}
+                            />
+                            <InputError
+                                message={
+                                    errors.representative_title ||
+                                    localErrors.representative_title
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -309,8 +472,18 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() =>
+                                    handleBlur("representative_email")
+                                }
                                 placeholder="yamada@example.com"
                                 error={errors.representative_email}
+                            />
+                            <InputError
+                                message={
+                                    errors.representative_email ||
+                                    localErrors.representative_email
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -327,8 +500,18 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() =>
+                                    handleBlur("representative_phone")
+                                }
                                 placeholder="090-1234-5678"
                                 error={errors.representative_phone}
+                            />
+                            <InputError
+                                message={
+                                    errors.representative_phone ||
+                                    localErrors.representative_phone
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -353,9 +536,17 @@ export default function CompanyForm({
                                     e.target.value,
                                 )
                             }
+                            onBlur={() => handleBlur("business_description")}
                             placeholder="事業内容を入力してください"
                             rows={4}
                             error={errors.business_description}
+                        />
+                        <InputError
+                            message={
+                                errors.business_description ||
+                                localErrors.business_description
+                            }
+                            className="mt-2"
                         />
                     </FormGroup>
 
@@ -365,6 +556,7 @@ export default function CompanyForm({
                             onChange={(e) =>
                                 handleChange("industry", e.target.value)
                             }
+                            onBlur={() => handleBlur("industry")}
                             options={[
                                 { value: "", label: "選択してください" },
                                 ...INDUSTRIES.map((ind) => ({
@@ -374,6 +566,10 @@ export default function CompanyForm({
                             ]}
                             error={errors.industry}
                         />
+                        <InputError
+                            message={errors.industry || localErrors.industry}
+                            className="mt-2"
+                        />
                     </FormGroup>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -381,7 +577,8 @@ export default function CompanyForm({
                             label="従業員数"
                             error={errors.employee_count}
                         >
-                            <NumberInput
+                            <TextInput
+                                type="number"
                                 value={data.employee_count}
                                 onChange={(e) =>
                                     handleChange(
@@ -389,9 +586,16 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() => handleBlur("employee_count")}
                                 placeholder="100"
                                 min="1"
-                                error={errors.employee_count}
+                            />
+                            <InputError
+                                message={
+                                    errors.employee_count ||
+                                    localErrors.employee_count
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -400,15 +604,20 @@ export default function CompanyForm({
                             error={errors.capital}
                             help="円単位で入力"
                         >
-                            <NumberInput
+                            <TextInput
+                                type="number"
                                 value={data.capital}
                                 onChange={(e) =>
                                     handleChange("capital", e.target.value)
                                 }
+                                onBlur={() => handleBlur("capital")}
                                 placeholder="10000000"
                                 min="0"
                                 step="1000000"
-                                error={errors.capital}
+                            />
+                            <InputError
+                                message={errors.capital || localErrors.capital}
+                                className="mt-2"
                             />
                         </FormGroup>
 
@@ -425,7 +634,15 @@ export default function CompanyForm({
                                         e.target.value,
                                     )
                                 }
+                                onBlur={() => handleBlur("established_date")}
                                 error={errors.established_date}
+                            />
+                            <InputError
+                                message={
+                                    errors.established_date ||
+                                    localErrors.established_date
+                                }
+                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -438,9 +655,14 @@ export default function CompanyForm({
                     <TextArea
                         value={data.notes}
                         onChange={(e) => handleChange("notes", e.target.value)}
+                        onBlur={() => handleBlur("notes")}
                         placeholder="その他のメモや備考"
                         rows={3}
                         error={errors.notes}
+                    />
+                    <InputError
+                        message={errors.notes || localErrors.notes}
+                        className="mt-2"
                     />
                 </FormGroup>
             </div>

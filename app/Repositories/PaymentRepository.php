@@ -5,7 +5,6 @@ namespace App\Repositories;
 use App\Models\Payment;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class PaymentRepository implements PaymentRepositoryInterface
 {
@@ -36,11 +35,6 @@ class PaymentRepository implements PaymentRepositoryInterface
     }
 
     return $query;
-  }
-
-  public function paginate(int $perPage = 20, array $filters = []): LengthAwarePaginator
-  {
-    return $this->findWithFilters($filters)->latest()->paginate($perPage);
   }
 
   public function create(array $data): Payment

@@ -25,6 +25,8 @@ class Receipt extends Model
         'status',
         'issued_at',
         'sent_at',
+        'client_downloaded_at',
+        'client_downloaded_by',
         'notes',
         'created_by',
     ];
@@ -35,6 +37,7 @@ class Receipt extends Model
         'total_amount' => 'decimal:2',
         'issued_at' => 'datetime',
         'sent_at' => 'datetime',
+        'client_downloaded_at' => 'datetime',
     ];
 
     public const STATUSES = [
@@ -70,6 +73,11 @@ class Receipt extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    public function clientDownloadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_downloaded_by');
     }
 
     // ========================================

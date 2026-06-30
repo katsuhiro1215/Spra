@@ -17,20 +17,17 @@ import {
     TagIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Show({ serviceType, servicePlan }) {
+export default function Show({ servicePlan }) {
     const headerActions = [
         {
-            label: "戻る",
-            href: route("admin.service.plans.index", serviceType.id),
+            label: "一覧に戻る",
+            href: route("admin.service.plan.index"),
             variant: "secondary",
             icon: ArrowLeftIcon,
         },
         {
             label: "編集",
-            href: route("admin.service.plans.edit", [
-                serviceType.id,
-                servicePlan.id,
-            ]),
+            href: route("admin.service.plan.edit", servicePlan.id),
             variant: "primary",
             icon: PencilIcon,
         },
@@ -38,12 +35,7 @@ export default function Show({ serviceType, servicePlan }) {
 
     const handleDelete = () => {
         if (confirm(`「${servicePlan.name}」を削除しますか？`)) {
-            router.delete(
-                route("admin.service.plans.destroy", [
-                    serviceType.id,
-                    servicePlan.id,
-                ]),
-            );
+            router.delete(route("admin.service.plan.destroy", servicePlan.id));
         }
     };
 
@@ -93,7 +85,11 @@ export default function Show({ serviceType, servicePlan }) {
             header={
                 <PageHeader
                     title={servicePlan.name}
-                    description={`${serviceType.name}のプラン詳細`}
+                    description={
+                        servicePlan.service
+                            ? `${servicePlan.service.name}のプラン詳細`
+                            : "サービスプラン詳細"
+                    }
                     actions={headerActions}
                 />
             }
@@ -168,21 +164,11 @@ export default function Show({ serviceType, servicePlan }) {
                     {/* 価格情報 */}
                     <div className="bg-white shadow rounded-lg">
                         <div className="px-4 py-5 sm:p-6">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center mb-4">
                                 <h3 className="text-lg font-medium text-gray-900 flex items-center">
                                     <CurrencyYenIcon className="w-5 h-5 mr-2" />
                                     価格情報
                                 </h3>
-                                <Link
-                                    href={route(
-                                        "admin.service.plans.pricing.index",
-                                        [serviceType.id, servicePlan.id],
-                                    )}
-                                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                >
-                                    <CurrencyYenIcon className="h-4 w-4 mr-2" />
-                                    価格設定を管理
-                                </Link>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -206,8 +192,8 @@ export default function Show({ serviceType, servicePlan }) {
                                     <dd className="mt-1 text-lg font-semibold text-gray-900">
                                         {servicePlan.setup_fee > 0
                                             ? `¥${Number(
-                                                    servicePlan.setup_fee,
-                                                ).toLocaleString()}`
+                                                  servicePlan.setup_fee,
+                                              ).toLocaleString()}`
                                             : "無料"}
                                     </dd>
                                 </div>
@@ -382,8 +368,7 @@ export default function Show({ serviceType, servicePlan }) {
                                         作成者
                                     </dt>
                                     <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.creator?.name ||
-                                            "不明"}
+                                        {servicePlan.creator?.name || "不明"}
                                     </dd>
                                 </div>
 
@@ -392,8 +377,7 @@ export default function Show({ serviceType, servicePlan }) {
                                         最終更新者
                                     </dt>
                                     <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.updater?.name ||
-                                            "未更新"}
+                                        {servicePlan.updater?.name || "未更新"}
                                     </dd>
                                 </div>
 
@@ -425,10 +409,10 @@ export default function Show({ serviceType, servicePlan }) {
                     {/* 操作ボタン */}
                     <div className="flex items-center justify-end space-x-3">
                         <Link
-                            href={route("admin.service.plans.edit", [
-                                serviceType.id,
+                            href={route(
+                                "admin.service.plan.edit",
                                 servicePlan.id,
-                            ])}
+                            )}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
                             <PencilIcon className="h-4 w-4 mr-2" />

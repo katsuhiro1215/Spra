@@ -16,16 +16,19 @@ export default function Create({
     serviceCategories,
     serviceItems,
     projectInquiry = null,
+    contact = null,
+    user = null,
+    company = null,
 }) {
     const { data, setData, post, processing, errors } = useForm({
         user_id: "",
+        contact_id: "",
         company_id: "",
-        subject: "",
-        message: "",
-        valid_until: "",
-        notes: "",
+        title: "",
+        requirements: "",
+        expires_at: "",
+        custom_specifications: "",
         status: "draft",
-        discount_type: "fixed",
         discount_amount: 0,
         tax_rate: 10,
         base_amount: 0,
@@ -35,24 +38,60 @@ export default function Create({
         from_inquiry_id: projectInquiry?.id || null,
     });
 
-    // ProjectInquiryから見積もりを作成する場合、初期値を設定
+    // 初期値を設定
     useEffect(() => {
+        const updates = {};
+
+        // ProjectInquiryから見積もりを作成する場合
         if (projectInquiry) {
-            setData({
-                ...data,
-                user_id: projectInquiry.user_id,
-                subject:
-                    projectInquiry.title ||
-                    `${projectInquiry.service?.name} - ${projectInquiry.service_plan?.name}`,
-                message: projectInquiry.summary || "",
-                notes: `見積もり依頼 ${projectInquiry.inquiry_code} から作成\n概算金額: ¥${projectInquiry.estimated_price?.toLocaleString()}\n想定納期: 約${projectInquiry.estimated_days}日`,
-                from_inquiry_id: projectInquiry.id,
-            });
+            updates.user_id = projectInquiry.user_id;
+            updates.title =
+                projectInquiry.title ||
+                `${projectInquiry.service?.name} - ${projectInquiry.service_plan?.name}`;
+            updates.requirements = projectInquiry.summary || "";
+            updates.custom_specifications = `見積もり依頼 ${projectInquiry.inquiry_code} から作成\n概算金額: ¥${projectInquiry.estimated_price?.toLocaleString()}\n想定納期: 約${projectInquiry.estimated_days}日`;
+            updates.from_inquiry_id = projectInquiry.id;
         }
-    }, [projectInquiry]);
+
+        // Contactから見積もりを作成する場合
+        if (contact) {
+            updates.contact_id = contact.id;
+            updates.user_id = contact.user_id || "";
+            updates.title = contact.subject || "";
+            updates.requirements = `お問い合わせ内容:\n${contact.message}`;
+            updates.custom_specifications = `お問い合わせから作成\n連絡先: ${contact.name}\nメール: ${contact.email}\n電話: ${contact.phone || "なし"}\n会社: ${contact.company || "なし"}`;
+        }
+
+        // Userから見積もりを作成する場合
+        if (user && !contact) {
+            updates.user_id = user.id;
+            if (user.companies && user.companies.length > 0) {
+                updates.company_id = user.companies[0].id;
+            }
+            updates.title = `${user.profile?.full_name || user.email} 様への見積もり`;
+        }
+
+        // Companyから見積もりを作成する場合
+        if (company && !user && !contact) {
+            updates.company_id = company.id;
+            updates.title = `${company.name} 様への見積もり`;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            setData((prev) => ({ ...prev, ...updates }));
+        }
+    }, [projectInquiry, contact, user, company]);
 
     const submit = () => {
-        post(route("admin.quote.store"));
+        const submitData = {
+            ...data,
+            custom_specifications: data.custom_specifications
+                ? JSON.stringify(data.custom_specifications)
+                : null,
+        };
+        post(route("admin.quote.store"), {
+            data: submitData,
+        });
     };
 
     // ========================================
@@ -73,11 +112,21 @@ export default function Create({
         { label: "新規作成", href: null },
     ];
 
+    // タイトルをコンテキストに応じて変更
+    const getTitle = () => {
+        if (contact) return `${contact.name} 様への見積もり作成`;
+        if (user)
+            return `${user.profile?.full_name || user.email} 様への見積もり作成`;
+        if (company) return `${company.name} 様への見積もり作成`;
+        if (projectInquiry) return `見積もり依頼から見積もり作成`;
+        return "見積もり新規作成";
+    };
+
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="見積もり新規作成"
+                    title={getTitle()}
                     description="新しい見積もりを作成します"
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}

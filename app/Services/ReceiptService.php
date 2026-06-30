@@ -29,7 +29,7 @@ class ReceiptService
         'payment_id' => $payment?->id,
         'user_id' => $invoice->user_id,
         'company_id' => $invoice->company_id,
-        'amount' => $invoice->amount,
+        'amount' => $invoice->subtotal,
         'tax_amount' => $invoice->tax_amount,
         'total_amount' => $invoice->total_amount,
         'status' => 'draft',

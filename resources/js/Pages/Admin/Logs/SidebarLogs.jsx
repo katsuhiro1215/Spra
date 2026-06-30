@@ -31,9 +31,9 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
     const tabLogs = logs[activeTab] || [];
 
     return (
-        <aside className="w-80 min-w-[20rem] bg-white border-l border-gray-200 h-full flex flex-col">
+        <aside className="w-80 min-w-[20rem] bg-white border-l border-gray-200 dark:bg-gray-800 dark:border-gray-600 h-full flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-                <h3 className="text-lg font-bold text-gray-900">最新ログ</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">最新ログ</h3>
                 <Link
                     href={moreUrl}
                     className="text-xs text-blue-600 hover:underline flex items-center gap-1"
@@ -41,15 +41,15 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
                     もっと見る <ArrowRightIcon className="h-4 w-4" />
                 </Link>
             </div>
-            <div className="flex gap-2 px-4 py-2 border-b bg-gray-50">
+            <div className="flex gap-2 px-4 py-2 border-b bg-gray-50 dark:bg-gray-700">
                 {TABS.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                             activeTab === tab.key
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-white text-gray-600 hover:bg-gray-100"
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                                : "bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                         }`}
                     >
                         {tab.icon}
@@ -59,7 +59,7 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-2">
                 {tabLogs.length === 0 ? (
-                    <div className="text-gray-400 text-sm py-8 text-center">
+                    <div className="text-gray-400 text-sm py-8 text-center dark:text-gray-400">
                         ログはありません
                     </div>
                 ) : (
@@ -79,7 +79,7 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
                                     {activeTab === "warning" && (
                                         <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500" />
                                     )}
-                                    <span className="text-sm font-medium text-gray-800">
+                                    <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
                                         {log.description ||
                                             log.action_name ||
                                             log.type_name}
@@ -87,8 +87,8 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
                                     <span
                                         className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
                                             log.status_color
-                                                ? `bg-${log.status_color}-100 text-${log.status_color}-700`
-                                                : "bg-gray-100 text-gray-500"
+                                                ? `bg-${log.status_color}-100 text-${log.status_color}-700 dark:bg-${log.status_color}-900 dark:text-${log.status_color}-300`
+                                                : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                                         }`}
                                     >
                                         {log.status_name ||

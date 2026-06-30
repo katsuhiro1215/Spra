@@ -29,6 +29,9 @@ export default function Index({
     filters,
     stats,
 }) {
+    // ========================================
+    // State & Form
+    // ========================================
     const [activeTab, setActiveTab] = useState(
         filters.trashed || "without_trashed",
     );
@@ -371,7 +374,6 @@ export default function Index({
                                 href={route("admin.service.create")}
                                 size="md"
                             >
-                                <PlusIcon className="h-4 w-4 mr-2" />
                                 {PageConfig.services.ui.empty.createFirst}
                             </CreateButton>
                         )}

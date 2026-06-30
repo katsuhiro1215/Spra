@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreUserRequest;
@@ -11,6 +11,7 @@ use App\Models\ProjectInquiry;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,7 +39,6 @@ class UserController extends Controller
         ];
         // ユーザーのページネーション取得
         $users = $this->userService->getPaginated($filters, $sort, 20);
-
         // 統計情報の取得
         $stats = $this->userService->getStats();
 
@@ -151,9 +151,10 @@ class UserController extends Controller
                 ->route('admin.users.index')
                 ->with('success', 'ユーザーを削除しました。');
         } catch (\Exception $e) {
+            Log::error('User delete error: ' . $e->getMessage());
             return redirect()
                 ->route('admin.users.index')
-                ->with('error', $e->getMessage());
+                ->with('error', 'ユーザーの削除に失敗しました。');
         }
     }
 }

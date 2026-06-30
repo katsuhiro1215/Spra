@@ -187,21 +187,13 @@ export default function Index({
         Boolean,
     ).length;
 
-    // ========================================
-    // Constants - Header Actions & Breadcrumbs
-    // ========================================
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "お問い合わせ一覧", href: null },
-    ];
-
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
                     title={PageConfig.contacts.title}
                     description={PageConfig.contacts.description}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.contacts.breadcrumbs}
                 />
             }
         >

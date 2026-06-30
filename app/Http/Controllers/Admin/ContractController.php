@@ -44,13 +44,20 @@ class ContractController extends Controller
     ]);
   }
 
-  public function create(): Response
+  public function create(Request $request): Response
   {
+    // QuoteからContractを作成する場合、Quote IDをクエリパラメータから受け取る
+    $quote = null;
+    if ($request->has('quote_id')) {
+      $quote = \App\Models\Quote::with(['user.profile', 'contact', 'company', 'items'])->find($request->input('quote_id'));
+    }
+
     return Inertia::render('Admin/Contracts/Create', [
       'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
-      'quotes'    => \App\Models\Quote::where('status', 'approved')->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title']),
+      'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title', 'status']),
+      'quote'     => $quote,  // ← Quote情報を自動入力用に渡す
       'statuses'  => \App\Models\Contract::STATUSES,
     ]);
   }
@@ -89,7 +96,7 @@ class ContractController extends Controller
       'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
       'companies' => Company::orderBy('name')->get(['id', 'name']),
-      'quotes'    => \App\Models\Quote::where('status', 'approved')->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title']),
+      'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title', 'status']),
       'statuses'  => \App\Models\Contract::STATUSES,
     ]);
   }

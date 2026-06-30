@@ -45,16 +45,22 @@ export default function AdminLogsIndex({ logs = {}, filters = {} }) {
     const tabLogs = logs[activeTab] || [];
 
     return (
-        <AdminAuthenticatedLayout>
-            <Head title="管理ログ一覧" />
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={PageConfig.logs.title}
+                    description={PageConfig.logs.description}
+                    actions={PageConfig.logs.actions}
+                    breadcrumbs={PageConfig.logs.breadcrumbs}
+                />
+            }
+        >
+            <Head title={PageConfig.logs.documentTitle} />
+
             {/* フラッシュメッセージ */}
             <FlashMessage />
             {/* ヘッダー */}
-            <PageHeader
-                title={PageConfig.logs.title}
-                description={PageConfig.logs.description}
-            />
-            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <div className="flex gap-2">
                         {TABS.map((tab) => (
@@ -215,7 +221,7 @@ export default function AdminLogsIndex({ logs = {}, filters = {} }) {
                         </tbody>
                     </BasicTable>
                 </Card>
-            </main>
+            </div>
         </AdminAuthenticatedLayout>
     );
 }

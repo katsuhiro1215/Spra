@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\QuoteResponse;
 use App\Services\ContactService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -47,6 +48,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => [
                 'unreadContacts' => $admin ? app(ContactService::class)->getUnreadCount() : 0,
+                'pendingResponses' => $admin ? QuoteResponse::whereNull('responded_at')->count() : 0,
             ],
         ];
     }

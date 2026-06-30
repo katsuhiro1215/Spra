@@ -1,17 +1,15 @@
-import { Head } from "@inertiajs/react";
-// Layouts
+import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import { Card, CardHeader } from "@/Components/Card";
+import { Card, CardHeader, CardBody } from "@/Components/Card";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
+// Dashboard Components
 import SidebarLogs from "./Admin/Logs/SidebarLogs";
-// Icons
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-export default function Dashboard() {
+export default function Dashboard({ stats: statsData = {} }) {
     // ダミーデータ（実際のプロジェクトでは props から受け取る）
     const stats = [
         {
@@ -29,18 +27,20 @@ export default function Dashboard() {
             icon: "📈",
         },
         {
-            name: "アクティブユーザー",
-            value: "567",
-            change: "+3.1%",
-            changeType: "increase",
-            icon: "✨",
+            name: "返信待ち（見積もり）",
+            value: statsData.pendingResponses || "0",
+            change: statsData.pendingResponses > 0 ? "要対応" : "なし",
+            changeType: statsData.pendingResponses > 0 ? "neutral" : "increase",
+            icon: "⏳",
+            link: route("admin.quote-response.index", { status: "pending" }),
         },
         {
-            name: "システムステータス",
-            value: "正常",
-            change: "稼働中",
+            name: "返信済み（見積もり）",
+            value: statsData.respondedResponses || "0",
+            change: "確認済み",
             changeType: "neutral",
-            icon: "🟢",
+            icon: "✅",
+            link: route("admin.quote-response.index"),
         },
     ];
 
@@ -122,48 +122,59 @@ export default function Dashboard() {
             <FlashMessage />
 
             {/* ヘッダー */}
-            <div className="w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full mx-auto space-y-6">
                 {/* メインコンテンツ */}
                 <div className="flex-1 space-y-6">
                     {/* 統計カード */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         {stats.map((stat) => (
-                            <Card key={stat.name}>
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <span className="text-2xl">
-                                                {stat.icon}
-                                            </span>
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-gray-500 truncate">
-                                                    {stat.name}
-                                                </dt>
-                                                <dd className="flex items-baseline">
-                                                    <div className="text-2xl font-semibold text-gray-900">
-                                                        {stat.value}
-                                                    </div>
-                                                    <div
-                                                        className={`ml-2 flex items-baseline text-sm font-semibold ${
-                                                            stat.changeType ===
-                                                            "increase"
-                                                                ? "text-green-600"
-                                                                : stat.changeType ===
-                                                                    "decrease"
-                                                                  ? "text-red-600"
-                                                                  : "text-gray-500"
-                                                        }`}
-                                                    >
-                                                        {stat.change}
-                                                    </div>
-                                                </dd>
-                                            </dl>
+                            <div
+                                key={stat.name}
+                                onClick={() =>
+                                    stat.link &&
+                                    (window.location.href = stat.link)
+                                }
+                                className={stat.link ? "cursor-pointer" : ""}
+                            >
+                                <Card>
+                                    <div
+                                        className={`p-5 ${stat.link ? "hover:bg-gray-50 transition" : ""}`}
+                                    >
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <span className="text-2xl">
+                                                    {stat.icon}
+                                                </span>
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                                        {stat.name}
+                                                    </dt>
+                                                    <dd className="flex items-baseline">
+                                                        <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                                            {stat.value}
+                                                        </div>
+                                                        <div
+                                                            className={`ml-2 flex items-baseline text-sm font-semibold ${
+                                                                stat.changeType ===
+                                                                "increase"
+                                                                    ? "text-green-600"
+                                                                    : stat.changeType ===
+                                                                        "decrease"
+                                                                      ? "text-red-600"
+                                                                      : "text-gray-500 dark:text-gray-400"
+                                                            }`}
+                                                        >
+                                                            {stat.change}
+                                                        </div>
+                                                    </dd>
+                                                </dl>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </Card>
+                                </Card>
+                            </div>
                         ))}
                     </div>
 
@@ -171,10 +182,8 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 最近のアクティビティ */}
                         <Card>
-                            <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                    📋 最近のアクティビティ
-                                </h3>
+                            <CardHeader>📋 最近のアクティビティ</CardHeader>
+                            <CardBody>
                                 <div className="flow-root">
                                     <ul className="-mb-8">
                                         {recentActivities.map(
@@ -201,8 +210,8 @@ export default function Dashboard() {
                                                             </div>
                                                             <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                                                 <div>
-                                                                    <p className="text-sm text-gray-500">
-                                                                        <span className="font-medium text-gray-900">
+                                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                                        <span className="font-medium text-gray-900 dark:text-gray-100">
                                                                             {
                                                                                 activity.user
                                                                             }
@@ -214,7 +223,7 @@ export default function Dashboard() {
                                                                         を実行しました
                                                                     </p>
                                                                 </div>
-                                                                <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                                                <div className="text-right text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                                                                     {
                                                                         activity.time
                                                                     }
@@ -227,49 +236,55 @@ export default function Dashboard() {
                                         )}
                                     </ul>
                                 </div>
-                            </div>
+                            </CardBody>
                         </Card>
 
                         {/* クイックアクション */}
                         <Card>
-                            <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                    ⚡ クイックアクション
-                                </h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <CardHeader>⚡ クイックアクション</CardHeader>
+                            <CardBody>
+                                <div className="space-y-3">
+                                    {statsData.pendingResponses > 0 && (
+                                        <Link
+                                            href={route(
+                                                "admin.quote-response.index",
+                                                { status: "pending" },
+                                            )}
+                                            className="block w-full text-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        >
+                                            <span className="mr-2">⏳</span>
+                                            {statsData.pendingResponses}{" "}
+                                            件の返信を確認
+                                        </Link>
+                                    )}
+                                    <Link
+                                        href={route(
+                                            "admin.quote-response.index",
+                                        )}
+                                        className="block w-full text-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <span className="mr-2">📋</span>
+                                        すべての返信を表示
+                                    </Link>
+                                    <button className="block w-full px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:text-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700">
                                         <span className="mr-2">👤</span>
                                         ユーザー管理
                                     </button>
-                                    <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        <span className="mr-2">📝</span>
-                                        コンテンツ作成
-                                    </button>
-                                    <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                                        <span className="mr-2">📊</span>
-                                        レポート表示
-                                    </button>
-                                    <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                                        <span className="mr-2">⚙️</span>
-                                        システム設定
-                                    </button>
                                 </div>
-                            </div>
+                            </CardBody>
                         </Card>
                     </div>
 
                     {/* システム情報 */}
                     <Card>
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                🖥️ システム情報
-                            </h3>
+                        <CardHeader>🖥️ システム情報</CardHeader>
+                        <CardBody>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-green-600">
                                         99.9%
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
                                         稼働率
                                     </div>
                                 </div>
@@ -277,7 +292,7 @@ export default function Dashboard() {
                                     <div className="text-2xl font-bold text-blue-600">
                                         1.2GB
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
                                         使用容量
                                     </div>
                                 </div>
@@ -285,12 +300,12 @@ export default function Dashboard() {
                                     <div className="text-2xl font-bold text-purple-600">
                                         v1.0.0
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
                                         システムバージョン
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </CardBody>
                     </Card>
                 </div>
                 {/* 右側サイドバーにログ表示 */}

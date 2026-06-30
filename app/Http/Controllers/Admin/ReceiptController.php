@@ -1,0 +1,313 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Receipt;
+use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\User;
+use App\Models\Company;
+use App\Services\ReceiptService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class ReceiptController extends Controller
+{
+  public function __construct(
+    private ReceiptService $service
+  ) {}
+
+  /**
+   * 領収書一覧
+   */
+  public function index(Request $request): Response
+  {
+    $filters = $request->only(['search', 'status', 'user_id', 'company_id', 'invoice_id']);
+    $perPage = $request->input('per_page', 20);
+
+    $query = Receipt::with(['user', 'company', 'invoice', 'payment'])
+      ->orderBy('issued_at', 'desc');
+
+    // 検索フィルター
+    if (!empty($filters['search'])) {
+      $query->where(function ($q) use ($filters) {
+        $q->where('receipt_number', 'like', "%{$filters['search']}%");
+      });
+    }
+
+    if (!empty($filters['status'])) {
+      $query->where('status', $filters['status']);
+    }
+
+    if (!empty($filters['user_id'])) {
+      $query->where('user_id', $filters['user_id']);
+    }
+
+    if (!empty($filters['company_id'])) {
+      $query->where('company_id', $filters['company_id']);
+    }
+
+    if (!empty($filters['invoice_id'])) {
+      $query->where('invoice_id', $filters['invoice_id']);
+    }
+
+    $receipts = $query->paginate($perPage);
+
+    $stats = [
+      'total' => Receipt::count(),
+      'draft' => Receipt::where('status', 'draft')->count(),
+      'issued' => Receipt::where('status', 'issued')->count(),
+      'sent' => Receipt::where('status', 'sent')->count(),
+      'total_amount' => Receipt::where('status', '!=', 'draft')->sum('total_amount'),
+    ];
+
+    return Inertia::render('Admin/Receipts/Index', [
+      'receipts' => $receipts,
+      'filters'  => $filters,
+      'stats'    => $stats,
+      'statuses' => Receipt::STATUSES,
+    ]);
+  }
+
+  /**
+   * 領収書詳細
+   */
+  public function show(string $id): Response
+  {
+    $receipt = Receipt::with([
+      'user.profile',
+      'company.addresses',
+      'invoice.items',
+      'payment',
+      'createdBy'
+    ])->findOrFail($id);
+
+    return Inertia::render('Admin/Receipts/Show', [
+      'receipt' => $receipt,
+    ]);
+  }
+
+  /**
+   * 領収書作成フォーム
+   */
+  public function create(Request $request): Response
+  {
+    $invoice = null;
+    $payment = null;
+
+    // invoice_idパラメータがある場合、請求書情報を取得
+    if ($request->has('invoice_id')) {
+      $invoice = Invoice::with(['user', 'company', 'items'])->find($request->invoice_id);
+    }
+
+    // payment_idパラメータがある場合、決済情報を取得
+    if ($request->has('payment_id')) {
+      $payment = Payment::with(['invoice'])->find($request->payment_id);
+      if ($payment && !$invoice) {
+        $invoice = $payment->invoice;
+      }
+    }
+
+    return Inertia::render('Admin/Receipts/Create', [
+      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount']),
+      'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
+      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'statuses'  => Receipt::STATUSES,
+      'invoice'   => $invoice,
+      'payment'   => $payment,
+    ]);
+  }
+
+  /**
+   * 領収書作成
+   */
+  public function store(Request $request): RedirectResponse
+  {
+    $validated = $request->validate([
+      'invoice_id'    => 'required|ulid|exists:invoices,id',
+      'payment_id'    => 'nullable|ulid|exists:payments,id',
+      'user_id'       => 'required|uuid|exists:users,id',
+      'company_id'    => 'nullable|ulid|exists:companies,id',
+      'amount'        => 'required|numeric|min:0',
+      'tax_amount'    => 'required|numeric|min:0',
+      'total_amount'  => 'required|numeric|min:0',
+      'status'        => 'required|string|in:draft,issued,sent',
+      'issued_at'     => 'nullable|date',
+      'notes'         => 'nullable|string',
+    ]);
+
+    // Invoiceを取得
+    $invoice = Invoice::findOrFail($validated['invoice_id']);
+
+    // 領収書番号を生成
+    $receiptNumber = $this->generateReceiptNumber();
+    $validated['receipt_number'] = $receiptNumber;
+    $validated['created_by'] = auth()->guard('admins')->id();
+
+    if ($validated['status'] === 'issued' && !$validated['issued_at']) {
+      $validated['issued_at'] = now();
+    }
+
+    $receipt = Receipt::create($validated);
+
+    // PDFを生成
+    if (in_array($receipt->status, ['issued', 'sent'])) {
+      $this->service->generateAndSavePdf($receipt);
+    }
+
+    return redirect()->route('admin.receipts.show', $receipt->id)
+      ->with('success', '領収書を作成しました。');
+  }
+
+  /**
+   * 領収書編集フォーム
+   */
+  public function edit(string $id): Response|RedirectResponse
+  {
+    $receipt = Receipt::with(['user', 'company', 'invoice'])->findOrFail($id);
+
+    // 送付済みの領収書は編集不可
+    if ($receipt->status === 'sent') {
+      return redirect()->route('admin.receipts.show', $receipt->id)
+        ->with('error', '送付済みの領収書は編集できません。');
+    }
+
+    return Inertia::render('Admin/Receipts/Edit', [
+      'receipt'   => $receipt,
+      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount']),
+      'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
+      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'statuses'  => Receipt::STATUSES,
+    ]);
+  }
+
+  /**
+   * 領収書更新
+   */
+  public function update(Request $request, string $id): RedirectResponse
+  {
+    $receipt = Receipt::findOrFail($id);
+
+    // 送付済みの領収書は編集不可
+    if ($receipt->status === 'sent') {
+      return back()->with('error', '送付済みの領収書は編集できません。');
+    }
+
+    $validated = $request->validate([
+      'invoice_id'    => 'required|ulid|exists:invoices,id',
+      'payment_id'    => 'nullable|ulid|exists:payments,id',
+      'user_id'       => 'required|uuid|exists:users,id',
+      'company_id'    => 'nullable|ulid|exists:companies,id',
+      'amount'        => 'required|numeric|min:0',
+      'tax_amount'    => 'required|numeric|min:0',
+      'total_amount'  => 'required|numeric|min:0',
+      'status'        => 'required|string|in:draft,issued,sent',
+      'issued_at'     => 'nullable|date',
+      'notes'         => 'nullable|string',
+    ]);
+
+    if ($validated['status'] === 'issued' && !$validated['issued_at']) {
+      $validated['issued_at'] = now();
+    }
+
+    $receipt->update($validated);
+
+    // PDFを再生成
+    if (in_array($receipt->status, ['issued', 'sent']) && !$receipt->pdf_path) {
+      $this->service->generateAndSavePdf($receipt);
+    }
+
+    return redirect()->route('admin.receipts.show', $receipt->id)
+      ->with('success', '領収書を更新しました。');
+  }
+
+  /**
+   * 領収書削除
+   */
+  public function destroy(string $id): RedirectResponse
+  {
+    $receipt = Receipt::findOrFail($id);
+
+    // 送付済みの領収書は削除不可
+    if ($receipt->status === 'sent') {
+      return back()->with('error', '送付済みの領収書は削除できません。');
+    }
+
+    // PDFファイルも削除
+    if ($receipt->pdf_path) {
+      Storage::disk('private')->delete($receipt->pdf_path);
+    }
+
+    $receipt->delete();
+
+    return redirect()->route('admin.receipts.index')
+      ->with('success', '領収書を削除しました。');
+  }
+
+  /**
+   * 領収書PDFダウンロード（管理者用）
+   */
+  public function download(string $id): HttpResponse
+  {
+    $receipt = Receipt::with(['user', 'company', 'invoice'])->findOrFail($id);
+
+    // PDFが存在しない場合は生成
+    if (!$receipt->pdf_path) {
+      $this->service->generateAndSavePdf($receipt);
+      $receipt->refresh();
+    }
+
+    $pdf = Storage::disk('private')->get($receipt->pdf_path);
+    $filename = "receipt_{$receipt->receipt_number}.pdf";
+
+    return response($pdf, 200, [
+      'Content-Type' => 'application/pdf',
+      'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+    ]);
+  }
+
+  /**
+   * 領収書送付
+   */
+  public function send(string $id): RedirectResponse
+  {
+    $receipt = Receipt::findOrFail($id);
+
+    if ($receipt->status === 'sent') {
+      return back()->with('error', 'この領収書はすでに送付済みです。');
+    }
+
+    try {
+      $this->service->sendReceipt($receipt);
+
+      return back()->with('success', '領収書を送付しました。');
+    } catch (\Exception $e) {
+      return back()->with('error', '領収書の送付に失敗しました: ' . $e->getMessage());
+    }
+  }
+
+  /**
+   * 領収書番号生成
+   */
+  private function generateReceiptNumber(): string
+  {
+    $year = date('Y');
+    $lastReceipt = Receipt::whereYear('created_at', $year)
+      ->orderBy('receipt_number', 'desc')
+      ->first();
+
+    if ($lastReceipt && preg_match('/RCP(\d{4})-(\d+)/', $lastReceipt->receipt_number, $matches)) {
+      $nextNumber = intval($matches[2]) + 1;
+    } else {
+      $nextNumber = 1;
+    }
+
+    return sprintf('RCP%s-%04d', $year, $nextNumber);
+  }
+}

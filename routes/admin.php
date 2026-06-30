@@ -4,14 +4,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\AdminProfileController;
-use App\Http\Controllers\Admin\AdminAddressController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\UserProfileController;
-use App\Http\Controllers\Admin\UserAddressController;
-use App\Http\Controllers\Admin\CompanyController;
-use App\Http\Controllers\Admin\CompanyAddressController;
+use App\Http\Controllers\Admin\Admin\AdminController;
+use App\Http\Controllers\Admin\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\Admin\AdminAddressController;
+use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\User\UserProfileController;
+use App\Http\Controllers\Admin\User\UserAddressController;
+use App\Http\Controllers\Admin\Company\CompanyController;
+use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
 
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
@@ -19,10 +19,12 @@ use App\Http\Controllers\Admin\Service\ServiceController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\ServiceItemController;
 
-use App\Http\Controllers\Admin\ContactController;
-use App\Http\Controllers\Admin\ResponseController;
-use App\Http\Controllers\Admin\ResponseTemplateController;
+use App\Http\Controllers\Admin\Contact\ContactController;
+use App\Http\Controllers\Admin\Contact\ResponseController;
+use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
+
 use App\Http\Controllers\Admin\UserInvitationController;
+use App\Http\Controllers\Admin\OnboardingController;
 
 use App\Http\Controllers\Admin\Project\ProjectCategoryController;
 use App\Http\Controllers\Admin\Project\ProjectController;
@@ -31,9 +33,13 @@ use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 
 use App\Http\Controllers\Admin\ContractController;
-use App\Http\Controllers\Admin\QuoteController;
+
+use App\Http\Controllers\Admin\Quote\QuoteController;
+use App\Http\Controllers\Admin\Quote\QuoteResponseController;
+
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ReceiptController;
 
 use App\Http\Controllers\Admin\FaqController;
 
@@ -57,9 +63,21 @@ use Inertia\Inertia;
 Route::middleware(['auth:admins', 'verified'])->group(function () {
     // 管理者ダッシュボード
     Route::get('/dashboard', function () {
+        $pendingResponses = \App\Models\QuoteResponse::whereNull('responded_at')->count();
+        $respondedResponses = \App\Models\QuoteResponse::whereNotNull('responded_at')->count();
+        // $unreadContacts = \App\Models\Contact::whereNull('read_at')->count();
+
         return Inertia::render('AdminDashboard', [
             'laravelVersion' => Application::VERSION,
             'phpVersion' => PHP_VERSION,
+            'stats' => [
+                'pendingResponses' => $pendingResponses,
+                'respondedResponses' => $respondedResponses,
+            ],
+            'notifications' => [
+                // 'unreadContacts' => $unreadContacts,
+                'pendingResponses' => $pendingResponses,
+            ],
         ]);
     })->name('dashboard');
 
@@ -68,6 +86,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    /**************************************
+     * 管理者
+     **************************************/
     // 管理者管理
     Route::resource('admin', AdminController::class);
     // 管理者プロフィール管理
@@ -88,6 +109,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::delete('/{address}', 'destroy')->name('destroy');
     });
 
+    /**************************************
+     * ユーザー
+     **************************************/
     // ユーザー管理
     Route::resource('user', UserController::class);
     // ユーザープロフィール管理
@@ -108,6 +132,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::delete('/{address}', 'destroy')->name('destroy');
     });
 
+    /**************************************
+     * 会社
+     **************************************/
     // 会社管理
     Route::resource('company', CompanyController::class);
     Route::post('/company/bulk-destroy', [CompanyController::class, 'bulkDestroy'])->name('company.bulk-destroy');
@@ -121,56 +148,63 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::delete('/{address}', 'destroy')->name('destroy');
     });
 
+    /**************************************
+     * メディア
+     **************************************/
     // メディア管理
     Route::resource('media', MediaController::class);
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
     Route::delete('/media/bulk-destroy', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
 
+    /**************************************
+     * サービス
+     **************************************/
     // サービス管理
     Route::prefix('service')->name('service.')->group(function () {
         Route::resource('category', ServiceCategoryController::class)->parameters(['category' => 'serviceCategory']);
-        Route::resource('service-plan', ServicePlanController::class)->parameters(['service-plan' => 'servicePlan']);
-        Route::resource('service-item', ServiceItemController::class)->parameters(['service-item' => 'serviceItem']);
+        Route::resource('plan', ServicePlanController::class)->parameters(['plan' => 'servicePlan']);
+        Route::resource('item', ServiceItemController::class)->parameters(['item' => 'serviceItem']);
     });
 
     // サービス一覧
     Route::resource('service', ServiceController::class);
 
+    /**************************************
+     * お問い合わせ
+     **************************************/
     // お問い合わせ管理
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('/contact/bulk-update', [ContactController::class, 'bulkUpdate'])->name('contact.bulk-update');
     Route::get('/contact/export', [ContactController::class, 'export'])->name('contact.export');
-
     // お問い合わせ返答管理（Contact配下）
     Route::prefix('contact/{contact}')->name('contact.')->group(function () {
         Route::resource('responses', ResponseController::class)->except(['index', 'show']);
         Route::post('responses/{response}/send', [ResponseController::class, 'send'])->name('responses.send');
-
         // ユーザー招待管理
         Route::post('invitations', [UserInvitationController::class, 'store'])->name('invitations.store');
     });
-
     // ユーザー招待管理（グローバル）
     Route::prefix('invitations')->name('invitations.')->group(function () {
         Route::post('{invitation}/resend', [UserInvitationController::class, 'resend'])->name('resend');
         Route::patch('{invitation}/revoke', [UserInvitationController::class, 'revoke'])->name('revoke');
     });
-
     // 返答テンプレート管理（Settings配下）
     Route::resource('settings/response-templates', ResponseTemplateController::class)->parameters([
         'response-templates' => 'responseTemplate'
     ]);
 
+    /**************************************
+     * プロジェクト
+     **************************************/
     Route::prefix('project')->name('project.')->group(function () {
         // プロジェクトカテゴリ管理
         Route::resource('category', ProjectCategoryController::class)->parameters(['category' => 'projectCategory']);
         // プロジェクト問い合わせ管理
         Route::resource('inquiry', ProjectInquiryController::class)->parameters(['inquiries' => 'projectInquiry'])->only(['index', 'show', 'destroy']);
     });
-
     // プロジェクト管理
     Route::resource('project', ProjectController::class);
-
+    // プロジェクト関連のマイルストーンとアップデート管理
     Route::prefix('project')->name('project.')->group(function () {
         // Milestones
         Route::post('/{project}/milestones', [ProjectMilestoneController::class, 'store'])->name('milestones.store');
@@ -181,7 +215,6 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::put('/{project}/updates/{update}', [ProjectUpdateController::class, 'update'])->name('updates.update');
         Route::delete('/{project}/updates/{update}', [ProjectUpdateController::class, 'destroy'])->name('updates.destroy');
     });
-
     // ガントチャート
     Route::prefix('gantt')->name('gantt.')->group(function () {
         Route::get('/', function () {
@@ -201,11 +234,26 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     // 見積もり管理
     Route::resource('quote', QuoteController::class);
     Route::prefix('quote')->name('quote.')->group(function () {
+        Route::get('/{quote}/preview', [QuoteController::class, 'preview'])->name('preview');
         Route::post('/{quote}/send', [QuoteController::class, 'send'])->name('send');
         Route::post('/{quote}/approve', [QuoteController::class, 'approve'])->name('approve');
         Route::post('/{quote}/reject', [QuoteController::class, 'reject'])->name('reject');
         Route::get('/{quote}/pdf', [QuoteController::class, 'downloadPdf'])->name('pdf');
         Route::get('/{quote}/pdf/preview', [QuoteController::class, 'previewPdf'])->name('pdf.preview');
+    });
+
+    // お客様返信管理
+    Route::prefix('quote-response')->name('quote-response.')->group(function () {
+        Route::get('/', [QuoteResponseController::class, 'index'])->name('index');
+        Route::get('/{id}', [QuoteResponseController::class, 'detail'])->name('detail');
+    });
+
+    // オンボーディング管理
+    Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{userId}', 'detail')->name('detail');
+        Route::post('/{userId}/approve', 'approve')->name('approve');
+        Route::post('/{userId}/reject', 'reject')->name('reject');
     });
 
     // 支払い管理
@@ -221,6 +269,13 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('pdf.preview');
         Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
         Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
+    });
+
+    // 領収書管理
+    Route::resource('receipt', ReceiptController::class);
+    Route::prefix('receipts')->name('receipts.')->group(function () {
+        Route::get('/{id}/download', [ReceiptController::class, 'download'])->name('download');
+        Route::post('/{id}/send', [ReceiptController::class, 'send'])->name('send');
     });
 
     // FAQs管理
