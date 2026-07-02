@@ -88,6 +88,24 @@ export default function Index({ contracts, filters, stats }) {
         }
     };
 
+    const handleApprove = (contract) => {
+        const confirmed = confirm(
+            `契約「${contract.title}」を承認してもよろしいですか？`,
+        );
+        if (confirmed) {
+            router.patch(route("admin.contract.approve", contract.id));
+        }
+    };
+
+    const handleReminder = (contract) => {
+        const confirmed = confirm(
+            `${contract.user?.profile?.full_name || contract.user?.email}さんに署名リマインダーメールを送信しますか？`,
+        );
+        if (confirmed) {
+            router.post(route("admin.contract.send-reminder", contract.id));
+        }
+    };
+
     // ========================================
     // Constants - Header Actions & Breadcrumbs
     // ========================================
@@ -286,6 +304,8 @@ export default function Index({ contracts, filters, stats }) {
                 onDelete={handleDelete}
                 onActivate={handleActivate}
                 onCancel={handleCancel}
+                onApprove={handleApprove}
+                onReminder={handleReminder}
             />
 
             {/* ページネーション */}

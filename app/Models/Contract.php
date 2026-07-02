@@ -32,7 +32,11 @@ class Contract extends Model
         'start_date',
         'end_date',
         'status',
+        'signature_status',
+        'signature_required_from',
         'signed_at',
+        'user_signed_at',
+        'admin_signed_at',
         'terminated_at',
         'termination_reason',
         'auto_renewal',
@@ -51,6 +55,8 @@ class Contract extends Model
         'start_date'             => 'date',
         'end_date'               => 'date',
         'signed_at'              => 'datetime',
+        'user_signed_at'         => 'datetime',
+        'admin_signed_at'        => 'datetime',
         'terminated_at'          => 'datetime',
         'next_billing_date'      => 'datetime',
         'last_invoiced_at'       => 'datetime',
@@ -128,6 +134,16 @@ class Contract extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(ContractHistory::class);
+    }
+
+    public function signatures(): HasMany
+    {
+        return $this->hasMany(ContractSignature::class);
     }
 
     public function scopeActive($query)
@@ -338,6 +354,75 @@ class Contract extends Model
         }
 
         return $missing;
+    }
+
+    /**
+     * 署名を受け取れるかチェック
+     */
+    public function canReceiveSignature(): bool
+    {
+        // メールが送信されている（pending, sent などの状態）
+        $hasBeenSent = $this->histories()
+            ->where('action', 'sent')
+            ->whereIn('status', ['pending', 'sent'])
+            ->exists();
+
+        // 全必須要件を満たしている
+        return $this->canSend() && $hasBeenSent;
+    }
+
+    /**
+     * ユーザー署名待ちかチェック
+     */
+    public function isAwaitingUserSignature(): bool
+    {
+        return in_array($this->signature_status, ['pending', 'user_signed']) &&
+            in_array($this->signature_required_from, ['user', 'both']);
+    }
+
+    /**
+     * 管理者署名待ちかチェック
+     */
+    public function isAwaitingAdminSignature(): bool
+    {
+        return in_array($this->signature_status, ['pending', 'user_signed', 'admin_signed']) &&
+            in_array($this->signature_required_from, ['admin', 'both']);
+    }
+
+    /**
+     * 完全に署名されているかチェック
+     */
+    public function isFullySigned(): bool
+    {
+        return $this->signature_status === 'fully_signed';
+    }
+
+    /**
+     * 署名ステータスラベルを取得
+     */
+    public function getSignatureStatusLabel(): string
+    {
+        return match ($this->signature_status) {
+            'pending' => '署名待ち',
+            'user_signed' => 'ユーザー署名済み',
+            'fully_signed' => '完全署名',
+            'rejected' => '却下',
+            default => $this->signature_status,
+        };
+    }
+
+    /**
+     * 最新の署名を取得
+     */
+    public function getLatestSignature($type = null)
+    {
+        $query = $this->signatures()->latest('created_at');
+
+        if ($type) {
+            $query->where('signature_type', $type);
+        }
+
+        return $query->first();
     }
 
     /**

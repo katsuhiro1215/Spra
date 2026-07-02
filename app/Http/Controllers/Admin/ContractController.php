@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ContractMailJob;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Company;
@@ -187,6 +188,53 @@ class ContractController extends Controller
         return back()->with('success', '契約をキャンセルしました。');
     }
 
+    /**
+     * 契約を承認（署名完了状態から承認状態に遷移）
+     */
+    public function approve(string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        // signature_status が fully_signed である必要がある
+        if ($contract->signature_status !== 'fully_signed') {
+            return back()->with('error', '署名が完了していない契約は承認できません。');
+        }
+
+        // status を active に更新
+        $contract->update([
+            'status' => 'active',
+        ]);
+
+        // Invoice自動生成をディスパッチ
+        \App\Jobs\GenerateInvoiceJob::dispatch($contract);
+
+        return back()->with('success', '契約を承認し、有効化しました。請求書を自動生成しています。');
+    }
+
+    /**
+     * 署名リマインダーメール送信
+     */
+    public function sendReminder(string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        // signature_status が pending である必要がある
+        if ($contract->signature_status !== 'pending') {
+            return back()->with('error', 'このステータスではリマインダーを送信できません。');
+        }
+
+        if (!$contract->user || !$contract->user->email) {
+            return back()->with('error', 'ユーザーメールアドレスが登録されていません。');
+        }
+
+        // リマインダーメール送信ジョブをディスパッチ
+        \App\Jobs\NotifyUserToSignContractJob::dispatch($contract);
+
+        return back()->with('success', 'リマインダーメールを送信しました。');
+    }
+
     public function uploadDocument(Request $request, string $id): RedirectResponse
     {
         $contract = $this->service->findById($id);
@@ -239,5 +287,47 @@ class ContractController extends Controller
         $contract->update($validated);
 
         return back()->with('success', '請求設定を更新しました。');
+    }
+
+    /**
+     * 契約書をクライアントにメール送信
+     */
+    public function send(Request $request, string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        // 送信要件チェック
+        if (!$contract->canSend()) {
+            $missing = $contract->getMissingRequirements();
+            $missingLabels = array_map(fn($item) => $item['description'], $missing);
+
+            return back()->with('error', '契約書を送信できません。以下が必要です: ' . implode(', ', $missingLabels));
+        }
+
+        // 送信メールアドレス
+        $recipientEmail = $contract->user?->email;
+        if (!$recipientEmail) {
+            return back()->with('error', 'クライアントのメールアドレスが登録されていません。');
+        }
+
+        // キュージョブをディスパッチ
+        ContractMailJob::dispatch(
+            $contract,
+            $recipientEmail,
+            auth('admins')->id()
+        );
+
+        // 初期履歴を記録（pending状態）
+        $contract->histories()->create([
+            'action' => 'sent',
+            'recipient_email' => $recipientEmail,
+            'subject' => "契約書をお送りします - {$contract->title}",
+            'message' => 'メール送信がキューイングされました',
+            'status' => 'pending',
+            'created_by' => auth('admins')->id(),
+        ]);
+
+        return back()->with('success', 'クライアントにメールを送信しました。');
     }
 }

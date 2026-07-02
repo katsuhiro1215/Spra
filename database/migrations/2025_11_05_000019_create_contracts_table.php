@@ -43,6 +43,15 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('type', ['one_time', 'monthly', 'annual'])->default('one_time');
+
+            // 請求設定
+            $table->integer('billing_day')->default(10)->comment('請求日（毎月何日に請求するか：1-31）');
+            $table->integer('payment_due_days')->default(15)->comment('支払期限日数（請求日から何日後が期限か）');
+            $table->boolean('auto_invoice_generation')->default(true)->comment('自動請求書生成フラグ');
+            $table->timestamp('next_billing_date')->nullable()->comment('次回請求予定日');
+            $table->timestamp('last_invoiced_at')->nullable()->comment('最終請求日時');
+
+            // 金額情報
             $table->decimal('amount', 12, 2);          // 一括金額 or 月額/年額
             $table->decimal('tax_rate', 5, 2)->default(10);
 
@@ -59,6 +68,10 @@ return new class extends Migration
                 'completed',          // 完了
                 'cancelled',          // キャンセル
             ])->default('draft');
+            $table->enum('signature_status', ['pending', 'user_signed', 'fully_signed', 'rejected'])->default('pending')->comment('署名ステータス');
+            $table->enum('signature_required_from', ['user', 'admin', 'both'])->default('user')->comment('Who needs to sign');
+            $table->timestamp('user_signed_at')->nullable()->comment('ユーザー署名日時');
+            $table->timestamp('admin_signed_at')->nullable()->comment('管理者署名日時');
             $table->timestamp('signed_at')->nullable();
             $table->timestamp('terminated_at')->nullable();
             $table->text('termination_reason')->nullable();

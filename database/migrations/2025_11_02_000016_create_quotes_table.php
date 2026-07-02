@@ -14,8 +14,13 @@ return new class extends Migration
         Schema::create('quotes', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('quote_number')->unique();        // 見積番号 Q2026-001
-            $table->uuid('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            // クライアント情報（user_idとcontact_idの両方を保持可能）
+            $table->uuid('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->ulid('contact_id')->nullable()->comment('お問い合わせからの見積もり作成用');
+            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('set null');
+
             $table->ulid('company_id')->nullable();
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
 

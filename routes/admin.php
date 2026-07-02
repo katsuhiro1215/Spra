@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 
 use App\Http\Controllers\Admin\ContractController;
+use App\Http\Controllers\Admin\ContractSignatureController;
 
 use App\Http\Controllers\Admin\Quote\QuoteController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
@@ -42,6 +43,7 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReceiptController;
 
 use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\TermController;
 
 use App\Http\Controllers\Admin\Homepage\PageController;
 use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
@@ -230,8 +232,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::prefix('contract')->name('contract.')->group(function () {
         Route::patch('/{id}/activate', [ContractController::class, 'activate'])->name('activate');
         Route::patch('/{id}/cancel', [ContractController::class, 'cancel'])->name('cancel');
+        Route::patch('/{id}/approve', [ContractController::class, 'approve'])->name('approve');
+        Route::post('/{id}/send-reminder', [ContractController::class, 'sendReminder'])->name('send-reminder');
         Route::post('/{id}/documents', [ContractController::class, 'uploadDocument'])->name('documents.upload');
         Route::patch('/{id}/billing-settings', [ContractController::class, 'updateBillingSettings'])->name('billing-settings.update');
+        Route::post('/{id}/send', [ContractController::class, 'send'])->name('send');
+
+        // 署名関連ルート
+        Route::post('/{id}/signature/user', [ContractSignatureController::class, 'storeUserSignature'])->name('signature.user.store');
+        Route::post('/{id}/signature/verify-user', [ContractSignatureController::class, 'verifyUserSignature'])->name('signature.verify-user');
+        Route::get('/{id}/signature/admin', [ContractSignatureController::class, 'showAdminSignaturePage'])->name('signature.admin.show');
+        Route::post('/{id}/signature/admin', [ContractSignatureController::class, 'storeAdminSignature'])->name('signature.admin.store');
+        Route::post('/{id}/signature/reject', [ContractSignatureController::class, 'rejectSignature'])->name('signature.reject');
     });
 
     // 見積もり管理
@@ -286,6 +298,12 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::resource('faq', FaqController::class);
     Route::delete('/faqs/bulk-destroy', [FaqController::class, 'bulkDestroy'])->name('faq.bulk-destroy');
     Route::patch('/faqs/bulk-status', [FaqController::class, 'bulkUpdateStatus'])->name('faq.bulk-status');
+
+    // Terms (規約) 管理
+    Route::resource('terms', TermController::class);
+    Route::post('/terms/{term}/activate', [TermController::class, 'activate'])->name('terms.activate');
+    Route::post('/terms/{term}/revert-to-draft', [TermController::class, 'revertToDraft'])->name('terms.revertToDraft');
+    Route::post('/terms/{term}/create-version', [TermController::class, 'createVersion'])->name('terms.createVersion');
 
     // スケジュール管理
     Route::prefix('schedules')->name('schedules.')->group(function () {

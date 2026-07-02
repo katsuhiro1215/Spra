@@ -234,9 +234,10 @@ class InvoiceController extends Controller
     $invoice = $this->service->findById($id);
     abort_unless($invoice, 404);
 
-    $this->service->markAsSent($invoice);
+    // メール送信ジョブをディスパッチ
+    \App\Jobs\SendInvoiceJob::dispatch($invoice);
 
-    return back()->with('success', '請求書を送付済みにしました。');
+    return back()->with('success', '請求書を送付しています。');
   }
 
   public function recordPayment(Request $request, string $id): RedirectResponse

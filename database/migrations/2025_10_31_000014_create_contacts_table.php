@@ -15,12 +15,17 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->string('name');
             $table->string('email');
+            $table->uuid('user_id')->nullable()->comment('ユーザーアカウント紐付け用');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->string('phone')->nullable();
             $table->string('company')->nullable();
+            $table->string('category')->nullable()->comment('お問い合わせカテゴリー');
             $table->string('subject')->nullable();
             $table->longText('message');
             $table->enum('status', ['new', 'in_progress', 'replied', 'closed'])->default('new');
             $table->text('admin_notes')->nullable();
+            $table->uuid('assigned_to')->nullable()->comment('担当管理者');
+            $table->foreign('assigned_to')->references('id')->on('admins')->onDelete('set null');
             $table->timestamp('replied_at')->nullable();
 
             // 流入元トラッキング情報
@@ -35,6 +40,9 @@ return new class extends Migration
             $table->index(['status', 'created_at']);
             $table->index('email');
             $table->index('source');
+            $table->index('category');
+            $table->index('assigned_to');
+            $table->index('user_id');
         });
     }
 

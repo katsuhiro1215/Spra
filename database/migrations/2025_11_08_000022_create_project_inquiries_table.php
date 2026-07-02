@@ -21,6 +21,17 @@ return new class extends Migration
       $table->ulid('company_id')->nullable();
       $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
 
+      // シミュレーター関連フィールド
+      $table->ulid('service_category_id')->nullable()->comment('サービスカテゴリー');
+      $table->foreign('service_category_id')->references('id')->on('service_categories')->onDelete('set null');
+      $table->ulid('service_id')->nullable()->comment('サービス');
+      $table->foreign('service_id')->references('id')->on('services')->onDelete('set null');
+      $table->ulid('service_plan_id')->nullable()->comment('サービスプラン');
+      $table->foreign('service_plan_id')->references('id')->on('service_plans')->onDelete('set null');
+      $table->json('simulator_data')->nullable()->comment('シミュレーター選択データ');
+      $table->decimal('estimated_price', 12, 2)->nullable()->comment('概算金額');
+      $table->integer('estimated_days')->nullable()->comment('納期予想日数');
+
       // 基本情報
       $table->string('title');
       $table->text('summary')->nullable();

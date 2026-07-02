@@ -18,7 +18,7 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findById(string $id): ?Contract
     {
-        return Contract::with(['project', 'user', 'company', 'documents', 'invoices'])->find($id);
+        return Contract::with(['project', 'user', 'company', 'documents', 'invoices', 'histories', 'signatures'])->find($id);
     }
 
     public function findByIdForClient(string $id, string $userId): ?Contract
