@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Contact;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResponseTemplateRequest;
 use App\Models\ResponseTemplate;
 use App\Services\ResponseTemplateService;
 use Illuminate\Http\Request;
@@ -61,17 +62,9 @@ class ResponseTemplateController extends Controller
     /**
      * Store a newly created template.
      */
-    public function store(Request $request)
+    public function store(ResponseTemplateRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
-            'placeholders' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'sort_order' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         try {
             $validated['created_by'] = auth('admins')->id();
@@ -79,7 +72,7 @@ class ResponseTemplateController extends Controller
 
             $this->responseTemplateService->createResponseTemplate($validated);
 
-            return redirect()->route('admin.settings.response-templates.index')
+            return redirect()->route('admin.response-templates.index')
                 ->with('success', '返答テンプレートを作成しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの作成に失敗しました: ' . $e->getMessage());
@@ -115,24 +108,16 @@ class ResponseTemplateController extends Controller
     /**
      * Update the specified template.
      */
-    public function update(Request $request, ResponseTemplate $responseTemplate)
+    public function update(ResponseTemplateRequest $request, ResponseTemplate $responseTemplate)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
-            'placeholders' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'sort_order' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         try {
             $validated['updated_by'] = auth('admins')->id();
 
             $this->responseTemplateService->updateResponseTemplate($responseTemplate, $validated);
 
-            return redirect()->route('admin.settings.response-templates.index')
+            return redirect()->route('admin.response-templates.index')
                 ->with('success', '返答テンプレートを更新しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの更新に失敗しました: ' . $e->getMessage());
@@ -147,7 +132,7 @@ class ResponseTemplateController extends Controller
         try {
             $this->responseTemplateService->deleteResponseTemplate($responseTemplate);
 
-            return redirect()->route('admin.settings.response-templates.index')
+            return redirect()->route('admin.response-templates.index')
                 ->with('success', '返答テンプレートを削除しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの削除に失敗しました: ' . $e->getMessage());

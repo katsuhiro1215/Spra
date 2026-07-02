@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Http\RedirectResponse;
 
 class QuoteResponseController extends Controller
 {
@@ -102,5 +103,95 @@ class QuoteResponseController extends Controller
         return Inertia::render('Admin/QuoteResponses/Detail', [
             'response' => $response,
         ]);
+    }
+
+    /**
+     * Show the registration form (Public - Invitation Token).
+     */
+    public function registerShow(string $token): Response|RedirectResponse
+    {
+        $quoteResponse = QuoteResponse::where('token', $token)
+            ->firstOrFail();
+
+        // Check if already registered
+        if ($quoteResponse->user_id) {
+            return redirect()->route('public.home')->with('error', 'このリンクは既に使用されています。');
+        }
+
+        // Check if token is expired (7 days)
+        if ($quoteResponse->created_at->addDays(7)->isPast()) {
+            return redirect()->route('public.home')->with('error', 'このリンクの有効期限が切れています。');
+        }
+
+        return Inertia::render('QuoteResponseRegister', [
+            'token' => $token,
+            'email' => $quoteResponse->email,
+        ]);
+    }
+
+    /**
+     * Store the registration (Public - Invitation Token).
+     * Stage 1: Minimal registration (User + Company only)
+     */
+    public function registerStore(Request $request, string $token): Response|RedirectResponse
+    {
+        try {
+            $quoteResponse = QuoteResponse::where('token', $token)
+                ->firstOrFail();
+
+            // Check if already registered
+            if ($quoteResponse->user_id) {
+                return redirect()->route('public.home')->with('error', 'このリンクは既に使用されています。');
+            }
+
+            // Check if token is expired (7 days)
+            if ($quoteResponse->created_at->addDays(7)->isPast()) {
+                return redirect()->route('public.home')->with('error', 'このリンクの有効期限が切れています。');
+            }
+
+            // Validate - Stage 1: Only essential information
+            $validated = $request->validate([
+                'password' => 'required|string|min:8|confirmed',
+                'company_name' => 'required|string|max:255',
+                'company_type' => 'required|in:individual,corporate',
+            ]);
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($quoteResponse, $validated) {
+
+                // Create User
+                $user = \App\Models\User::create([
+                    'email' => $quoteResponse->email,
+                    'password' => bcrypt($validated['password']),
+                    'status' => 'pending', // Pending admin approval
+                ]);
+
+                // Create Company
+                $company = \App\Models\Company::create([
+                    'name' => $validated['company_name'],
+                    'company_type' => $validated['company_type'],
+                    'status' => 'active',
+                ]);
+
+                // Attach user to company
+                $user->companies()->attach($company->id, [
+                    'role' => 'owner',
+                    'is_primary' => true,
+                    'joined_at' => now(),
+                ]);
+
+                // Update QuoteResponse
+                $quoteResponse->update([
+                    'user_id' => $user->id,
+                    'company_id' => $company->id,
+                    'admin_notified_at' => now(),
+                ]);
+            });
+
+            return redirect()->route('public.home')->with('success', 'アカウントを作成しました。ログインしてダッシュボードにアクセスしてください。管理者の確認後、追加情報の登録をお願いいたします。');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'アカウント作成に失敗しました。もう一度お試しください。']);
+        }
     }
 }

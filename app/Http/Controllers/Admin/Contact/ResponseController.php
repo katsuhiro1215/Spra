@@ -22,6 +22,29 @@ class ResponseController extends Controller
     ) {}
 
     /**
+     * Display a listing of all responses.
+     */
+    public function index(Request $request): InertiaResponse
+    {
+        $filters = $request->only(['status', 'search']);
+        $sort = [
+            'field' => $request->get('sort_by', 'created_at'),
+            'direction' => $request->get('sort_order', 'desc'),
+        ];
+
+        $responses = $this->responseService->getPaginated(
+            $filters,
+            $sort,
+            $request->get('per_page', 20)
+        );
+
+        return Inertia::render('Admin/Contacts/Responses/Index', [
+            'responses' => $responses,
+            'filters' => $filters,
+        ]);
+    }
+
+    /**
      * Show the form for creating a new response.
      */
     public function create(Contact $contact): InertiaResponse

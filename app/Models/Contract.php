@@ -32,7 +32,11 @@ class Contract extends Model
         'start_date',
         'end_date',
         'status',
+        'signature_status',
+        'signature_required_from',
         'signed_at',
+        'user_signed_at',
+        'admin_signed_at',
         'terminated_at',
         'termination_reason',
         'auto_renewal',
@@ -51,6 +55,8 @@ class Contract extends Model
         'start_date'             => 'date',
         'end_date'               => 'date',
         'signed_at'              => 'datetime',
+        'user_signed_at'         => 'datetime',
+        'admin_signed_at'        => 'datetime',
         'terminated_at'          => 'datetime',
         'next_billing_date'      => 'datetime',
         'last_invoiced_at'       => 'datetime',
@@ -128,6 +134,16 @@ class Contract extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(ContractHistory::class);
+    }
+
+    public function signatures(): HasMany
+    {
+        return $this->hasMany(ContractSignature::class);
     }
 
     public function scopeActive($query)
@@ -250,5 +266,186 @@ class Contract extends Model
 
         // 次回請求日が設定されていない、または次回請求日が過ぎている
         return !$this->next_billing_date || now()->gte($this->next_billing_date);
+    }
+
+    /**
+     * ドラフト作成可能かチェック
+     * 最小要件: User と Company が存在
+     */
+    public function canCreateDraft(): bool
+    {
+        return $this->user_id && $this->company_id;
+    }
+
+    /**
+     * 契約書送信可能かチェック
+     * 必須: User.Profile、Company、Company.Address、Quote が完全
+     */
+    public function canSend(): bool
+    {
+        return empty($this->getMissingRequirements());
+    }
+
+    /**
+     * 不足している必須要件を取得
+     * @return array 不足項目のキーと説明
+     */
+    public function getMissingRequirements(): array
+    {
+        $missing = [];
+
+        // User の確認
+        if (!$this->user_id) {
+            $missing['user'] = 'ユーザーが選択されていません';
+            return $missing;
+        }
+
+        $user = $this->user;
+        if (!$user) {
+            $missing['user'] = 'ユーザーが見つかりません';
+            return $missing;
+        }
+
+        // User.Profile の確認
+        $profile = $user->profile;
+        if (!$profile) {
+            $missing['profile'] = 'ユーザーのプロフィール情報が不足しています';
+        } else {
+            if (!$profile->first_name || !$profile->last_name) {
+                $missing['profile_name'] = 'ユーザーの氏名が入力されていません';
+            }
+            if (!$profile->phone && !$profile->mobile) {
+                $missing['profile_phone'] = 'ユーザーの連絡先が入力されていません';
+            }
+        }
+
+        // Company の確認
+        if (!$this->company_id) {
+            $missing['company'] = '会社が選択されていません';
+            return $missing;
+        }
+
+        $company = $this->company;
+        if (!$company) {
+            $missing['company'] = '会社が見つかりません';
+            return $missing;
+        }
+
+        // Company の基本情報確認
+        if (!$company->legal_name) {
+            $missing['company_name'] = '会社名が入力されていません';
+        }
+
+        // Company.Address の確認
+        $address = $company->addresses()->first();
+        if (!$address) {
+            $missing['company_address'] = '会社の住所が登録されていません';
+        } else {
+            if (!$address->postal_code || !$address->prefecture || !$address->city) {
+                $missing['company_address_detail'] = '会社の住所情報が不完全です';
+            }
+        }
+
+        // Quote の確認
+        if (!$this->quote_id) {
+            $missing['quote'] = '見積もりが選択されていません';
+        } elseif (!$this->quote) {
+            $missing['quote'] = '選択された見積もりが見つかりません';
+        }
+
+        return $missing;
+    }
+
+    /**
+     * 署名を受け取れるかチェック
+     */
+    public function canReceiveSignature(): bool
+    {
+        // メールが送信されている（pending, sent などの状態）
+        $hasBeenSent = $this->histories()
+            ->where('action', 'sent')
+            ->whereIn('status', ['pending', 'sent'])
+            ->exists();
+
+        // 全必須要件を満たしている
+        return $this->canSend() && $hasBeenSent;
+    }
+
+    /**
+     * ユーザー署名待ちかチェック
+     */
+    public function isAwaitingUserSignature(): bool
+    {
+        return in_array($this->signature_status, ['pending', 'user_signed']) &&
+            in_array($this->signature_required_from, ['user', 'both']);
+    }
+
+    /**
+     * 管理者署名待ちかチェック
+     */
+    public function isAwaitingAdminSignature(): bool
+    {
+        return in_array($this->signature_status, ['pending', 'user_signed', 'admin_signed']) &&
+            in_array($this->signature_required_from, ['admin', 'both']);
+    }
+
+    /**
+     * 完全に署名されているかチェック
+     */
+    public function isFullySigned(): bool
+    {
+        return $this->signature_status === 'fully_signed';
+    }
+
+    /**
+     * 署名ステータスラベルを取得
+     */
+    public function getSignatureStatusLabel(): string
+    {
+        return match ($this->signature_status) {
+            'pending' => '署名待ち',
+            'user_signed' => 'ユーザー署名済み',
+            'fully_signed' => '完全署名',
+            'rejected' => '却下',
+            default => $this->signature_status,
+        };
+    }
+
+    /**
+     * 最新の署名を取得
+     */
+    public function getLatestSignature($type = null)
+    {
+        $query = $this->signatures()->latest('created_at');
+
+        if ($type) {
+            $query->where('signature_type', $type);
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * 不足している必須要件を詳細に取得（UI表示用）
+     * @return array ['has_errors' => bool, 'errors' => [message => string], 'warnings' => [message => string]]
+     */
+    public function getRequirementStatus(): array
+    {
+        $missing = $this->getMissingRequirements();
+
+        $errors = [];
+        $warnings = [];
+
+        foreach ($missing as $key => $message) {
+            $errors[] = $message;
+        }
+
+        return [
+            'has_errors' => !empty($errors),
+            'can_send' => $this->canSend(),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'missing_requirements' => $missing,
+        ];
     }
 }

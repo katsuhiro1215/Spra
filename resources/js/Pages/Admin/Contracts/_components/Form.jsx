@@ -19,6 +19,7 @@ export default function ContractForm({
     users = [],
     companies = [],
     quotes = [],
+    requirementStatus = null,
 }) {
     // ========================================
     // State
@@ -27,6 +28,20 @@ export default function ContractForm({
 
     // ========================================
     // Handlers
+    // ========================================
+    const handleDraftSave = () => {
+        // ドラフト保存時はステータスを 'draft' に強制
+        setData("status", "draft");
+        // 次のレンダリング後に submit を呼ぶため、setTimeout を使用
+        setTimeout(() => {
+            onSubmit();
+        }, 0);
+    };
+
+    const handleSend = () => {
+        // 送信ボタン は status をそのまま送信
+        onSubmit();
+    };
     // ========================================
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -441,9 +456,38 @@ export default function ContractForm({
                 >
                     キャンセル
                 </SecondaryButton>
-                <PrimaryButton type="submit" disabled={processing}>
-                    {processing ? "処理中..." : isEdit ? "更新" : "作成"}
-                </PrimaryButton>
+
+                {/* 下書き保存ボタン */}
+                <SecondaryButton
+                    type="button"
+                    onClick={handleDraftSave}
+                    disabled={processing}
+                >
+                    {processing ? "保存中..." : "下書き保存"}
+                </SecondaryButton>
+
+                {/* 送信ボタン（ドラフト以外） */}
+                {data.status !== "draft" && (
+                    <PrimaryButton
+                        type="button"
+                        onClick={handleSend}
+                        disabled={processing || requirementStatus?.has_errors}
+                        title={
+                            requirementStatus?.has_errors
+                                ? "契約書送信には必須情報が不足しています"
+                                : ""
+                        }
+                    >
+                        {processing ? "送信中..." : "契約書を送信"}
+                    </PrimaryButton>
+                )}
+
+                {/* 作成/更新ボタン（編集時） */}
+                {data.status === "draft" && (
+                    <PrimaryButton type="submit" disabled={processing}>
+                        {processing ? "処理中..." : isEdit ? "更新" : "作成"}
+                    </PrimaryButton>
+                )}
             </div>
         </form>
     );

@@ -5,25 +5,16 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
-import { DeleteButton } from "@/Components/Buttons";
+import { SecondaryButton, DeleteButton } from "@/Components/Buttons";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
 import {
-    PlusIcon,
-    MagnifyingGlassIcon,
+    XMarkIcon,
     FunnelIcon,
     ArrowDownTrayIcon,
-    EyeIcon,
-    TrashIcon,
-    UserIcon,
-    ClockIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    GlobeAltIcon,
-    XMarkIcon,
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
@@ -45,6 +36,8 @@ export default function Index({
     // State & Form
     // ========================================
     const [selectedContacts, setSelectedContacts] = useState([]);
+    const [isDeleting, setIsDeleting] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [bulkAction, setBulkAction] = useState({
         show: false,
@@ -119,13 +112,13 @@ export default function Index({
         }
     };
 
-    const handleSelectContact = (contactId, checked) => {
-        if (checked) {
-            setSelectedContacts([...selectedContacts, contactId]);
-        } else {
+    const handleSelectContact = (contactId) => {
+        if (selectedContacts.includes(contactId)) {
             setSelectedContacts(
                 selectedContacts.filter((id) => id !== contactId),
             );
+        } else {
+            setSelectedContacts([...selectedContacts, contactId]);
         }
     };
 
@@ -151,14 +144,31 @@ export default function Index({
     };
 
     // ========================================
-    // Handlers - Delete & Export
+    // Handlers - Delete
     // ========================================
-    const handleDelete = (contactId) => {
-        if (confirm("このお問い合わせを削除してもよろしいですか？")) {
-            router.delete(route("admin.contact.destroy", contactId));
+    const handleDelete = (contact) => {
+        setDeleteTarget(contact);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deleteTarget) {
+            setIsDeleting(deleteTarget.id);
+            router.delete(route("admin.contact.destroy", deleteTarget.id), {
+                onFinish: () => {
+                    setIsDeleting(null);
+                    setDeleteTarget(null);
+                },
+            });
         }
     };
 
+    const handleCancelDelete = () => {
+        setDeleteTarget(null);
+    };
+
+    // ========================================
+    // Handlers - Export
+    // ========================================
     const handleExport = () => {
         window.open(route("admin.contact.export", data));
     };
@@ -202,6 +212,14 @@ export default function Index({
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
+            {/* 削除アラート */}
+            <DeleteAlert
+                show={!!deleteTarget}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                itemName={deleteTarget?.name}
+            />
+
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
                 <Card>
@@ -241,20 +259,17 @@ export default function Index({
                                     )}
                                 </button>
 
-                                <button
-                                    onClick={handleExport}
-                                    className="inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
-                                >
+                                <SecondaryButton onClick={handleExport}>
                                     <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                                     エクスポート
-                                </button>
+                                </SecondaryButton>
                             </div>
                         </div>
 
                         {/* フィルター展開エリア */}
                         {showFilters && (
                             <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                     <FilterSelect
                                         label="ステータス"
                                         value={data.status}
@@ -279,21 +294,19 @@ export default function Index({
                                         }
                                         options={sourceOptions}
                                     />
-                                </div>
-
-                                {/* フィルタークリアボタン */}
-                                {hasActiveFilters && (
-                                    <div className="mt-3 flex justify-end">
-                                        <button
-                                            type="button"
+                                    {/* フィルタークリアボタン */}
+                                    <div className="flex items-end">
+                                        <SecondaryButton
                                             onClick={handleClearFilters}
-                                            className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                                            disabled={!hasActiveFilters}
+                                            size="md"
+                                            className="w-full"
                                         >
                                             <XMarkIcon className="h-4 w-4 mr-1" />
                                             フィルターをクリア
-                                        </button>
+                                        </SecondaryButton>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -421,16 +434,30 @@ export default function Index({
                 <ContactsTable
                     contacts={contacts}
                     onDelete={handleDelete}
+                    isDeleting={isDeleting}
                     selectedContacts={selectedContacts}
-                    onSelectAll={handleSelectAll}
-                    onSelectContact={handleSelectContact}
+                    onSelect={handleSelectContact}
                 />
 
                 {/* ページネーション */}
                 {contacts.data && contacts.data.length > 0 && (
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm">
-                        <Pagination paginationData={contacts} />
-                    </div>
+                    <Pagination paginationData={contacts} />
+                )}
+
+                {/* データがない場合 */}
+                {contacts.data.length === 0 && (
+                    <Card className="text-center py-12">
+                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
+                            👤
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 mb-4">
+                            {filters.search
+                                ? PageConfig.contacts.ui.empty.noResults
+                                : activeTab === "only_trashed"
+                                  ? PageConfig.contacts.ui.empty.noTrashed
+                                  : PageConfig.contacts.ui.empty.noData}
+                        </p>
+                    </Card>
                 )}
             </div>
         </AdminAuthenticatedLayout>

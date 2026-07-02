@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\QuoteResponse;
+use App\Repositories\QuoteResponseRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+
+class QuoteResponseService extends BaseService
+{
+    /**
+     * コンストラクタ
+     *
+     * @param QuoteResponseRepository $repository
+     */
+    public function __construct(QuoteResponseRepository $repository)
+    {
+        parent::__construct($repository);
+    }
+
+    /**
+     * エンティティ名を返す
+     *
+     * @return string
+     */
+    protected function getEntityName(): string
+    {
+        return 'QuoteResponse';
+    }
+
+    /**
+     * ページネーション付きで取得
+     *
+     * @param array $filters
+     * @param array $sort
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function getPaginated(array $filters = [], array $sort = [], int $perPage = 20): LengthAwarePaginator
+    {
+        $query = $this->repository->getQuery();
+
+        // フィルター適用
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                    ->orWhereHas('quote', function ($q) use ($search) {
+                        $q->where('quote_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // ステータスフィルター
+        if (!empty($filters['status'])) {
+            $status = $filters['status'];
+            if ($status === 'pending') {
+                $query->whereNull('responded_at');
+            } elseif ($status === 'responded') {
+                $query->whereNotNull('responded_at');
+            }
+        }
+
+        // レスポンスタイプフィルター
+        if (!empty($filters['response_type'])) {
+            $query->where('response_type', $filters['response_type']);
+        }
+
+        // ソート設定
+        $sortField = $sort['field'] ?? 'created_at';
+        $sortDirection = $sort['direction'] ?? 'desc';
+        $query->orderBy($sortField, $sortDirection);
+
+        // リレーション読み込み
+        $query->with(['quote', 'quote.contact', 'user', 'company']);
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * トークンから返信を取得
+     *
+     * @param string $token
+     * @return QuoteResponse|null
+     */
+    public function findByToken(string $token): ?QuoteResponse
+    {
+        return $this->repository->getQuery()
+            ->where('token', $token)
+            ->with(['quote', 'quote.contact'])
+            ->first();
+    }
+
+    /**
+     * 招待メールを送信
+     *
+     * @param QuoteResponse $quoteResponse
+     * @return void
+     */
+    public function sendInvitationEmail(QuoteResponse $quoteResponse): void
+    {
+        Mail::to($quoteResponse->email)->send(
+            new \App\Mail\SendQuoteResponseInvitationMail($quoteResponse)
+        );
+    }
+
+    /**
+     * ユーザーと会社を登録
+     *
+     * @param QuoteResponse $quoteResponse
+     * @param array $data
+     * @return \App\Models\User
+     */
+    public function registerUserAndCompany(QuoteResponse $quoteResponse, array $data)
+    {
+        return DB::transaction(function () use ($quoteResponse, $data) {
+            // ユーザー作成
+            $user = new \App\Models\User([
+                'email' => $quoteResponse->email,
+                'password' => bcrypt($data['password']),
+                'status' => 'active',
+            ]);
+            $user->save();
+
+            // 会社作成
+            $company = new \App\Models\Company($data['company_data']);
+            $company->save();
+
+            // QuoteResponse に関連付け
+            $quoteResponse->update([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'admin_notified_at' => now(),
+            ]);
+
+            return $user;
+        });
+    }
+
+    /**
+     * 返信を取得（詳細表示用）
+     *
+     * @param string $id
+     * @return QuoteResponse
+     */
+    public function getDetail(string $id): QuoteResponse
+    {
+        return $this->repository->getQuery()
+            ->with(['quote', 'quote.contact', 'user', 'company'])
+            ->findOrFail($id);
+    }
+}

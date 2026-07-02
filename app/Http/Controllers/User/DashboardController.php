@@ -20,8 +20,17 @@ class DashboardController extends Controller
 
   public function index(): Response
   {
-    $userId = auth('users')->id();
+    $user = auth('users')->user();
+    $userId = $user->id;
 
+    // Pending ステータスはオンボーディング画面を表示
+    if ($user->status === 'pending') {
+      return Inertia::render('User/OnboardingProgress', [
+        'user' => $user,
+      ]);
+    }
+
+    // Active ユーザーはダッシュボードを表示
     $activeProjects = $this->projectService->getActiveByUser($userId);
     $activeContracts = $this->contractService->getActiveByUser($userId);
     $unpaidInvoices = $this->invoiceService->getUnpaidByUser($userId);

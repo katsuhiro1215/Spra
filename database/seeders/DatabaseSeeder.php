@@ -38,6 +38,15 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             ServicePlanSeeder::class,
             ServiceItemSeeder::class,
+
+            // 規約（Terms）
+            TermSeeder::class,
+
+            // 見積（Quote）
+            QuoteSeeder::class,
+
+            // 契約（Contract）
+            ContractSeeder::class,
         ]);
     }
 }

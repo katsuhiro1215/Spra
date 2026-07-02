@@ -211,7 +211,6 @@ export default function QuoteForm({
                         <FormGroup
                             label="ユーザー"
                             htmlFor="user_id"
-                            required
                             help="見積もりを作成するユーザーを選択してください"
                         >
                             <SelectInput
@@ -228,7 +227,6 @@ export default function QuoteForm({
                                         label: `${user.name} (${user.email})`,
                                     })),
                                 ]}
-                                required
                             />
                             <InputError
                                 className="mt-2"

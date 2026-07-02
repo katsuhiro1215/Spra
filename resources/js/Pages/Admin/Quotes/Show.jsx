@@ -44,18 +44,14 @@ export default function Show({ quote, statuses }) {
                   },
               ]
             : []),
-        ...(quote.status === "approved"
-            ? [
-                  {
-                      label: "契約に進む",
-                      icon: ArrowLeftIcon,
-                      variant: "success",
-                      route: route("admin.contract.create", {
-                          quote_id: quote.id,
-                      }),
-                  },
-              ]
-            : []),
+        {
+            label: "契約書を作成",
+            icon: PencilIcon,
+            variant: "success",
+            route: route("admin.contract.create", {
+                quote_id: quote.id,
+            }),
+        },
         {
             label: "戻る",
             icon: ArrowLeftIcon,

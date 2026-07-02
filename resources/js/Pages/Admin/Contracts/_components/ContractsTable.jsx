@@ -12,7 +12,14 @@ import {
     XCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const ContractsTable = ({ contracts, onDelete, onActivate, onCancel }) => {
+const ContractsTable = ({
+    contracts,
+    onDelete,
+    onActivate,
+    onCancel,
+    onApprove,
+    onReminder,
+}) => {
     // ステータスのバッジカラーを取得
     const getContractStatusColor = (status) => {
         const colors = {
@@ -24,6 +31,28 @@ const ContractsTable = ({ contracts, onDelete, onActivate, onCancel }) => {
             cancelled: "bg-red-100 text-red-800",
         };
         return colors[status] || "bg-gray-100 text-gray-800";
+    };
+
+    // 署名ステータスのバッジカラーを取得
+    const getSignatureStatusColor = (status) => {
+        const colors = {
+            pending: "bg-yellow-100 text-yellow-800",
+            user_signed: "bg-blue-100 text-blue-800",
+            fully_signed: "bg-green-100 text-green-800",
+            rejected: "bg-red-100 text-red-800",
+        };
+        return colors[status] || "bg-gray-100 text-gray-800";
+    };
+
+    // 署名ステータスのラベルを取得
+    const getSignatureStatusLabel = (status) => {
+        const labels = {
+            pending: "署名待ち",
+            user_signed: "ユーザー署名済み",
+            fully_signed: "完全署名",
+            rejected: "却下",
+        };
+        return labels[status] || status;
     };
 
     // ステータスのラベルを取得
@@ -83,6 +112,7 @@ const ContractsTable = ({ contracts, onDelete, onActivate, onCancel }) => {
                             <Th>金額</Th>
                             <Th>契約期間</Th>
                             <Th>ステータス</Th>
+                            <Th>署名ステータス</Th>
                             <Th className="text-right">アクション</Th>
                         </Tr>
                     </THead>
@@ -165,6 +195,19 @@ const ContractsTable = ({ contracts, onDelete, onActivate, onCancel }) => {
                                     </Badge>
                                 </Td>
                                 <Td>
+                                    {contract.signature_status && (
+                                        <Badge
+                                            className={getSignatureStatusColor(
+                                                contract.signature_status,
+                                            )}
+                                        >
+                                            {getSignatureStatusLabel(
+                                                contract.signature_status,
+                                            )}
+                                        </Badge>
+                                    )}
+                                </Td>
+                                <Td>
                                     <div className="flex justify-end space-x-2">
                                         <Link
                                             href={route(
@@ -176,6 +219,38 @@ const ContractsTable = ({ contracts, onDelete, onActivate, onCancel }) => {
                                         >
                                             <EyeIcon className="h-5 w-5" />
                                         </Link>
+
+                                        {/* 署名完了 & 未承認 → 承認ボタン */}
+                                        {contract.signature_status ===
+                                            "fully_signed" &&
+                                            contract.status ===
+                                                "pending_signature" && (
+                                                <button
+                                                    onClick={() =>
+                                                        onApprove &&
+                                                        onApprove(contract)
+                                                    }
+                                                    className="text-green-600 hover:text-green-800"
+                                                    title="契約を承認"
+                                                >
+                                                    <CheckCircleIcon className="h-5 w-5" />
+                                                </button>
+                                            )}
+
+                                        {/* 署名待ち → リマインダー送信ボタン */}
+                                        {contract.signature_status ===
+                                            "pending" && (
+                                            <button
+                                                onClick={() =>
+                                                    onReminder &&
+                                                    onReminder(contract)
+                                                }
+                                                className="text-orange-600 hover:text-orange-800"
+                                                title="署名リマインダー送信"
+                                            >
+                                                <DocumentTextIcon className="h-5 w-5" />
+                                            </button>
+                                        )}
 
                                         {(contract.status === "draft" ||
                                             contract.status ===

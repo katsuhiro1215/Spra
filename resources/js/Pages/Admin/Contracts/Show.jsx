@@ -7,6 +7,8 @@ import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import UserSignatureForm from "@/Components/UserSignatureForm";
+import AdminSignatureVerification from "@/Components/AdminSignatureVerification";
 // Icons
 import {
     ArrowLeftIcon,
@@ -22,6 +24,7 @@ import {
 export default function Show({ contract }) {
     const [uploading, setUploading] = useState(false);
     const [editingBilling, setEditingBilling] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const { data, setData, post, reset } = useForm({
         document: null,
@@ -121,6 +124,15 @@ export default function Show({ contract }) {
         );
         if (confirmed) {
             router.delete(route("admin.contract.destroy", contract.id));
+        }
+    };
+
+    const handleSend = () => {
+        const confirmed = confirm(
+            `契約「${contract.title}」をクライアントにメール送信してもよろしいですか？`,
+        );
+        if (confirmed) {
+            router.post(route("admin.contract.send", contract.id));
         }
     };
 
@@ -737,6 +749,114 @@ export default function Show({ contract }) {
                     </CardBody>
                 </Card>
 
+                {/* メール送信履歴 */}
+                {contract.histories && contract.histories.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>メール送信履歴</CardTitle>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-3">
+                                {contract.histories
+                                    .filter((h) => h.action === "sent")
+                                    .map((history) => (
+                                        <div
+                                            key={history.id}
+                                            className="p-3 border rounded-lg bg-gray-50"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold text-sm">
+                                                            {
+                                                                history.recipient_email
+                                                            }
+                                                        </span>
+                                                        <Badge
+                                                            variant={
+                                                                history.status ===
+                                                                "sent"
+                                                                    ? "success"
+                                                                    : history.status ===
+                                                                        "pending"
+                                                                      ? "info"
+                                                                      : "danger"
+                                                            }
+                                                        >
+                                                            {history.status ===
+                                                            "sent"
+                                                                ? "送信済み"
+                                                                : history.status ===
+                                                                    "pending"
+                                                                  ? "ペンディング"
+                                                                  : "失敗"}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        {history.subject}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        {formatDate(
+                                                            history.sent_at ||
+                                                                history.created_at,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </CardBody>
+                    </Card>
+                )}
+
+                {/* 署名管理 */}
+                {contract.signature_status && (
+                    <Card key={`signature-${refreshKey}`}>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <CardTitle>署名管理</CardTitle>
+                                <Badge
+                                    className={
+                                        contract.signature_status ===
+                                        "fully_signed"
+                                            ? "bg-green-100 text-green-800"
+                                            : contract.signature_status ===
+                                                "user_signed"
+                                              ? "bg-blue-100 text-blue-800"
+                                              : contract.signature_status ===
+                                                  "rejected"
+                                                ? "bg-red-100 text-red-800"
+                                                : "bg-yellow-100 text-yellow-800"
+                                    }
+                                >
+                                    {contract.signature_status ===
+                                    "fully_signed"
+                                        ? "完全署名"
+                                        : contract.signature_status ===
+                                            "user_signed"
+                                          ? "ユーザー署名済み"
+                                          : contract.signature_status ===
+                                              "rejected"
+                                            ? "却下"
+                                            : "署名待ち"}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardBody>
+                            <AdminSignatureVerification
+                                contract={contract}
+                                onSuccess={() => {
+                                    setRefreshKey((k) => k + 1);
+                                    router.reload({
+                                        only: ["contract"],
+                                    });
+                                }}
+                            />
+                        </CardBody>
+                    </Card>
+                )}
+
                 {/* アクションボタン */}
                 <Card>
                     <CardBody>
@@ -745,10 +865,16 @@ export default function Show({ contract }) {
                                 {(contract.status === "draft" ||
                                     contract.status ===
                                         "pending_signature") && (
-                                    <PrimaryButton onClick={handleActivate}>
-                                        <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                        契約を有効化
-                                    </PrimaryButton>
+                                    <>
+                                        <PrimaryButton onClick={handleSend}>
+                                            <DocumentArrowUpIcon className="h-5 w-5 mr-2" />
+                                            メール送信
+                                        </PrimaryButton>
+                                        <PrimaryButton onClick={handleActivate}>
+                                            <CheckCircleIcon className="h-5 w-5 mr-2" />
+                                            契約を有効化
+                                        </PrimaryButton>
+                                    </>
                                 )}
                                 {contract.status === "active" && (
                                     <SecondaryButton onClick={handleCancel}>

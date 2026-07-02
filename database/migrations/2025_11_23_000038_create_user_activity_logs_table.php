@@ -13,8 +13,8 @@ return new class extends Migration
   {
     Schema::create('user_activity_logs', function (Blueprint $table) {
       $table->ulid('id')->primary();
-      $table->uuid('user_id');
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+      $table->uuid('user_id')->nullable()->comment('ユーザーID（システム操作の場合はnull）');
+      $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
       $table->string('action');           // 操作種別
       $table->string('model_type')->nullable();
       $table->string('model_id')->nullable();  // ULID or UUID

@@ -15,48 +15,48 @@ use App\Http\Controllers\User\Auth\VerifyEmailController;
 Route::middleware('guest:users')->group(function () {
     // 新規登録
     Route::controller(RegisteredUserController::class)->group(function () {
-        Route::get('register', 'create')->name('register');
+        Route::get('register', 'create')->name('user.register');
         Route::post('register', 'store');
         // 招待経由の登録
-        Route::get('register/invited/{token}', 'createWithInvitation')->name('register.invited');
+        Route::get('register/invited/{token}', 'createWithInvitation')->name('user.register.invited');
     });
     // ログイン
     Route::controller(AuthenticatedSessionController::class)->group(function () {
-        Route::get('login', 'create')->name('login');
+        Route::get('login', 'create')->name('user.login');
         Route::post('login', 'store');
     });
     // パスワードリセットリンク
     Route::controller(PasswordResetLinkController::class)->group(function () {
-        Route::get('forgot-password', 'create')->name('password.request');
-        Route::post('forgot-password', 'store')->name('password.email');
+        Route::get('forgot-password', 'create')->name('user.password.request');
+        Route::post('forgot-password', 'store')->name('user.password.email');
     });
     // パスワードリセット
     Route::controller(NewPasswordController::class)->group(function () {
-        Route::get('reset-password/{token}', 'create')->name('password.reset');
-        Route::post('reset-password', 'store')->name('password.store');
+        Route::get('reset-password/{token}', 'create')->name('user.password.reset');
+        Route::post('reset-password', 'store')->name('user.password.store');
     });
 });
 
 Route::middleware('auth:users')->group(function () {
     // メール確認
     Route::get('verify-email', EmailVerificationPromptController::class)
-        ->name('verification.notice');
+        ->name('user.verification.notice');
     // メール確認
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
+        ->name('user.verification.verify');
     // メール再送信
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
-        ->name('verification.send');
+        ->name('user.verification.send');
     // パスワード確認
     Route::controller(ConfirmablePasswordController::class)->group(function () {
-        Route::get('confirm-password', 'show')->name('password.confirm');
+        Route::get('confirm-password', 'show')->name('user.password.confirm');
         Route::post('confirm-password', 'store');
     });
     // パスワード更新
-    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+    Route::put('password', [PasswordController::class, 'update'])->name('user.password.update');
     // ログアウト
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->name('logout');
+        ->name('user.logout');
 });
