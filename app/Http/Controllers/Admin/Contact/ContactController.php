@@ -5,66 +5,44 @@ namespace App\Http\Controllers\Admin\Contact;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\Admin;
+use App\Services\ContactService;
+use App\Http\Requests\ContactRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Admin用お問い合わせコントローラー
+ *
+ * Service層を通じてお問い合わせの管理を実施
+ */
 class ContactController extends Controller
 {
+    public function __construct(
+        private ContactService $contactService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): Response
     {
-        $query = Contact::with(['assignedAdmin']);
-
-        // フィルタリング
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('company', 'like', "%{$search}%")
-                    ->orWhere('subject', 'like', "%{$search}%")
-                    ->orWhere('source', 'like', "%{$search}%");
-            });
-        }
-
-        // 流入元フィルタ
-        if ($request->filled('source')) {
-            $query->where('source', $request->source);
-        }
-
-        // ソート
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $contacts = $query->paginate(20)->withQueryString();
-
-        // 統計情報
-        $stats = [
-            'total' => Contact::count(),
-            'new' => Contact::new()->count(),
-            'in_progress' => Contact::inProgress()->count(),
-            'replied' => Contact::replied()->count(),
-            'resolved' => Contact::resolved()->count(),
-            'recent' => Contact::recent()->count(),
+        $filters = $request->only(['status', 'category', 'source', 'search']);
+        $sort = [
+            'field' => $request->get('sort_by', 'created_at'),
+            'direction' => $request->get('sort_order', 'desc'),
         ];
+
+        // Service層から取得
+        $contacts = $this->contactService->getPaginatedForAdmin($filters, $sort, 20);
+        $stats = $this->contactService->getStatsForAdmin();
 
         return Inertia::render('Admin/Contacts/Index', [
             'contacts' => $contacts,
             'stats' => $stats,
-            'filters' => $request->only(['status', 'category', 'source', 'search', 'sort_by', 'sort_order']) ?: [],
+            'filters' => $filters,
             'admins' => Admin::select('id', 'email')->get(),
         ]);
     }
@@ -74,6 +52,7 @@ class ContactController extends Controller
      */
     public function show(Contact $contact): Response
     {
+        // リレーション読み込み
         $contact->load([
             'assignedAdmin',
             'responses.admin',
@@ -90,24 +69,18 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Contact $contact): RedirectResponse
+    public function update(ContactRequest $request, Contact $contact): RedirectResponse
     {
-        $request->validate([
-            'status' => 'required|in:new,in_progress,replied,resolved,closed',
-            'admin_notes' => 'nullable|string',
-            'assigned_to' => 'nullable|exists:admins,id',
-        ]);
+        try {
+            $this->contactService->updateContact($contact, $request->validated());
 
-        $updateData = $request->only(['status', 'admin_notes', 'assigned_to']);
-
-        // ステータスが返信済み、解決済みまたはクローズの場合、responded_atを設定
-        if (in_array($request->status, ['replied', 'resolved', 'closed']) && !$contact->responded_at) {
-            $updateData['responded_at'] = now();
+            return redirect()->back()->with('success', 'お問い合わせ情報を更新しました。');
+        } catch (\Exception $e) {
+            Log::error('Contact update error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'お問い合わせの更新に失敗しました。');
         }
-
-        $contact->update($updateData);
-
-        return redirect()->back()->with('success', 'お問い合わせ情報を更新しました。');
     }
 
     /**
@@ -115,10 +88,16 @@ class ContactController extends Controller
      */
     public function destroy(Contact $contact): RedirectResponse
     {
-        $contact->delete();
+        try {
+            $this->contactService->deleteContact($contact);
 
-        return redirect()->route('admin.contacts.index')
-            ->with('success', 'お問い合わせを削除しました。');
+            return redirect()->route('admin.contacts.index')
+                ->with('success', 'お問い合わせを削除しました。');
+        } catch (\Exception $e) {
+            Log::error('Contact delete error: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'お問い合わせの削除に失敗しました。');
+        }
     }
 
     /**
@@ -126,28 +105,33 @@ class ContactController extends Controller
      */
     public function bulkUpdate(Request $request): RedirectResponse
     {
-        $request->validate([
-            'contact_ids' => 'required|array',
-            'contact_ids.*' => 'exists:contacts,id',
-            'status' => 'required|in:new,in_progress,replied,resolved,closed',
-            'assigned_to' => 'nullable|exists:admins,id',
-        ]);
+        try {
+            $request->validate([
+                'contact_ids' => 'required|array',
+                'contact_ids.*' => 'exists:contacts,id',
+                'status' => 'required|in:new,in_progress,replied,resolved,closed',
+                'assigned_to' => 'nullable|exists:admins,id',
+            ]);
 
-        $updateData = ['status' => $request->status];
+            $updateData = ['status' => $request->status];
 
-        if ($request->filled('assigned_to')) {
-            $updateData['assigned_to'] = $request->assigned_to;
+            if ($request->filled('assigned_to')) {
+                $updateData['assigned_to'] = $request->assigned_to;
+            }
+
+            // Service層で一括更新
+            $count = $this->contactService->bulkUpdateStatus(
+                $request->contact_ids,
+                $updateData
+            );
+
+            return redirect()->back()->with('success', "{$count}件のお問い合わせを更新しました。");
+        } catch (\Exception $e) {
+            Log::error('Contact bulk update error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'お問い合わせの一括更新に失敗しました。');
         }
-
-        // ステータスが返信済み、解決済みまたはクローズの場合、responded_atを設定
-        if (in_array($request->status, ['replied', 'resolved', 'closed'])) {
-            $updateData['responded_at'] = now();
-        }
-
-        Contact::whereIn('id', $request->contact_ids)->update($updateData);
-
-        $count = count($request->contact_ids);
-        return redirect()->back()->with('success', "{$count}件のお問い合わせを更新しました。");
     }
 
     /**
@@ -155,76 +139,68 @@ class ContactController extends Controller
      */
     public function export(Request $request)
     {
-        $query = Contact::with(['assignedAdmin']);
-
-        // 同じフィルタリングロジックを適用
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('company', 'like', "%{$search}%")
-                    ->orWhere('subject', 'like', "%{$search}%");
-            });
-        }
-
-        $contacts = $query->orderBy('created_at', 'desc')->get();
-
-        $csvData = [];
-        $csvData[] = [
-            'ID',
-            '名前',
-            'メール',
-            '電話番号',
-            '会社名',
-            'カテゴリ',
-            '件名',
-            'メッセージ',
-            'ステータス',
-            '担当者',
-            '管理者メモ',
-            '作成日',
-            '返信日'
-        ];
-
-        foreach ($contacts as $contact) {
-            $csvData[] = [
-                $contact->id,
-                $contact->name,
-                $contact->email,
-                $contact->phone,
-                $contact->company,
-                $contact->category_label,
-                $contact->subject,
-                $contact->message,
-                $contact->status_label,
-                $contact->assignedAdmin?->name,
-                $contact->admin_notes,
-                $contact->created_at?->format('Y-m-d H:i:s'),
-                $contact->responded_at?->format('Y-m-d H:i:s'),
+        try {
+            $filters = $request->only(['status', 'category', 'source', 'search']);
+            $sort = [
+                'field' => $request->get('sort_by', 'created_at'),
+                'direction' => 'desc',
             ];
+
+            // Service層からエクスポート用データを取得
+            $contacts = $this->contactService->getForExport($filters, $sort);
+
+            $csvData = [];
+            $csvData[] = [
+                'ID',
+                '名前',
+                'メール',
+                '電話番号',
+                '会社名',
+                'カテゴリ',
+                '件名',
+                'メッセージ',
+                'ステータス',
+                '担当者',
+                '管理者メモ',
+                '作成日',
+                '返信日'
+            ];
+
+            foreach ($contacts as $contact) {
+                $csvData[] = [
+                    $contact['id'],
+                    $contact['name'],
+                    $contact['email'],
+                    $contact['phone'],
+                    $contact['company'],
+                    Contact::find($contact['id'])?->category_label,
+                    $contact['subject'],
+                    $contact['message'],
+                    Contact::find($contact['id'])?->status_label,
+                    $contact['assigned_admin']['name'] ?? '',
+                    $contact['admin_notes'],
+                    $contact['created_at'],
+                    $contact['responded_at'],
+                ];
+            }
+
+            $filename = 'contacts_' . now()->format('Y_m_d_H_i_s') . '.csv';
+
+            $handle = fopen('php://temp', 'w+');
+            foreach ($csvData as $row) {
+                fputcsv($handle, $row);
+            }
+            rewind($handle);
+            $csvContent = stream_get_contents($handle);
+            fclose($handle);
+
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        } catch (\Exception $e) {
+            Log::error('Contact export error: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'お問い合わせのエクスポートに失敗しました。');
         }
-
-        $filename = 'contacts_' . now()->format('Y_m_d_H_i_s') . '.csv';
-
-        $handle = fopen('php://temp', 'w+');
-        foreach ($csvData as $row) {
-            fputcsv($handle, $row);
-        }
-        rewind($handle);
-        $csvContent = stream_get_contents($handle);
-        fclose($handle);
-
-        return response($csvContent)
-            ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

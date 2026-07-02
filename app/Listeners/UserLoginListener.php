@@ -61,7 +61,7 @@ class UserLoginListener
     /**
      * Record login history.
      */
-    private function recordLoginHistory(int $userId, string $type): void
+    private function recordLoginHistory(string $userId, string $type): void
     {
         $request = Request::instance();
         $agent = new Agent();
@@ -93,7 +93,7 @@ class UserLoginListener
     /**
      * Record activity log.
      */
-    private function recordActivityLog(?int $userId, string $action, string $description, string $status = UserActivityLog::STATUS_SUCCESS): void
+    private function recordActivityLog(?string $userId, string $action, string $description, string $status = UserActivityLog::STATUS_SUCCESS): void
     {
         $request = Request::instance();
         $agent = new Agent();

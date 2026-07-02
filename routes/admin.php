@@ -176,9 +176,13 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('/contact/bulk-update', [ContactController::class, 'bulkUpdate'])->name('contact.bulk-update');
     Route::get('/contact/export', [ContactController::class, 'export'])->name('contact.export');
+
+    // 返信管理（グローバル一覧）
+    Route::get('response', [ResponseController::class, 'index'])->name('response.index');
+
     // お問い合わせ返答管理（Contact配下）
     Route::prefix('contact/{contact}')->name('contact.')->group(function () {
-        Route::resource('responses', ResponseController::class)->except(['index', 'show']);
+        Route::resource('responses', ResponseController::class)->except(['index']);
         Route::post('responses/{response}/send', [ResponseController::class, 'send'])->name('responses.send');
         // ユーザー招待管理
         Route::post('invitations', [UserInvitationController::class, 'store'])->name('invitations.store');
@@ -188,10 +192,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('{invitation}/resend', [UserInvitationController::class, 'resend'])->name('resend');
         Route::patch('{invitation}/revoke', [UserInvitationController::class, 'revoke'])->name('revoke');
     });
-    // 返答テンプレート管理（Settings配下）
-    Route::resource('settings/response-templates', ResponseTemplateController::class)->parameters([
-        'response-templates' => 'responseTemplate'
-    ]);
+
+    // 返答テンプレート管理
+    Route::resource('responseTemplate', ResponseTemplateController::class);
 
     /**************************************
      * プロジェクト
@@ -245,7 +248,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     // お客様返信管理
     Route::prefix('quote-response')->name('quote-response.')->group(function () {
         Route::get('/', [QuoteResponseController::class, 'index'])->name('index');
-        Route::get('/{id}', [QuoteResponseController::class, 'detail'])->name('detail');
+        Route::get('/{quoteResponse}', [QuoteResponseController::class, 'show'])->name('show');
+        Route::post('/{quoteResponse}/send-invitation', [QuoteResponseController::class, 'sendInvitation'])->name('send-invitation');
     });
 
     // オンボーディング管理

@@ -4,11 +4,15 @@ import "./bootstrap";
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
+import { startCsrfTokenAutoRefresh } from "./Utils/CsrfTokenRefresh";
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
 const pages = import.meta.glob("./Pages/**/*.jsx", { eager: false });
 console.log("Available pages:", Object.keys(pages));
+
+// CSRF トークン自動更新を開始（10分ごと）
+startCsrfTokenAutoRefresh(10);
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

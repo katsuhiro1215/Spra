@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Log;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         using: function () {
-            // User routes with user. prefix
+            // API routes (CSRF 検証なし)
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+
+            // User routes
             Route::prefix('/')
-                ->as('user.')
                 ->middleware('web')
                 ->group(base_path('routes/web.php'));
 

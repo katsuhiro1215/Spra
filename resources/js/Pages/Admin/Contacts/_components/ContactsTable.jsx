@@ -1,16 +1,23 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { TextButton } from "@/Components/Buttons";
+import Avatar from "@/Components/Avatar";
+// Icons
 import {
     EyeIcon,
-    PencilIcon,
     TrashIcon,
     ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 
-const ContactsTable = ({ contacts, onDelete }) => {
+const ContactsTable = ({
+    contacts,
+    selectedContacts,
+    onSelect,
+    onDelete,
+    isDeleting,
+}) => {
     const getContactStatusBadge = (status) => {
         const statusMap = {
             new: { text: "新規", variant: "info" },
@@ -22,12 +29,19 @@ const ContactsTable = ({ contacts, onDelete }) => {
         return statusMap[status] || { text: status, variant: "default" };
     };
 
+    const handleSelectChange = (contactId) => {
+        if (onSelect) {
+            onSelect(contactId);
+        }
+    };
+
     return (
         <Card>
             <CardHeader>お問い合わせ一覧 ({contacts.total}件)</CardHeader>
             <Table>
                 <THead>
                     <Tr hover={false}>
+                        <Th>選択</Th>
                         <Th>受信日時</Th>
                         <Th>名前</Th>
                         <Th>カテゴリ</Th>
@@ -40,6 +54,17 @@ const ContactsTable = ({ contacts, onDelete }) => {
                 <TBody>
                     {contacts.data.map((contact) => (
                         <Tr key={contact.id}>
+                            <Td>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedContacts.includes(
+                                        contact.id,
+                                    )}
+                                    onChange={() =>
+                                        handleSelectChange(contact.id)
+                                    }
+                                />
+                            </Td>
                             <Td>
                                 {new Date(contact.created_at).toLocaleString(
                                     "ja-JP",
@@ -55,11 +80,11 @@ const ContactsTable = ({ contacts, onDelete }) => {
                             <Td>
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 h-10 w-10">
-                                        <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                            <span className="text-indigo-600 dark:text-indigo-300 font-medium text-sm">
-                                                {contact.name?.charAt(0) || "?"}
-                                            </span>
-                                        </div>
+                                        <Avatar
+                                            name={
+                                                contact.name?.charAt(0) || "?"
+                                            }
+                                        />
                                     </div>
                                     <div className="ml-4">
                                         <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -98,29 +123,40 @@ const ContactsTable = ({ contacts, onDelete }) => {
                                 </span>
                             </Td>
                             <Td>
-                                <div className="flex justify-end items-center gap-2">
-                                    <Link
+                                <div className="flex justify-end items-center gap-1">
+                                    <TextButton
                                         href={route(
                                             "admin.contact.show",
                                             contact.id,
                                         )}
-                                        className="p-1 text-cyan-600 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded transition-colors"
+                                        variant="info"
                                         title="詳細"
+                                        size="sm"
                                     >
                                         <EyeIcon className="h-5 w-5" />
-                                    </Link>
+                                    </TextButton>
                                     {!contact.responded_at && (
-                                        <Link
+                                        <TextButton
                                             href={route(
                                                 "admin.contact.responses.create",
                                                 contact.id,
                                             )}
-                                            className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                            variant="success"
                                             title="返信"
+                                            size="sm"
                                         >
                                             <ChatBubbleLeftRightIcon className="h-5 w-5" />
-                                        </Link>
+                                        </TextButton>
                                     )}
+                                    <TextButton
+                                        onClick={() => onDelete(contact)}
+                                        disabled={isDeleting === contact.id}
+                                        variant="danger"
+                                        title="削除"
+                                        size="sm"
+                                    >
+                                        <TrashIcon className="h-5 w-5" />
+                                    </TextButton>
                                 </div>
                             </Td>
                         </Tr>

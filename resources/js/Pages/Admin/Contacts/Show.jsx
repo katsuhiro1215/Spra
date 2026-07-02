@@ -7,7 +7,6 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
 import {
-    EditButton,
     DeleteButton,
     SecondaryButton,
     TextButton,
@@ -228,11 +227,11 @@ export default function Show() {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            {/* メイン */}
-            <div className="flex space-x-2">
-                <EditButton onClick={() => setIsEditing(!isEditing)}>
+            {/* アクションボタン */}
+            <div className="mb-6 flex gap-2">
+                <SecondaryButton onClick={() => setIsEditing(!isEditing)}>
                     {isEditing ? "キャンセル" : "編集"}
-                </EditButton>
+                </SecondaryButton>
                 <DeleteButton onClick={handleDelete}>削除</DeleteButton>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -12,7 +12,7 @@ use App\Mail\ContactNotificationMail;
 
 /**
  * Public用お問い合わせコントローラー
- * 
+ *
  * Publicサイトからのお問い合わせ送信を処理
  */
 class ContactController extends Controller
@@ -23,7 +23,7 @@ class ContactController extends Controller
 
     /**
      * お問い合わせを送信
-     * 
+     *
      * @param StoreContactRequest $request
      * @return RedirectResponse
      */
@@ -34,42 +34,19 @@ class ContactController extends Controller
             $validated = $request->validated();
 
             // トラッキング情報を追加
-            $contactData = [
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
-                'company' => $validated['company'] ?? null,
-                'subject' => $validated['subject'],
-                'message' => $validated['message'],
+            $contactData = array_merge($validated, [
                 'status' => 'new',
                 'source' => 'web',
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'referrer' => $request->header('referer'),
-            ];
+            ]);
 
-            // お問い合わせを保存
+            // Service層を通じてお問い合わせを保存
             $contact = $this->contactService->createContact($contactData);
 
-            // お客様への自動返信メール送信
-            try {
-                Mail::to($contact->email)->send(new ContactReceivedMail($contact));
-            } catch (\Exception $e) {
-                Log::warning('自動返信メール送信失敗: ' . $e->getMessage(), [
-                    'contact_id' => $contact->id,
-                    'email' => $contact->email,
-                ]);
-            }
-
-            // 管理者への通知メール送信
-            try {
-                $adminEmail = config('mail.admin_address', 'admin@example.com');
-                Mail::to($adminEmail)->send(new ContactNotificationMail($contact));
-            } catch (\Exception $e) {
-                Log::warning('管理者通知メール送信失敗: ' . $e->getMessage(), [
-                    'contact_id' => $contact->id,
-                ]);
-            }
+            // メール送信
+            $this->sendNotificationEmails($contact);
 
             Log::info('お問い合わせを受信しました', [
                 'contact_id' => $contact->id,
@@ -90,6 +67,35 @@ class ContactController extends Controller
                 ->back()
                 ->withInput()
                 ->with('error', 'お問い合わせの送信に失敗しました。お手数ですが、しばらくしてから再度お試しください。');
+        }
+    }
+
+    /**
+     * 通知メールを送信
+     *
+     * @param mixed $contact
+     * @return void
+     */
+    private function sendNotificationEmails($contact): void
+    {
+        // お客様への自動返信メール送信
+        try {
+            Mail::to($contact->email)->send(new ContactReceivedMail($contact));
+        } catch (\Exception $e) {
+            Log::warning('自動返信メール送信失敗: ' . $e->getMessage(), [
+                'contact_id' => $contact->id,
+                'email' => $contact->email,
+            ]);
+        }
+
+        // 管理者への通知メール送信
+        try {
+            $adminEmail = config('mail.admin_address', 'admin@example.com');
+            Mail::to($adminEmail)->send(new ContactNotificationMail($contact));
+        } catch (\Exception $e) {
+            Log::warning('管理者通知メール送信失敗: ' . $e->getMessage(), [
+                'contact_id' => $contact->id,
+            ]);
         }
     }
 }

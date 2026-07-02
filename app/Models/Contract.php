@@ -251,4 +251,116 @@ class Contract extends Model
         // 次回請求日が設定されていない、または次回請求日が過ぎている
         return !$this->next_billing_date || now()->gte($this->next_billing_date);
     }
+
+    /**
+     * ドラフト作成可能かチェック
+     * 最小要件: User と Company が存在
+     */
+    public function canCreateDraft(): bool
+    {
+        return $this->user_id && $this->company_id;
+    }
+
+    /**
+     * 契約書送信可能かチェック
+     * 必須: User.Profile、Company、Company.Address、Quote が完全
+     */
+    public function canSend(): bool
+    {
+        return empty($this->getMissingRequirements());
+    }
+
+    /**
+     * 不足している必須要件を取得
+     * @return array 不足項目のキーと説明
+     */
+    public function getMissingRequirements(): array
+    {
+        $missing = [];
+
+        // User の確認
+        if (!$this->user_id) {
+            $missing['user'] = 'ユーザーが選択されていません';
+            return $missing;
+        }
+
+        $user = $this->user;
+        if (!$user) {
+            $missing['user'] = 'ユーザーが見つかりません';
+            return $missing;
+        }
+
+        // User.Profile の確認
+        $profile = $user->profile;
+        if (!$profile) {
+            $missing['profile'] = 'ユーザーのプロフィール情報が不足しています';
+        } else {
+            if (!$profile->first_name || !$profile->last_name) {
+                $missing['profile_name'] = 'ユーザーの氏名が入力されていません';
+            }
+            if (!$profile->phone && !$profile->mobile) {
+                $missing['profile_phone'] = 'ユーザーの連絡先が入力されていません';
+            }
+        }
+
+        // Company の確認
+        if (!$this->company_id) {
+            $missing['company'] = '会社が選択されていません';
+            return $missing;
+        }
+
+        $company = $this->company;
+        if (!$company) {
+            $missing['company'] = '会社が見つかりません';
+            return $missing;
+        }
+
+        // Company の基本情報確認
+        if (!$company->legal_name) {
+            $missing['company_name'] = '会社名が入力されていません';
+        }
+
+        // Company.Address の確認
+        $address = $company->addresses()->first();
+        if (!$address) {
+            $missing['company_address'] = '会社の住所が登録されていません';
+        } else {
+            if (!$address->postal_code || !$address->prefecture || !$address->city) {
+                $missing['company_address_detail'] = '会社の住所情報が不完全です';
+            }
+        }
+
+        // Quote の確認
+        if (!$this->quote_id) {
+            $missing['quote'] = '見積もりが選択されていません';
+        } elseif (!$this->quote) {
+            $missing['quote'] = '選択された見積もりが見つかりません';
+        }
+
+        return $missing;
+    }
+
+    /**
+     * 不足している必須要件を詳細に取得（UI表示用）
+     * @return array ['has_errors' => bool, 'errors' => [message => string], 'warnings' => [message => string]]
+     */
+    public function getRequirementStatus(): array
+    {
+        $missing = $this->getMissingRequirements();
+
+        $errors = [];
+        $warnings = [];
+
+        foreach ($missing as $key => $message) {
+            $errors[] = $message;
+        }
+
+        return [
+            'has_errors' => !empty($errors),
+            'can_send' => $this->canSend(),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'missing_requirements' => $missing,
+        ];
+    }
 }

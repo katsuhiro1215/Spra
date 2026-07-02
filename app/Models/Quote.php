@@ -211,4 +211,15 @@ class Quote extends Model
 
         return sprintf('Q%s-%03d', $year, $nextNumber);
     }
+
+    // -------------------------
+    // Observer Bootstrap
+    // -------------------------
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\QuoteObserver::class);
+    }
 }

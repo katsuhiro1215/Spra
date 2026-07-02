@@ -17,9 +17,10 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const isPending = user.status === "pending";
 
     // サイドバーのナビゲーション項目
-    const navigation = [
+    let navigation = [
         {
             name: "ダッシュボード",
             href: route("user.dashboard"),
@@ -57,6 +58,17 @@ export default function AuthenticatedLayout({ header, children }) {
             current: route().current("user.profile.edit"),
         },
     ];
+
+    // Pending ユーザーはダッシュボードと設定のみアクセス可能
+    if (isPending) {
+        navigation = navigation.filter(
+            (item) =>
+                item.current === route().current("user.dashboard") ||
+                route().current("user.profile.edit") ||
+                item.name === "ダッシュボード" ||
+                item.name === "設定",
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
