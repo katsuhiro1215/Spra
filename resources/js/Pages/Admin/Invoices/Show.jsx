@@ -1,92 +1,67 @@
 import React, { useState } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
-import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
-import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { FlashMessage } from "@/Components/Notifications";
-import {
-    PrimaryButton,
-    SecondaryButton,
-    DangerButton,
-} from "@/Components/Buttons";
-import { FormField, FormSelect, FormTextarea } from "@/Components/Forms";
+import { ConfirmAlert } from "@/Components/Alerts";
 import {
     PencilIcon,
     TrashIcon,
     PaperAirplaneIcon,
     DocumentArrowDownIcon,
     CurrencyYenIcon,
+    ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import {
-    PAYMENT_METHOD_OPTIONS,
-    PAYMENT_TYPE_OPTIONS,
-} from "@/Constants/SelectOptions";
+
+// Custom Components
+import BasicInfo from "./_components/BasicInfo";
+import ClientInfo from "./_components/ClientInfo";
+import InvoiceDetails from "./_components/InvoiceDetails";
+import PaymentInfo from "./_components/PaymentInfo";
 
 export default function Show({ invoice, payments }) {
-    // ========================================
-    // State
-    // ========================================
-    const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const [activeTab, setActiveTab] = useState("basic");
+    const [showConfirmAlert, setShowConfirmAlert] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(null);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        amount: "",
-        payment_method: "bank_transfer",
-        payment_type: "full",
-        payment_date: new Date().toISOString().split("T")[0],
-        transaction_id: "",
-        notes: "",
-    });
+    const tabs = [
+        { id: "basic", label: "基本情報" },
+        { id: "client", label: "クライアント" },
+        { id: "details", label: "明細" },
+        { id: "payment", label: "支払情報" },
+    ];
 
     // ========================================
-    // Handlers - Actions
+    // Handlers
     // ========================================
-    const handleSend = () => {
-        if (confirm("この請求書を送付済みにしてもよろしいですか？")) {
-            router.patch(route("admin.invoice.send", invoice.id));
-        }
+    const handleSendClick = () => {
+        setConfirmAction("send");
+        setShowConfirmAlert(true);
     };
 
-    const handleDelete = () => {
-        if (
-            confirm(
-                `請求書「${invoice.invoice_number}」を削除してもよろしいですか？`,
-            )
-        ) {
+    const handleDeleteClick = () => {
+        setConfirmAction("delete");
+        setShowConfirmAlert(true);
+    };
+
+    const handleConfirmAction = () => {
+        if (confirmAction === "send") {
+            router.patch(route("admin.invoice.send", invoice.id));
+        } else if (confirmAction === "delete") {
             router.delete(route("admin.invoice.destroy", invoice.id), {
                 onSuccess: () => {
                     router.visit(route("admin.invoice.index"));
                 },
             });
         }
-    };
-
-    const handleRecordPayment = (e) => {
-        e.preventDefault();
-        post(route("admin.invoice.payments.store", invoice.id), {
-            onSuccess: () => {
-                reset();
-                setShowPaymentForm(false);
-            },
-        });
+        setShowConfirmAlert(false);
+        setConfirmAction(null);
     };
 
     // ========================================
-    // Render - Helper Functions
+    // Helpers
     // ========================================
-    const getStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            sent: "bg-blue-100 text-blue-800",
-            viewed: "bg-green-100 text-green-800",
-            paid: "bg-emerald-100 text-emerald-800",
-            overdue: "bg-red-100 text-red-800",
-            cancelled: "bg-gray-100 text-gray-800",
-        };
-        return colors[status] || "bg-gray-100 text-gray-800";
-    };
-
     const getStatusLabel = (status) => {
         const labels = {
             draft: "下書き",
@@ -99,21 +74,21 @@ export default function Show({ invoice, payments }) {
         return labels[status] || status;
     };
 
-    const getPaymentMethodLabel = (method) => {
-        const option = PAYMENT_METHOD_OPTIONS.find((o) => o.value === method);
-        return option?.label || method;
-    };
-
-    const getPaymentTypeLabel = (type) => {
-        const option = PAYMENT_TYPE_OPTIONS.find((o) => o.value === type);
-        return option?.label || type;
-    };
-
-    const formatAmount = (amount) => {
-        return new Intl.NumberFormat("ja-JP", {
-            style: "currency",
-            currency: "JPY",
-        }).format(amount || 0);
+    const getStatusColor = (status) => {
+        const colors = {
+            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+            sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+            viewed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+            overdue:
+                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+            cancelled:
+                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+        };
+        return (
+            colors[status] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+        );
     };
 
     const formatDate = (date) => {
@@ -123,6 +98,13 @@ export default function Show({ invoice, payments }) {
             month: "2-digit",
             day: "2-digit",
         });
+    };
+
+    const formatAmount = (amount) => {
+        return new Intl.NumberFormat("ja-JP", {
+            style: "currency",
+            currency: "JPY",
+        }).format(amount || 0);
     };
 
     const isOverdue = () => {
@@ -136,28 +118,45 @@ export default function Show({ invoice, payments }) {
         return new Date(invoice.due_date) < new Date();
     };
 
-    const totalPaid =
-        payments?.reduce((sum, p) => {
-            if (p.status === "completed") {
-                return sum + parseFloat(p.amount);
-            }
-            return sum;
-        }, 0) || 0;
-
-    const remainingAmount = invoice.total_amount - totalPaid;
-    const paymentProgress = (totalPaid / invoice.total_amount) * 100;
+    // ========================================
+    // Confirm Alert Messages
+    // ========================================
+    const getConfirmMessage = () => {
+        if (confirmAction === "send") {
+            return {
+                title: "請求書を送付します",
+                message: `請求書「${invoice.invoice_number}」をクライアントに送付してもよろしいですか？`,
+                confirmText: "送付する",
+                type: "confirm",
+            };
+        } else if (confirmAction === "delete") {
+            return {
+                title: "請求書を削除します",
+                message: `請求書「${invoice.invoice_number}」を削除してもよろしいですか？\nこの操作は取り消せません。`,
+                confirmText: "削除する",
+                type: "warning",
+            };
+        }
+        return { title: "", message: "", confirmText: "実行", type: "confirm" };
+    };
 
     // ========================================
-    // Constants - Header & Breadcrumbs
+    // Header & Breadcrumbs
     // ========================================
     const headerActions = [
+        {
+            label: "戻る",
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.invoice.index"),
+        },
         ...(invoice.status === "draft"
             ? [
                   {
                       label: "送付",
                       icon: PaperAirplaneIcon,
                       variant: "primary",
-                      onClick: handleSend,
+                      onClick: handleSendClick,
                   },
                   {
                       label: "編集",
@@ -165,19 +164,15 @@ export default function Show({ invoice, payments }) {
                       variant: "secondary",
                       route: route("admin.invoice.edit", invoice.id),
                   },
-              ]
-            : []),
-        ...(["sent", "viewed", "overdue"].includes(invoice.status)
-            ? [
                   {
-                      label: "入金記録",
-                      icon: CurrencyYenIcon,
-                      variant: "primary",
-                      onClick: () => setShowPaymentForm(!showPaymentForm),
+                      label: "削除",
+                      icon: TrashIcon,
+                      variant: "danger",
+                      onClick: handleDeleteClick,
                   },
               ]
             : []),
-        ...(invoice.status !== "draft"
+        ...(["sent", "viewed", "overdue"].includes(invoice.status)
             ? [
                   {
                       label: "PDF",
@@ -188,42 +183,47 @@ export default function Show({ invoice, payments }) {
                   },
               ]
             : []),
-        ...(invoice.status === "draft"
-            ? [
-                  {
-                      label: "削除",
-                      icon: TrashIcon,
-                      variant: "danger",
-                      onClick: handleDelete,
-                  },
-              ]
-            : []),
     ];
 
     const breadcrumbs = [
         { label: "ダッシュボード", href: "/admin/dashboard" },
         { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: "請求書詳細", href: null },
+        { label: invoice.invoice_number || "請求書詳細", href: null },
     ];
+
+    const confirmMessage = getConfirmMessage();
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title={`請求書詳細: ${invoice.invoice_number || invoice.id.substring(0, 8)}`}
-                    description="請求書の詳細情報"
+                    title={`請求書: ${invoice.invoice_number || invoice.id.substring(0, 8)}`}
+                    description={`${getStatusLabel(invoice.status)} • ${formatDate(invoice.issued_at || invoice.created_at)}`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
             <Head title="請求書詳細" />
-
             <FlashMessage />
+
+            {/* 確認ダイアログ */}
+            <ConfirmAlert
+                isOpen={showConfirmAlert}
+                onClose={() => {
+                    setShowConfirmAlert(false);
+                    setConfirmAction(null);
+                }}
+                onConfirm={handleConfirmAction}
+                title={confirmMessage.title}
+                message={confirmMessage.message}
+                confirmText={confirmMessage.confirmText}
+                type={confirmMessage.type}
+            />
 
             {/* 期限超過警告 */}
             {isOverdue() && (
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             <svg
@@ -239,7 +239,7 @@ export default function Show({ invoice, payments }) {
                             </svg>
                         </div>
                         <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">
+                            <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
                                 支払期限を過ぎています
                             </h3>
                         </div>
@@ -247,417 +247,134 @@ export default function Show({ invoice, payments }) {
                 </div>
             )}
 
-            <div className="space-y-6">
-                {/* 基本情報 */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle>基本情報</CardTitle>
-                            <Badge className={getStatusColor(invoice.status)}>
-                                {getStatusLabel(invoice.status)}
-                            </Badge>
+            {/* メインレイアウト - 2カラム */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 左側パネル - タブ + 情報 */}
+                <div className="lg:col-span-2">
+                    {/* タブ */}
+                    <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                        <div className="flex space-x-8 min-w-max">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-1 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                                        activeTab === tab.id
+                                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                            : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
-                    </CardHeader>
-                    <CardBody>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+
+                    {/* タブコンテンツ */}
+                    <div>
+                        {activeTab === "basic" && (
+                            <BasicInfo invoice={invoice} />
+                        )}
+                        {activeTab === "client" && (
+                            <ClientInfo invoice={invoice} />
+                        )}
+                        {activeTab === "details" && (
+                            <InvoiceDetails invoice={invoice} />
+                        )}
+                        {activeTab === "payment" && (
+                            <PaymentInfo
+                                invoice={invoice}
+                                payments={payments}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                {/* 右側パネル - PDF プレビュー */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-24 rounded-lg shadow-sm overflow-hidden">
+                        {/* 請求書PDF表示 */}
+                        <div
+                            style={{
+                                height: "600px",
+                                overflow: "auto",
+                                backgroundColor: "#f5f5f5",
+                                borderRadius: "8px",
+                                border: "1px solid #e5e7eb",
+                            }}
+                            className="dark:border-gray-700 dark:bg-gray-900"
+                        >
+                            <iframe
+                                src={route(
+                                    "admin.invoice.pdf.preview",
+                                    invoice.id,
+                                )}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    border: "none",
+                                }}
+                                title="請求書PDF"
+                            />
+                        </div>
+
+                        {/* 情報セクション */}
+                        <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                            {/* ステータス */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-500">
+                                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                    ステータス
+                                </p>
+                                <div className="mt-2 inline-block">
+                                    <Badge
+                                        className={getStatusColor(
+                                            invoice.status,
+                                        )}
+                                    >
+                                        {getStatusLabel(invoice.status)}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* 請求書番号 */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                                     請求書番号
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
+                                </p>
+                                <p className="mt-2 text-lg font-mono font-bold text-gray-900 dark:text-white">
                                     {invoice.invoice_number ||
                                         invoice.id.substring(0, 8)}
                                 </p>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    件名
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
-                                    {invoice.title || "-"}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    契約
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
-                                    {invoice.contract ? (
-                                        <a
-                                            href={route(
-                                                "admin.contract.show",
-                                                invoice.contract.id,
-                                            )}
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            {invoice.contract.contract_number ||
-                                                invoice.contract.id.substring(
-                                                    0,
-                                                    8,
-                                                )}{" "}
-                                            - {invoice.contract.title}
-                                        </a>
-                                    ) : (
-                                        "-"
-                                    )}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    支払期限
-                                </label>
-                                <p
-                                    className={`mt-1 text-base ${isOverdue() ? "text-red-600 font-semibold" : "text-gray-900"}`}
-                                >
-                                    {formatDate(invoice.due_date)}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    請求期間
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
-                                    {invoice.billing_period_start &&
-                                    invoice.billing_period_end
-                                        ? `${formatDate(invoice.billing_period_start)} ～ ${formatDate(invoice.billing_period_end)}`
-                                        : "-"}
-                                </p>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
 
-                {/* クライアント情報 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>クライアント情報</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    ユーザー
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
-                                    {invoice.user?.profile?.full_name ||
-                                        invoice.user?.email ||
-                                        "-"}
+                            {/* 請求金額 */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                    請求金額
                                 </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">
-                                    会社
-                                </label>
-                                <p className="mt-1 text-base text-gray-900">
-                                    {invoice.company?.name || "-"}
+                                <p className="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                    {formatAmount(invoice.total_amount)}
                                 </p>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-
-                {/* 請求明細 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>請求明細</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        <Table>
-                            <THead>
-                                <Tr hover={false}>
-                                    <Th>品目</Th>
-                                    <Th>説明</Th>
-                                    <Th className="text-right">数量</Th>
-                                    <Th className="text-right">単価</Th>
-                                    <Th className="text-right">金額</Th>
-                                </Tr>
-                            </THead>
-                            <TBody>
-                                {invoice.items?.map((item, index) => (
-                                    <Tr key={index}>
-                                        <Td className="font-medium">
-                                            {item.name}
-                                        </Td>
-                                        <Td className="text-gray-600 text-sm">
-                                            {item.description || "-"}
-                                        </Td>
-                                        <Td className="text-right">
-                                            {item.quantity}
-                                        </Td>
-                                        <Td className="text-right">
-                                            {formatAmount(item.unit_price)}
-                                        </Td>
-                                        <Td className="text-right font-semibold">
-                                            {formatAmount(item.amount)}
-                                        </Td>
-                                    </Tr>
-                                ))}
-                            </TBody>
-                        </Table>
-
-                        <div className="mt-6 border-t pt-6">
-                            <div className="space-y-2 max-w-md ml-auto">
-                                <div className="flex justify-between text-gray-700">
-                                    <span>小計</span>
-                                    <span>
-                                        {formatAmount(invoice.subtotal)}
-                                    </span>
-                                </div>
-                                {invoice.discount_amount > 0 && (
-                                    <div className="flex justify-between text-red-600">
-                                        <span>値引き</span>
-                                        <span>
-                                            -
-                                            {formatAmount(
-                                                invoice.discount_amount,
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between text-gray-700">
-                                    <span>
-                                        消費税 (
-                                        {(invoice.tax_rate * 100).toFixed(1)}%)
-                                    </span>
-                                    <span>
-                                        {formatAmount(invoice.tax_amount)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t-2">
-                                    <span>合計金額</span>
-                                    <span className="text-blue-600">
-                                        {formatAmount(invoice.total_amount)}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-
-                {/* 支払い状況 */}
-                {invoice.status !== "draft" && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>支払い状況</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="mb-6">
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-gray-700">
-                                        入金済み
-                                    </span>
-                                    <span className="font-semibold">
-                                        {formatAmount(totalPaid)} /{" "}
-                                        {formatAmount(invoice.total_amount)}
-                                    </span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-3">
-                                    <div
-                                        className={`h-3 rounded-full ${paymentProgress >= 100 ? "bg-green-500" : "bg-blue-500"}`}
-                                        style={{
-                                            width: `${Math.min(paymentProgress, 100)}%`,
-                                        }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between text-sm mt-2">
-                                    <span className="text-gray-600">
-                                        進捗: {paymentProgress.toFixed(1)}%
-                                    </span>
-                                    {remainingAmount > 0 && (
-                                        <span className="text-red-600 font-semibold">
-                                            残高:{" "}
-                                            {formatAmount(remainingAmount)}
-                                        </span>
-                                    )}
-                                </div>
                             </div>
 
-                            {/* 入金記録フォーム */}
-                            {showPaymentForm && (
-                                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <h4 className="font-semibold text-gray-900 mb-4">
-                                        入金記録
-                                    </h4>
-                                    <form
-                                        onSubmit={handleRecordPayment}
-                                        className="space-y-4"
+                            {/* PDF ダウンロード */}
+                            {invoice.status !== "draft" && (
+                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <a
+                                        href={route(
+                                            "admin.invoice.pdf",
+                                            invoice.id,
+                                        )}
+                                        download
+                                        className="w-full inline-block text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
                                     >
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <FormField
-                                                label="入金額"
-                                                type="number"
-                                                name="amount"
-                                                value={data.amount}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "amount",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                error={errors.amount}
-                                                min="0"
-                                                step="1"
-                                                required
-                                            />
-                                            <FormField
-                                                label="入金日"
-                                                type="date"
-                                                name="payment_date"
-                                                value={data.payment_date}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "payment_date",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                error={errors.payment_date}
-                                                required
-                                            />
-                                            <FormSelect
-                                                label="支払方法"
-                                                name="payment_method"
-                                                value={data.payment_method}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "payment_method",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                error={errors.payment_method}
-                                                options={PAYMENT_METHOD_OPTIONS}
-                                                required
-                                            />
-                                            <FormSelect
-                                                label="支払区分"
-                                                name="payment_type"
-                                                value={data.payment_type}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "payment_type",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                error={errors.payment_type}
-                                                options={PAYMENT_TYPE_OPTIONS}
-                                            />
-                                            <FormField
-                                                label="取引ID"
-                                                name="transaction_id"
-                                                value={data.transaction_id}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "transaction_id",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                error={errors.transaction_id}
-                                                placeholder="銀行振込番号など"
-                                            />
-                                        </div>
-                                        <FormTextarea
-                                            label="備考"
-                                            name="notes"
-                                            value={data.notes}
-                                            onChange={(e) =>
-                                                setData("notes", e.target.value)
-                                            }
-                                            error={errors.notes}
-                                            rows={2}
-                                        />
-                                        <div className="flex justify-end space-x-3">
-                                            <SecondaryButton
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowPaymentForm(false);
-                                                    reset();
-                                                }}
-                                            >
-                                                キャンセル
-                                            </SecondaryButton>
-                                            <PrimaryButton
-                                                type="submit"
-                                                disabled={processing}
-                                            >
-                                                {processing
-                                                    ? "処理中..."
-                                                    : "記録"}
-                                            </PrimaryButton>
-                                        </div>
-                                    </form>
+                                        PDF をダウンロード
+                                    </a>
                                 </div>
                             )}
-
-                            {/* 支払い履歴 */}
-                            {payments && payments.length > 0 ? (
-                                <Table>
-                                    <THead>
-                                        <Tr hover={false}>
-                                            <Th>入金日</Th>
-                                            <Th>金額</Th>
-                                            <Th>支払方法</Th>
-                                            <Th>支払区分</Th>
-                                            <Th>取引ID</Th>
-                                            <Th>備考</Th>
-                                        </Tr>
-                                    </THead>
-                                    <TBody>
-                                        {payments.map((payment) => (
-                                            <Tr key={payment.id}>
-                                                <Td>
-                                                    {formatDate(
-                                                        payment.payment_date,
-                                                    )}
-                                                </Td>
-                                                <Td className="font-semibold">
-                                                    {formatAmount(
-                                                        payment.amount,
-                                                    )}
-                                                </Td>
-                                                <Td>
-                                                    {getPaymentMethodLabel(
-                                                        payment.payment_method,
-                                                    )}
-                                                </Td>
-                                                <Td>
-                                                    {payment.payment_type
-                                                        ? getPaymentTypeLabel(
-                                                              payment.payment_type,
-                                                          )
-                                                        : "-"}
-                                                </Td>
-                                                <Td>
-                                                    {payment.transaction_id ||
-                                                        "-"}
-                                                </Td>
-                                                <Td className="text-sm text-gray-600">
-                                                    {payment.notes || "-"}
-                                                </Td>
-                                            </Tr>
-                                        ))}
-                                    </TBody>
-                                </Table>
-                            ) : (
-                                <p className="text-gray-500 text-center py-4">
-                                    入金記録はありません
-                                </p>
-                            )}
-                        </CardBody>
-                    </Card>
-                )}
-
-                {/* 備考 */}
-                {invoice.notes && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>備考</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <p className="text-gray-700 whitespace-pre-wrap">
-                                {invoice.notes}
-                            </p>
-                        </CardBody>
-                    </Card>
-                )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </AdminAuthenticatedLayout>
     );

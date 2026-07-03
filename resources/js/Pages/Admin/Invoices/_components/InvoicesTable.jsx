@@ -23,14 +23,19 @@ const InvoicesTable = ({
     // ステータスのバッジカラーを取得
     const getInvoiceStatusColor = (status) => {
         const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            sent: "bg-blue-100 text-blue-800",
-            viewed: "bg-green-100 text-green-800",
-            paid: "bg-emerald-100 text-emerald-800",
-            overdue: "bg-red-100 text-red-800",
-            cancelled: "bg-gray-100 text-gray-800",
+            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+            sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+            viewed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+            overdue:
+                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+            cancelled:
+                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
         };
-        return colors[status] || "bg-gray-100 text-gray-800";
+        return (
+            colors[status] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+        );
     };
 
     // ステータスのラベルを取得
@@ -103,29 +108,29 @@ const InvoicesTable = ({
                                             "admin.invoice.show",
                                             invoice.id,
                                         )}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
                                     >
                                         {invoice.invoice_number ||
                                             invoice.id.substring(0, 8)}
                                     </Link>
                                 </Td>
                                 <Td>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-white">
                                         {invoice.user?.profile?.full_name ||
                                             invoice.user?.email}
                                     </div>
                                     {invoice.company && (
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                             {invoice.company.name}
                                         </div>
                                     )}
                                 </Td>
                                 <Td>
-                                    <div className="font-semibold text-gray-900">
+                                    <div className="font-semibold text-gray-900 dark:text-white">
                                         {formatAmount(invoice.total_amount)}
                                     </div>
                                     {invoice.discount_amount > 0 && (
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                             (値引:{" "}
                                             {formatAmount(
                                                 invoice.discount_amount,
@@ -137,13 +142,13 @@ const InvoicesTable = ({
                                 <Td>
                                     {invoice.billing_period_start &&
                                     invoice.billing_period_end ? (
-                                        <div className="text-sm">
+                                        <div className="text-sm text-gray-900 dark:text-white">
                                             <div>
                                                 {formatDate(
                                                     invoice.billing_period_start,
                                                 )}
                                             </div>
-                                            <div className="text-gray-500">
+                                            <div className="text-gray-500 dark:text-gray-400">
                                                 ～{" "}
                                                 {formatDate(
                                                     invoice.billing_period_end,
@@ -151,22 +156,26 @@ const InvoicesTable = ({
                                             </div>
                                         </div>
                                     ) : (
-                                        <span className="text-gray-400">-</span>
+                                        <span className="text-gray-400 dark:text-gray-500">
+                                            -
+                                        </span>
                                     )}
                                 </Td>
                                 <Td>
                                     {invoice.due_date ? (
                                         <span
-                                            className={
+                                            className={`${
                                                 isOverdue(invoice)
-                                                    ? "text-red-600 font-semibold"
-                                                    : ""
-                                            }
+                                                    ? "text-red-600 dark:text-red-400 font-semibold"
+                                                    : "text-gray-900 dark:text-white"
+                                            }`}
                                         >
                                             {formatDate(invoice.due_date)}
                                         </span>
                                     ) : (
-                                        <span className="text-gray-400">-</span>
+                                        <span className="text-gray-400 dark:text-gray-500">
+                                            -
+                                        </span>
                                     )}
                                 </Td>
                                 <Td>
@@ -192,7 +201,7 @@ const InvoicesTable = ({
                                                 "admin.invoice.show",
                                                 invoice.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-800"
+                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                                             title="詳細"
                                         >
                                             <EyeIcon className="h-5 w-5" />

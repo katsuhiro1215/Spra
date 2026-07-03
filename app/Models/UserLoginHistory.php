@@ -17,29 +17,21 @@ class UserLoginHistory extends Model
         'type',
         'ip_address',
         'user_agent',
-        'device_type',
+        'device',
         'browser',
-        'browser_version',
         'platform',
-        'platform_version',
-        'country',
-        'city',
-        'session_id',
         'login_method',
-        'is_successful',
+        'is_success',
         'failure_reason',
-        'login_duration',
         'logged_in_at',
         'logged_out_at',
-        'additional_data',
+        'session_id',
     ];
 
     protected $casts = [
-        'is_successful' => 'boolean',
-        'login_duration' => 'integer',
+        'is_success' => 'boolean',
         'logged_in_at' => 'datetime',
         'logged_out_at' => 'datetime',
-        'additional_data' => 'array',
     ];
 
     // ログインタイプの定数

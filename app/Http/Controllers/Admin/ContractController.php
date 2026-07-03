@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ContractMailJob;
+use Illuminate\Support\Facades\Bus;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Company;
 use App\Services\ContractService;
+use App\Services\ContractPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,7 +20,8 @@ use Inertia\Response;
 class ContractController extends Controller
 {
     public function __construct(
-        private ContractService $service
+        private ContractService $service,
+        private ContractPdfService $pdfService
     ) {}
 
     public function index(Request $request): Response
@@ -47,12 +51,51 @@ class ContractController extends Controller
 
     public function create(Request $request): Response
     {
-        // QuoteからContractを作成する場合、Quote IDをクエリパラメータから受け取る
         $quote = null;
+        $quoteResponse = null;
         $requirementStatus = null;
+        $fromQuoteResponse = false;
 
-        if ($request->has('quote_id')) {
-            $quote = \App\Models\Quote::with(['user.profile', 'contact', 'company', 'items'])->find($request->input('quote_id'));
+        // QuoteResponse から遷移した場合（推奨ルート）
+        if ($request->has('quote_response_id')) {
+            $quoteResponse = \App\Models\QuoteResponse::with([
+                'user.profile',
+                'user.companies',
+                'user.companies.addresses',
+                'company.addresses',
+                'quote',
+            ])->find($request->input('quote_response_id'));
+
+            if ($quoteResponse) {
+                // Quote を明示的に読み込む（items を eager load）
+                $quote = \App\Models\Quote::with([
+                    'user.profile',
+                    'company.addresses',
+                    'items',
+                ])->find($quoteResponse->quote_id);
+
+                $fromQuoteResponse = true;
+
+                // 一時的にドラフト Contract を作成して必要情報をチェック
+                if ($quoteResponse->user_id && $quoteResponse->company_id) {
+                    $tempContract = new \App\Models\Contract();
+                    $tempContract->user_id = $quoteResponse->user_id;
+                    $tempContract->company_id = $quoteResponse->company_id;
+                    $tempContract->quote_id = $quote->id;
+
+                    $requirementStatus = $tempContract->getRequirementStatus();
+                }
+            }
+        }
+        // Quote から遷移した場合（代替ルート）
+        elseif ($request->has('quote_id')) {
+            $quote = \App\Models\Quote::with([
+                'user.profile',
+                'user.companies',
+                'contact',
+                'company.addresses',
+                'items',
+            ])->find($request->input('quote_id'));
 
             // Quote から一時的にドラフト Contract を作成して必要情報をチェック
             if ($quote) {
@@ -69,9 +112,12 @@ class ContractController extends Controller
             'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
             'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
-            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title', 'status']),
+            'services'  => \App\Models\Service::orderBy('name')->get(['id', 'name']),
+            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->with('items')->get(['id', 'quote_number', 'title', 'status']),
             'quote'     => $quote,
-            'requirementStatus' => $requirementStatus,  // ← 必要情報チェック結果を渡す
+            'quoteResponse' => $quoteResponse,
+            'fromQuoteResponse' => $fromQuoteResponse,
+            'requirementStatus' => $requirementStatus,
             'statuses'  => \App\Models\Contract::STATUSES,
         ]);
     }
@@ -80,18 +126,24 @@ class ContractController extends Controller
     {
         $validated = $request->validate([
             'project_id'        => 'nullable|ulid|exists:projects,id',
-            'user_id'           => 'nullable|uuid|exists:users,id',
+            'user_id'           => 'required|uuid|exists:users,id',
             'company_id'        => 'nullable|ulid|exists:companies,id',
+            'service_id'        => 'nullable|ulid|exists:services,id',
             'title'             => 'required|string|max:255',
             'type'              => 'required|string|in:one_time,monthly,annual',
-            'status'            => 'required|string|in:draft,sent,active,suspended,completed,cancelled',
-            'amount'            => 'required|integer|min:0',
+            'status'            => 'required|string|in:draft,sent,pending_signature,active,suspended,completed,cancelled',
+            'description'       => 'nullable|string',
+            'amount'            => 'required|numeric|min:0',
             'tax_rate'          => 'required|numeric|min:0|max:100',
-            'start_date'        => 'nullable|date',
+            'start_date'        => 'required|date',
             'end_date'          => 'nullable|date|after_or_equal:start_date',
             'auto_renewal'      => 'boolean',
+            'renewal_notice_days' => 'nullable|integer|min:1',
             'payment_terms'     => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
             'notes'             => 'nullable|string',
+            'quote_id'          => 'nullable|ulid|exists:quotes,id',
+            'quote_response_id' => 'nullable|ulid|exists:quote_responses,id',
         ]);
 
         // ドラフト以外のステータスの場合、必要情報をチェック
@@ -99,7 +151,7 @@ class ContractController extends Controller
             $tempContract = new \App\Models\Contract();
             $tempContract->user_id = $validated['user_id'] ?? null;
             $tempContract->company_id = $validated['company_id'] ?? null;
-            $tempContract->quote_id = $request->input('quote_id') ?? null;
+            $tempContract->quote_id = $validated['quote_id'] ?? null;
 
             $missingRequirements = $tempContract->getMissingRequirements();
 
@@ -123,12 +175,20 @@ class ContractController extends Controller
         $contract = $this->service->findById($id);
         abort_unless($contract, 404);
 
+        // Contract に紐付いた Quote を取得
+        $quote = null;
+        if ($contract->quote_id) {
+            $quote = \App\Models\Quote::with(['items'])->find($contract->quote_id);
+        }
+
         return Inertia::render('Admin/Contracts/Edit', [
             'contract'  => $contract,
+            'quote'     => $quote,
             'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
             'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
-            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->get(['id', 'quote_number', 'title', 'status']),
+            'services'  => \App\Models\Service::orderBy('name')->get(['id', 'name']),
+            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->with('items')->get(['id', 'quote_number', 'title', 'status']),
             'statuses'  => \App\Models\Contract::STATUSES,
         ]);
     }
@@ -142,11 +202,13 @@ class ContractController extends Controller
             'project_id'    => 'nullable|ulid|exists:projects,id',
             'user_id'       => 'nullable|uuid|exists:users,id',
             'company_id'    => 'nullable|ulid|exists:companies,id',
+            'service_id'    => 'required|ulid|exists:services,id',
             'title'         => 'required|string|max:255',
             'type'          => 'required|string|in:one_time,monthly,annual',
             'status'        => 'required|string|in:draft,sent,active,suspended,completed,cancelled',
-            'amount'        => 'required|integer|min:0',
+            'amount'        => 'required|numeric|min:0',
             'tax_rate'      => 'required|numeric|min:0|max:100',
+            'deposit_rate'  => 'nullable|integer|min:0|max:100',
             'start_date'    => 'nullable|date',
             'end_date'      => 'nullable|date|after_or_equal:start_date',
             'auto_renewal'  => 'boolean',
@@ -169,9 +231,12 @@ class ContractController extends Controller
             'signed_at' => 'nullable|date',
         ]);
 
-        $this->service->activate($contract, $validated);
-
-        return back()->with('success', '契約を有効化しました。');
+        try {
+            $this->service->activate($contract, $validated);
+            return back()->with('success', '契約を有効化しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function cancel(Request $request, string $id): RedirectResponse
@@ -312,11 +377,16 @@ class ContractController extends Controller
         }
 
         // キュージョブをディスパッチ
-        ContractMailJob::dispatch(
-            $contract,
-            $recipientEmail,
-            auth('admins')->id()
+        Bus::dispatch(
+            new ContractMailJob(
+                $contract,
+                $recipientEmail,
+                auth('admins')->id()
+            )
         );
+
+        // ステータスを pending_signature に更新
+        $contract->update(['status' => 'pending_signature']);
 
         // 初期履歴を記録（pending状態）
         $contract->histories()->create([
@@ -329,5 +399,38 @@ class ContractController extends Controller
         ]);
 
         return back()->with('success', 'クライアントにメールを送信しました。');
+    }
+
+    /**
+     * 契約書をPDFで生成・ダウンロード
+     */
+    public function generatePdf(string $id): HttpResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        $pdf = $this->pdfService->generate($contract);
+        $fileName = $this->pdfService->getFileName($contract);
+
+        return response($pdf->Output($fileName, 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    /**
+     * 契約書PDFをプレビュー用に取得
+     */
+    public function previewPdf(string $id): HttpResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        $pdf = $this->pdfService->generate($contract);
+
+        return response($pdf->Output('', 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline',
+        ]);
     }
 }

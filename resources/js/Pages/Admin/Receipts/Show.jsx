@@ -11,7 +11,33 @@ import {
     ArrowDownTrayIcon,
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
-import { formatCurrency, formatDate, formatDateTime } from "@/Helpers/format";
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+    }).format(amount);
+};
+
+const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+};
+
+const formatDateTime = (datetime) => {
+    if (!datetime) return "-";
+    return new Date(datetime).toLocaleString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
 
 export default function Show({ receipt }) {
     // ========================================

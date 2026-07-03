@@ -237,6 +237,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{id}/documents', [ContractController::class, 'uploadDocument'])->name('documents.upload');
         Route::patch('/{id}/billing-settings', [ContractController::class, 'updateBillingSettings'])->name('billing-settings.update');
         Route::post('/{id}/send', [ContractController::class, 'send'])->name('send');
+        Route::get('/{id}/pdf', [ContractController::class, 'generatePdf'])->name('pdf');
+        Route::get('/{id}/pdf/preview', [ContractController::class, 'previewPdf'])->name('pdf.preview');
 
         // 署名関連ルート
         Route::post('/{id}/signature/user', [ContractSignatureController::class, 'storeUserSignature'])->name('signature.user.store');
@@ -286,6 +288,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
         Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
     });
+
+    // 契約から請求書を生成
+    Route::post('contract/{contract}/create-invoice', [InvoiceController::class, 'createFromContract'])->name('invoice.create-from-contract');
 
     // 領収書管理
     Route::resource('receipt', ReceiptController::class);

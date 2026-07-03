@@ -98,17 +98,16 @@ class InvoiceController extends Controller
   {
     $validated = $request->validate([
       'contract_id'           => 'nullable|ulid|exists:contracts,id',
+      'issue_date'            => 'required|date',
       'user_id'               => 'nullable|uuid|exists:users,id',
       'company_id'            => 'nullable|ulid|exists:companies,id',
-      'title'                 => 'required|string|max:255',
       'status'                => 'required|string|in:draft,sent,paid,overdue,cancelled',
-      'due_date'              => 'nullable|date',
-      'billing_period_start'  => 'nullable|date',
+      'due_date'              => 'nullable|date|after:issue_date',
+      'billing_period_start'  => 'nullable|date|after_or_equal:issue_date',
       'billing_period_end'    => 'nullable|date|after_or_equal:billing_period_start',
       'tax_rate'              => 'required|numeric|min:0|max:100',
       'notes'                 => 'nullable|string',
       'items'                 => 'array',
-      'items.*.name'          => 'required|string|max:255',
       'items.*.description'   => 'nullable|string',
       'items.*.quantity'      => 'required|integer|min:1',
       'items.*.unit_price'    => 'required|integer|min:0',
@@ -174,17 +173,16 @@ class InvoiceController extends Controller
 
     $validated = $request->validate([
       'contract_id'           => 'nullable|ulid|exists:contracts,id',
+      'issue_date'            => 'required|date',
       'user_id'               => 'nullable|uuid|exists:users,id',
       'company_id'            => 'nullable|ulid|exists:companies,id',
-      'title'                 => 'required|string|max:255',
       'status'                => 'required|string|in:draft,sent,paid,overdue,cancelled',
-      'due_date'              => 'nullable|date',
-      'billing_period_start'  => 'nullable|date',
+      'due_date'              => 'nullable|date|after:issue_date',
+      'billing_period_start'  => 'nullable|date|after_or_equal:issue_date',
       'billing_period_end'    => 'nullable|date|after_or_equal:billing_period_start',
       'tax_rate'              => 'required|numeric|min:0|max:100',
       'notes'                 => 'nullable|string',
       'items'                 => 'array',
-      'items.*.name'          => 'required|string|max:255',
       'items.*.description'   => 'nullable|string',
       'items.*.quantity'      => 'required|integer|min:1',
       'items.*.unit_price'    => 'required|integer|min:0',
@@ -233,6 +231,35 @@ class InvoiceController extends Controller
   {
     $invoice = $this->service->findById($id);
     abort_unless($invoice, 404);
+
+    // 必須項目をバリデーション
+    $missingFields = [];
+
+    if (!$invoice->billing_period_start || !$invoice->billing_period_end) {
+      $missingFields[] = '請求期間';
+    }
+    if (!$invoice->items || $invoice->items->isEmpty()) {
+      $missingFields[] = '請求明細';
+    }
+    if ($invoice->total_amount <= 0) {
+      $missingFields[] = '請求額（0より大きい値）';
+    }
+    if (!$invoice->due_date) {
+      $missingFields[] = '支払期限';
+    }
+    if (!$invoice->user || !$invoice->user->email) {
+      $missingFields[] = 'クライアントのメールアドレス';
+    }
+
+    if (!empty($missingFields)) {
+      $message = '以下の項目が入力されていません: ' . implode(', ', $missingFields);
+      return back()->with('error', $message);
+    }
+
+    // ステータスチェック
+    if ($invoice->status !== 'draft') {
+      return back()->with('error', '下書き状態の請求書のみ送付できます。');
+    }
 
     // メール送信ジョブをディスパッチ
     \App\Jobs\SendInvoiceJob::dispatch($invoice);
@@ -356,6 +383,20 @@ class InvoiceController extends Controller
       return back()->with('success', '請求書を再送信しました。');
     } catch (\Exception $e) {
       return back()->with('error', '請求書の再送信に失敗しました: ' . $e->getMessage());
+    }
+  }
+
+  /**
+   * 契約から請求書を作成
+   */
+  public function createFromContract(Contract $contract): RedirectResponse
+  {
+    try {
+      $invoice = $this->service->createFromContract($contract);
+      return redirect()->route('admin.invoice.show', $invoice->id)
+        ->with('success', '請求書を作成しました。');
+    } catch (\Exception $e) {
+      return back()->with('error', '請求書の作成に失敗しました: ' . $e->getMessage());
     }
   }
 }

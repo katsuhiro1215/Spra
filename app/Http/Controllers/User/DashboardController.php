@@ -20,31 +20,30 @@ class DashboardController extends Controller
 
   public function index(): Response
   {
-    $user = auth('users')->user();
+    $user = auth('users')->user()->load(['profile', 'companies', 'companies.addresses']);
     $userId = $user->id;
 
-    // Pending ステータスはオンボーディング画面を表示
-    if ($user->status === 'pending') {
+    // アクティブな契約を取得
+    $activeContracts = $this->contractService->getByUserAndStatus($userId, 'active');
+    $hasActiveContract = count($activeContracts) > 0;
+
+    // ユーザーがまだ pending または、active だが契約がない場合は OnboardingProgress を表示
+    if ($user->status === 'pending' || !$hasActiveContract) {
       return Inertia::render('User/OnboardingProgress', [
-        'user' => $user,
+        'user' => [
+          'id' => $user->id,
+          'email' => $user->email,
+          'profile' => $user->profile,
+          'companies' => $user->companies,
+        ],
       ]);
     }
 
-    // Active ユーザーはダッシュボードを表示
-    $activeProjects = $this->projectService->getActiveByUser($userId);
-    $activeContracts = $this->contractService->getActiveByUser($userId);
-    $unpaidInvoices = $this->invoiceService->getUnpaidByUser($userId);
+    // Active ユーザーでアクティブな契約がある場合はダッシュボードを表示
+    $pendingContracts = $this->contractService->getByUserAndStatus($userId, 'pending_signature');
 
     return Inertia::render('User/Dashboard', [
-      'activeProjects'  => $activeProjects,
-      'activeContracts' => $activeContracts,
-      'unpaidInvoices'  => $unpaidInvoices,
-      'stats' => [
-        'projects'  => $activeProjects->count(),
-        'contracts' => $activeContracts->count(),
-        'unpaidInvoices' => $unpaidInvoices->count(),
-        'unpaidAmount'   => $unpaidInvoices->sum('total_amount'),
-      ],
+      'pendingContracts' => $pendingContracts,
     ]);
   }
 }

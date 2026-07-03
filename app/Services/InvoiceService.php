@@ -254,4 +254,74 @@ class InvoiceService
 
     return sprintf('INV%s-%04d', $year, $nextNumber);
   }
+
+  /**
+   * 契約から請求書を生成
+   *
+   * @param Contract $contract
+   * @return Invoice
+   * @throws \Exception
+   */
+  public function createFromContract(Contract $contract): Invoice
+  {
+    return DB::transaction(function () use ($contract) {
+      // 契約検証
+      if (!$contract->amount || !$contract->user_id) {
+        throw new \Exception('契約に必要な情報が足りません');
+      }
+
+      // テンプレート取得
+      $template = \App\Models\InvoiceTemplate::where('is_active', true)->first();
+      if (!$template) {
+        throw new \Exception('有効な請求書テンプレートが見つかりません');
+      }
+
+      // 着手金を計算
+      $depositRate = $contract->deposit_rate ?? 50;  // デフォルト50%
+      $subtotal = $contract->amount;
+      $depositAmount = round($subtotal * ($depositRate / 100), 2);
+
+      // 税金計算
+      $taxRate = $contract->tax_rate ?? 10;
+      $taxAmount = round($depositAmount * ($taxRate / 100), 2);
+      $totalAmount = $depositAmount + $taxAmount;
+
+      // 請求書データを準備
+      $invoiceData = [
+        'invoice_number' => $this->generateInvoiceNumber(),
+        'issue_date' => now()->toDateString(),
+        'contract_id' => $contract->id,
+        'invoice_template_id' => $template->id,
+        'user_id' => $contract->user_id,
+        'company_id' => $contract->company_id,
+        'billing_period_start' => $contract->start_date,
+        'billing_period_end' => $contract->end_date ?? null,
+        'subtotal' => $subtotal,
+        'discount_amount' => 0,
+        'tax_rate' => $taxRate,
+        'tax_amount' => $taxAmount,
+        'total_amount' => $totalAmount,
+        'deposit_rate' => $depositRate,
+        'deposit_amount' => $depositAmount,
+        'status' => 'draft',
+        'due_date' => now()->addDays(15)->toDateString(),
+        'notes' => $template->notice_text,
+        'created_by' => auth('admins')->id(),
+      ];
+
+      // 請求書と明細を作成
+      $invoice = $this->invoiceRepository->create($invoiceData);
+
+      // 請求書明細を作成（着手金）
+      $invoice->items()->create([
+        'name' => $contract->title,
+        'description' => '契約代金（着手金 ' . $depositRate . '%）',
+        'quantity' => 1,
+        'unit_price' => $depositAmount,
+        'amount' => $depositAmount,
+      ]);
+
+      return $invoice->load('items');
+    });
+  }
 }

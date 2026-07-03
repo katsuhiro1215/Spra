@@ -50,3 +50,5 @@ export { default as CardBody } from "./CardBody";
 export { default as CardFooter } from "./CardFooter";
 export { default as CardTitle } from "./CardTitle";
 export { default as CardWithImage } from "./CardWithImage";
+
+export { default } from "./Card";

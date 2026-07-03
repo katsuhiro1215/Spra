@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import TextInput from "@/Components/Forms/TextInput";
 import InputLabel from "@/Components/Forms/InputLabel";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
+import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import InputError from "@/Components/Forms/InputError";
 
 export default function CompanyForm({ company }) {
@@ -203,10 +204,15 @@ export default function CompanyForm({ company }) {
 
                         {/* ボタン */}
                         <div className="flex gap-4 pt-6">
+                            <Link href={route("user.dashboard")}>
+                                <SecondaryButton type="button">
+                                    戻る
+                                </SecondaryButton>
+                            </Link>
                             <PrimaryButton
                                 type="submit"
                                 disabled={processing}
-                                className="w-full justify-center"
+                                className="flex-1 justify-center"
                             >
                                 {processing ? "保存中..." : "次に進む"}
                             </PrimaryButton>

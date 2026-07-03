@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Contract;
+use App\Models\Quote;
+use App\Models\Service;
 use App\Repositories\Contracts\ContractRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -126,7 +128,55 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function create(array $data): Contract
     {
+        // contract_number を自動生成
+        $data['contract_number'] = $this->generateContractNumber();
+
+        // service_id がない場合、quote から最初のサービスを自動取得
+        if (empty($data['service_id']) && !empty($data['quote_id'])) {
+            $quote = Quote::find($data['quote_id']);
+            if ($quote && $quote->items && count($quote->items) > 0) {
+                // 最初のアイテムのサービスIDを使用
+                $data['service_id'] = $quote->items[0]->service_id;
+            }
+        }
+
+        // それでも service_id がない場合は一時的なデフォルト値を設定
+        // （実際の要件に応じて調整）
+        if (empty($data['service_id'])) {
+            // service_id を持つサービスを1つ取得
+            $defaultService = Service::first();
+            if ($defaultService) {
+                $data['service_id'] = $defaultService->id;
+            }
+        }
+
         return Contract::create($data);
+    }
+
+    /**
+     * 契約番号を生成
+     * フォーマット: C202407001 (C + 年月 + 連番4桁)
+     */
+    public function generateContractNumber(): string
+    {
+        $year = date('Y');
+        $month = date('m');
+        $prefix = "C{$year}{$month}";
+
+        // 今月の最新の契約番号を取得
+        $latestContract = Contract::where('contract_number', 'like', "{$prefix}%")
+            ->orderBy('contract_number', 'desc')
+            ->first();
+
+        if ($latestContract) {
+            // 最後の4桁を取得してインクリメント
+            $lastNumber = (int) substr($latestContract->contract_number, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        return sprintf('%s%04d', $prefix, $newNumber);
     }
 
     public function update(Contract $contract, array $data): Contract
@@ -145,6 +195,14 @@ class ContractRepository implements ContractRepositoryInterface
         return Contract::where('user_id', $userId)
             ->where('status', 'active')
             ->with(['project', 'invoices'])
+            ->get();
+    }
+
+    public function getByUserAndStatus(string $userId, string $status): Collection
+    {
+        return Contract::where('user_id', $userId)
+            ->where('status', $status)
+            ->with(['project', 'quote'])
             ->get();
     }
 

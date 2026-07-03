@@ -52,6 +52,19 @@ class QuoteResponseController extends Controller
     {
         $quoteResponse = $this->quoteResponseService->getDetail($quoteResponse->id);
 
+        // user_id がない場合、メールアドレスから User を検索して自動設定
+        if (!$quoteResponse->user_id && $quoteResponse->email) {
+            $user = \App\Models\User::where('email', $quoteResponse->email)->first();
+            if ($user) {
+                $quoteResponse->update(['user_id' => $user->id]);
+                // ユーザーと会社情報を再ロード
+                $quoteResponse->load(['user.profile', 'user.companies', 'company.addresses']);
+            }
+        } else {
+            // user_id がある場合も profile と addresses を確実にロード
+            $quoteResponse->load(['user.profile', 'user.companies', 'company.addresses']);
+        }
+
         return Inertia::render('Admin/Quotes/QuoteResponse/Show', [
             'quoteResponse' => $quoteResponse,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,

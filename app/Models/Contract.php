@@ -48,6 +48,7 @@ class Contract extends Model
         'auto_invoice_generation',
         'next_billing_date',
         'last_invoiced_at',
+        'deposit_rate',
         'created_by',
     ];
 

@@ -13,8 +13,8 @@ export default function Edit({
     statuses,
 }) {
     const { data, setData, put, processing, errors } = useForm({
-        title: invoice.title || "",
         contract_id: invoice.contract_id || "",
+        issue_date: invoice.issue_date || "",
         user_id: invoice.user_id || "",
         company_id: invoice.company_id || "",
         billing_period_start: invoice.billing_period_start || "",
@@ -29,7 +29,6 @@ export default function Edit({
         notes: invoice.notes || "",
         items: invoice.items || [
             {
-                name: "",
                 description: "",
                 quantity: 1,
                 unit_price: 0,

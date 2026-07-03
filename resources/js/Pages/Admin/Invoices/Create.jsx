@@ -14,12 +14,14 @@ export default function Create({
     user = null,
     contract = null,
 }) {
+    const today = new Date().toISOString().split("T")[0];
+
     const { data, setData, post, processing, errors } = useForm({
-        title: "",
         contract_id: "",
+        issue_date: today,
         user_id: "",
         company_id: "",
-        billing_period_start: "",
+        billing_period_start: today,
         billing_period_end: "",
         due_date: "",
         status: "draft",
@@ -31,7 +33,6 @@ export default function Create({
         notes: "",
         items: [
             {
-                name: "",
                 description: "",
                 quantity: 1,
                 unit_price: 0,

@@ -20,7 +20,7 @@ export default function QuoteResponseRegister({ token, email }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Form submitted", { token, data, errors });
-        post(route("user.quote.response.register.store", token));
+        post(route("quote.response.register.store", { token, ...data }));
     };
 
     return (

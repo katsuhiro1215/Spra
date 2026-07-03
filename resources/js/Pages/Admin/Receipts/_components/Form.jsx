@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Card from "@/Components/Card";
+import { Card, CardHeader, CardBody } from "@/Components/Card";
 import FormGroup from "@/Components/FormGroup";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { Link } from "@inertiajs/react";

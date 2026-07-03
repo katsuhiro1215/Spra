@@ -11,7 +11,7 @@ export default function QuoteResponseForm({ quote, token }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.public.quote.response.store", { token }), {
+        post(route("quote.response.store", { token }), {
             onSuccess: () => setSubmitted(true),
         });
     };

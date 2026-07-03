@@ -69,23 +69,19 @@ class UserLoginListener
 
         $deviceType = $this->getDeviceType($agent);
         $browser = $agent->browser();
-        $browserVersion = $agent->version($browser);
         $platform = $agent->platform();
-        $platformVersion = $agent->version($platform);
 
         UserLoginHistory::create([
             'user_id' => $userId,
             'type' => $type,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'device_type' => $deviceType,
+            'device' => $deviceType,
             'browser' => $browser,
-            'browser_version' => $browserVersion,
             'platform' => $platform,
-            'platform_version' => $platformVersion,
             'session_id' => session()->getId(),
             'login_method' => UserLoginHistory::METHOD_PASSWORD,
-            'is_successful' => $type !== UserLoginHistory::TYPE_FAILED_LOGIN,
+            'is_success' => $type !== UserLoginHistory::TYPE_FAILED_LOGIN,
             'logged_in_at' => now(),
         ]);
     }
@@ -96,24 +92,13 @@ class UserLoginListener
     private function recordActivityLog(?string $userId, string $action, string $description, string $status = UserActivityLog::STATUS_SUCCESS): void
     {
         $request = Request::instance();
-        $agent = new Agent();
-        $agent->setUserAgent($request->userAgent());
 
         UserActivityLog::create([
             'user_id' => $userId,
             'action' => $action,
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'route_name' => $request->route()?->getName(),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'device_type' => $this->getDeviceType($agent),
-            'browser' => $agent->browser(),
-            'platform' => $agent->platform(),
-            'session_id' => session()->getId(),
-            'status' => $status,
             'description' => $description,
-            'performed_at' => now(),
         ]);
     }
 

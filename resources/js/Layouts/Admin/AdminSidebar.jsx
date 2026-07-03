@@ -163,67 +163,67 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             ],
         },
         // サービス管理
-        // {
-        //     name: "サービス管理",
-        //     href: "admin.service.index",
-        //     icon: "M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z",
-        //     current: route().current("admin.service.*"),
-        //     children: [
-        //         { name: "サービス一覧", href: "admin.service.index" },
-        //         { name: "新規サービス", href: "admin.service.create" },
-        //         {
-        //             name: "カテゴリ管理",
-        //             href: "admin.service.category.index",
-        //         },
-        //         { name: "オプション", href: "admin.service.index" },
-        //         { name: "価格設定", href: "admin.service.index" },
-        //     ],
-        // },
+        {
+            name: "サービス管理",
+            href: "admin.service.index",
+            icon: "M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z",
+            current: route().current("admin.service.*"),
+            children: [
+                { name: "サービス一覧", href: "admin.service.index" },
+                { name: "新規サービス", href: "admin.service.create" },
+                {
+                    name: "カテゴリ管理",
+                    href: "admin.service.category.index",
+                },
+                { name: "オプション", href: "admin.service.index" },
+                { name: "価格設定", href: "admin.service.index" },
+            ],
+        },
         // Webサイト管理
-        // {
-        //     name: "Webサイト管理",
-        //     href: "admin.homepage.pages.index",
-        //     icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
-        //     current:
-        //         route().current("admin.homepage.*") ||
-        //         route().current("admin.faq.*") ||
-        //         route().current("admin.media.*"),
-        //     children: [
-        //         { name: "ページ管理", href: "admin.homepage.pages.index" },
-        //         { name: "ブログ管理", href: "admin.homepage.blogs.index" },
-        //         {
-        //             name: "カテゴリ",
-        //             href: "admin.homepage.blogCategories.index",
-        //         },
-        //         { name: "FAQ管理", href: "admin.faq.index" },
-        //         { name: "ナビゲーション", href: "admin.faq.index" },
-        //         { name: "フッター", href: "admin.faq.index" },
-        //         { name: "SEO", href: "admin.faq.index" },
-        //         { name: "OGP", href: "admin.faq.index" },
-        //         {
-        //             name: "サイト設定",
-        //             href: "admin.homepage.site-settings.index",
-        //         },
-        //     ],
-        // },
+        {
+            name: "Webサイト管理",
+            href: "admin.homepage.pages.index",
+            icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
+            current:
+                route().current("admin.homepage.*") ||
+                route().current("admin.faq.*") ||
+                route().current("admin.media.*"),
+            children: [
+                { name: "ページ管理", href: "admin.homepage.pages.index" },
+                { name: "ブログ管理", href: "admin.homepage.blogs.index" },
+                {
+                    name: "カテゴリ",
+                    href: "admin.homepage.blogCategories.index",
+                },
+                { name: "FAQ管理", href: "admin.faq.index" },
+                { name: "ナビゲーション", href: "admin.faq.index" },
+                { name: "フッター", href: "admin.faq.index" },
+                { name: "SEO", href: "admin.faq.index" },
+                { name: "OGP", href: "admin.faq.index" },
+                {
+                    name: "サイト設定",
+                    href: "admin.homepage.site-settings.index",
+                },
+            ],
+        },
         // 分析管理
-        // {
-        //     name: "分析管理",
-        //     href: "admin.media.index",
-        //     icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
-        //     current: route().current("admin.media.*"),
-        //     children: [
-        //         { name: "ダッシュボード", href: "admin.media.index" },
-        //         { name: "アクセス解析", href: "admin.media.index" },
-        //         { name: "流入元", href: "admin.media.index" },
-        //         { name: "人気ページ", href: "admin.media.index" },
-        //         { name: "検索キーワード", href: "admin.media.index" },
-        //         { name: "問い合わせ分析", href: "admin.media.index" },
-        //         { name: "契約分析", href: "admin.media.index" },
-        //         { name: "保守分析", href: "admin.media.index" },
-        //         { name: "KPI", href: "admin.media.index" },
-        //     ],
-        // },
+        {
+            name: "分析管理",
+            href: "admin.media.index",
+            icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
+            current: route().current("admin.media.*"),
+            children: [
+                { name: "ダッシュボード", href: "admin.media.index" },
+                { name: "アクセス解析", href: "admin.media.index" },
+                { name: "流入元", href: "admin.media.index" },
+                { name: "人気ページ", href: "admin.media.index" },
+                { name: "検索キーワード", href: "admin.media.index" },
+                { name: "問い合わせ分析", href: "admin.media.index" },
+                { name: "契約分析", href: "admin.media.index" },
+                { name: "保守分析", href: "admin.media.index" },
+                { name: "KPI", href: "admin.media.index" },
+            ],
+        },
         // メディア管理
         // {
         //     name: "メディア管理",
@@ -238,20 +238,20 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
         //         { name: "添付ファイル", href: "admin.media.index" },
         //     ],
         // },
-        // システム管理
-        // {
-        //     name: "管理者",
-        //     href: "admin.admin.index",
-        //     icon: "",
-        //     current: route().current("admin.admin.*"),
-        //     children: [
-        //         { name: "管理者一覧", href: "admin.admin.index" },
-        //         { name: "新規作成", href: "admin.admin.create" },
-        //         { name: "権限", href: "admin.admin.create" },
-        //         { name: "ロール", href: "admin.admin.create" },
-        //         { name: "ログ", href: "admin.admin.create" },
-        //     ],
-        // },
+        // 管理者管理
+        {
+            name: "管理者管理",
+            href: "admin.admin.index",
+            icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
+            current: route().current("admin.admin.*"),
+            children: [
+                { name: "管理者一覧", href: "admin.admin.index" },
+                { name: "新規作成", href: "admin.admin.create" },
+                { name: "権限", href: "admin.admin.create" },
+                { name: "ロール", href: "admin.admin.create" },
+                { name: "ログ", href: "admin.admin.create" },
+            ],
+        },
         // システム管理
         // {
         //     name: "システム管理",

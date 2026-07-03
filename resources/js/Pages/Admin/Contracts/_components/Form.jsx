@@ -13,13 +13,18 @@ export default function ContractForm({
     errors,
     processing,
     onSubmit,
+    onDraftSave,
     cancelRoute,
     isEdit = false,
     projects = [],
     users = [],
     companies = [],
+    services = [],
     quotes = [],
     requirementStatus = null,
+    fromQuoteResponse = false,
+    quote = null,
+    quoteResponse = null,
 }) {
     // ========================================
     // State
@@ -30,16 +35,19 @@ export default function ContractForm({
     // Handlers
     // ========================================
     const handleDraftSave = () => {
-        // ドラフト保存時はステータスを 'draft' に強制
-        setData("status", "draft");
-        // 次のレンダリング後に submit を呼ぶため、setTimeout を使用
-        setTimeout(() => {
-            onSubmit();
-        }, 0);
+        // props の onDraftSave があればそれを使用、なければ setData => onSubmit のフローを使用
+        if (onDraftSave) {
+            onDraftSave();
+        } else {
+            setData("status", "draft");
+            setTimeout(() => {
+                onSubmit();
+            }, 50);
+        }
     };
 
     const handleSend = () => {
-        // 送信ボタン は status をそのまま送信
+        // 送信ボタンは status をそのまま送信
         onSubmit();
     };
     // ========================================
@@ -64,7 +72,7 @@ export default function ContractForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* 基本情報 */}
             <Card>
                 <CardHeader>
@@ -165,13 +173,30 @@ export default function ContractForm({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     ユーザー
+                                    {fromQuoteResponse && (
+                                        <span className="text-gray-500 text-xs ml-2">
+                                            (自動設定)
+                                        </span>
+                                    )}
                                 </label>
                                 <select
                                     value={data.user_id || ""}
-                                    onChange={(e) =>
-                                        setData("user_id", e.target.value)
+                                    onChange={(e) => {
+                                        // QuoteResponse 経由の場合は変更を無視
+                                        if (!fromQuoteResponse) {
+                                            setData("user_id", e.target.value);
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-md ${
+                                        fromQuoteResponse
+                                            ? "bg-gray-100 border-gray-300 opacity-75"
+                                            : "border-gray-300"
+                                    }`}
+                                    style={
+                                        fromQuoteResponse
+                                            ? { pointerEvents: "none" }
+                                            : {}
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                 >
                                     <option value="">選択してください</option>
                                     {users.map((user) => (
@@ -181,6 +206,14 @@ export default function ContractForm({
                                         </option>
                                     ))}
                                 </select>
+                                {/* disabled フィールドの値を送信するための hidden input */}
+                                {fromQuoteResponse && data.user_id && (
+                                    <input
+                                        type="hidden"
+                                        name="user_id"
+                                        value={data.user_id}
+                                    />
+                                )}
                                 {errors.user_id && (
                                     <p className="mt-1 text-sm text-red-600">
                                         {errors.user_id}
@@ -193,13 +226,33 @@ export default function ContractForm({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     会社
+                                    {fromQuoteResponse && (
+                                        <span className="text-gray-500 text-xs ml-2">
+                                            (自動設定)
+                                        </span>
+                                    )}
                                 </label>
                                 <select
                                     value={data.company_id || ""}
-                                    onChange={(e) =>
-                                        setData("company_id", e.target.value)
+                                    onChange={(e) => {
+                                        // QuoteResponse 経由の場合は変更を無視
+                                        if (!fromQuoteResponse) {
+                                            setData(
+                                                "company_id",
+                                                e.target.value,
+                                            );
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-md ${
+                                        fromQuoteResponse
+                                            ? "bg-gray-100 border-gray-300 opacity-75"
+                                            : "border-gray-300"
+                                    }`}
+                                    style={
+                                        fromQuoteResponse
+                                            ? { pointerEvents: "none" }
+                                            : {}
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                 >
                                     <option value="">選択しない</option>
                                     {companies.map((company) => (
@@ -211,6 +264,14 @@ export default function ContractForm({
                                         </option>
                                     ))}
                                 </select>
+                                {/* disabled フィールドの値を送信するための hidden input */}
+                                {fromQuoteResponse && data.company_id && (
+                                    <input
+                                        type="hidden"
+                                        name="company_id"
+                                        value={data.company_id}
+                                    />
+                                )}
                             </div>
                         )}
 
@@ -243,6 +304,82 @@ export default function ContractForm({
                 </CardBody>
             </Card>
 
+            {/* サービス情報 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>サービス情報</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    {quote && quote.items && quote.items.length > 0 ? (
+                        <div className="space-y-4">
+                            {/* 見積もりに含まれるサービス一覧 */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                    このサービスは見積書に含まれています
+                                </label>
+                                <div className="space-y-2">
+                                    {quote.items.map((item, index) => {
+                                        const service = services.find(
+                                            (s) => s.id === item.service_id,
+                                        );
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="p-3 bg-gray-50 border border-gray-200 rounded-md"
+                                            >
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {item.name}
+                                                </div>
+                                                <div className="text-xs text-gray-600 mt-1">
+                                                    サービス:{" "}
+                                                    {service
+                                                        ? service.name
+                                                        : "不明"}
+                                                </div>
+                                                {item.service_item_id && (
+                                                    <div className="text-xs text-gray-600">
+                                                        単価: ¥
+                                                        {parseFloat(
+                                                            item.unit_price,
+                                                        ).toLocaleString()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* 複数サービスの場合の情報 */}
+                                {quote.items.length > 1 && (
+                                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                        <p className="text-sm text-blue-800">
+                                            <span className="font-medium">
+                                                ℹ️
+                                                複数のサービスが含まれています
+                                            </span>
+                                            <br />
+                                            複数サービスの場合、ServiceGroup
+                                            が自動的に作成されます
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 隠し field: service_id を保存 */}
+                            <input
+                                type="hidden"
+                                name="service_id"
+                                value={data.service_id || ""}
+                            />
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 text-gray-500">
+                            <p>見積書を選択するとサービス情報が表示されます</p>
+                        </div>
+                    )}
+                </CardBody>
+            </Card>
+
             {/* 契約金額 */}
             <Card>
                 <CardHeader>
@@ -256,8 +393,14 @@ export default function ContractForm({
                             step="0.01"
                             min="0"
                             name="amount"
-                            value={data.amount || ""}
-                            onChange={(e) => setData("amount", e.target.value)}
+                            value={data.amount}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setData(
+                                    "amount",
+                                    value === "" ? "" : parseFloat(value),
+                                );
+                            }}
                             error={errors.amount}
                             required
                         />
@@ -269,7 +412,7 @@ export default function ContractForm({
                             min="0"
                             max="100"
                             name="tax_rate"
-                            value={data.tax_rate || "10"}
+                            value={data.tax_rate}
                             onChange={(e) =>
                                 setData("tax_rate", e.target.value)
                             }
@@ -330,18 +473,19 @@ export default function ContractForm({
                             label="開始日"
                             type="date"
                             name="start_date"
-                            value={data.start_date || ""}
+                            value={data.start_date}
                             onChange={(e) =>
                                 setData("start_date", e.target.value)
                             }
                             error={errors.start_date}
+                            required
                         />
 
                         <FormField
                             label="終了日"
                             type="date"
                             name="end_date"
-                            value={data.end_date || ""}
+                            value={data.end_date}
                             onChange={(e) =>
                                 setData("end_date", e.target.value)
                             }
@@ -372,7 +516,7 @@ export default function ContractForm({
                                 type="number"
                                 min="1"
                                 name="renewal_notice_days"
-                                value={data.renewal_notice_days || "30"}
+                                value={data.renewal_notice_days}
                                 onChange={(e) =>
                                     setData(
                                         "renewal_notice_days",

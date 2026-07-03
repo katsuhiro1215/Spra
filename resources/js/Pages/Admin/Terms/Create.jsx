@@ -1,11 +1,12 @@
 import React from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
-import InputError from "@/Components/InputError";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
+// NOTE: These components are not yet available, using basic HTML elements
+// import InputLabel from "@/Components/InputLabel";
+// import TextInput from "@/Components/TextInput";
+// import InputError from "@/Components/InputError";
+// import PrimaryButton from "@/Components/PrimaryButton";
+// import SecondaryButton from "@/Components/SecondaryButton";
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({

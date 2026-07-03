@@ -21,7 +21,7 @@ class AddressController extends Controller
     {
         $user = auth('users')->user();
         $company = $user->companies()->first();
-        $address = $company?->addresses()->where('type', 'business')->first();
+        $address = $company?->addresses()->where('type', 'office')->first();
 
         return Inertia::render('User/Onboarding/AddressForm', [
             'user' => $user,
@@ -53,8 +53,8 @@ class AddressController extends Controller
         ]);
 
         $company = $user->companies()->firstOrFail();
-        $address = $company->addresses()->where('type', 'business')->first() ??
-            $company->addresses()->make(['type' => 'business']);
+        $address = $company->addresses()->where('type', 'office')->first() ??
+            $company->addresses()->make(['type' => 'office']);
 
         $address->fill([
             'postal_code' => $validated['postal_code'],
@@ -73,6 +73,6 @@ class AddressController extends Controller
         $address->save();
 
         return redirect()->route('user.dashboard')
-            ->with('success', '住所情報を保存しました。管理者の確認後、契約書をお送りします。');
+            ->with('success', '登録完了！管理者の確認後、契約書をお送りします。');
     }
 }

@@ -14,6 +14,7 @@ use App\Services\ServiceItemService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -63,8 +64,12 @@ class QuoteController extends Controller
      */
     public function create(Request $request): InertiaResponse
     {
-        // サービスカテゴリとServiceItemを取得
+        // サービスカテゴリ、Service、ServiceItemを取得
         $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
+        $services = \App\Models\Service::where('status', 'active')
+            ->orderBy('name')
+            ->select('id', 'name', 'service_category_id')
+            ->get();
         $serviceItems = $this->serviceItemService->getActiveForQuote();
 
         // ユーザー一覧を取得（検索用）
@@ -116,6 +121,7 @@ class QuoteController extends Controller
         return Inertia::render('Admin/Quotes/Create', [
             'statuses' => $this->quoteService->getStatuses(),
             'serviceCategories' => $serviceCategories,
+            'services' => $services,
             'serviceItems' => $serviceItems,
             'users' => $users,
             'projectInquiry' => $projectInquiry,
@@ -142,6 +148,8 @@ class QuoteController extends Controller
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'status' => 'required|in:draft,sent,reviewed,approved,rejected,expired',
             'items' => 'array',
+            'items.*.service_id' => 'nullable|exists:services,id',
+            'items.*.service_plan_id' => 'nullable|exists:service_plans,id',
             'items.*.service_item_id' => 'nullable|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
             'items.*.description' => 'nullable|string',
@@ -216,8 +224,12 @@ class QuoteController extends Controller
 
         $quote->load(['items', 'user.profile', 'contact', 'company']);
 
-        // サービスカテゴリとServiceItemを取得
+        // サービスカテゴリ、Service、ServiceItemを取得
         $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
+        $services = \App\Models\Service::where('status', 'active')
+            ->orderBy('name')
+            ->select('id', 'name', 'service_category_id')
+            ->get();
         $serviceItems = $this->serviceItemService->getActiveForQuote();
 
         // ユーザー一覧を取得
@@ -238,6 +250,7 @@ class QuoteController extends Controller
             'quote' => $quote,
             'statuses' => $this->quoteService->getStatuses(),
             'serviceCategories' => $serviceCategories,
+            'services' => $services,
             'serviceItems' => $serviceItems,
             'users' => $users,
         ]);
@@ -334,8 +347,8 @@ class QuoteController extends Controller
     {
         try {
             // Generate token and response form URL in Controller (where route() is reliable)
-            $token = \Illuminate\Support\Str::random(60);
-            $responseFormUrl = route('user.public.quote.response.show', $token);
+            $token = Str::random(60);
+            $responseFormUrl = route('quote.response.show', $token);
 
             $this->quoteService->sendQuote($quote, $token, $responseFormUrl);
 

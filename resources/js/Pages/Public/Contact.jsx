@@ -24,7 +24,7 @@ export default function Contact({ auth }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.public.contact.store"), {
+        post(route("contact.store"), {
             onSuccess: () => {
                 reset();
             },

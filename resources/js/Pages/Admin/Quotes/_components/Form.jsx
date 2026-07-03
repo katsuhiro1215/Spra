@@ -27,6 +27,7 @@ export default function QuoteForm({
     cancelRoute,
     users = [],
     serviceCategories = [],
+    services = [],
     serviceItems = {},
     projectInquiry = null,
     isEdit = false,
@@ -37,6 +38,7 @@ export default function QuoteForm({
     const [items, setItems] = useState(data.items || []);
     const [showServiceItemModal, setShowServiceItemModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedService, setSelectedService] = useState("");
 
     // ========================================
     // Effects
@@ -127,6 +129,8 @@ export default function QuoteForm({
     // ========================================
     const handleAddServiceItem = (serviceItem) => {
         const newItem = {
+            service_id: serviceItem.service_id,
+            service_plan_id: serviceItem.service_plan_id || null,
             service_item_id: serviceItem.id,
             name: serviceItem.name,
             description: serviceItem.description,
@@ -193,10 +197,19 @@ export default function QuoteForm({
     };
 
     const getFilteredServiceItems = () => {
-        if (!selectedCategory) {
-            return Object.values(serviceItems).flat();
+        // Category でフィルタ
+        let filtered = selectedCategory
+            ? serviceItems[selectedCategory] || []
+            : Object.values(serviceItems).flat();
+
+        // Service でフィルタ
+        if (selectedService) {
+            filtered = filtered.filter(
+                (item) => item.service_id === selectedService,
+            );
         }
-        return serviceItems[selectedCategory] || [];
+
+        return filtered;
     };
 
     return (
@@ -735,11 +748,13 @@ export default function QuoteForm({
                                     <FormGroup label="カテゴリで絞り込み">
                                         <SelectInput
                                             value={selectedCategory}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
                                                 setSelectedCategory(
                                                     e.target.value,
-                                                )
-                                            }
+                                                );
+                                                // カテゴリ変更時にサービスをリセット
+                                                setSelectedService("");
+                                            }}
                                             options={[
                                                 {
                                                     value: "",
@@ -751,6 +766,40 @@ export default function QuoteForm({
                                                         label: cat.name,
                                                     }),
                                                 ),
+                                            ]}
+                                        />
+                                    </FormGroup>
+                                </div>
+
+                                {/* サービスフィルター */}
+                                <div className="mb-6">
+                                    <FormGroup label="サービスで絞り込み">
+                                        <SelectInput
+                                            value={selectedService}
+                                            onChange={(e) =>
+                                                setSelectedService(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            options={[
+                                                {
+                                                    value: "",
+                                                    label: "すべてのサービス",
+                                                },
+                                                ...services
+                                                    .filter((service) => {
+                                                        if (!selectedCategory) {
+                                                            return true;
+                                                        }
+                                                        return (
+                                                            service.service_category_id ===
+                                                            selectedCategory
+                                                        );
+                                                    })
+                                                    .map((service) => ({
+                                                        value: service.id,
+                                                        label: service.name,
+                                                    })),
                                             ]}
                                         />
                                     </FormGroup>

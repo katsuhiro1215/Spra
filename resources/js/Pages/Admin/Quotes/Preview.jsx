@@ -6,11 +6,21 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function Preview({ quote, statuses }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [confirmAlert, setConfirmAlert] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+    });
+    const [successAlert, setSuccessAlert] = useState({
+        isOpen: false,
+        message: "",
+    });
     const { post, processing } = useForm();
 
     const formatAmount = (amount) => {
@@ -33,11 +43,33 @@ export default function Preview({ quote, statuses }) {
         return "クライアント";
     };
 
-    const handleSend = () => {
+    const handleSendClick = () => {
+        setConfirmAlert({
+            isOpen: true,
+            title: "見積書を送信しますか？",
+            message: `${getRecipientName()} 様（${getRecipientEmail()}）に見積書を送信します。よろしいですか？`,
+        });
+    };
+
+    const handleConfirmSend = () => {
+        setConfirmAlert({ ...confirmAlert, isOpen: false });
         setIsSubmitting(true);
         post(route("admin.quote.send", quote.id), {
+            onSuccess: () => {
+                setSuccessAlert({
+                    isOpen: true,
+                    message: "見積書を送信しました",
+                });
+                setTimeout(() => {
+                    window.location.href = route("admin.quote.show", quote.id);
+                }, 2000);
+            },
             onFinish: () => setIsSubmitting(false),
         });
+    };
+
+    const handleCancelSend = () => {
+        setConfirmAlert({ ...confirmAlert, isOpen: false });
     };
 
     // ========================================
@@ -267,7 +299,7 @@ export default function Preview({ quote, statuses }) {
                 <div className="flex gap-3">
                     <PrimaryButton
                         disabled={processing || isSubmitting}
-                        onClick={handleSend}
+                        onClick={handleSendClick}
                     >
                         {processing || isSubmitting
                             ? "送信中..."
@@ -284,6 +316,26 @@ export default function Preview({ quote, statuses }) {
                         キャンセル
                     </SecondaryButton>
                 </div>
+
+                {/* 確認アラート */}
+                <ConfirmAlert
+                    isOpen={confirmAlert.isOpen}
+                    title={confirmAlert.title}
+                    message={confirmAlert.message}
+                    onConfirm={handleConfirmSend}
+                    onCancel={handleCancelSend}
+                    confirmText="送信"
+                    cancelText="キャンセル"
+                />
+
+                {/* 成功アラート */}
+                <SuccessAlert
+                    isOpen={successAlert.isOpen}
+                    message={successAlert.message}
+                    onClose={() =>
+                        setSuccessAlert({ ...successAlert, isOpen: false })
+                    }
+                />
             </div>
         </AdminAuthenticatedLayout>
     );

@@ -14,6 +14,7 @@ import QuoteForm from "./_components/Form";
 export default function Create({
     users,
     serviceCategories,
+    services,
     serviceItems,
     projectInquiry = null,
     contact = null,
@@ -148,6 +149,7 @@ export default function Create({
                     cancelRoute={route("admin.quote.index")}
                     users={users}
                     serviceCategories={serviceCategories}
+                    services={services}
                     serviceItems={serviceItems}
                     projectInquiry={projectInquiry}
                     isEdit={false}

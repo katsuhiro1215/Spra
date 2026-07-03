@@ -62,7 +62,7 @@ class CompanyController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return redirect()->route('user.onboarding.address')
+        return redirect()->route('user.dashboard')
             ->with('success', '会社情報を保存しました');
     }
 }

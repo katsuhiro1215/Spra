@@ -18,6 +18,7 @@ class Invoice extends Model
         'invoice_number',
         'issue_date',
         'contract_id',
+        'invoice_template_id',
         'user_id',
         'company_id',
         'billing_period_start',
@@ -27,6 +28,8 @@ class Invoice extends Model
         'tax_rate',
         'tax_amount',
         'total_amount',
+        'deposit_rate',
+        'deposit_amount',
         'status',
         'due_date',
         'sent_at',
@@ -56,6 +59,7 @@ class Invoice extends Model
         'tax_rate'             => 'decimal:2',
         'tax_amount'           => 'decimal:2',
         'total_amount'         => 'decimal:2',
+        'deposit_amount'       => 'decimal:2',
     ];
 
     public const STATUSES = [
@@ -80,6 +84,11 @@ class Invoice extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function invoiceTemplate(): BelongsTo
+    {
+        return $this->belongsTo(InvoiceTemplate::class);
     }
 
     public function items(): HasMany

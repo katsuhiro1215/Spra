@@ -15,6 +15,7 @@ export default function Edit({
     quote,
     users,
     serviceCategories,
+    services,
     serviceItems,
 }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -99,6 +100,7 @@ export default function Edit({
                     cancelRoute={route("admin.quote.show", quote.id)}
                     users={users}
                     serviceCategories={serviceCategories}
+                    services={services}
                     serviceItems={serviceItems}
                     projectInquiry={null}
                     isEdit={true}

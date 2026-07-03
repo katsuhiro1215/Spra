@@ -14,8 +14,10 @@ export default function Edit({
     projects,
     users,
     companies,
+    services,
     quotes,
     statuses,
+    quote = null,
 }) {
     const { data, setData, put, processing, errors } = useForm({
         title: contract.title || "",
@@ -26,6 +28,7 @@ export default function Edit({
         company_id: contract.company_id || "",
         project_id: contract.project_id || "",
         quote_id: contract.quote_id || "",
+        service_id: contract.service_id || "",
         amount: contract.amount || "",
         tax_rate: contract.tax_rate || "10",
         start_date: contract.start_date || "",
@@ -91,7 +94,9 @@ export default function Edit({
                     projects={projects}
                     users={users}
                     companies={companies}
+                    services={services}
                     quotes={quotes}
+                    quote={quote}
                 />
             </div>
         </AdminAuthenticatedLayout>
