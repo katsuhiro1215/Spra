@@ -49,13 +49,14 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             current:
                 route().current("admin.contact.*") ||
                 route().current("admin.response.*") ||
-                route().current("admin.responseTemplate.*"),
+                route().current("admin.response.template.*"),
             children: [
                 { name: "お問い合わせ一覧", href: "admin.contact.index" },
+                { name: "カテゴリ管理", href: "admin.contact.category.index" },
                 { name: "返信一覧", href: "admin.response.index" },
                 {
                     name: "テンプレート一覧",
-                    href: "admin.responseTemplate.index",
+                    href: "admin.response.template.index",
                 },
             ],
         },
@@ -100,15 +101,9 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             children: [
                 { name: "プロジェクト一覧", href: "admin.project.index" },
                 { name: "新規プロジェクト", href: "admin.project.create" },
-                { name: "ガンチャート", href: "admin.gantt.index" },
-                // { name: "タスク", href: "admin.gantt.index" },
-                // { name: "マイルストーン", href: "admin.gantt.index" },
-                // { name: "更新履歴", href: "admin.gantt.index" },
-                // { name: "Gitリンク", href: "admin.gantt.index" },
-                // { name: "ドキュメント", href: "admin.gantt.index" },
                 {
-                    name: "カテゴリ",
-                    href: "admin.project.category.index",
+                    name: "プロジェクトテンプレート",
+                    href: "admin.project.template.index",
                 },
             ],
         },
@@ -171,6 +166,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             children: [
                 { name: "サービス一覧", href: "admin.service.index" },
                 { name: "新規サービス", href: "admin.service.create" },
+                { name: "サービス項目", href: "admin.service.item.index" },
+                { name: "サービスプラン", href: "admin.service.plan.index" },
                 {
                     name: "カテゴリ管理",
                     href: "admin.service.category.index",

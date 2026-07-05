@@ -11,28 +11,57 @@ const Pagination = ({ paginationData, className = "" }) => {
         return null;
     }
 
+    // 完全な URL から相対パスを抽出
+    const getRelativePath = (fullUrl) => {
+        if (!fullUrl) return null;
+        try {
+            const url = new URL(fullUrl);
+            return url.pathname + url.search;
+        } catch (e) {
+            return fullUrl;
+        }
+    };
+
     return (
-        <div
-            className={`px-4 py-3 sm:px-6 ${className}`}
-        >
+        <div className={`px-4 py-3 sm:px-6 ${className}`}>
             <div className="flex items-center justify-between">
                 <div className="flex-1 flex justify-between sm:hidden">
                     {/* モバイル用の前/次ボタン */}
                     <button
-                        onClick={() =>
-                            paginationData.prev_page_url &&
-                            router.get(paginationData.prev_page_url)
-                        }
+                        onClick={() => {
+                            const path = getRelativePath(
+                                paginationData.prev_page_url,
+                            );
+                            if (path)
+                                router.get(
+                                    path,
+                                    {},
+                                    {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    },
+                                );
+                        }}
                         disabled={!paginationData.prev_page_url}
                         className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         前へ
                     </button>
                     <button
-                        onClick={() =>
-                            paginationData.next_page_url &&
-                            router.get(paginationData.next_page_url)
-                        }
+                        onClick={() => {
+                            const path = getRelativePath(
+                                paginationData.next_page_url,
+                            );
+                            if (path)
+                                router.get(
+                                    path,
+                                    {},
+                                    {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    },
+                                );
+                        }}
                         disabled={!paginationData.next_page_url}
                         className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -66,16 +95,27 @@ const Pagination = ({ paginationData, className = "" }) => {
                                     paginationData.links.map((link, index) => (
                                         <button
                                             key={index}
-                                            onClick={() =>
-                                                link.url && router.get(link.url)
-                                            }
+                                            onClick={() => {
+                                                const path = getRelativePath(
+                                                    link.url,
+                                                );
+                                                if (path)
+                                                    router.get(
+                                                        path,
+                                                        {},
+                                                        {
+                                                            preserveState: true,
+                                                            preserveScroll: true,
+                                                        },
+                                                    );
+                                            }}
                                             disabled={!link.url}
                                             className={`px-3 py-1 text-sm rounded ${
                                                 link.active
                                                     ? "bg-blue-600 text-white"
                                                     : link.url
-                                                    ? "text-gray-700 hover:bg-gray-100"
-                                                    : "text-gray-400 cursor-not-allowed"
+                                                      ? "text-gray-700 hover:bg-gray-100"
+                                                      : "text-gray-400 cursor-not-allowed"
                                             }`}
                                             dangerouslySetInnerHTML={{
                                                 __html: link.label,

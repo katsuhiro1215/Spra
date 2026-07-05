@@ -11,13 +11,14 @@ import {
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Contact({ auth }) {
+export default function Contact({ auth, categories = [] }) {
     const breadcrumbs = [{ label: "お問い合わせ" }];
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
         email: "",
         phone: "",
         company: "",
+        category_id: "",
         subject: "",
         message: "",
     });
@@ -156,7 +157,7 @@ export default function Contact({ auth }) {
                                         />
                                     </div>
 
-                                    {/* 会社名 */}
+                                    {/* 会社名・団体名 */}
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                                             会社名・団体名
@@ -171,9 +172,50 @@ export default function Contact({ auth }) {
                                                 )
                                             }
                                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            placeholder="株式会社〇〇"
+                                            placeholder="○○○ 株式会社"
                                         />
                                     </div>
+
+                                    {/* カテゴリ選択 */}
+                                    {categories.length > 0 && (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                お問い合わせ種別{" "}
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
+                                            </label>
+                                            <select
+                                                value={data.category_id}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "category_id",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                disabled={processing}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            >
+                                                <option value="">
+                                                    選択してください
+                                                </option>
+                                                {categories.map((cat) => (
+                                                    <option
+                                                        key={cat.id}
+                                                        value={cat.id}
+                                                    >
+                                                        {cat.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {errors.category_id && (
+                                                <p className="text-red-600 text-sm mt-1">
+                                                    {errors.category_id}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* 件名 */}
                                     <div>

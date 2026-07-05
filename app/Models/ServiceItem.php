@@ -9,116 +9,128 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceItem extends Model
 {
-  use HasUlid, HasFactory, SoftDeletes;
+    use HasUlid, HasFactory, SoftDeletes;
 
-  protected $fillable = [
-    'service_id',
-    'service_plan_id',
-    'item_type',
-    'name',
-    'description',
-    'price',
-    'estimated_days',
-    'is_required',
-    'sort_order',
-    'status',
-    'created_by',
-    'updated_by',
-  ];
+    protected $fillable = [
+        'service_id',
+        'name',
+        'slug',
+        'description',
+        'item_type',
+        'standard_price',
+        'internal_cost',
+        'estimated_days',
+        'estimated_hours',
+        'sort_order',
+        'status',
+        'created_by',
+        'updated_by',
+    ];
 
-  protected $casts = [
-    'price' => 'decimal:2',
-    'estimated_days' => 'integer',
-    'is_required' => 'boolean',
-    'sort_order' => 'integer',
-    'status' => 'string',
-    'item_type' => 'string',
-  ];
+    protected $casts = [
+        'standard_price' => 'decimal:2',
+        'internal_cost' => 'decimal:2',
+        'estimated_days' => 'integer',
+        'estimated_hours' => 'integer',
+        'sort_order' => 'integer',
+        'status' => 'string',
+        'item_type' => 'string',
+    ];
 
-  /**
-   * Get the service that owns the service item.
-   */
-  public function service()
-  {
-    return $this->belongsTo(Service::class);
-  }
+    /**
+     * Get the service that owns the service item.
+     */
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 
-  /**
-   * Get the service plan that owns the service item.
-   */
-  public function servicePlan()
-  {
-    return $this->belongsTo(ServicePlan::class);
-  }
+    /**
+     * Get the service plans that include this service item.
+     */
+    public function servicePlans()
+    {
+        return $this->belongsToMany(ServicePlan::class, 'service_plan_items')
+            ->withPivot('quantity', 'estimated_days', 'sort_order', 'is_required')
+            ->orderBy('service_plan_items.sort_order');
+    }
 
-  /**
-   * Get the quote items for this service item.
-   */
-  public function quoteItems()
-  {
-    return $this->hasMany(QuoteItem::class);
-  }
+    /**
+     * Get the service plan items for this service item.
+     */
+    public function servicePlanItems()
+    {
+        return $this->hasMany(ServicePlanItem::class);
+    }
 
-  /**
-   * Get the admin who created this service item.
-   */
-  public function creator()
-  {
-    return $this->belongsTo(Admin::class, 'created_by');
-  }
+    /**
+     * Get the quote items for this service item.
+     */
+    public function quoteItems()
+    {
+        return $this->hasMany(QuoteItem::class);
+    }
 
-  /**
-   * Get the admin who last updated this service item.
-   */
-  public function updater()
-  {
-    return $this->belongsTo(Admin::class, 'updated_by');
-  }
+    /**
+     * Get the admin who created this service item.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
 
-  // スコープ
-  public function scopeActive($query)
-  {
-    return $query->where('status', 'active');
-  }
+    /**
+     * Get the admin who last updated this service item.
+     */
+    public function updater()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
 
-  public function scopeByService($query, $serviceId)
-  {
-    return $query->where('service_id', $serviceId);
-  }
+    // スコープ
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
 
-  public function scopeByPlan($query, $planId)
-  {
-    return $query->where('service_plan_id', $planId);
-  }
+    public function scopeByService($query, $serviceId)
+    {
+        return $query->where('service_id', $serviceId);
+    }
 
-  public function scopeByType($query, $type)
-  {
-    return $query->where('item_type', $type);
-  }
+    public function scopeByPlan($query, $planId)
+    {
+        return $query->where('service_plan_id', $planId);
+    }
 
-  public function scopeAddons($query)
-  {
-    return $query->whereNull('service_plan_id')->where('item_type', 'addon');
-  }
+    public function scopeByType($query, $type)
+    {
+        return $query->where('item_type', $type);
+    }
 
-  public function scopeOrdered($query)
-  {
-    return $query->orderBy('sort_order')->orderBy('name');
-  }
+    public function scopeAddons($query)
+    {
+        return $query->whereNull('service_plan_id')->where('item_type', 'addon');
+    }
 
-  // ヘルパーメソッド
-  public function isActive(): bool
-  {
-    return $this->status === 'active';
-  }
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('name');
+    }
 
-  public function isAddon(): bool
-  {
-    return $this->item_type === 'addon' && is_null($this->service_plan_id);
-  }
+    // ヘルパーメソッド
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
 
-  public function isPlanBase(): bool
-  {
-    return $this->item_type === 'plan_base';
-  }
+    public function isAddon(): bool
+    {
+        return $this->item_type === 'addon' && is_null($this->service_plan_id);
+    }
+
+    public function isPlanBase(): bool
+    {
+        return $this->item_type === 'plan_base';
+    }
 }

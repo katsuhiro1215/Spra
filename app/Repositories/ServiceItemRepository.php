@@ -44,7 +44,8 @@ class ServiceItemRepository extends SoftDeletableRepository implements ServiceIt
             'updated_at',
             'name',
             'status',
-            'price',
+            'standard_price',
+            'internal_cost',
             'sort_order',
         ];
     }

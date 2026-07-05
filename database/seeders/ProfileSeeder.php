@@ -20,19 +20,19 @@ class ProfileSeeder extends Seeder
         // 1. Admin用Profile作成（10名）
         // =============================================
         $adminProfiles = [
-            'kakoi10@smartsprouts.jp' => [
-                'last_name' => '角居',
-                'first_name' => 'ひろし',
-                'last_name_kana' => 'カクイ',
-                'first_name_kana' => 'ヒロシ',
-                'display_name' => '角居部長',
-                'birth_date' => '1985-05-10',
+            'katsuhiro.k1215@gmail.com' => [
+                'last_name' => '栫',
+                'first_name' => '勝宏',
+                'last_name_kana' => 'カコイ',
+                'first_name_kana' => 'カツヒロ',
+                'display_name' => 'かつコーチ',
+                'birth_date' => '1981-12-15',
                 'gender' => 'male',
-                'phone' => '03-1234-5678',
-                'mobile' => '090-1234-5678',
-                'emergency_contact_name' => '角居 花子',
+                'phone' => '090-9580-9257',
+                'mobile' => '090-9580-9257',
+                'emergency_contact_name' => '栫 廣美',
                 'emergency_contact_phone' => '090-9876-5432',
-                'bio' => 'システムオーナー。技術全般を統括しています。',
+                'bio' => 'SmartSproutsのオーナー。全般を統括しています。',
             ],
             'kakoi100@smartsprouts.jp' => [
                 'last_name' => '山田',

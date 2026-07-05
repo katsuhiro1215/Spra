@@ -88,11 +88,6 @@ class Project extends Model
         return $this->belongsTo(Admin::class);
     }
 
-    public function categories(): BelongsToMany
-    {
-        return $this->belongsToMany(ProjectCategory::class, 'project_category_project');
-    }
-
     public function milestones(): HasMany
     {
         return $this->hasMany(ProjectMilestone::class)->orderBy('sort_order');

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
@@ -30,7 +31,7 @@ Route::get('/blog/{slug}', fn($slug) => Inertia::render('Public/BlogDetail', ['s
 Route::get('/faq', fn() => Inertia::render('Public/Faq'))->name('faq');
 Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
-Route::get('/contact', fn() => Inertia::render('Public/Contact'))->name('contact');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::get('/privacy-policy', fn() => Inertia::render('Public/PrivacyPolicy'))->name('privacy.policy');
 
 // Contact 送信
@@ -74,6 +75,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
 
     // 請求書（クライアント向け） userを付与
     Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
+    Route::post('/invoice/{invoice}/payment-notification', [InvoiceController::class, 'storePaymentNotification'])->name('invoice.payment-notification.store');
+    Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);

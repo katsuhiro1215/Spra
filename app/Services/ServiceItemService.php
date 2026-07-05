@@ -78,8 +78,8 @@ class ServiceItemService extends BaseService
     public function getStatuses(): array
     {
         return [
-            'active' => '有効',
-            'inactive' => '無効',
+            ['value' => 'active', 'label' => '有効'],
+            ['value' => 'inactive', 'label' => '無効'],
         ];
     }
 
@@ -91,10 +91,10 @@ class ServiceItemService extends BaseService
     public function getItemTypes(): array
     {
         return [
-            'plan_base' => 'プラン基本料金',
-            'included' => 'プラン含まれる項目',
-            'optional' => 'プラン固有オプション',
-            'addon' => '全プラン共通オプション',
+            ['value' => 'plan_base', 'label' => 'プラン基本料金'],
+            ['value' => 'included', 'label' => 'プラン含まれる項目'],
+            ['value' => 'optional', 'label' => 'プラン固有オプション'],
+            ['value' => 'addon', 'label' => '全プラン共通オプション'],
         ];
     }
 

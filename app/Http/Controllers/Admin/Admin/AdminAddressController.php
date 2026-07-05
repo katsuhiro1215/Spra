@@ -20,7 +20,7 @@ class AdminAddressController extends Controller
         $currentAdminId = auth('admins')->id();
         $isOtherAdmin = $admin->id !== $currentAdminId;
 
-        return Inertia::render('Admin/Admins/Address/Create', [
+        return Inertia::render('Admin/Admin/Address/Create', [
             'admin' => $admin,
             'types' => $this->getAddressTypes(),
             'isOtherAdmin' => $isOtherAdmin,
@@ -35,7 +35,7 @@ class AdminAddressController extends Controller
         $admin->addresses()->create($request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', '住所を追加しました。');
     }
 
@@ -47,7 +47,7 @@ class AdminAddressController extends Controller
         $currentAdminId = auth('admins')->id();
         $isOtherAdmin = $admin->id !== $currentAdminId;
 
-        return Inertia::render('Admin/Admins/Address/Edit', [
+        return Inertia::render('Admin/Admin/Address/Edit', [
             'admin' => $admin,
             'address' => $address,
             'types' => $this->getAddressTypes(),
@@ -63,7 +63,7 @@ class AdminAddressController extends Controller
         $address->update($request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', '住所を更新しました。');
     }
 
@@ -75,7 +75,7 @@ class AdminAddressController extends Controller
         $address->delete();
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', '住所を削除しました。');
     }
 

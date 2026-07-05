@@ -18,6 +18,7 @@ class ServicePlan extends Model
         'description',
         'details',
         'base_price',
+        'discount_amount',
         'billing_cycle',
         'setup_fee',
         'max_revisions',
@@ -34,6 +35,7 @@ class ServicePlan extends Model
 
     protected $casts = [
         'base_price' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'setup_fee' => 'decimal:2',
         'max_revisions' => 'integer',
         'estimated_delivery_days' => 'integer',
@@ -51,11 +53,21 @@ class ServicePlan extends Model
     }
 
     /**
-     * Get the service items for this plan.
+     * Get the service items included in this plan.
      */
     public function serviceItems()
     {
-        return $this->hasMany(ServiceItem::class);
+        return $this->belongsToMany(ServiceItem::class, 'service_plan_items')
+            ->withPivot('quantity', 'estimated_days', 'sort_order', 'is_required')
+            ->orderBy('service_plan_items.sort_order');
+    }
+
+    /**
+     * Get the service plan items for this plan.
+     */
+    public function servicePlanItems()
+    {
+        return $this->hasMany(ServicePlanItem::class);
     }
 
     /**

@@ -113,9 +113,9 @@ class ServicePlanService extends BaseService
     public function getStatuses(): array
     {
         return [
-            'active' => '稼働中',
-            'inactive' => '停止中',
-            'suspended' => '一時停止',
+            ['value' => 'active', 'label' => '稼働中'],
+            ['value' => 'inactive', 'label' => '停止中'],
+            ['value' => 'suspended', 'label' => '一時停止'],
         ];
     }
 
@@ -127,10 +127,10 @@ class ServicePlanService extends BaseService
     public function getBillingCycles(): array
     {
         return [
-            'one_time' => '一回限り',
-            'monthly' => '月額',
-            'quarterly' => '四半期',
-            'yearly' => '年額',
+            ['value' => 'one_time', 'label' => '一回限り'],
+            ['value' => 'monthly', 'label' => '月額'],
+            ['value' => 'quarterly', 'label' => '四半期'],
+            ['value' => 'yearly', 'label' => '年額'],
         ];
     }
 

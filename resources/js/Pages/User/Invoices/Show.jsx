@@ -1,12 +1,35 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import UserAuthLayout from "@/Layouts/UserAuthLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import { SecondaryButton } from "@/Components/Buttons";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import {
+    SecondaryButton,
+    PrimaryButton,
+    DangerButton,
+} from "@/Components/Buttons";
+import {
+    ArrowDownTrayIcon,
+    CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+import {
+    FormGroup,
+    TextInput,
+    SelectInput,
+    InputError,
+} from "@/Components/Forms";
+import Modal from "@/Components/Modal";
 
 export default function InvoiceShow({ invoice }) {
+    const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const { data, setData, post, processing, errors } = useForm({
+        payment_method: "bank_transfer",
+        amount: invoice.total_amount || 0,
+        payment_date: new Date().toISOString().split("T")[0],
+        transaction_id: "",
+        notes: "",
+    });
+
     const statusColors = {
         draft: "gray",
         sent: "blue",
@@ -25,6 +48,13 @@ export default function InvoiceShow({ invoice }) {
         cancelled: "キャンセル",
     };
 
+    const paymentMethods = {
+        bank_transfer: "銀行振込",
+        credit_card: "クレジットカード",
+        cash: "現金",
+        other: "その他",
+    };
+
     const formatAmount = (amount) => {
         return new Intl.NumberFormat("ja-JP", {
             style: "currency",
@@ -32,17 +62,21 @@ export default function InvoiceShow({ invoice }) {
         }).format(amount || 0);
     };
 
-    const handleMarkAsViewed = () => {
-        // 確認済みにマークするロジック
-        if (invoice.status === "sent") {
-            // 後で実装予定
-            console.log("Mark as viewed");
-        }
+    const handleSubmitPaymentNotification = (e) => {
+        e.preventDefault();
+        post(route("user.invoice.payment-notification.store", invoice.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowPaymentForm(false);
+            },
+        });
     };
 
-    const handleDownloadPDF = () => {
-        // PDF ダウンロードロジック
-        window.open(route("user.invoice.pdf", invoice.id), "_blank");
+    const handleDownloadReceipt = () => {
+        window.location.href = route(
+            "user.invoice.receipt.download",
+            invoice.id,
+        );
     };
 
     const breadcrumbs = [
@@ -50,6 +84,13 @@ export default function InvoiceShow({ invoice }) {
         { label: "請求書一覧", href: route("user.invoice.index") },
         { label: invoice.invoice_number, href: null },
     ];
+
+    const hasReceipt = invoice.receipt && invoice.receipt.id;
+    const isPaid = invoice.status === "paid";
+    const canSubmitPayment =
+        invoice.status !== "paid" &&
+        invoice.status !== "cancelled" &&
+        invoice.status !== "draft";
 
     return (
         <UserAuthLayout>
@@ -65,18 +106,50 @@ export default function InvoiceShow({ invoice }) {
                 {/* ステータスとアクション */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                        <div
+                            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                isPaid
+                                    ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
+                                    : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+                            }`}
+                        >
+                            {isPaid && (
+                                <CheckCircleIcon className="h-4 w-4 inline mr-1" />
+                            )}
                             {statusLabels[invoice.status]}
                         </div>
                     </div>
                     <div className="flex gap-3">
                         <SecondaryButton
-                            onClick={handleDownloadPDF}
+                            onClick={() =>
+                                window.open(
+                                    route("user.invoice.pdf", invoice.id),
+                                    "_blank",
+                                )
+                            }
                             className="inline-flex items-center"
                         >
                             <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                             PDF をダウンロード
                         </SecondaryButton>
+
+                        {canSubmitPayment && (
+                            <PrimaryButton
+                                onClick={() => setShowPaymentForm(true)}
+                            >
+                                入金しました
+                            </PrimaryButton>
+                        )}
+
+                        {hasReceipt && (
+                            <PrimaryButton
+                                onClick={handleDownloadReceipt}
+                                className="inline-flex items-center"
+                            >
+                                <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                                領収書をダウンロード
+                            </PrimaryButton>
+                        )}
                     </div>
                 </div>
 
@@ -269,6 +342,120 @@ export default function InvoiceShow({ invoice }) {
                     </Card>
                 )}
             </div>
+
+            {/* 支払い通知フォームモーダル */}
+            <Modal
+                show={showPaymentForm}
+                onClose={() => setShowPaymentForm(false)}
+            >
+                <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        入金通知
+                    </h3>
+
+                    <form
+                        onSubmit={handleSubmitPaymentNotification}
+                        className="space-y-4"
+                    >
+                        <FormGroup>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                支払方法 <span className="text-red-500">*</span>
+                            </label>
+                            <SelectInput
+                                value={data.payment_method}
+                                onChange={(e) =>
+                                    setData("payment_method", e.target.value)
+                                }
+                                className="w-full"
+                            >
+                                {Object.entries(paymentMethods).map(
+                                    ([key, label]) => (
+                                        <option key={key} value={key}>
+                                            {label}
+                                        </option>
+                                    ),
+                                )}
+                            </SelectInput>
+                            <InputError message={errors.payment_method} />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                金額 <span className="text-red-500">*</span>
+                            </label>
+                            <TextInput
+                                type="number"
+                                value={data.amount}
+                                onChange={(e) =>
+                                    setData("amount", e.target.value)
+                                }
+                                step="0.01"
+                                className="w-full"
+                            />
+                            <InputError message={errors.amount} />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                支払い日 <span className="text-red-500">*</span>
+                            </label>
+                            <TextInput
+                                type="date"
+                                value={data.payment_date}
+                                onChange={(e) =>
+                                    setData("payment_date", e.target.value)
+                                }
+                                className="w-full"
+                            />
+                            <InputError message={errors.payment_date} />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                トランザクションID
+                            </label>
+                            <TextInput
+                                type="text"
+                                value={data.transaction_id}
+                                onChange={(e) =>
+                                    setData("transaction_id", e.target.value)
+                                }
+                                placeholder="例: 振込通知番号"
+                                className="w-full"
+                            />
+                            <InputError message={errors.transaction_id} />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                備考
+                            </label>
+                            <textarea
+                                value={data.notes}
+                                onChange={(e) =>
+                                    setData("notes", e.target.value)
+                                }
+                                placeholder="入金に関する追加情報があればお書きください"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                rows="3"
+                            />
+                            <InputError message={errors.notes} />
+                        </FormGroup>
+
+                        <div className="flex justify-end gap-3">
+                            <SecondaryButton
+                                onClick={() => setShowPaymentForm(false)}
+                                type="button"
+                            >
+                                キャンセル
+                            </SecondaryButton>
+                            <PrimaryButton disabled={processing} type="submit">
+                                {processing ? "送信中..." : "送信"}
+                            </PrimaryButton>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
         </UserAuthLayout>
     );
 }

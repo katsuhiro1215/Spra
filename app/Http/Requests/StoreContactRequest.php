@@ -27,6 +27,7 @@ class StoreContactRequest extends FormRequest
       'email' => ['required', 'email', 'max:255'],
       'phone' => ['nullable', 'string', 'max:20'],
       'company' => ['nullable', 'string', 'max:255'],
+      'category_id' => ['required', 'exists:contact_categories,id'],
       'subject' => ['required', 'string', 'max:255'],
       'message' => ['required', 'string', 'max:5000'],
     ];
@@ -44,6 +45,7 @@ class StoreContactRequest extends FormRequest
       'email' => 'メールアドレス',
       'phone' => '電話番号',
       'company' => '会社名',
+      'category_id' => 'お問い合わせ種別',
       'subject' => '件名',
       'message' => 'お問い合わせ内容',
     ];

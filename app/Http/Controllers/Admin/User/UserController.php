@@ -42,7 +42,7 @@ class UserController extends Controller
         // 統計情報の取得
         $stats = $this->userService->getStats();
 
-        return Inertia::render('Admin/Users/Index', [
+        return Inertia::render('Admin/User/Index', [
             'users' => $users,
             'filters' => $filters,
             'stats' => $stats,
@@ -55,7 +55,7 @@ class UserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Users/Create');
+        return Inertia::render('Admin/User/Create');
     }
 
     /**
@@ -66,7 +66,7 @@ class UserController extends Controller
         $result = $this->userService->createUser($request->validated());
 
         return redirect()
-            ->route('admin.users.show', $result['user'])
+            ->route('admin.user.show', $result['user'])
             ->with('success', 'ユーザーを作成しました。初期パスワード: ' . $result['password']);
     }
 
@@ -107,7 +107,7 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return Inertia::render('Admin/Users/Show', [
+        return Inertia::render('Admin/User/Show', [
             'user' => $user,
             'mediaList' => $mediaList,
             'projectInquiries' => $projectInquiries,
@@ -121,7 +121,7 @@ class UserController extends Controller
     {
         $user->load('profile');
 
-        return Inertia::render('Admin/Users/Edit', [
+        return Inertia::render('Admin/User/Edit', [
             'user' => $user,
             'statuses' => $this->userService->getStatuses(),
         ]);
@@ -135,7 +135,7 @@ class UserController extends Controller
         $this->userService->updateUser($user, $request->validated());
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.user.show', $user)
             ->with('success', 'ユーザー情報を更新しました。');
     }
 
@@ -145,15 +145,15 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         try {
-            $this->userService->deleteUser($user, auth('user')->id());
+            $this->userService->deleteUser($user, auth('admins')->id());
 
             return redirect()
-                ->route('admin.users.index')
+                ->route('admin.user.index')
                 ->with('success', 'ユーザーを削除しました。');
         } catch (\Exception $e) {
             Log::error('User delete error: ' . $e->getMessage());
             return redirect()
-                ->route('admin.users.index')
+                ->route('admin.user.index')
                 ->with('error', 'ユーザーの削除に失敗しました。');
         }
     }

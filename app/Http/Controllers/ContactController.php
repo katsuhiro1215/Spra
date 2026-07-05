@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreContactRequest;
 use App\Services\ContactService;
+use App\Services\ContactCategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactReceivedMail;
 use App\Mail\ContactNotificationMail;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Public用お問い合わせコントローラー
@@ -18,8 +21,21 @@ use App\Mail\ContactNotificationMail;
 class ContactController extends Controller
 {
     public function __construct(
-        private ContactService $contactService
+        private ContactService $contactService,
+        private ContactCategoryService $categoryService
     ) {}
+
+    /**
+     * お問い合わせフォームを表示
+     */
+    public function index(): Response
+    {
+        $categories = $this->categoryService->getActive();
+
+        return Inertia::render('Public/Contact', [
+            'categories' => $categories,
+        ]);
+    }
 
     /**
      * お問い合わせを送信
@@ -36,7 +52,7 @@ class ContactController extends Controller
             // トラッキング情報を追加
             $contactData = array_merge($validated, [
                 'status' => 'new',
-                'source' => 'web',
+                'source' => 'public',
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'referrer' => $request->header('referer'),

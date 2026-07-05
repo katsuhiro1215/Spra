@@ -4,15 +4,6 @@
  */
 
 /**
- * Admin/Userステータスのセレクトオプション
- */
-export const ADMIN_STATUS_OPTIONS = [
-    { value: "active", label: "アクティブ" },
-    { value: "inactive", label: "非アクティブ" },
-    { value: "suspended", label: "停止中" },
-];
-
-/**
  * Admin役割のセレクトオプション
  */
 export const ADMIN_ROLE_OPTIONS = [
@@ -20,6 +11,15 @@ export const ADMIN_ROLE_OPTIONS = [
     { value: "super_admin", label: "スーパー管理者" },
     { value: "admin", label: "管理者" },
     { value: "editor", label: "編集者" },
+];
+
+/**
+ * Admin/Userステータスのセレクトオプション
+ */
+export const ADMIN_STATUS_OPTIONS = [
+    { value: "active", label: "アクティブ" },
+    { value: "inactive", label: "非アクティブ" },
+    { value: "suspended", label: "停止中" },
 ];
 
 /**

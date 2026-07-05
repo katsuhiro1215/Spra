@@ -132,6 +132,18 @@ export default function Show({ contract }) {
                     <div className="flex gap-3">
                         <PrimaryButton
                             onClick={() => {
+                                router.get(
+                                    route("admin.projects.create", {
+                                        contract_id: contract.id,
+                                    }),
+                                );
+                            }}
+                        >
+                            <DocumentTextIcon className="h-4 w-4 mr-2" />
+                            プロジェクト作成
+                        </PrimaryButton>
+                        <PrimaryButton
+                            onClick={() => {
                                 router.post(
                                     route(
                                         "admin.invoice.create-from-contract",

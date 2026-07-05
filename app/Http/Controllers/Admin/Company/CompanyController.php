@@ -40,7 +40,7 @@ class CompanyController extends Controller
         // 統計情報の取得
         $stats = $this->companyService->getStats();
 
-        return Inertia::render('Admin/Companies/Index', [
+        return Inertia::render('Admin/Company/Index', [
             'companies' => $companies,
             'stats'     => $stats,
             'filters'   => $filters,
@@ -53,7 +53,7 @@ class CompanyController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Companies/Create', [
+        return Inertia::render('Admin/Company/Create', [
             'companyTypes' => Company::TYPES,
             'statuses'     => Company::STATUSES,
             'addressTypes' => Address::TYPES,
@@ -68,7 +68,7 @@ class CompanyController extends Controller
         try {
             $this->companyService->create($request->validated());
 
-            return redirect()->route('admin.companies.index')
+            return redirect()->route('admin.company.index')
                 ->with('success', '会社情報を作成しました。');
         } catch (\Exception $e) {
             Log::error('Service store error: ' . $e->getMessage());
@@ -109,7 +109,7 @@ class CompanyController extends Controller
             'totalPaid' => $invoices->where('status', 'paid')->sum('total_amount'),
         ];
 
-        return Inertia::render('Admin/Companies/Show', [
+        return Inertia::render('Admin/Company/Show', [
             'company'      => $company,
             'addressTypes' => Address::TYPES,
             'quotes'       => $quotes,
@@ -127,7 +127,7 @@ class CompanyController extends Controller
     {
         $company->load('addresses');
 
-        return Inertia::render('Admin/Companies/Edit', [
+        return Inertia::render('Admin/Company/Edit', [
             'company'      => $company,
             'companyTypes' => Company::TYPES,
             'statuses'     => Company::STATUSES,
@@ -144,7 +144,7 @@ class CompanyController extends Controller
         try {
             $this->companyService->update($company, $request->validated());
 
-            return redirect()->route('admin.companies.index')
+            return redirect()->route('admin.company.index')
                 ->with('success', '会社情報を更新しました。');
         } catch (\Exception $e) {
             Log::error('Service update error: ' . $e->getMessage());
@@ -161,14 +161,14 @@ class CompanyController extends Controller
     {
         // 関連するユーザーが存在する場合は削除できないようにする
         if ($company->users()->exists()) {
-            return redirect()->route('admin.companies.index')
+            return redirect()->route('admin.company.index')
                 ->with('error', 'この会社には関連するユーザーが存在するため削除できません。');
         }
         // 削除処理
         try {
             $this->companyService->delete($company);
 
-            return redirect()->route('admin.companies.index')
+            return redirect()->route('admin.company.index')
                 ->with('success', '会社情報を削除しました。');
         } catch (\Exception $e) {
             Log::error('Company delete error: ' . $e->getMessage());
@@ -190,13 +190,13 @@ class CompanyController extends Controller
         $ids = $request->ids;
 
         if (Company::whereIn('id', $ids)->whereHas('users')->exists()) {
-            return redirect()->route('admin.companies.index')
+            return redirect()->route('admin.company.index')
                 ->with('error', '選択した会社の中に関連するユーザーが存在するものがあるため削除できません。');
         }
 
         $count = $this->companyService->bulkDelete($ids);
 
-        return redirect()->route('admin.companies.index')
+        return redirect()->route('admin.company.index')
             ->with('success', "{$count}件の会社情報を削除しました。");
     }
 
@@ -210,7 +210,7 @@ class CompanyController extends Controller
         // ステータス名を取得
         $statusName = Company::STATUSES[$newStatus];
 
-        return redirect()->route('admin.companies.index')
+        return redirect()->route('admin.company.index')
             ->with('success', "会社のステータスを「{$statusName}」に変更しました。");
     }
 

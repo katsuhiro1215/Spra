@@ -33,6 +33,11 @@ class HandleInertiaRequests extends Middleware
     {
         $admin = $request->user('admins');
 
+        // admin に profile リレーションを含める
+        if ($admin) {
+            $admin->load('profile');
+        }
+
         return [
             ...parent::share($request),
             'auth' => [

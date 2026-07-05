@@ -31,22 +31,29 @@ class DatabaseSeeder extends Seeder
             MediaSeeder::class,
 
             // お問い合わせ
+            ContactCategorySeeder::class,
             ContactSeeder::class,
+            ResponseTemplateSeeder::class,
+            ResponseSeeder::class,
 
             // サービス関連
             ServiceCategorySeeder::class,
             ServiceSeeder::class,
-            ServicePlanSeeder::class,
             ServiceItemSeeder::class,
+            ServicePlanSeeder::class,
+            // ServicePlanItemSeeder::class,
 
             // 規約（Terms）
-            TermSeeder::class,
+            // TermSeeder::class,
 
             // 見積（Quote）
-            QuoteSeeder::class,
+            // QuoteSeeder::class,
 
             // 契約（Contract）
-            ContractSeeder::class,
+            // ContractSeeder::class,
+
+            // プロジェクト関連
+            // ProjectTemplateSeeder::class,
         ]);
     }
 }

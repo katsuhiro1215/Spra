@@ -12,17 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('contract_histories', function (Blueprint $table) {
-            // Drop the old ULID foreign key constraint
-            $table->dropForeign(['created_by']);
+            // Check if foreign key exists before dropping it
+            $indexesDetail = \DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'contract_histories' AND COLUMN_NAME = 'created_by' AND REFERENCED_TABLE_NAME = 'admins'");
 
-            // Change the column type from ulid to uuid
-            $table->uuid('created_by')->nullable()->change();
+            if (!empty($indexesDetail)) {
+                $table->dropForeign(['created_by']);
+            }
 
-            // Add the new foreign key with UUID type
-            $table->foreign('created_by')
-                ->references('id')
-                ->on('admins')
-                ->onDelete('set null');
+            // Clear truncate
+            \DB::table('contract_histories')->truncate();
         });
     }
 
@@ -31,18 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('contract_histories', function (Blueprint $table) {
-            // Drop the UUID foreign key
-            $table->dropForeign(['created_by']);
-
-            // Change back to ULID
-            $table->ulid('created_by')->nullable()->change();
-
-            // Restore the old foreign key
-            $table->foreign('created_by')
-                ->references('id')
-                ->on('admins')
-                ->onDelete('set null');
-        });
+        // No-op: Nothing to revert
     }
 };

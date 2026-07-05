@@ -17,7 +17,7 @@ class CompanyAddressController extends Controller
      */
     public function create(Company $company): Response
     {
-        return Inertia::render('Admin/Companies/Address/Create', [
+        return Inertia::render('Admin/Company/Address/Create', [
             'company' => $company,
             'types' => $this->getAddressTypes(),
         ]);
@@ -40,7 +40,7 @@ class CompanyAddressController extends Controller
      */
     public function edit(Company $company, Address $address): Response
     {
-        return Inertia::render('Admin/Companies/Address/Edit', [
+        return Inertia::render('Admin/Company/Address/Edit', [
             'company' => $company,
             'address' => $address,
             'types' => $this->getAddressTypes(),

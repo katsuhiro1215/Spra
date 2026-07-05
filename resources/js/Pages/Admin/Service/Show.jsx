@@ -354,52 +354,116 @@ export default function Show({
                         <CardBody>
                             {servicePlans.length > 0 ? (
                                 <div className="space-y-4">
-                                    {servicePlans.map((plan) => (
-                                        <Link
-                                            key={plan.id}
-                                            href={route(
-                                                "admin.service.plan.show",
-                                                plan.id,
-                                            )}
-                                            className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                                                        {plan.name}
-                                                    </h3>
-                                                    {plan.description && (
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                            {plan.description}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <div className="text-right">
-                                                    {plan.base_price && (
-                                                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {servicePlans.map((plan) => {
+                                        const itemsTotal =
+                                            plan.service_items?.reduce(
+                                                (sum, item) =>
+                                                    sum +
+                                                    Number(item.price) *
+                                                        (item.pivot?.quantity ||
+                                                            1),
+                                                0,
+                                            ) || 0;
+                                        const discountAmount =
+                                            Number(plan.discount_amount) || 0;
+
+                                        return (
+                                            <Link
+                                                key={plan.id}
+                                                href={route(
+                                                    "admin.service.plan.show",
+                                                    plan.id,
+                                                )}
+                                                className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                                            >
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                                                            {plan.name}
+                                                        </h3>
+                                                        {plan.description && (
+                                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                                {
+                                                                    plan.description
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-right ml-4">
+                                                        <p className="font-semibold text-lg text-gray-900 dark:text-gray-100">
                                                             ¥
                                                             {Number(
                                                                 plan.base_price,
                                                             ).toLocaleString()}
                                                         </p>
-                                                    )}
-                                                    <span
-                                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                            plan.status ===
+                                                        <span
+                                                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                                plan.status ===
+                                                                "active"
+                                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                                    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                                            }`}
+                                                        >
+                                                            {plan.status ===
                                                             "active"
-                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                                                        }`}
-                                                    >
-                                                        {plan.status ===
-                                                        "active"
-                                                            ? "有効"
-                                                            : "無効"}
-                                                    </span>
+                                                                ? "有効"
+                                                                : "無効"}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    ))}
+
+                                                {/* 価格の内訳 */}
+                                                {(itemsTotal > 0 ||
+                                                    discountAmount > 0) && (
+                                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                                        {itemsTotal > 0 && (
+                                                            <div className="flex justify-between">
+                                                                <span>
+                                                                    項目合計:
+                                                                </span>
+                                                                <span>
+                                                                    ¥
+                                                                    {Number(
+                                                                        itemsTotal,
+                                                                    ).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {discountAmount > 0 && (
+                                                            <div className="flex justify-between text-red-600 dark:text-red-400">
+                                                                <span>
+                                                                    割引:
+                                                                </span>
+                                                                <span>
+                                                                    -¥
+                                                                    {Number(
+                                                                        discountAmount,
+                                                                    ).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {plan.service_items &&
+                                                            plan.service_items
+                                                                .length > 0 && (
+                                                                <div className="flex justify-between">
+                                                                    <span>
+                                                                        含まれる項目:
+                                                                    </span>
+                                                                    <span>
+                                                                        {
+                                                                            plan
+                                                                                .service_items
+                                                                                .length
+                                                                        }
+                                                                        件
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                    </div>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-gray-500 dark:text-gray-400 text-center py-8">

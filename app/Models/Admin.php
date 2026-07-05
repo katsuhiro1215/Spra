@@ -111,6 +111,11 @@ class Admin extends Authenticatable
         return $this->hasMany(ProjectInquiry::class, 'assigned_admin_id');
     }
 
+    public function acknowledgedPaymentNotifications(): HasMany
+    {
+        return $this->hasMany(PaymentNotification::class, 'acknowledged_by');
+    }
+
     // -------------------------
     // Scopes
     // -------------------------

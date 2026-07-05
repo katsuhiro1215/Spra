@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServicePlan;
+use App\Models\ServiceItem;
+use App\Models\ServicePlanItem;
 use App\Services\ServicePlanService;
 use App\Services\ServiceService;
 use App\Http\Requests\ServicePlanRequest;
@@ -66,11 +68,16 @@ class ServicePlanController extends Controller
         $statuses = $this->servicePlanService->getStatuses();
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
+        $available_items = ServiceItem::where('status', 'active')
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
+            ->toArray();
 
         return Inertia::render('Admin/Service/ServicePlans/Create', [
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
             'services' => $services,
+            'available_items' => $available_items,
             'service_id' => $request->query('service_id'),
         ]);
     }
@@ -81,7 +88,20 @@ class ServicePlanController extends Controller
     public function store(ServicePlanRequest $request)
     {
         try {
-            $this->servicePlanService->createServicePlan($request->validated());
+            $validated = $request->validated();
+            $servicePlan = $this->servicePlanService->createServicePlan($validated);
+
+            // service_items を service_plan_items に保存
+            if (!empty($validated['service_items'])) {
+                foreach ($validated['service_items'] as $item) {
+                    ServicePlanItem::create([
+                        'service_plan_id' => $servicePlan->id,
+                        'service_item_id' => $item['id'],
+                        'quantity' => $item['quantity'] ?? 1,
+                    ]);
+                }
+            }
+
             $service = $request->service_id;
 
             return redirect()->route('admin.service.show', $service)
@@ -112,12 +132,23 @@ class ServicePlanController extends Controller
         $statuses = $this->servicePlanService->getStatuses();
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
+        $available_items = ServiceItem::where('status', 'active')
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
+            ->toArray();
+
+        // 既存の service_plan_items を取得
+        $service_plan_items = $servicePlan->serviceItems()
+            ->get(['service_items.id', 'service_items.name', 'service_items.item_type', 'service_items.standard_price', 'service_items.internal_cost'])
+            ->toArray();
 
         return Inertia::render('Admin/Service/ServicePlans/Edit', [
             'servicePlan' => $servicePlan,
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
             'services' => $services,
+            'available_items' => $available_items,
+            'service_plan_items' => $service_plan_items,
         ]);
     }
 
@@ -127,7 +158,24 @@ class ServicePlanController extends Controller
     public function update(ServicePlanRequest $request, ServicePlan $servicePlan)
     {
         try {
-            $this->servicePlanService->updateServicePlan($servicePlan, $request->validated());
+            $validated = $request->validated();
+            $this->servicePlanService->updateServicePlan($servicePlan, $validated);
+
+            // service_items を同期
+            // 既存のアイテムをすべて削除
+            ServicePlanItem::where('service_plan_id', $servicePlan->id)->delete();
+
+            // 新しいアイテムを作成
+            if (!empty($validated['service_items'])) {
+                foreach ($validated['service_items'] as $item) {
+                    ServicePlanItem::create([
+                        'service_plan_id' => $servicePlan->id,
+                        'service_item_id' => $item['id'],
+                        'quantity' => $item['quantity'] ?? 1,
+                    ]);
+                }
+            }
+
             $service = $request->service_id;
 
             return redirect()->route('admin.service.show', $service)

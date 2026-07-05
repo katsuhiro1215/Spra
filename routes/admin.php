@@ -20,13 +20,16 @@ use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\ServiceItemController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
+use App\Http\Controllers\Admin\Contact\ContactCategoryController;
 use App\Http\Controllers\Admin\Contact\ResponseController;
 use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
 
 use App\Http\Controllers\Admin\UserInvitationController;
 use App\Http\Controllers\Admin\OnboardingController;
 
-use App\Http\Controllers\Admin\Project\ProjectCategoryController;
+use App\Models\Project;
+use App\Http\Controllers\Admin\Project\ProjectTemplateController;
+use App\Http\Controllers\Admin\Project\ProjectTemplateMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectController;
 use App\Http\Controllers\Admin\Project\ProjectInquiryController;
 use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
@@ -174,6 +177,10 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     /**************************************
      * お問い合わせ
      **************************************/
+    // お問い合わせカテゴリ管理
+    Route::prefix('contact')->name('contact.')->group(function () {
+        Route::resource('category', ContactCategoryController::class)->except(['show']);
+    });
     // お問い合わせ管理
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('/contact/bulk-update', [ContactController::class, 'bulkUpdate'])->name('contact.bulk-update');
@@ -184,34 +191,36 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
 
     // お問い合わせ返答管理（Contact配下）
     Route::prefix('contact/{contact}')->name('contact.')->group(function () {
-        Route::resource('responses', ResponseController::class)->except(['index']);
-        Route::post('responses/{response}/send', [ResponseController::class, 'send'])->name('responses.send');
+        Route::resource('response', ResponseController::class)->except(['index']);
+        Route::post('response/{response}/send', [ResponseController::class, 'send'])->name('response.send');
         // ユーザー招待管理
-        Route::post('invitations', [UserInvitationController::class, 'store'])->name('invitations.store');
+        Route::post('invitation', [UserInvitationController::class, 'store'])->name('invitation.store');
     });
     // ユーザー招待管理（グローバル）
-    Route::prefix('invitations')->name('invitations.')->group(function () {
+    Route::prefix('invitation')->name('invitation.')->group(function () {
         Route::post('{invitation}/resend', [UserInvitationController::class, 'resend'])->name('resend');
         Route::patch('{invitation}/revoke', [UserInvitationController::class, 'revoke'])->name('revoke');
     });
 
     // 返答テンプレート管理
-    Route::resource('responseTemplate', ResponseTemplateController::class);
+    Route::prefix('response')->name('response.')->group(function () {
+        Route::resource('template', ResponseTemplateController::class);
+    });
 
     /**************************************
      * プロジェクト
      **************************************/
-    Route::prefix('project')->name('project.')->group(function () {
-        // プロジェクトカテゴリ管理
-        Route::resource('category', ProjectCategoryController::class)->parameters(['category' => 'projectCategory']);
-        // プロジェクト問い合わせ管理
-        Route::resource('inquiry', ProjectInquiryController::class)->parameters(['inquiries' => 'projectInquiry'])->only(['index', 'show', 'destroy']);
-    });
-    // プロジェクト管理
-    Route::resource('project', ProjectController::class);
     // プロジェクト関連のマイルストーンとアップデート管理
     Route::prefix('project')->name('project.')->group(function () {
-        // Milestones
+        // ProjectTemplate
+        Route::resource('template', ProjectTemplateController::class);
+
+        // ProjectTemplateMilestone (ネストされたリソース)
+        Route::prefix('template/{projectTemplate}')->name('template.')->group(function () {
+            Route::resource('milestone', ProjectTemplateMilestoneController::class)->except(['index']);
+        });
+
+        // ProjectMilestone
         Route::post('/{project}/milestones', [ProjectMilestoneController::class, 'store'])->name('milestones.store');
         Route::put('/{project}/milestones/{milestone}', [ProjectMilestoneController::class, 'update'])->name('milestones.update');
         Route::delete('/{project}/milestones/{milestone}', [ProjectMilestoneController::class, 'destroy'])->name('milestones.destroy');
@@ -219,13 +228,16 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{project}/updates', [ProjectUpdateController::class, 'store'])->name('updates.store');
         Route::put('/{project}/updates/{update}', [ProjectUpdateController::class, 'update'])->name('updates.update');
         Route::delete('/{project}/updates/{update}', [ProjectUpdateController::class, 'destroy'])->name('updates.destroy');
+        // ガントチャート
+        Route::get('/{project}/gantt', function (Project $project) {
+            $project->load(['milestones', 'items']);
+            return Inertia::render('Admin/Projects/GanttChart/Index', [
+                'project' => $project,
+            ]);
+        })->name('gantt.show');
     });
-    // ガントチャート
-    Route::prefix('gantt')->name('gantt.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Projects/GanttChart/Index');
-        })->name('index');
-    });
+    // Project
+    Route::resource('project', ProjectController::class);
 
     // 契約管理
     Route::resource('contract', ContractController::class);
@@ -287,6 +299,9 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('pdf.preview');
         Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
         Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
+        Route::post('/{id}/receipt/issue', [InvoiceController::class, 'issueReceipt'])->name('receipt.issue');
+        Route::post('/{invoiceId}/payment-notification/{notificationId}/acknowledge', [InvoiceController::class, 'acknowledgePaymentNotification'])->name('payment-notification.acknowledge');
+        Route::get('/{id}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('receipt.download');
     });
 
     // 契約から請求書を生成

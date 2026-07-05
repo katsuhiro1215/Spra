@@ -46,7 +46,7 @@ class ContactRepository extends BaseRepository implements ContactRepositoryInter
             'updated_at',
             'status',
             'source',
-            'category',
+            'category_id',
         ];
     }
 
@@ -57,7 +57,7 @@ class ContactRepository extends BaseRepository implements ContactRepositoryInter
      */
     protected function getDefaultRelations(): array
     {
-        return ['assignedAdmin'];
+        return ['assignedAdmin', 'contactCategory'];
     }
 
     /**
@@ -94,7 +94,7 @@ class ContactRepository extends BaseRepository implements ContactRepositoryInter
 
         // カテゴリフィルター
         if (!empty($filters['category'])) {
-            $query->where('category', $filters['category']);
+            $query->where('category_id', $filters['category']);
         }
 
         // ソースフィルター

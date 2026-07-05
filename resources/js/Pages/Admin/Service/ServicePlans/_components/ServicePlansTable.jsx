@@ -1,5 +1,8 @@
 import React from "react";
 import { Link, router } from "@inertiajs/react";
+// Components
+import { Card } from "@/Components/Card";
+// Icons
 import {
     EyeIcon,
     PencilIcon,
@@ -52,12 +55,9 @@ export default function ServicePlansTable({
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {servicePlans.map((plan) => (
-                <div
-                    key={plan.id}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
-                >
+                <Card key={plan.id}>
                     {/* ヘッダー部分 */}
                     <div
                         className="p-6 border-b border-gray-200 dark:border-gray-700"
@@ -169,7 +169,7 @@ export default function ServicePlansTable({
                             </button>
                         </div>
                     </div>
-                </div>
+                </Card>
             ))}
         </div>
     );

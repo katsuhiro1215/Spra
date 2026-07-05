@@ -21,7 +21,7 @@ class AdminProfileController extends Controller
         $currentAdminId = auth('admins')->id();
         $isOtherAdmin = $admin->id !== $currentAdminId;
 
-        return Inertia::render('Admin/Admins/Profile/Create', [
+        return Inertia::render('Admin/Admin/Profile/Create', [
             'admin' => $admin,
             'isOtherAdmin' => $isOtherAdmin,
         ]);
@@ -35,7 +35,7 @@ class AdminProfileController extends Controller
         $admin->profile()->create($request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', 'プロフィールを作成しました。');
     }
 
@@ -49,7 +49,7 @@ class AdminProfileController extends Controller
 
         $admin->load('profile');
 
-        return Inertia::render('Admin/Admins/Profile/Edit', [
+        return Inertia::render('Admin/Admin/Profile/Edit', [
             'admin' => $admin,
             'isOtherAdmin' => $isOtherAdmin,
         ]);
@@ -63,7 +63,7 @@ class AdminProfileController extends Controller
         $admin->profile->update($request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', 'プロフィールを更新しました。');
     }
 

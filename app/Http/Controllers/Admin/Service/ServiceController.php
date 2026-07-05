@@ -86,12 +86,12 @@ class ServiceController extends Controller
     public function show(Service $service): Response
     {
         $servicePlans = $service->servicePlans()
-            ->with(['creator', 'updater'])
+            ->with(['creator', 'updater', 'serviceItems'])
             ->orderBy('sort_order')
             ->get();
 
         $serviceItems = $service->serviceItems()
-            ->with(['servicePlan', 'creator', 'updater'])
+            ->with(['creator', 'updater', 'servicePlanItems.servicePlan'])
             ->orderBy('sort_order')
             ->get();
 
