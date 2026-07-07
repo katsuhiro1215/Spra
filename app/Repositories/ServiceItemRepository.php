@@ -57,7 +57,7 @@ class ServiceItemRepository extends SoftDeletableRepository implements ServiceIt
      */
     protected function getDefaultRelations(): array
     {
-        return ['service', 'servicePlan', 'creator', 'updater'];
+        return ['service', 'servicePlans', 'creator', 'updater'];
     }
 
     /**

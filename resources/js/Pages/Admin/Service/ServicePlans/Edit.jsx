@@ -12,8 +12,6 @@ export default function Edit({
     services,
     billingCycles,
     statuses,
-    available_items,
-    service_plan_items,
 }) {
     const { data, setData, patch, processing, errors } = useForm({
         service_id: servicePlan.service_id || "",
@@ -33,7 +31,6 @@ export default function Edit({
         color: servicePlan.color || "#3B82F6",
         badge_text: servicePlan.badge_text || "",
         icon: servicePlan.icon || "",
-        service_items: service_plan_items || [],
     });
 
     const submit = () => {
@@ -41,30 +38,6 @@ export default function Edit({
         if (data.sort_order === "" || data.sort_order === null) {
             setData("sort_order", 0);
         }
-
-        // discount_amount を計算: アイテム合計 - 基本料金（ゼロ以上）
-        const basePrice = parseFloat(data.base_price) || 0;
-        const itemsTotal = data.service_items.reduce((sum, item) => {
-            // included は価格を 0 にする
-            if (item.item_type === "included") {
-                return sum;
-            }
-            return (
-                sum +
-                (parseFloat(item.standard_price) || 0) * (item.quantity || 1)
-            );
-        }, 0);
-
-        // バリデーション：割引額が基本料金を超える場合は送信しない
-        const discountAmount = Math.max(0, itemsTotal - basePrice);
-        if (discountAmount > basePrice) {
-            alert(
-                "エラー：割引額が基本料金を超えています。アイテムを削除してください。",
-            );
-            return;
-        }
-
-        setData("discount_amount", discountAmount);
 
         patch(route("admin.service.plan.update", servicePlan.id));
     };
@@ -103,7 +76,6 @@ export default function Edit({
                     services={services}
                     billingCycles={billingCycles}
                     statuses={statuses}
-                    available_items={available_items}
                     mode="edit"
                 />
             </div>

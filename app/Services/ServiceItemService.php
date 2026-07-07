@@ -101,16 +101,27 @@ class ServiceItemService extends BaseService
     /**
      * 見積もり作成用にアクティブなServiceItemを取得（カテゴリ別グループ化）
      * 
-     * @return \Illuminate\Support\Collection
+     * @return array
      */
     public function getActiveForQuote()
     {
-        return $this->repository->query()
-            ->with(['service.serviceCategory', 'servicePlan'])
+        $items = $this->repository->query()
+            ->with(['service.serviceCategory', 'servicePlans'])
             ->where('status', 'active')
             ->orderBy('sort_order', 'asc')
-            ->get()
-            ->groupBy('service.service_category_id');
+            ->get();
+
+        // フロントエンド用にservicePlanを単数形で追加
+        $items->each(function ($item) {
+            $item->servicePlan = $item->servicePlans?->first();
+            // シリアライズのため、不要なリレーションを非表示に
+            $item->makeHidden('servicePlans');
+        });
+
+        // カテゴリ別にグループ化して配列で返す
+        return $items->groupBy(function ($item) {
+            return $item->service['service_category_id'];
+        })->toArray();
     }
 
     /**
@@ -121,12 +132,19 @@ class ServiceItemService extends BaseService
      */
     public function getActiveByService(string $serviceId)
     {
-        return $this->repository->query()
-            ->with(['servicePlan'])
+        $items = $this->repository->query()
+            ->with(['servicePlans'])
             ->where('service_id', $serviceId)
             ->where('status', 'active')
             ->orderBy('sort_order', 'asc')
             ->get();
+
+        // フロントエンド用にservicePlanを単数形で追加
+        $items->each(function ($item) {
+            $item->servicePlan = $item->servicePlans?->first();
+        });
+
+        return $items;
     }
 
     /**
@@ -138,7 +156,7 @@ class ServiceItemService extends BaseService
     public function getActiveByCategory(string $categoryId)
     {
         return $this->repository->query()
-            ->with(['service', 'servicePlan'])
+            ->with(['service'])
             ->whereHas('service', function ($query) use ($categoryId) {
                 $query->where('service_category_id', $categoryId);
             })

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Contract;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ContractMailJob;
@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Bus;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Quote;
+use App\Models\QuoteResponse;
+use App\Models\Contract;
 use App\Services\ContractService;
 use App\Services\ContractPdfService;
 use Illuminate\Http\Request;
@@ -58,7 +61,7 @@ class ContractController extends Controller
 
         // QuoteResponse から遷移した場合（推奨ルート）
         if ($request->has('quote_response_id')) {
-            $quoteResponse = \App\Models\QuoteResponse::with([
+            $quoteResponse = QuoteResponse::with([
                 'user.profile',
                 'user.companies',
                 'user.companies.addresses',
@@ -68,7 +71,7 @@ class ContractController extends Controller
 
             if ($quoteResponse) {
                 // Quote を明示的に読み込む（items を eager load）
-                $quote = \App\Models\Quote::with([
+                $quote = Quote::with([
                     'user.profile',
                     'company.addresses',
                     'items',
@@ -78,7 +81,7 @@ class ContractController extends Controller
 
                 // 一時的にドラフト Contract を作成して必要情報をチェック
                 if ($quoteResponse->user_id && $quoteResponse->company_id) {
-                    $tempContract = new \App\Models\Contract();
+                    $tempContract = new Contract();
                     $tempContract->user_id = $quoteResponse->user_id;
                     $tempContract->company_id = $quoteResponse->company_id;
                     $tempContract->quote_id = $quote->id;

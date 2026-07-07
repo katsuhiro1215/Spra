@@ -24,7 +24,7 @@ class ContactCategory extends Model
     // リレーション
     public function contacts(): HasMany
     {
-        return $this->hasMany(Contact::class, 'category_id');
+        return $this->hasMany(Contact::class, 'contact_category_id');
     }
 
     // スコープ

@@ -308,6 +308,53 @@ export default function Detail({ quoteResponse, responseTypes }) {
                         </Card>
                     )}
 
+                {/* 見直し依頼への対応 */}
+                {quoteResponse.response_type === "revision_request" &&
+                    quoteResponse.quote && (
+                        <Card>
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    見積書の見直し依頼
+                                </h3>
+                                {quoteResponse.response_text && (
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            見直しのご要望
+                                        </label>
+                                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                            {quoteResponse.response_text}
+                                        </div>
+                                    </div>
+                                )}
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    クライアントからの見直し依頼に対応するため、見積書を編集します。
+                                </p>
+                                <div className="flex gap-2">
+                                    <Link
+                                        href={route(
+                                            "admin.quote.edit",
+                                            quoteResponse.quote.id,
+                                        )}
+                                    >
+                                        <PrimaryButton>
+                                            見積書を編集する
+                                        </PrimaryButton>
+                                    </Link>
+                                    <Link
+                                        href={route(
+                                            "admin.quote.show",
+                                            quoteResponse.quote.id,
+                                        )}
+                                    >
+                                        <SecondaryButton>
+                                            見積書を確認
+                                        </SecondaryButton>
+                                    </Link>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
                 {quoteResponse.user_id && (
                     <Card>
                         <div className="space-y-4">

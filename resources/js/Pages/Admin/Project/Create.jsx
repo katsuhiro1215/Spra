@@ -1,19 +1,27 @@
 import React, { useState, useMemo } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import {
     FormGroup,
     TextInput,
+    TextArea,
     SelectInput,
     InputError,
 } from "@/Components/Forms";
-import Card from "@/Components/Card";
+import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+// Icons
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ contract, templates, admins }) {
+    // ========================================
+    // State & Form
+    // ========================================
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [selectedMilestones, setSelectedMilestones] = useState([]);
 
@@ -28,27 +36,11 @@ export default function Create({ contract, templates, admins }) {
         milestone_ids: [],
     });
 
-    const headerActions = [
-        {
-            label: "戻る",
-            icon: ArrowLeftIcon,
-            variant: "ghost",
-            route: contract
-                ? route("admin.contract.show", contract.id)
-                : route("admin.projects.index"),
-        },
-    ];
-
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        {
-            label: contract ? "契約詳細" : "プロジェクト一覧",
-            href: contract
-                ? route("admin.contract.show", contract.id)
-                : route("admin.projects.index"),
-        },
-        { label: "新規プロジェクト作成", href: null },
-    ];
+    const getFullName = (admin) => {
+        return admin.profile
+            ? `${admin.profile.last_name} ${admin.profile.first_name}`
+            : "-";
+    };
 
     // テンプレート選択時の処理
     const handleTemplateSelect = (template) => {
@@ -71,31 +63,53 @@ export default function Create({ contract, templates, admins }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.projects.store"));
+        post(route("admin.project.store"));
     };
+
+    // ========================================
+    // Constants - Header Actions & Breadcrumbs
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.projects.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.project.index"),
+        },
+    ];
+
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.projects.breadcrumbs,
+        PageConfig.projects.pages.create.breadcrumb,
+    ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="新規プロジェクト作成"
-                    description="テンプレートを選択してプロジェクトを作成します"
+                    title={PageConfig.projects.pages.create.title}
+                    description={PageConfig.projects.pages.create.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="新規プロジェクト作成" />
+            <Head title={PageConfig.projects.pages.create.documentTitle} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 契約情報（表示用） */}
                 {contract && (
                     <Card>
-                        <Card.Header>
-                            <Card.Title>契約情報</Card.Title>
-                        </Card.Header>
-                        <Card.Body>
+                        <CardHeader>
+                            <CardTitle>契約情報</CardTitle>
+                        </CardHeader>
+                        <CardBody>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
@@ -115,16 +129,16 @@ export default function Create({ contract, templates, admins }) {
                                     </p>
                                 </div>
                             </div>
-                        </Card.Body>
+                        </CardBody>
                     </Card>
                 )}
 
                 {/* 基本情報入力 */}
                 <Card>
-                    <Card.Header>
-                        <Card.Title>基本情報</Card.Title>
-                    </Card.Header>
-                    <Card.Body>
+                    <CardHeader>
+                        <CardTitle>基本情報</CardTitle>
+                    </CardHeader>
+                    <CardBody>
                         <div className="space-y-4">
                             <FormGroup
                                 label="プロジェクト名"
@@ -151,9 +165,8 @@ export default function Create({ contract, templates, admins }) {
                                 label="説明（任意）"
                                 htmlFor="description"
                             >
-                                <textarea
+                                <TextArea
                                     id="description"
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     rows="3"
                                     value={data.description || ""}
                                     onChange={(e) =>
@@ -232,7 +245,7 @@ export default function Create({ contract, templates, admins }) {
                                                 key={admin.id}
                                                 value={admin.id}
                                             >
-                                                {admin.name}
+                                                {getFullName(admin)} ({admin.email})
                                             </option>
                                         ))}
                                     </SelectInput>
@@ -243,15 +256,15 @@ export default function Create({ contract, templates, admins }) {
                                 </FormGroup>
                             </div>
                         </div>
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 {/* プロジェクトテンプレート選択 */}
                 <Card>
-                    <Card.Header>
-                        <Card.Title>プロジェクトテンプレート</Card.Title>
-                    </Card.Header>
-                    <Card.Body>
+                    <CardHeader>
+                        <CardTitle>プロジェクトテンプレート</CardTitle>
+                    </CardHeader>
+                    <CardBody>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {templates.map((template) => (
                                 <div
@@ -281,19 +294,19 @@ export default function Create({ contract, templates, admins }) {
                             className="mt-2"
                             message={errors.template_id}
                         />
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 {/* テンプレートプレビュー */}
                 {selectedTemplate && (
                     <Card>
-                        <Card.Header>
-                            <Card.Title>
+                        <CardHeader>
+                            <CardTitle>
                                 作成される内容 - {selectedTemplate.name}
-                            </Card.Title>
-                        </Card.Header>
-                        <Card.Body>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            </CardTitle>
+                        </CardHeader>
+                            <CardBody>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                 以下のマイルストーンが自動で作成されます。不要な項目はチェックを外してください。
                             </p>
                             <div className="space-y-2">
@@ -329,7 +342,7 @@ export default function Create({ contract, templates, admins }) {
                                     ),
                                 )}
                             </div>
-                        </Card.Body>
+                        </CardBody>
                     </Card>
                 )}
 

@@ -41,9 +41,6 @@ class ServicePlanRequest extends FormRequest
             'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'badge_text' => ['nullable', 'string', 'max:50'],
             'icon' => ['nullable', 'string', 'max:100'],
-            'service_items' => ['nullable', 'array'],
-            'service_items.*.id' => ['exists:service_items,id'],
-            'service_items.*.quantity' => ['integer', 'min:1'],
         ];
     }
 

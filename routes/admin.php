@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
+use App\Http\Controllers\Admin\Service\ServicePlanItemController;
 use App\Http\Controllers\Admin\Service\ServiceItemController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
@@ -35,11 +36,14 @@ use App\Http\Controllers\Admin\Project\ProjectInquiryController;
 use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 
-use App\Http\Controllers\Admin\ContractController;
-use App\Http\Controllers\Admin\ContractSignatureController;
-
 use App\Http\Controllers\Admin\Quote\QuoteController;
+use App\Http\Controllers\Admin\Quote\VersionController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
+
+use App\Http\Controllers\Admin\Contract\ContractController;
+use App\Http\Controllers\Admin\Contract\ContractVersionController;
+use App\Http\Controllers\Admin\Contract\ContractItemController;
+use App\Http\Controllers\Admin\Contract\ContractSignatureController;
 
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\InvoiceController;
@@ -168,6 +172,16 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::prefix('service')->name('service.')->group(function () {
         Route::resource('category', ServiceCategoryController::class)->parameters(['category' => 'serviceCategory']);
         Route::resource('plan', ServicePlanController::class)->parameters(['plan' => 'servicePlan']);
+
+        // ServicePlanItemの管理ルート
+        Route::prefix('plan/{servicePlan}')->name('plan.')->group(function () {
+            Route::get('items/create', [ServicePlanItemController::class, 'addItems'])->name('items.create');
+            Route::post('items', [ServicePlanItemController::class, 'storeItems'])->name('items.store');
+            Route::get('items/edit', [ServicePlanItemController::class, 'editItems'])->name('items.edit');
+            Route::put('items', [ServicePlanItemController::class, 'updateItems'])->name('items.update');
+            Route::delete('items/{servicePlanItem}', [ServicePlanItemController::class, 'destroyItem'])->name('items.destroy');
+        });
+
         Route::resource('item', ServiceItemController::class)->parameters(['item' => 'serviceItem']);
     });
 

@@ -66,6 +66,14 @@ export default function Create({ companyTypes, statuses }) {
         },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.companies.breadcrumbs,
+        PageConfig.companies.pages.create.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
             header={
@@ -73,10 +81,7 @@ export default function Create({ companyTypes, statuses }) {
                     title={PageConfig.companies.title}
                     description={PageConfig.companies.description}
                     actions={headerActions}
-                    breadcrumbs={[
-                        ...PageConfig.companies.breadcrumbs,
-                        PageConfig.companies.pages.create.breadcrumb,
-                    ]}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >

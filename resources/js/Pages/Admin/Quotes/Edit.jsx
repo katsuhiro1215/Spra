@@ -17,6 +17,7 @@ export default function Edit({
     serviceCategories,
     services,
     serviceItems,
+    servicePlans,
 }) {
     const { data, setData, put, processing, errors } = useForm({
         user_id: quote.user_id || "",
@@ -24,20 +25,19 @@ export default function Edit({
         company_id: quote.company_id || "",
         title: quote.title || "",
         requirements: quote.requirements || "",
-        expires_at: quote.expires_at || "",
         custom_specifications:
-            typeof quote.custom_specifications === "string"
-                ? quote.custom_specifications
-                : quote.custom_specifications
-                  ? JSON.stringify(quote.custom_specifications)
+            typeof quote.current_version?.custom_specifications === "string"
+                ? quote.current_version.custom_specifications
+                : quote.current_version?.custom_specifications
+                  ? JSON.stringify(quote.current_version.custom_specifications)
                   : "",
         status: quote.status || "draft",
-        discount_amount: quote.discount_amount || 0,
-        tax_rate: quote.tax_rate || 10,
-        base_amount: quote.base_amount || 0,
-        tax_amount: quote.tax_amount || 0,
-        total_amount: quote.total_amount || 0,
-        items: quote.items || [],
+        discount_amount: quote.current_version?.discount_amount || 0,
+        tax_rate: quote.current_version?.tax_rate || 10,
+        base_amount: quote.current_version?.base_amount || 0,
+        tax_amount: quote.current_version?.tax_amount || 0,
+        total_amount: quote.current_version?.total_amount || 0,
+        items: quote.current_version?.items || [],
     });
 
     const submit = () => {
@@ -90,7 +90,7 @@ export default function Edit({
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl">
+            <div className="w-full">
                 <QuoteForm
                     data={data}
                     setData={setData}
@@ -102,6 +102,7 @@ export default function Edit({
                     serviceCategories={serviceCategories}
                     services={services}
                     serviceItems={serviceItems}
+                    servicePlans={servicePlans}
                     projectInquiry={null}
                     isEdit={true}
                 />

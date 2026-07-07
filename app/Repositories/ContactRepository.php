@@ -46,7 +46,7 @@ class ContactRepository extends BaseRepository implements ContactRepositoryInter
             'updated_at',
             'status',
             'source',
-            'category_id',
+            'contact_category_id',
         ];
     }
 

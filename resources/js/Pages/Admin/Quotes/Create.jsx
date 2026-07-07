@@ -16,6 +16,7 @@ export default function Create({
     serviceCategories,
     services,
     serviceItems,
+    servicePlans,
     projectInquiry = null,
     contact = null,
     user = null,
@@ -139,7 +140,7 @@ export default function Create({
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl">
+            <div className="w-full">
                 <QuoteForm
                     data={data}
                     setData={setData}
@@ -151,6 +152,7 @@ export default function Create({
                     serviceCategories={serviceCategories}
                     services={services}
                     serviceItems={serviceItems}
+                    servicePlans={servicePlans}
                     projectInquiry={projectInquiry}
                     isEdit={false}
                 />

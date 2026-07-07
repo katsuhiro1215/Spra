@@ -187,9 +187,10 @@ export default function Preview({ quote, statuses }) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {quote.items &&
-                                                quote.items.length > 0 ? (
-                                                    quote.items.map(
+                                                {quote.current_version?.items &&
+                                                quote.current_version.items
+                                                    .length > 0 ? (
+                                                    quote.current_version.items.map(
                                                         (item, index) => (
                                                             <tr
                                                                 key={index}
@@ -238,34 +239,46 @@ export default function Preview({ quote, statuses }) {
                                             <span>小計</span>
                                             <span>
                                                 {formatAmount(
-                                                    quote.base_amount,
+                                                    quote.current_version
+                                                        ?.base_amount,
                                                 )}
                                             </span>
                                         </div>
-                                        {quote.discount_amount > 0 && (
+                                        {quote.current_version
+                                            ?.discount_amount > 0 && (
                                             <div className="flex justify-between">
                                                 <span>割引</span>
                                                 <span>
                                                     -
                                                     {formatAmount(
-                                                        quote.discount_amount,
+                                                        quote.current_version
+                                                            .discount_amount,
                                                     )}
                                                 </span>
                                             </div>
                                         )}
                                         <div className="flex justify-between">
                                             <span>
-                                                消費税 ({quote.tax_rate}%)
+                                                消費税 (
+                                                {
+                                                    quote.current_version
+                                                        ?.tax_rate
+                                                }
+                                                %)
                                             </span>
                                             <span>
-                                                {formatAmount(quote.tax_amount)}
+                                                {formatAmount(
+                                                    quote.current_version
+                                                        ?.tax_amount,
+                                                )}
                                             </span>
                                         </div>
                                         <div className="flex justify-between font-bold border-t border-gray-300 dark:border-gray-700 pt-2">
                                             <span>合計</span>
                                             <span>
                                                 {formatAmount(
-                                                    quote.total_amount,
+                                                    quote.current_version
+                                                        ?.total_amount,
                                                 )}
                                             </span>
                                         </div>

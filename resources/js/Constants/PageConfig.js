@@ -571,6 +571,7 @@ export const PageConfig = {
         actions: {
             ...CommonUIConstants.actions,
         },
+        pages: createPageTemplates("プロジェクト"),
         ui: createIndexPageUITemplates(
             "プロジェクト",
             "プロジェクト名で検索...",

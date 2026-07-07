@@ -17,7 +17,7 @@ class Contact extends Model
         'user_id',
         'phone',
         'company',
-        'category_id',
+        'contact_category_id',
         'subject',
         'message',
         'attachments',

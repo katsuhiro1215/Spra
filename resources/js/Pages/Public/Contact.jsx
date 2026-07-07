@@ -18,7 +18,7 @@ export default function Contact({ auth, categories = [] }) {
         email: "",
         phone: "",
         company: "",
-        category_id: "",
+        contact_category_id: "",
         subject: "",
         message: "",
     });
@@ -186,10 +186,10 @@ export default function Contact({ auth, categories = [] }) {
                                                 </span>
                                             </label>
                                             <select
-                                                value={data.category_id}
+                                                value={data.contact_category_id}
                                                 onChange={(e) =>
                                                     setData(
-                                                        "category_id",
+                                                        "contact_category_id",
                                                         e.target.value,
                                                     )
                                                 }
@@ -209,9 +209,9 @@ export default function Contact({ auth, categories = [] }) {
                                                     </option>
                                                 ))}
                                             </select>
-                                            {errors.category_id && (
+                                            {errors.contact_category_id && (
                                                 <p className="text-red-600 text-sm mt-1">
-                                                    {errors.category_id}
+                                                    {errors.contact_category_id}
                                                 </p>
                                             )}
                                         </div>

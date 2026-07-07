@@ -7,6 +7,8 @@ use App\Models\Quote;
 use App\Models\User;
 use App\Models\Contact;
 use App\Models\Company;
+use App\Models\Service;
+use App\Models\ServicePlan;
 use App\Models\ProjectInquiry;
 use App\Services\QuoteService;
 use App\Services\ServiceCategoryService;
@@ -66,11 +68,44 @@ class QuoteController extends Controller
     {
         // サービスカテゴリ、Service、ServiceItemを取得
         $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
-        $services = \App\Models\Service::where('status', 'active')
+        $services = Service::where('status', 'active')
             ->orderBy('name')
             ->select('id', 'name', 'service_category_id')
             ->get();
         $serviceItems = $this->serviceItemService->getActiveForQuote();
+
+        // ServicePlansを取得（serviceItemsとピボットデータをeager loadする）
+        $servicePlans = ServicePlan::where('status', 'active')
+            ->with([
+                'serviceItems' => function ($query) {
+                    $query->select('service_items.id', 'service_items.name', 'service_items.description', 'service_items.standard_price', 'service_items.item_type')
+                        ->withPivot('quantity', 'estimated_days', 'sort_order')
+                        ->orderBy('service_plan_items.sort_order');
+                }
+            ])
+            ->select('id', 'name', 'service_id', 'description', 'base_price')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function ($plan) {
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'service_id' => $plan->service_id,
+                    'description' => $plan->description,
+                    'base_price' => $plan->base_price,
+                    'service_items' => $plan->serviceItems->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'description' => $item->description,
+                            'standard_price' => $item->standard_price,
+                            'item_type' => $item->item_type,
+                            'quantity' => $item->pivot->quantity,
+                            'estimated_days' => $item->pivot->estimated_days,
+                        ];
+                    })->toArray(),
+                ];
+            });
 
         // ユーザー一覧を取得（検索用）
         $users = User::with('profile')
@@ -123,6 +158,7 @@ class QuoteController extends Controller
             'serviceCategories' => $serviceCategories,
             'services' => $services,
             'serviceItems' => $serviceItems,
+            'servicePlans' => $servicePlans,
             'users' => $users,
             'projectInquiry' => $projectInquiry,
             'contact' => $contact,
@@ -143,13 +179,11 @@ class QuoteController extends Controller
             'title' => 'nullable|string|max:255',
             'requirements' => 'nullable|string',
             'custom_specifications' => 'nullable|string',
-            'expires_at' => 'nullable|date',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
-            'status' => 'required|in:draft,sent,reviewed,approved,rejected,expired',
+            'status' => 'required|in:draft,negotiating,approved,rejected,contracted,cancelled',
             'items' => 'array',
             'items.*.service_id' => 'nullable|exists:services,id',
-            'items.*.service_plan_id' => 'nullable|exists:service_plans,id',
             'items.*.service_item_id' => 'nullable|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
             'items.*.description' => 'nullable|string',
@@ -200,7 +234,10 @@ class QuoteController extends Controller
             'user.profile',
             'contact',
             'company',
-            'items.serviceItem',
+            'currentVersion.items.serviceItem',
+            'versions' => function ($query) {
+                $query->orderBy('version', 'asc');
+            },
             'creator.profile',
             'updater.profile',
         ]);
@@ -222,7 +259,7 @@ class QuoteController extends Controller
                 ->with('error', '承認済みの見積もりは編集できません。');
         }
 
-        $quote->load(['items', 'user.profile', 'contact', 'company']);
+        $quote->load(['currentVersion.items', 'user.profile', 'contact', 'company']);
 
         // サービスカテゴリ、Service、ServiceItemを取得
         $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
@@ -231,6 +268,18 @@ class QuoteController extends Controller
             ->select('id', 'name', 'service_category_id')
             ->get();
         $serviceItems = $this->serviceItemService->getActiveForQuote();
+
+        // ServicePlansを取得（serviceItemsをeager loadする）
+        $servicePlans = \App\Models\ServicePlan::where('status', 'active')
+            ->with([
+                'serviceItems' => function ($query) {
+                    $query->select('service_items.id', 'service_items.name', 'service_items.standard_price', 'service_items.item_type')
+                        ->orderBy('service_plan_items.sort_order');
+                }
+            ])
+            ->select('id', 'name', 'service_id', 'description', 'base_price')
+            ->orderBy('sort_order')
+            ->get();
 
         // ユーザー一覧を取得
         $users = User::with('profile')
@@ -252,6 +301,7 @@ class QuoteController extends Controller
             'serviceCategories' => $serviceCategories,
             'services' => $services,
             'serviceItems' => $serviceItems,
+            'servicePlans' => $servicePlans,
             'users' => $users,
         ]);
     }
@@ -273,10 +323,9 @@ class QuoteController extends Controller
             'title' => 'nullable|string|max:255',
             'requirements' => 'nullable|string',
             'custom_specifications' => 'nullable|string',
-            'expires_at' => 'nullable|date',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
-            'status' => 'required|in:draft,sent,reviewed,approved,rejected,expired',
+            'status' => 'required|in:draft,negotiating,approved,rejected,contracted,cancelled',
             'items' => 'array',
             'items.*.service_item_id' => 'nullable|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
@@ -331,7 +380,7 @@ class QuoteController extends Controller
             'user.profile',
             'contact',
             'company',
-            'items.serviceItem',
+            'currentVersion.items.serviceItem',
         ]);
 
         return Inertia::render('Admin/Quotes/Preview', [

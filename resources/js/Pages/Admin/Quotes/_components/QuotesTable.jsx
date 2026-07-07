@@ -91,37 +91,47 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                     </Link>
                                 </Td>
                                 <Td>
-                                    <div className="font-medium text-gray-900">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">
                                         {quote.title}
                                     </div>
                                     {quote.requirements && (
-                                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                                             {quote.requirements}
                                         </div>
                                     )}
                                 </Td>
                                 <Td>
-                                    <div className="text-gray-900">
-                                        {quote.client_name}
+                                    <div className="text-gray-900 dark:text-gray-100">
+                                        {quote.user?.profile?.full_name ||
+                                            quote.contact?.name ||
+                                            "未設定"}
                                     </div>
-                                    {quote.client_company && (
-                                        <div className="text-sm text-gray-500">
-                                            {quote.client_company}
+                                    {(quote.company?.name ||
+                                        quote.contact?.company_name) && (
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {quote.company?.name ||
+                                                quote.contact?.company_name}
                                         </div>
                                     )}
-                                    <div className="text-sm text-gray-500">
-                                        {quote.client_email}
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        {quote.user?.email ||
+                                            quote.contact?.email ||
+                                            "-"}
                                     </div>
                                 </Td>
                                 <Td>
-                                    <div className="font-semibold text-gray-900">
-                                        {formatAmount(quote.total_amount)}
+                                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                        {formatAmount(
+                                            quote.current_version?.total_amount,
+                                        )}
                                     </div>
-                                    {quote.discount_amount > 0 && (
-                                        <div className="text-sm text-green-600">
+                                    {quote.current_version?.discount_amount >
+                                        0 && (
+                                        <div className="text-sm text-green-600 dark:text-green-400">
                                             割引:{" "}
                                             {formatAmount(
-                                                quote.discount_amount,
+                                                quote.current_version
+                                                    ?.discount_amount,
                                             )}
                                         </div>
                                     )}
@@ -138,17 +148,23 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                 <Td>
                                     <div
                                         className={
-                                            quote.expires_at &&
-                                            new Date(quote.expires_at) <
-                                                new Date()
-                                                ? "text-red-600 font-medium"
-                                                : ""
+                                            quote.current_version?.expires_at &&
+                                            new Date(
+                                                quote.current_version
+                                                    .expires_at,
+                                            ) < new Date()
+                                                ? "text-red-600 dark:text-red-400 font-medium"
+                                                : "text-gray-900 dark:text-gray-100"
                                         }
                                     >
-                                        {formatDate(quote.expires_at)}
+                                        {formatDate(
+                                            quote.current_version?.expires_at,
+                                        )}
                                     </div>
                                 </Td>
-                                <Td>{formatDate(quote.created_at)}</Td>
+                                <Td className="text-gray-900 dark:text-gray-100">
+                                    {formatDate(quote.created_at)}
+                                </Td>
                                 <Td>
                                     <div className="flex justify-end space-x-2">
                                         <Link
@@ -156,7 +172,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                                 "admin.quote.show",
                                                 quote.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-800"
+                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                             title="詳細"
                                         >
                                             <EyeIcon className="h-5 w-5" />
@@ -167,7 +183,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                                     "admin.quote.edit",
                                                     quote.id,
                                                 )}
-                                                className="text-yellow-600 hover:text-yellow-800"
+                                                className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300"
                                                 title="編集"
                                             >
                                                 <PencilIcon className="h-5 w-5" />
@@ -178,7 +194,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                                 "admin.quote.pdf",
                                                 quote.id,
                                             )}
-                                            className="text-green-600 hover:text-green-800"
+                                            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                             title="PDFダウンロード"
                                         >
                                             <DocumentArrowDownIcon className="h-5 w-5" />
@@ -186,7 +202,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                         {quote.status !== "approved" && (
                                             <button
                                                 onClick={() => onDelete(quote)}
-                                                className="text-red-600 hover:text-red-800"
+                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                                 title="削除"
                                             >
                                                 <TrashIcon className="h-5 w-5" />

@@ -124,7 +124,7 @@ export default function Index({ admins, filters, stats }) {
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
