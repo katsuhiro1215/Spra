@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Contract;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ContractRequest;
 use App\Jobs\ContractMailJob;
 use Illuminate\Support\Facades\Bus;
 use App\Models\Project;
@@ -42,9 +43,9 @@ class ContractController extends Controller
         ]);
     }
 
-    public function show(string $id): Response
+    public function show(Contract $contract): Response
     {
-        $contract = $this->service->findById($id);
+        $contract = $this->service->findById($contract->id);
         abort_unless($contract, 404);
 
         return Inertia::render('Admin/Contracts/Show', [
@@ -55,122 +56,140 @@ class ContractController extends Controller
     public function create(Request $request): Response
     {
         $quote = null;
-        $quoteResponse = null;
-        $requirementStatus = null;
+        $fromQuote = false;
         $fromQuoteResponse = false;
+        $quoteResponse = null;
 
-        // QuoteResponse から遷移した場合（推奨ルート）
+        // QuoteResponse から遷移した場合
         if ($request->has('quote_response_id')) {
             $quoteResponse = QuoteResponse::with([
+                'quote.user.profile',
+                'quote.user.companies.addresses',
+                'quote.company.addresses',
+                'quote.currentVersion.items.serviceItem',
                 'user.profile',
-                'user.companies',
                 'user.companies.addresses',
-                'company.addresses',
-                'quote',
             ])->find($request->input('quote_response_id'));
 
             if ($quoteResponse) {
-                // Quote を明示的に読み込む（items を eager load）
-                $quote = Quote::with([
-                    'user.profile',
-                    'company.addresses',
-                    'items',
-                ])->find($quoteResponse->quote_id);
-
+                $quote = $quoteResponse->quote;
                 $fromQuoteResponse = true;
-
-                // 一時的にドラフト Contract を作成して必要情報をチェック
-                if ($quoteResponse->user_id && $quoteResponse->company_id) {
-                    $tempContract = new Contract();
-                    $tempContract->user_id = $quoteResponse->user_id;
-                    $tempContract->company_id = $quoteResponse->company_id;
-                    $tempContract->quote_id = $quote->id;
-
-                    $requirementStatus = $tempContract->getRequirementStatus();
-                }
             }
         }
-        // Quote から遷移した場合（代替ルート）
+        // Quote から直接遷移した場合
         elseif ($request->has('quote_id')) {
-            $quote = \App\Models\Quote::with([
+            $quote = Quote::with([
                 'user.profile',
-                'user.companies',
-                'contact',
+                'user.companies.addresses',
                 'company.addresses',
-                'items',
+                'currentVersion.items.serviceItem',
             ])->find($request->input('quote_id'));
 
-            // Quote から一時的にドラフト Contract を作成して必要情報をチェック
-            if ($quote) {
-                $tempContract = new \App\Models\Contract();
-                $tempContract->user_id = $quote->user_id;
-                $tempContract->company_id = $quote->company_id;
-                $tempContract->quote_id = $quote->id;
+            $fromQuote = true;
+        }
 
-                $requirementStatus = $tempContract->getRequirementStatus();
+        // 見積一覧を取得（承認済みのもの）
+        $quotes = Quote::with(['user.profile', 'currentVersion'])
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($q) {
+                return [
+                    'id' => $q->id,
+                    'quote_number' => $q->quote_number,
+                    'title' => $q->title,
+                    'status' => $q->status,
+                    'user_name' => $q->user?->profile?->full_name ?? $q->user?->email ?? 'N/A',
+                ];
+            });
+
+        // requirementStatus を計算
+        $requirementStatus = null;
+        if ($quote || $quoteResponse) {
+            $errors = [];
+            $can_send = true;
+
+            // fromQuoteResponse の場合、quoteResponse->user を見る
+            $user = $fromQuoteResponse ? $quoteResponse->user : $quote->user;
+
+            // 1. ユーザー情報の確認
+            if (!$user) {
+                $errors[] = 'ユーザーが設定されていません';
+                $can_send = false;
             }
+
+            // 2. ユーザープロフィール情報の確認
+            if (!$user?->profile || (!$user->profile?->phone && !$user->profile?->mobile)) {
+                $errors[] = '連絡先情報が登録されていません';
+                $can_send = false;
+            }
+
+            // 3. 会社情報の確認
+            if ($fromQuoteResponse) {
+                $company = $quoteResponse->company ?? $quoteResponse->user?->companies?->first();
+            } else {
+                $company = $quote->company ?? $quote->user?->companies?->first();
+            }
+
+            if (!$company) {
+                $errors[] = '会社情報が設定されていません';
+                $can_send = false;
+            }
+
+            // 4. 会社住所の確認
+            if (!$company || !$company->addresses || count($company->addresses) === 0) {
+                $errors[] = '会社の住所が登録されていません';
+                $can_send = false;
+            }
+
+            $requirementStatus = [
+                'can_send' => $can_send,
+                'errors' => $errors,
+            ];
         }
 
         return Inertia::render('Admin/Contracts/Create', [
-            'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
-            'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
+            'users'     => User::with('profile')->where('status', 'active')->orderBy('email')->get(['id', 'email']),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
-            'services'  => \App\Models\Service::orderBy('name')->get(['id', 'name']),
-            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->with('items')->get(['id', 'quote_number', 'title', 'status']),
+            'quotes'    => $quotes,
             'quote'     => $quote,
-            'quoteResponse' => $quoteResponse,
+            'fromQuote' => $fromQuote,
             'fromQuoteResponse' => $fromQuoteResponse,
+            'quoteResponse' => $quoteResponse,
             'requirementStatus' => $requirementStatus,
-            'statuses'  => \App\Models\Contract::STATUSES,
+            'statuses'  => Contract::STATUSES,
+            'types'     => Contract::TYPES,
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(ContractRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'project_id'        => 'nullable|ulid|exists:projects,id',
-            'user_id'           => 'required|uuid|exists:users,id',
-            'company_id'        => 'nullable|ulid|exists:companies,id',
-            'service_id'        => 'nullable|ulid|exists:services,id',
-            'title'             => 'required|string|max:255',
-            'type'              => 'required|string|in:one_time,monthly,annual',
-            'status'            => 'required|string|in:draft,sent,pending_signature,active,suspended,completed,cancelled',
-            'description'       => 'nullable|string',
-            'amount'            => 'required|numeric|min:0',
-            'tax_rate'          => 'required|numeric|min:0|max:100',
-            'start_date'        => 'required|date',
-            'end_date'          => 'nullable|date|after_or_equal:start_date',
-            'auto_renewal'      => 'boolean',
-            'renewal_notice_days' => 'nullable|integer|min:1',
-            'payment_terms'     => 'nullable|string',
-            'terms_and_conditions' => 'nullable|string',
-            'notes'             => 'nullable|string',
-            'quote_id'          => 'nullable|ulid|exists:quotes,id',
-            'quote_response_id' => 'nullable|ulid|exists:quote_responses,id',
-        ]);
+        $validated = $request->validated();
 
-        // ドラフト以外のステータスの場合、必要情報をチェック
-        if ($validated['status'] !== 'draft') {
-            $tempContract = new \App\Models\Contract();
-            $tempContract->user_id = $validated['user_id'] ?? null;
-            $tempContract->company_id = $validated['company_id'] ?? null;
-            $tempContract->quote_id = $validated['quote_id'] ?? null;
+        try {
+            // Contract + ContractVersion v1 のみ作成（items は別途追加）
+            $contractData = [
+                'quote_id' => $validated['quote_id'] ?? null,
+                'user_id' => $validated['user_id'],
+                'company_id' => $validated['company_id'] ?? null,
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'type' => $validated['type'] ?? 'one_time',
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'] ?? null,
+                'billing_day' => $validated['billing_day'] ?? 10,
+                'payment_due_days' => $validated['payment_due_days'] ?? 15,
+                'auto_renewal' => $validated['auto_renewal'] ?? false,
+            ];
 
-            $missingRequirements = $tempContract->getMissingRequirements();
+            // Contract作成（ContractVersion v1 も自動作成される）
+            $contract = $this->service->createContract($contractData);
 
-            if (!empty($missingRequirements)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->withErrors([
-                        'requirements' => '契約書を送信するには以下の情報が必要です: ' . implode(', ', $missingRequirements),
-                    ]);
-            }
+            return redirect()->route('admin.contract.show', $contract->id)
+                ->with('success', '契約を作成しました。契約明細を追加してください。');
+        } catch (\Exception $e) {
+            return back()->with('error', '契約の作成に失敗しました: ' . $e->getMessage())->withInput();
         }
-
-        $contract = $this->service->create($validated);
-
-        return redirect()->route('admin.contract.show', $contract->id)
-            ->with('success', '契約を作成しました。');
     }
 
     public function edit(string $id): Response
@@ -181,18 +200,16 @@ class ContractController extends Controller
         // Contract に紐付いた Quote を取得
         $quote = null;
         if ($contract->quote_id) {
-            $quote = \App\Models\Quote::with(['items'])->find($contract->quote_id);
+            $quote = Quote::with(['currentVersion.items'])->find($contract->quote_id);
         }
 
         return Inertia::render('Admin/Contracts/Edit', [
             'contract'  => $contract,
             'quote'     => $quote,
-            'projects'  => Project::orderBy('title')->get(['id', 'title', 'project_code']),
-            'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
+            'users'     => User::with('profile')->where('status', 'active')->orderBy('email')->get(['id', 'email']),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
-            'services'  => \App\Models\Service::orderBy('name')->get(['id', 'name']),
-            'quotes'    => \App\Models\Quote::whereIn('status', ['draft', 'sent', 'reviewed', 'approved'])->orderBy('created_at', 'desc')->with('items')->get(['id', 'quote_number', 'title', 'status']),
-            'statuses'  => \App\Models\Contract::STATUSES,
+            'statuses'  => Contract::STATUSES,
+            'types'     => Contract::TYPES,
         ]);
     }
 
@@ -202,27 +219,37 @@ class ContractController extends Controller
         abort_unless($contract, 404);
 
         $validated = $request->validate([
-            'project_id'    => 'nullable|ulid|exists:projects,id',
-            'user_id'       => 'nullable|uuid|exists:users,id',
-            'company_id'    => 'nullable|ulid|exists:companies,id',
-            'service_id'    => 'required|ulid|exists:services,id',
             'title'         => 'required|string|max:255',
-            'type'          => 'required|string|in:one_time,monthly,annual',
-            'status'        => 'required|string|in:draft,sent,active,suspended,completed,cancelled',
-            'amount'        => 'required|numeric|min:0',
-            'tax_rate'      => 'required|numeric|min:0|max:100',
-            'deposit_rate'  => 'nullable|integer|min:0|max:100',
+            'description'   => 'nullable|string',
             'start_date'    => 'nullable|date',
             'end_date'      => 'nullable|date|after_or_equal:start_date',
-            'auto_renewal'  => 'boolean',
-            'payment_terms' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
+            'special_provisions' => 'nullable|string',
             'notes'         => 'nullable|string',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'tax_rate'      => 'nullable|numeric|min:0|max:100',
+            'revision_reason' => 'nullable|string',
+            'items'         => 'array',
+            'items.*.service_id' => 'required|ulid|exists:services,id',
+            'items.*.service_item_id' => 'required|ulid|exists:service_items,id',
+            'items.*.name' => 'required|string|max:255',
+            'items.*.description' => 'nullable|string',
+            'items.*.item_type' => 'nullable|string',
+            'items.*.billing_type' => 'required|in:one_time,monthly,quarterly,yearly',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.estimated_days' => 'nullable|integer|min:0',
+            'items.*.sort_order' => 'nullable|integer',
         ]);
 
-        $this->service->update($contract, $validated);
+        try {
+            $this->service->updateContract($contract, $validated);
 
-        return redirect()->route('admin.contract.show', $contract->id)
-            ->with('success', '契約を更新しました。');
+            return redirect()->route('admin.contract.show', $contract->id)
+                ->with('success', '契約を更新しました。新しいバージョンが作成されました。');
+        } catch (\Exception $e) {
+            return back()->with('error', '契約の更新に失敗しました: ' . $e->getMessage());
+        }
     }
 
     public function activate(Request $request, string $id): RedirectResponse
@@ -435,5 +462,179 @@ class ContractController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline',
         ]);
+    }
+
+    /**
+     * 契約明細追加ページ（QuoteItemからコピー）
+     */
+    public function addItems(string $id): Response|RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        if (!$contract->quote_id) {
+            return redirect()->route('admin.contract.show', $id)
+                ->with('error', '見積書が紐付いていないため、明細を追加できません。');
+        }
+
+        $quote = Quote::with(['currentVersion.items.service', 'currentVersion.items.serviceItem'])
+            ->find($contract->quote_id);
+
+        if (!$quote) {
+            return redirect()->route('admin.contract.show', $id)
+                ->with('error', '見積書が見つかりません。');
+        }
+
+        return Inertia::render('Admin/Contracts/AddItems', [
+            'contract' => $contract,
+            'quote' => $quote,
+        ]);
+    }
+
+    /**
+     * 契約明細を保存（QuoteItemからスナップショット）
+     */
+    public function storeItems(Request $request, string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.service_id' => 'required|ulid|exists:services,id',
+            'items.*.service_item_id' => 'required|ulid|exists:service_items,id',
+            'items.*.name' => 'required|string|max:255',
+            'items.*.description' => 'nullable|string',
+            'items.*.item_type' => 'nullable|string',
+            'items.*.billing_type' => 'required|in:one_time,monthly,quarterly,yearly',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.amount' => 'required|numeric|min:0',
+            'items.*.estimated_days' => 'nullable|integer|min:0',
+            'items.*.sort_order' => 'nullable|integer',
+            'items.*.selected' => 'boolean',
+        ]);
+
+        try {
+            $currentVersion = $contract->currentVersion;
+            if (!$currentVersion) {
+                return back()->with('error', '現在のバージョンが見つかりません。');
+            }
+
+            // 選択された明細のみ追加
+            $selectedItems = array_filter($validated['items'], fn($item) => $item['selected'] ?? true);
+
+            foreach ($selectedItems as $item) {
+                $currentVersion->items()->create([
+                    'service_id' => $item['service_id'],
+                    'service_item_id' => $item['service_item_id'],
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? null,
+                    'item_type' => $item['item_type'] ?? null,
+                    'billing_type' => $item['billing_type'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'amount' => $item['amount'],
+                    'estimated_days' => $item['estimated_days'] ?? null,
+                    'sort_order' => $item['sort_order'] ?? 0,
+                ]);
+            }
+
+            // 金額を再計算
+            $this->service->recalculateVersionAmounts($currentVersion);
+
+            return redirect()->route('admin.contract.show', $id)
+                ->with('success', '契約明細を追加しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', '明細の追加に失敗しました: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 契約条項編集ページ
+     */
+    public function editTerms(string $id): Response
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        $templates = \App\Models\ContractTemplate::active()->ordered()->get();
+
+        return Inertia::render('Admin/Contracts/EditTerms', [
+            'contract' => $contract,
+            'templates' => $templates,
+        ]);
+    }
+
+    /**
+     * 契約条項を更新（Version1は何度でも保存可能、バージョン番号は増えない）
+     */
+    public function updateTerms(Request $request, string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        $validated = $request->validate([
+            'terms_and_conditions' => 'required|string',
+            'special_provisions' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            $currentVersion = $contract->currentVersion;
+            if (!$currentVersion) {
+                return back()->with('error', '現在のバージョンが見つかりません。');
+            }
+
+            // ドラフト状態の場合のみ上書き保存可能
+            if ($currentVersion->status !== 'draft') {
+                return back()->with('error', 'ドラフト状態のバージョンのみ編集できます。');
+            }
+
+            $currentVersion->update([
+                'terms_and_conditions' => $validated['terms_and_conditions'],
+                'special_provisions' => $validated['special_provisions'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            return redirect()->route('admin.contract.show', $id)
+                ->with('success', '契約条項を保存しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', '契約条項の保存に失敗しました: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 契約書プレビューページ
+     */
+    public function preview(string $id): Response
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        return Inertia::render('Admin/Contracts/Preview', [
+            'contract' => $contract,
+        ]);
+    }
+
+    /**
+     * 契約削除
+     */
+    public function destroy(string $id): RedirectResponse
+    {
+        $contract = $this->service->findById($id);
+        abort_unless($contract, 404);
+
+        if ($contract->status !== 'draft') {
+            return back()->with('error', '下書き状態の契約のみ削除できます。');
+        }
+
+        try {
+            $contract->delete();
+            return redirect()->route('admin.contract.index')
+                ->with('success', '契約を削除しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', '契約の削除に失敗しました: ' . $e->getMessage());
+        }
     }
 }

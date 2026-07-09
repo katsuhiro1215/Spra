@@ -23,25 +23,39 @@ const ContractsTable = ({
     // ステータスのバッジカラーを取得
     const getContractStatusColor = (status) => {
         const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            pending_signature: "bg-yellow-100 text-yellow-800",
-            active: "bg-green-100 text-green-800",
-            suspended: "bg-orange-100 text-orange-800",
-            completed: "bg-blue-100 text-blue-800",
-            cancelled: "bg-red-100 text-red-800",
+            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+            pending_signature:
+                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+            active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            suspended:
+                "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+            completed:
+                "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+            cancelled:
+                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
         };
-        return colors[status] || "bg-gray-100 text-gray-800";
+        return (
+            colors[status] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+        );
     };
 
     // 署名ステータスのバッジカラーを取得
     const getSignatureStatusColor = (status) => {
         const colors = {
-            pending: "bg-yellow-100 text-yellow-800",
-            user_signed: "bg-blue-100 text-blue-800",
-            fully_signed: "bg-green-100 text-green-800",
-            rejected: "bg-red-100 text-red-800",
+            pending:
+                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+            user_signed:
+                "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+            fully_signed:
+                "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            rejected:
+                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
         };
-        return colors[status] || "bg-gray-100 text-gray-800";
+        return (
+            colors[status] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+        );
     };
 
     // 署名ステータスのラベルを取得
@@ -158,12 +172,17 @@ const ContractsTable = ({
                                     </Badge>
                                 </Td>
                                 <Td>
-                                    <div className="font-semibold text-gray-900">
-                                        {formatAmount(contract.amount)}
+                                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                        {formatAmount(
+                                            contract.current_version
+                                                ?.total_amount,
+                                        )}
                                     </div>
-                                    {contract.tax_rate > 0 && (
-                                        <div className="text-sm text-gray-500">
-                                            (税率: {contract.tax_rate}%)
+                                    {contract.current_version?.tax_rate > 0 && (
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            (税率:{" "}
+                                            {contract.current_version.tax_rate}
+                                            %)
                                         </div>
                                     )}
                                 </Td>

@@ -20,7 +20,22 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findById(string $id): ?Contract
     {
-        return Contract::with(['project', 'user', 'company', 'documents', 'invoices', 'histories', 'signatures'])->find($id);
+        return Contract::with([
+            'user.profile',
+            'company',
+            'quote',
+            'project',
+            'currentVersion.items.serviceItem',
+            'versions' => function ($query) {
+                $query->orderBy('version', 'asc');
+            },
+            'creator.profile',
+            'updater.profile',
+            'documents',
+            'invoices',
+            'histories',
+            'signatures'
+        ])->find($id);
     }
 
     public function findByIdForClient(string $id, string $userId): ?Contract
@@ -34,7 +49,12 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findWithFilters(array $filters): Builder
     {
-        $query = Contract::query()->with(['project', 'user', 'company']);
+        $query = Contract::query()->with([
+            'user.profile',
+            'company',
+            'project',
+            'currentVersion'
+        ]);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -128,28 +148,6 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function create(array $data): Contract
     {
-        // contract_number を自動生成
-        $data['contract_number'] = $this->generateContractNumber();
-
-        // service_id がない場合、quote から最初のサービスを自動取得
-        if (empty($data['service_id']) && !empty($data['quote_id'])) {
-            $quote = Quote::find($data['quote_id']);
-            if ($quote && $quote->items && count($quote->items) > 0) {
-                // 最初のアイテムのサービスIDを使用
-                $data['service_id'] = $quote->items[0]->service_id;
-            }
-        }
-
-        // それでも service_id がない場合は一時的なデフォルト値を設定
-        // （実際の要件に応じて調整）
-        if (empty($data['service_id'])) {
-            // service_id を持つサービスを1つ取得
-            $defaultService = Service::first();
-            if ($defaultService) {
-                $data['service_id'] = $defaultService->id;
-            }
-        }
-
         return Contract::create($data);
     }
 
@@ -226,7 +224,9 @@ class ContractRepository implements ContractRepositoryInterface
             'draft' => Contract::where('status', 'draft')->count(),
             'suspended' => Contract::where('status', 'suspended')->count(),
             'cancelled' => Contract::where('status', 'cancelled')->count(),
-            'total_amount' => Contract::whereIn('status', ['active', 'pending_signature'])->sum('amount'),
+            'total_amount' => \App\Models\ContractVersion::whereHas('contract', function ($query) {
+                $query->whereIn('status', ['active', 'pending_signature']);
+            })->where('is_current', true)->sum('total_amount'),
         ];
     }
 }

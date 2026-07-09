@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContractSignature extends Model
 {
-    use SoftDeletes;
+    use HasUlid, SoftDeletes;
 
     protected $keyType = 'string';
     public $incrementing = false;
 
     protected $fillable = [
-        'id',
         'contract_id',
         'signed_by_user',
         'signed_by_admin',

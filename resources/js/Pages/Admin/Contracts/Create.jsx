@@ -15,18 +15,34 @@ import {
 import ContractForm from "./_components/Form";
 
 export default function Create({
-    projects,
     users,
     companies,
-    services,
-    quotes,
     statuses,
+    types,
+    quotes = [],
     quote = null,
-    quoteResponse = null,
+    fromQuote = false,
     fromQuoteResponse = false,
+    quoteResponse = null,
     requirementStatus = null,
 }) {
     const [selectedQuoteId, setSelectedQuoteId] = useState(quote?.id || "");
+
+    // Helper functions to get company information from quote or user
+    const getCompanyFromQuoteOrUser = () => {
+        if (fromQuoteResponse) {
+            return (
+                quoteResponse?.company || quoteResponse?.user?.companies?.[0]
+            );
+        }
+        return quote?.company || quote?.user?.companies?.[0];
+    };
+
+    const getUserCompany = () => {
+        return fromQuoteResponse
+            ? quoteResponse?.user?.companies?.[0]
+            : quote?.user?.companies?.[0];
+    };
 
     const handleQuoteSelect = (e) => {
         const quoteId = e.target.value;
@@ -41,77 +57,96 @@ export default function Create({
         status: "draft",
         type: "one_time",
         description: "",
-        user_id: fromQuoteResponse
-            ? quoteResponse?.user_id
-            : quote?.user_id || "",
-        company_id: fromQuoteResponse
-            ? quoteResponse?.company_id
-            : quote?.company_id || "",
-        project_id: "",
+        user_id: quote?.user_id || "",
+        company_id: quote?.company_id || quote?.user?.companies?.[0]?.id || "",
         quote_id: quote?.id || "",
-        quote_response_id: quoteResponse?.id || "",
-        service_id: quote?.items?.[0]?.service_id || "",
-        amount: "",
+        base_amount: "",
+        discount_amount: "",
         tax_rate: "10",
+        tax_amount: "",
+        total_amount: "",
         start_date: new Date().toISOString().split("T")[0],
         end_date: "",
         auto_renewal: false,
-        renewal_notice_days: "30",
-        payment_terms: "",
         terms_and_conditions: "",
+        special_provisions: "",
         notes: "",
+        items: [],
     });
 
-    // Quote/QuoteResponse情報から自動入力
+    // Quote情報から自動入力
     useEffect(() => {
-        const today = new Date().toISOString().split("T")[0];
+        let sourceQuote = quote;
+        let sourceUser = quote?.user;
 
+        // QuoteResponseから遷移した場合
         if (fromQuoteResponse && quoteResponse?.quote) {
-            // QuoteResponse 経由の場合
-            const q = quoteResponse.quote;
-            setData({
-                quote_response_id: quoteResponse.id,
-                user_id: quoteResponse.user_id,
-                company_id: quoteResponse.company_id,
-                title: q.title || "",
-                quote_id: q.id || "",
-                service_id: q.items?.[0]?.service_id || "",
-                amount: q.total_amount || "",
-                tax_rate: q.tax_rate?.toString() || "10",
-                description: q.requirements || "",
-                notes: `見積もり: ${q.quote_number}\n${q.custom_specifications ? `カスタム仕様: ${typeof q.custom_specifications === "string" ? q.custom_specifications : JSON.stringify(q.custom_specifications)}` : ""}`,
-                status: "draft",
-                type: "one_time",
-                project_id: "",
-                start_date: today,
-                end_date: "",
-                auto_renewal: false,
-                renewal_notice_days: "30",
-                payment_terms: "",
-                terms_and_conditions: "",
-            });
+            sourceQuote = quoteResponse.quote;
+            sourceUser = quoteResponse.user;
+            console.log("QuoteResponse mode - quoteResponse:", quoteResponse);
+            console.log("sourceQuote:", sourceQuote);
+            console.log(
+                "sourceQuote.current_version:",
+                sourceQuote.current_version,
+            );
         } else if (quote) {
-            // Quote 経由の場合
-            setData({
-                quote_id: quote.id,
-                title: quote.title || "",
-                user_id: quote.user_id || "",
-                company_id: quote.company_id || "",
-                service_id: quote.items?.[0]?.service_id || "",
-                amount: quote.total_amount || "",
-                tax_rate: quote.tax_rate?.toString() || "10",
-                description: quote.requirements || "",
-                notes: `見積もり: ${quote.quote_number}\n${quote.custom_specifications ? `カスタム仕様: ${typeof quote.custom_specifications === "string" ? quote.custom_specifications : JSON.stringify(quote.custom_specifications)}` : ""}`,
-                status: "draft",
-                type: "one_time",
-                project_id: "",
-                quote_response_id: "",
-                start_date: today,
-                end_date: "",
-                auto_renewal: false,
-                renewal_notice_days: "30",
-                payment_terms: "",
-                terms_and_conditions: "",
+            console.log("Direct Quote mode - quote:", quote);
+            console.log("quote.current_version:", quote.current_version);
+        }
+
+        if (sourceQuote && sourceQuote.current_version) {
+            const cv = sourceQuote.current_version;
+            console.log("Updating form with Quote current_version:", {
+                base_amount: cv.base_amount,
+                discount_amount: cv.discount_amount,
+                tax_rate: cv.tax_rate,
+                tax_amount: cv.tax_amount,
+                total_amount: cv.total_amount,
+            });
+
+            // クライアント情報の詳細チェックと同じロジックで会社を取得
+            const company = sourceQuote.company ?? sourceUser?.companies?.[0];
+
+            console.log("Debug info:", {
+                sourceUser: sourceUser,
+                sourceUser_id: sourceUser?.id,
+                sourceQuote_user_id: sourceQuote.user_id,
+                company: company,
+            });
+
+            const newData = {
+                ...data,
+                quote_id: sourceQuote.id,
+                title: cv.title || "",
+                user_id: sourceUser?.id || "",
+                company_id: company?.id || "",
+                description: cv.requirements || "",
+                base_amount: cv.base_amount?.toString() || "",
+                discount_amount: cv.discount_amount?.toString() || "",
+                tax_rate: cv.tax_rate?.toString() || "10",
+                tax_amount: cv.tax_amount?.toString() || "",
+                total_amount: cv.total_amount?.toString() || "",
+                items:
+                    cv.items?.map((item) => ({
+                        service_id: item.service_id,
+                        service_item_id: item.service_item_id,
+                        name: item.name,
+                        description: item.description,
+                        item_type: item.item_type,
+                        billing_type: item.billing_type,
+                        quantity: parseFloat(item.quantity),
+                        unit_price: parseFloat(item.unit_price),
+                        estimated_days: item.estimated_days,
+                        sort_order: item.sort_order,
+                    })) || [],
+            };
+            console.log("newData being set:", newData);
+            setData(newData);
+        } else {
+            console.log("Condition failed:", {
+                sourceQuote_exists: !!sourceQuote,
+                current_version_exists: !!sourceQuote?.current_version,
+                sourceQuote: sourceQuote,
             });
         }
     }, [quote, quoteResponse]);
@@ -222,7 +257,7 @@ export default function Create({
 
             {/* QuoteResponse 経由の表示 */}
             {fromQuoteResponse && quoteResponse && (
-                <div className="max-w-7xl mb-6">
+                <div className="w-full mb-6">
                     <Card>
                         <CardHeader>
                             <CardTitle>📌 見積返信から遷移しました</CardTitle>
@@ -242,7 +277,7 @@ export default function Create({
 
             {/* クライアント情報の詳細チェック */}
             {quote && (
-                <div className="max-w-7xl mb-6">
+                <div className="w-full mb-6">
                     <Card
                         className={
                             fromQuoteResponse
@@ -256,7 +291,7 @@ export default function Create({
                             </CardTitle>
                         </CardHeader>
                         <CardBody>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {/* ユーザー情報 */}
                                 <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
                                     <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-gray-100">
@@ -373,11 +408,7 @@ export default function Create({
                                     </h4>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex items-start gap-2">
-                                            {(
-                                                fromQuoteResponse
-                                                    ? quoteResponse?.company
-                                                    : quote.company
-                                            ) ? (
+                                            {getCompanyFromQuoteOrUser() ? (
                                                 <>
                                                     <span className="text-green-600 dark:text-green-400 font-bold">
                                                         ✓
@@ -385,30 +416,19 @@ export default function Create({
                                                     <div>
                                                         <p className="font-medium text-gray-900 dark:text-gray-100">
                                                             {
-                                                                (fromQuoteResponse
-                                                                    ? quoteResponse?.company
-                                                                    : quote.company
-                                                                ).name
+                                                                getCompanyFromQuoteOrUser()
+                                                                    .name
                                                             }
                                                         </p>
-                                                        {(fromQuoteResponse
-                                                            ? quoteResponse?.company
-                                                            : quote.company
-                                                        ).legal_name &&
-                                                            (fromQuoteResponse
-                                                                ? quoteResponse?.company
-                                                                : quote.company
-                                                            ).legal_name !==
-                                                                (fromQuoteResponse
-                                                                    ? quoteResponse?.company
-                                                                    : quote.company
-                                                                ).name && (
+                                                        {getCompanyFromQuoteOrUser()
+                                                            .legal_name &&
+                                                            getCompanyFromQuoteOrUser()
+                                                                .legal_name !==
+                                                                getCompanyFromQuoteOrUser()
+                                                                    .name && (
                                                                 <p className="text-gray-600 dark:text-gray-400 text-xs">
                                                                     {
-                                                                        (fromQuoteResponse
-                                                                            ? quoteResponse?.company
-                                                                            : quote.company
-                                                                        )
+                                                                        getCompanyFromQuoteOrUser()
                                                                             .legal_name
                                                                     }
                                                                 </p>
@@ -436,23 +456,16 @@ export default function Create({
                                     </h4>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex items-start gap-2">
-                                            {(fromQuoteResponse
-                                                ? quoteResponse?.company
-                                                : quote.company
-                                            )?.addresses &&
-                                            (fromQuoteResponse
-                                                ? quoteResponse?.company
-                                                : quote.company
-                                            ).addresses.length > 0 ? (
+                                            {getCompanyFromQuoteOrUser()
+                                                ?.addresses &&
+                                            getCompanyFromQuoteOrUser()
+                                                .addresses.length > 0 ? (
                                                 <>
                                                     <span className="text-green-600 dark:text-green-400 font-bold">
                                                         ✓
                                                     </span>
                                                     <div>
-                                                        {(fromQuoteResponse
-                                                            ? quoteResponse?.company
-                                                            : quote.company
-                                                        ).addresses.map(
+                                                        {getCompanyFromQuoteOrUser().addresses.map(
                                                             (addr, idx) => (
                                                                 <div
                                                                     key={idx}
@@ -499,7 +512,7 @@ export default function Create({
             )}
 
             {/* 必要情報チェック結果 */}
-            {requirementStatus && !requirementStatus.can_send && (
+            {quote && requirementStatus && !requirementStatus.can_send && (
                 <div className="max-w-7xl mb-6">
                     <Card className="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
                         <CardBody>
@@ -538,7 +551,7 @@ export default function Create({
             )}
 
             {/* 必要情報が揃っている場合 */}
-            {requirementStatus && requirementStatus.can_send && (
+            {quote && requirementStatus && requirementStatus.can_send && (
                 <div className="max-w-7xl mb-6">
                     <Card className="border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20">
                         <CardBody>
@@ -558,7 +571,7 @@ export default function Create({
                 </div>
             )}
 
-            <div className="max-w-7xl">
+            <div className="w-full">
                 <ContractForm
                     data={data}
                     setData={setData}
@@ -568,10 +581,8 @@ export default function Create({
                     onDraftSave={handleDraftSave}
                     cancelRoute={route("admin.contract.index")}
                     isEdit={false}
-                    projects={projects}
                     users={users}
                     companies={companies}
-                    services={services}
                     quotes={quotes}
                     requirementStatus={requirementStatus}
                     fromQuoteResponse={fromQuoteResponse}

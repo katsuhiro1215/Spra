@@ -5,13 +5,15 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { PrimaryButton, SecondaryButton, TextButton } from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     TrashIcon,
     PaperAirplaneIcon,
+    DocumentTextIcon,
+    PlusIcon,
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
@@ -36,31 +38,9 @@ export default function Show({ quote, statuses }) {
     // ========================================
     // Constants - Header Actions & Breadcrumbs
     // ========================================
+    const hasItems = quote.current_version?.items?.length > 0;
+
     const headerActions = [
-        {
-            label: "編集",
-            icon: PencilIcon,
-            variant: "primary",
-            route: route("admin.quote.edit", quote.id),
-        },
-        ...(["draft", "reviewed"].includes(quote.status)
-            ? [
-                  {
-                      label: "送信",
-                      icon: PaperAirplaneIcon,
-                      variant: "secondary",
-                      route: route("admin.quote.preview", quote.id),
-                  },
-              ]
-            : []),
-        {
-            label: "契約書を作成",
-            icon: PencilIcon,
-            variant: "success",
-            route: route("admin.contract.create", {
-                quote_id: quote.id,
-            }),
-        },
         {
             label: "戻る",
             icon: ArrowLeftIcon,
@@ -91,24 +71,80 @@ export default function Show({ quote, statuses }) {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl space-y-6">
+            <div className="w-full space-y-6">
                 {/* タブナビゲーション */}
                 <Card>
-                    <div className="flex border-b border-gray-200 dark:border-gray-700">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`px-4 py-3 text-sm font-medium transition-colors ${
-                                    activeTab === tab.id
-                                        ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-4 py-3 text-sm font-medium transition-colors ${
+                                        activeTab === tab.id
+                                            ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    }`}
+                                >
+                                    <span className="mr-2">{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 pr-4">
+                            <Link
+                                href={route("admin.quote.edit", quote.id)}
+                                title="編集"
+                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                             >
-                                <span className="mr-2">{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
+                                <PencilIcon className="w-5 h-5" />
+                            </Link>
+                            {["draft", "reviewed"].includes(quote.status) && (
+                                <Link
+                                    href={route(
+                                        "admin.quote.preview",
+                                        quote.id,
+                                    )}
+                                    title="送信"
+                                    className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
+                                >
+                                    <PaperAirplaneIcon className="w-5 h-5" />
+                                </Link>
+                            )}
+                            <Link
+                                href={route("admin.contract.create", {
+                                    quote_id: quote.id,
+                                })}
+                                title="契約書を作成"
+                                className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                            >
+                                <DocumentTextIcon className="w-5 h-5" />
+                            </Link>
+                            {hasItems ? (
+                                <Link
+                                    href={route(
+                                        "admin.quote.item.edit",
+                                        quote.id,
+                                    )}
+                                    title="見積明細を編集"
+                                    className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                >
+                                    <PencilIcon className="w-5 h-5 mr-2" />
+                                    見積明細編集
+                                </Link>
+                            ) : (
+                                <Link
+                                    href={route(
+                                        "admin.quote.item.create",
+                                        quote.id,
+                                    )}
+                                    title="見積明細を作成"
+                                    className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                >
+                                    <PlusIcon className="w-5 h-5" />
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </Card>
 

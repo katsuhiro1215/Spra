@@ -199,6 +199,18 @@ export const QUOTE_BILLING_TYPE_OPTIONS = [
 ];
 
 /**
+ * 契約品目の課金形態のセレクトオプション
+ */
+export const CONTRACT_BILLING_TYPE_OPTIONS = [
+    { value: "one_time", label: "一括" },
+    { value: "monthly", label: "月額" },
+    { value: "yearly", label: "年額" },
+    { value: "per_unit", label: "単位あたり" },
+    { value: "hourly", label: "時間単位" },
+    { value: "other", label: "その他" },
+];
+
+/**
  * 見積もり割引タイプのセレクトオプション
  */
 export const QUOTE_DISCOUNT_TYPE_OPTIONS = [

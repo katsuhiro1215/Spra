@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('contracts', function (Blueprint $table) {
-            $table->unsignedTinyInteger('deposit_rate')->default(30)->change();
+        Schema::create('term_items', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('contracts', function (Blueprint $table) {
-            $table->unsignedTinyInteger('deposit_rate')->default(50)->change();
-        });
+        Schema::dropIfExists('term_items');
     }
 };

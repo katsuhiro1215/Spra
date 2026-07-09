@@ -42,7 +42,7 @@ class ContractPdfService
 
         $html = view('contracts.pdf-template', [
             'contract' => $contract,
-            'formattedAmount' => $this->formatAmount($contract->amount),
+            'formattedAmount' => $this->formatAmount($contract->currentVersion?->total_amount ?? 0),
             'totalWithTax' => $this->formatAmount($this->calculateTotalWithTax($contract)),
             'generatedAt' => now()->format('Y年m月d日'),
             'signatureBase64' => $signatureBase64, // Base64エンコード済み署名画像データ
@@ -72,8 +72,11 @@ class ContractPdfService
     /**
      * 金額をフォーマット
      */
-    private function formatAmount(float $amount): string
+    private function formatAmount(?float $amount): string
     {
+        if ($amount === null || $amount === 0) {
+            return '0円';
+        }
         return number_format($amount, 0) . '円';
     }
 
@@ -82,8 +85,9 @@ class ContractPdfService
      */
     private function calculateTotalWithTax(Contract $contract): float
     {
-        $taxRate = $contract->tax_rate ?? 0;
-        return $contract->amount * (1 + $taxRate / 100);
+        $taxRate = $contract->currentVersion?->tax_rate ?? 0;
+        $amount = $contract->currentVersion?->total_amount ?? 0;
+        return $amount * (1 + $taxRate / 100);
     }
 
     /**

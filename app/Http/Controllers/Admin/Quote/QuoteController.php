@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Quote;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\QuoteRequest;
 use App\Models\Quote;
 use App\Models\User;
 use App\Models\Contact;
@@ -66,47 +67,6 @@ class QuoteController extends Controller
      */
     public function create(Request $request): InertiaResponse
     {
-        // サービスカテゴリ、Service、ServiceItemを取得
-        $serviceCategories = $this->serviceCategoryService->getActiveForSelect();
-        $services = Service::where('status', 'active')
-            ->orderBy('name')
-            ->select('id', 'name', 'service_category_id')
-            ->get();
-        $serviceItems = $this->serviceItemService->getActiveForQuote();
-
-        // ServicePlansを取得（serviceItemsとピボットデータをeager loadする）
-        $servicePlans = ServicePlan::where('status', 'active')
-            ->with([
-                'serviceItems' => function ($query) {
-                    $query->select('service_items.id', 'service_items.name', 'service_items.description', 'service_items.standard_price', 'service_items.item_type')
-                        ->withPivot('quantity', 'estimated_days', 'sort_order')
-                        ->orderBy('service_plan_items.sort_order');
-                }
-            ])
-            ->select('id', 'name', 'service_id', 'description', 'base_price')
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($plan) {
-                return [
-                    'id' => $plan->id,
-                    'name' => $plan->name,
-                    'service_id' => $plan->service_id,
-                    'description' => $plan->description,
-                    'base_price' => $plan->base_price,
-                    'service_items' => $plan->serviceItems->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->name,
-                            'description' => $item->description,
-                            'standard_price' => $item->standard_price,
-                            'item_type' => $item->item_type,
-                            'quantity' => $item->pivot->quantity,
-                            'estimated_days' => $item->pivot->estimated_days,
-                        ];
-                    })->toArray(),
-                ];
-            });
-
         // ユーザー一覧を取得（検索用）
         $users = User::with('profile')
             ->select('id', 'email')
@@ -154,11 +114,6 @@ class QuoteController extends Controller
         }
 
         return Inertia::render('Admin/Quotes/Create', [
-            'statuses' => $this->quoteService->getStatuses(),
-            'serviceCategories' => $serviceCategories,
-            'services' => $services,
-            'serviceItems' => $serviceItems,
-            'servicePlans' => $servicePlans,
             'users' => $users,
             'projectInquiry' => $projectInquiry,
             'contact' => $contact,
@@ -170,31 +125,9 @@ class QuoteController extends Controller
     /**
      * Store a newly created quote.
      */
-    public function store(Request $request)
+    public function store(QuoteRequest $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'contact_id' => 'nullable|exists:contacts,id',
-            'company_id' => 'nullable|exists:companies,id',
-            'title' => 'nullable|string|max:255',
-            'requirements' => 'nullable|string',
-            'custom_specifications' => 'nullable|string',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'tax_rate' => 'nullable|numeric|min:0|max:100',
-            'status' => 'required|in:draft,negotiating,approved,rejected,contracted,cancelled',
-            'items' => 'array',
-            'items.*.service_id' => 'nullable|exists:services,id',
-            'items.*.service_item_id' => 'nullable|exists:service_items,id',
-            'items.*.name' => 'required|string|max:255',
-            'items.*.description' => 'nullable|string',
-            'items.*.item_type' => 'nullable|string',
-            'items.*.billing_type' => 'required|in:one_time,monthly,quarterly,yearly',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.estimated_days' => 'nullable|integer|min:0',
-            'items.*.sort_order' => 'nullable|integer',
-            'from_inquiry_id' => 'nullable|exists:project_inquiries,id',
-        ]);
+        $validated = $request->validated();
 
         // user_idとcontact_idのどちらか一方は必須
         if (empty($validated['user_id']) && empty($validated['contact_id'])) {
@@ -205,11 +138,22 @@ class QuoteController extends Controller
         }
 
         try {
-            $quote = $this->quoteService->createQuote($validated);
+            // Quote + QuoteVersion v1 のみ作成（items は別途追加）
+            $quoteData = [
+                'user_id' => $validated['user_id'] ?? null,
+                'contact_id' => $validated['contact_id'] ?? null,
+                'company_id' => $validated['company_id'] ?? null,
+                'title' => $validated['title'] ?? '無題の見積書',
+                'requirements' => $validated['requirements'] ?? null,
+                'status' => $validated['status'] ?? 'draft',
+            ];
+
+            // Quote作成（QuoteVersion v1 も自動作成される）
+            $quote = $this->quoteService->createQuote($quoteData);
 
             // ProjectInquiryから作成した場合、関連付けとステータス更新
-            if (!empty($validated['from_inquiry_id'])) {
-                $inquiry = ProjectInquiry::find($validated['from_inquiry_id']);
+            if ($request->has('from_inquiry_id')) {
+                $inquiry = ProjectInquiry::find($request->input('from_inquiry_id'));
                 if ($inquiry) {
                     $inquiry->update([
                         'quote_id' => $quote->id,
@@ -219,7 +163,7 @@ class QuoteController extends Controller
             }
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを作成しました。');
+                ->with('success', '見積もりを作成しました。見積明細を追加してください。');
         } catch (\Exception $e) {
             return back()->with('error', '見積もりの作成に失敗しました: ' . $e->getMessage());
         }

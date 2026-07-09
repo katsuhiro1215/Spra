@@ -37,6 +37,7 @@ use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 
 use App\Http\Controllers\Admin\Quote\QuoteController;
+use App\Http\Controllers\Admin\Quote\QuoteItemController;
 use App\Http\Controllers\Admin\Quote\VersionController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
 
@@ -50,7 +51,10 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReceiptController;
 
 use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\Admin\TermController;
+
+use App\Http\Controllers\Admin\Term\TermController;
+use App\Http\Controllers\Admin\Term\TermVersionController;
+use App\Http\Controllers\Admin\Term\TermItemController;
 
 use App\Http\Controllers\Admin\Homepage\PageController;
 use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
@@ -266,6 +270,25 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/pdf', [ContractController::class, 'generatePdf'])->name('pdf');
         Route::get('/{id}/pdf/preview', [ContractController::class, 'previewPdf'])->name('pdf.preview');
 
+        // 契約明細管理
+        Route::get('/{contract}/item/create', [ContractItemController::class, 'create'])->name('item.create');
+        Route::post('/{contract}/item', [ContractItemController::class, 'store'])->name('item.store');
+        Route::get('/{contract}/item/edit', [ContractItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{contract}/item', [ContractItemController::class, 'update'])->name('item.update');
+        Route::delete('/{contract}/item', [ContractItemController::class, 'destroy'])->name('item.destroy');
+
+        // 手動で明細を追加/編集（QuoteItemがない場合）
+        Route::get('/{contract}/item/add-manual', [ContractItemController::class, 'create'])->name('item.add-manual');
+        Route::post('/{contract}/item/manual', [ContractItemController::class, 'store'])->name('item.store-manual');
+        Route::get('/{contract}/item/edit', [ContractItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{contract}/item', [ContractItemController::class, 'update'])->name('item.update');
+        Route::delete('/{contract}/item', [ContractItemController::class, 'destroy'])->name('item.destroy');
+
+        // 契約条項編集
+        Route::get('/{id}/terms/edit', [ContractController::class, 'editTerms'])->name('terms.edit');
+        Route::post('/{id}/terms', [ContractController::class, 'updateTerms'])->name('terms.update');
+        Route::get('/{id}/preview', [ContractController::class, 'preview'])->name('preview');
+
         // 署名関連ルート
         Route::post('/{id}/signature/user', [ContractSignatureController::class, 'storeUserSignature'])->name('signature.user.store');
         Route::post('/{id}/signature/verify-user', [ContractSignatureController::class, 'verifyUserSignature'])->name('signature.verify-user');
@@ -277,6 +300,14 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     // 見積もり管理
     Route::resource('quote', QuoteController::class);
     Route::prefix('quote')->name('quote.')->group(function () {
+        // 見積明細管理
+        Route::get('/{quote}/item/create', [QuoteItemController::class, 'create'])->name('item.create');
+        Route::post('/{quote}/item', [QuoteItemController::class, 'store'])->name('item.store');
+        Route::get('/{quote}/item/edit', [QuoteItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{quote}/item', [QuoteItemController::class, 'update'])->name('item.update');
+        Route::delete('/{quote}/item', [QuoteItemController::class, 'destroy'])->name('item.destroy');
+
+        // その他の見積もり機能
         Route::get('/{quote}/preview', [QuoteController::class, 'preview'])->name('preview');
         Route::post('/{quote}/send', [QuoteController::class, 'send'])->name('send');
         Route::post('/{quote}/approve', [QuoteController::class, 'approve'])->name('approve');

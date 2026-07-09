@@ -67,7 +67,7 @@ class QuoteService extends BaseService
 
     /**
      * 新しい見積もりを作成
-     * 
+     *
      * Quote作成 → QuoteVersion v1 作成 → QuoteItems作成
      *
      * @param array $data
@@ -126,33 +126,15 @@ class QuoteService extends BaseService
             // Quoteに current_version_id を設定
             $quote->update(['current_version_id' => $quoteVersion->id]);
 
-            // QuoteItems がある場合、全て QuoteVersion v1 に作成
-            if (!empty($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    // service_id を確保
-                    $item = $this->ensureServiceIdInItem($item);
+            // items は QuoteItemController で別途追加する
 
-                    // amount を計算（quantity × unit_price）
-                    if (!isset($item['amount'])) {
-                        $quantity = (float)($item['quantity'] ?? 1);
-                        $unitPrice = (float)($item['unit_price'] ?? 0);
-                        $item['amount'] = $quantity * $unitPrice;
-                    }
-                    $item['quote_version_id'] = $quoteVersion->id;
-                    $quoteVersion->items()->create($item);
-                }
-
-                // QuoteVersion の合計金額を再計算
-                $this->recalculateVersionAmounts($quoteVersion);
-            }
-
-            return $quote->fresh(['versions', 'currentVersion.items']);
+            return $quote->fresh(['versions', 'currentVersion']);
         });
     }
 
     /**
      * 見積もりを更新
-     * 
+     *
      * 常に新しいバージョンを作成して履歴を保持
      * 更新のたびに version をインクリメント
      * 最新バージョンのみが current_version_id として参照される
@@ -186,68 +168,106 @@ class QuoteService extends BaseService
                 throw new \Exception('現在のバージョンが見つかりません。');
             }
 
-            // 新しいバージョンを常に作成（ドラフト版でも送信済み版でも同じ）
-            // バージョン番号をインクリメント
-            $newVersion = $currentVersion->version + 1;
+            // draft状態なら現在のバージョンを上書き更新、それ以外は新しいバージョンを作成
+            if ($currentVersion->status === 'draft') {
+                // draft状態: 既存バージョンを上書き更新
+                $versionUpdate = [
+                    'title' => $data['title'] ?? $currentVersion->title,
+                    'requirements' => $data['requirements'] ?? $currentVersion->requirements,
+                    'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
+                    'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
+                    'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
+                    'updated_by' => auth('admins')->id(),
+                ];
+                $currentVersion->update($versionUpdate);
 
-            $versionData = [
-                'quote_id' => $quote->id,
-                'version' => $newVersion,
-                'title' => $data['title'] ?? $currentVersion->title,
-                'requirements' => $data['requirements'] ?? $currentVersion->requirements,
-                'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
-                'base_amount' => 0,
-                'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
-                'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
-                'tax_amount' => 0,
-                'total_amount' => 0,
-                'status' => 'draft', // 新バージョンはドラフト状態で作成
-                'is_current' => true, // 新バージョンを現在のバージョンにセット
-                'created_by' => auth('admins')->id(),
-            ];
+                // 既存のitemsを削除
+                $currentVersion->items()->delete();
 
-            $newQuoteVersion = $quote->versions()->create($versionData);
+                // QuoteItems を作成
+                if (isset($data['items'])) {
+                    foreach ($data['items'] as $item) {
+                        // service_id を確保
+                        $item = $this->ensureServiceIdInItem($item);
 
-            // 旧バージョンの is_current を false に（履歴として保持）
-            $currentVersion->update(['is_current' => false]);
-
-            // QuoteItems を新バージョンに作成
-            if (isset($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    // service_id を確保
-                    $item = $this->ensureServiceIdInItem($item);
-
-                    if (!isset($item['amount'])) {
-                        $quantity = (float)($item['quantity'] ?? 1);
-                        $unitPrice = (float)($item['unit_price'] ?? 0);
-                        $item['amount'] = $quantity * $unitPrice;
+                        if (!isset($item['amount'])) {
+                            $quantity = (float)($item['quantity'] ?? 1);
+                            $unitPrice = (float)($item['unit_price'] ?? 0);
+                            $item['amount'] = $quantity * $unitPrice;
+                        }
+                        $item['quote_version_id'] = $currentVersion->id;
+                        $currentVersion->items()->create($item);
                     }
-                    $item['quote_version_id'] = $newQuoteVersion->id;
-                    $newQuoteVersion->items()->create($item);
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($currentVersion);
                 }
 
-                // 合計金額を再計算
-                $this->recalculateVersionAmounts($newQuoteVersion);
+                return $quote->fresh(['versions', 'currentVersion.items']);
             } else {
-                // アイテムがない場合、旧バージョンのアイテムを複製
-                foreach ($currentVersion->items as $oldItem) {
-                    $newItem = $oldItem->replicate();
-                    $newItem->quote_version_id = $newQuoteVersion->id;
-                    $newItem->save();
+                // sent以上の状態: 新しいバージョンを作成
+                // バージョン番号をインクリメント
+                $newVersion = $currentVersion->version + 1;
+
+                $versionData = [
+                    'quote_id' => $quote->id,
+                    'version' => $newVersion,
+                    'title' => $data['title'] ?? $currentVersion->title,
+                    'requirements' => $data['requirements'] ?? $currentVersion->requirements,
+                    'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
+                    'base_amount' => 0,
+                    'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
+                    'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
+                    'tax_amount' => 0,
+                    'total_amount' => 0,
+                    'status' => 'draft', // 新バージョンはドラフト状態で作成
+                    'is_current' => true, // 新バージョンを現在のバージョンにセット
+                    'created_by' => auth('admins')->id(),
+                ];
+
+                $newQuoteVersion = $quote->versions()->create($versionData);
+
+                // 旧バージョンの is_current を false に（履歴として保持）
+                $currentVersion->update(['is_current' => false]);
+
+                // QuoteItems を新バージョンに作成
+                if (isset($data['items'])) {
+                    foreach ($data['items'] as $item) {
+                        // service_id を確保
+                        $item = $this->ensureServiceIdInItem($item);
+
+                        if (!isset($item['amount'])) {
+                            $quantity = (float)($item['quantity'] ?? 1);
+                            $unitPrice = (float)($item['unit_price'] ?? 0);
+                            $item['amount'] = $quantity * $unitPrice;
+                        }
+                        $item['quote_version_id'] = $newQuoteVersion->id;
+                        $newQuoteVersion->items()->create($item);
+                    }
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($newQuoteVersion);
+                } else {
+                    // アイテムがない場合、旧バージョンのアイテムを複製
+                    foreach ($currentVersion->items as $oldItem) {
+                        $newItem = $oldItem->replicate();
+                        $newItem->quote_version_id = $newQuoteVersion->id;
+                        $newItem->save();
+                    }
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($newQuoteVersion);
                 }
 
-                // 合計金額を再計算
-                $this->recalculateVersionAmounts($newQuoteVersion);
+                // Quote の current_version_id を新バージョンに更新
+                // 見積修正時はステータスを draft に戻して、再度送信可能にする
+                $quote->update([
+                    'current_version_id' => $newQuoteVersion->id,
+                    'status' => 'draft', // 新しいバージョン作成後、ドラフト状態にリセット
+                ]);
+
+                return $quote->fresh(['versions', 'currentVersion.items']);
             }
-
-            // Quote の current_version_id を新バージョンに更新
-            // 見積修正時はステータスを draft に戻して、再度送信可能にする
-            $quote->update([
-                'current_version_id' => $newQuoteVersion->id,
-                'status' => 'draft', // 新しいバージョン作成後、ドラフト状態にリセット
-            ]);
-
-            return $quote->fresh(['versions', 'currentVersion.items']);
         });
     }
 
@@ -272,7 +292,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを送信
-     * 
+     *
      * 現在のQuoteVersionのステータスを'sent'に変更
      *
      * @param Quote $quote
@@ -344,7 +364,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを承認
-     * 
+     *
      * 現在のQuoteVersionのステータスを'approved'に変更
      *
      * @param Quote $quote
@@ -380,7 +400,7 @@ class QuoteService extends BaseService
 
     /**
      * 見積もりを却下
-     * 
+     *
      * 現在のQuoteVersionのステータスを'rejected'に変更
      *
      * @param Quote $quote
@@ -417,7 +437,7 @@ class QuoteService extends BaseService
     /**
      * QuoteVersionの合計金額を再計算
      */
-    protected function recalculateVersionAmounts(\App\Models\QuoteVersion $quoteVersion): void
+    public function recalculateVersionAmounts(\App\Models\QuoteVersion $quoteVersion): void
     {
         $baseAmount = $quoteVersion->items()->sum('amount');
         $discountAmount = $quoteVersion->discount_amount ?? 0;

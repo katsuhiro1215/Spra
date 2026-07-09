@@ -45,9 +45,9 @@ export const getAdminNavigationItems = () => {
                 "admin.quote-response.*",
             ],
             children: [
+                { name: "契約管理", href: "admin.contract.index" },
                 { name: "見積管理", href: "admin.quote.index" },
                 { name: "見積返信", href: "admin.quote-response.index" },
-                { name: "契約管理", href: "admin.contract.index" },
                 // 商談管理
                 // 提案管理
             ],

@@ -13,10 +13,6 @@ import QuoteForm from "./_components/Form";
 
 export default function Create({
     users,
-    serviceCategories,
-    services,
-    serviceItems,
-    servicePlans,
     projectInquiry = null,
     contact = null,
     user = null,
@@ -28,15 +24,8 @@ export default function Create({
         company_id: "",
         title: "",
         requirements: "",
-        expires_at: "",
         custom_specifications: "",
         status: "draft",
-        discount_amount: 0,
-        tax_rate: 10,
-        base_amount: 0,
-        tax_amount: 0,
-        total_amount: 0,
-        items: [],
         from_inquiry_id: projectInquiry?.id || null,
     });
 
@@ -51,7 +40,7 @@ export default function Create({
                 projectInquiry.title ||
                 `${projectInquiry.service?.name} - ${projectInquiry.service_plan?.name}`;
             updates.requirements = projectInquiry.summary || "";
-            updates.custom_specifications = `見積もり依頼 ${projectInquiry.inquiry_code} から作成\n概算金額: ¥${projectInquiry.estimated_price?.toLocaleString()}\n想定納期: 約${projectInquiry.estimated_days}日`;
+            updates.custom_specifications = `見積もり依頼 ${projectInquiry.inquiry_code} から作成`;
             updates.from_inquiry_id = projectInquiry.id;
         }
 
@@ -61,7 +50,6 @@ export default function Create({
             updates.user_id = contact.user_id || "";
             updates.title = contact.subject || "";
             updates.requirements = `お問い合わせ内容:\n${contact.message}`;
-            updates.custom_specifications = `お問い合わせから作成\n連絡先: ${contact.name}\nメール: ${contact.email}\n電話: ${contact.phone || "なし"}\n会社: ${contact.company || "なし"}`;
         }
 
         // Userから見積もりを作成する場合
@@ -85,15 +73,7 @@ export default function Create({
     }, [projectInquiry, contact, user, company]);
 
     const submit = () => {
-        const submitData = {
-            ...data,
-            custom_specifications: data.custom_specifications
-                ? JSON.stringify(data.custom_specifications)
-                : null,
-        };
-        post(route("admin.quote.store"), {
-            data: submitData,
-        });
+        post(route("admin.quote.store"));
     };
 
     // ========================================
@@ -149,11 +129,6 @@ export default function Create({
                     onSubmit={submit}
                     cancelRoute={route("admin.quote.index")}
                     users={users}
-                    serviceCategories={serviceCategories}
-                    services={services}
-                    serviceItems={serviceItems}
-                    servicePlans={servicePlans}
-                    projectInquiry={projectInquiry}
                     isEdit={false}
                 />
             </div>
