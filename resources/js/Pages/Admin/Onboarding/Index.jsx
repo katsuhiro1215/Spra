@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import PaginationLinks from "@/Components/PaginationLinks";
+// import PaginationLinks from "@/Components/PaginationLinks";
 import { formatDistanceToNow } from "date-fns";
-import { jaJP } from "date-fns/locale";
+import { ja } from "date-fns/locale";
 
 export default function Index({ pendingUsers }) {
     const { props } = usePage();
@@ -143,7 +143,7 @@ export default function Index({ pendingUsers }) {
                                                                 ),
                                                                 {
                                                                     addSuffix: true,
-                                                                    locale: jaJP,
+                                                                    locale: ja,
                                                                 },
                                                             )}
                                                         </div>
@@ -166,11 +166,11 @@ export default function Index({ pendingUsers }) {
                                 </div>
 
                                 {/* ページネーション */}
-                                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                                {/* <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                                     <PaginationLinks
                                         links={pendingUsers.links}
                                     />
-                                </div>
+                                </div> */}
                             </>
                         ) : (
                             <div className="px-6 py-12 text-center">

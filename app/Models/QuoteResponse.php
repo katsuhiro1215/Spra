@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class QuoteResponse extends Model
 {
@@ -57,6 +58,66 @@ class QuoteResponse extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Create User and Company from onboarding form data
+     *
+     * @param array $validated Validated form data
+     * @return array [$user, $company]
+     */
+    public function createUserAndCompany(array $validated)
+    {
+        return DB::transaction(function () use ($validated) {
+            // ユーザー作成
+            $user = User::create([
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'status' => 'active',
+            ]);
+
+            // ユーザープロフィール作成
+            $user->profile()->create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+            ]);
+
+            // 会社作成
+            $company = Company::create([
+                'name' => $validated['company_name'],
+                'type' => $validated['company_type'] ?? 'corporate',
+                'phone' => $validated['company_phone'],
+                'legal_name' => $validated['legal_name'],
+                'representative_name' => $validated['representative_name'],
+                'representative_email' => $validated['representative_email'],
+                'representative_phone' => $validated['representative_phone'],
+                'status' => 'active',
+            ]);
+
+            // ユーザーと会社を関連付け（primary）
+            $user->companies()->attach($company->id, [
+                'role' => 'admin',
+                'is_primary' => true,
+                'joined_at' => now(),
+            ]);
+
+            // QuoteResponse に関連付け
+            $this->update([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'admin_notified_at' => now(),
+            ]);
+
+            // 対応する Quote の user_id と company_id を同期
+            if ($this->quote_id) {
+                $this->quote()->update([
+                    'user_id' => $user->id,
+                    'company_id' => $company->id,
+                ]);
+            }
+
+            return [$user, $company];
+        });
     }
 
     /**

@@ -2,35 +2,41 @@ import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
+import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import { Dl, Dt, Dd } from "@/Components/Description";
 import { FlashMessage } from "@/Components/Notifications";
+import { EditButton, DeleteButton } from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     TrashIcon,
-    SwatchIcon,
-    CurrencyYenIcon,
-    ClockIcon,
     CheckIcon,
     XMarkIcon,
-    StarIcon,
-    TagIcon,
+    PlusIcon,
+    CurrencyYenIcon,
 } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ servicePlan }) {
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
     const headerActions = [
         {
-            label: "一覧に戻る",
-            href: route("admin.service.plan.index"),
-            variant: "secondary",
+            label: PageConfig.servicePlans.actions.back,
             icon: ArrowLeftIcon,
+            variant: "default",
+            href: route("admin.service.plan.index"),
         },
-        {
-            label: "編集",
-            href: route("admin.service.plan.edit", servicePlan.id),
-            variant: "primary",
-            icon: PencilIcon,
-        },
+    ];
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.servicePlans.breadcrumbs,
+        PageConfig.servicePlans.pages.show.breadcrumb,
     ];
 
     const handleDelete = () => {
@@ -62,8 +68,8 @@ export default function Show({ servicePlan }) {
         <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 isActive
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
             }`}
         >
             {isActive ? (
@@ -80,354 +86,302 @@ export default function Show({ servicePlan }) {
         </span>
     );
 
+    const hasItems =
+        servicePlan.service_plan_items &&
+        servicePlan.service_plan_items.length > 0;
+
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title={servicePlan.name}
-                    description={
-                        servicePlan.service
-                            ? `${servicePlan.service.name}のプラン詳細`
-                            : "サービスプラン詳細"
-                    }
+                    title={PageConfig.servicePlans.pages.show.title}
+                    description={PageConfig.servicePlans.pages.show.description}
                     actions={headerActions}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title={`${servicePlan.name} - サービスプラン詳細`} />
+            <Head
+                title={`${PageConfig.servicePlans.pages.show.title} - ${servicePlan.name}`}
+            />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="mt-6 space-y-6">
-                    {/* 基本情報カード */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center">
-                                    {servicePlan.color && (
-                                        <div
-                                            className="w-4 h-4 rounded-full mr-3"
-                                            style={{
-                                                backgroundColor:
-                                                    servicePlan.color,
-                                            }}
-                                        />
-                                    )}
-                                    <div>
-                                        <h3 className="text-lg font-medium text-gray-900">
-                                            {servicePlan.name}
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            {servicePlan.description}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <StatusBadge
-                                        isActive={servicePlan.is_active}
-                                    />
-                                    {servicePlan.is_popular && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            <StarIcon className="h-3 w-3 mr-1" />
-                                            人気
-                                        </span>
-                                    )}
-                                    {servicePlan.is_recommended && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            推奨
-                                        </span>
-                                    )}
-                                    {servicePlan.badge_text && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            <TagIcon className="h-3 w-3 mr-1" />
-                                            {servicePlan.badge_text}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {servicePlan.detailed_description && (
-                                <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                        詳細説明
-                                    </h4>
-                                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                                        {servicePlan.detailed_description}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 価格情報 */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <div className="flex items-center mb-4">
-                                <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                                    <CurrencyYenIcon className="w-5 h-5 mr-2" />
-                                    価格情報
-                                </h3>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        基本価格
-                                    </dt>
-                                    <dd className="mt-1 text-lg font-semibold text-gray-900">
-                                        {formatPrice(
-                                            servicePlan.base_price,
-                                            servicePlan.price_unit,
-                                            0,
-                                        )}
-                                    </dd>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        初期費用
-                                    </dt>
-                                    <dd className="mt-1 text-lg font-semibold text-gray-900">
-                                        {servicePlan.setup_fee > 0
-                                            ? `¥${Number(
-                                                  servicePlan.setup_fee,
-                                              ).toLocaleString()}`
-                                            : "無料"}
-                                    </dd>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        請求サイクル
-                                    </dt>
-                                    <dd className="mt-1 text-lg font-semibold text-gray-900">
-                                        {getBillingCycleLabel(
-                                            servicePlan.billing_cycle,
-                                        )}
-                                    </dd>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        標準納期
-                                    </dt>
-                                    <dd className="mt-1 text-lg font-semibold text-gray-900">
-                                        {servicePlan.estimated_delivery_days
-                                            ? `${servicePlan.estimated_delivery_days}日`
-                                            : "要相談"}
-                                    </dd>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* プラン詳細情報 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* 機能・特徴 */}
-                        {servicePlan.features &&
-                            servicePlan.features.length > 0 && (
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="px-4 py-5 sm:p-6">
-                                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                            機能・特徴
-                                        </h3>
-                                        <ul className="space-y-2">
-                                            {servicePlan.features.map(
-                                                (feature, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="flex items-start"
-                                                    >
-                                                        <CheckIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700">
-                                                            {feature}
-                                                        </span>
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-
-                        {/* 含まれる項目 */}
-                        {servicePlan.included_items &&
-                            servicePlan.included_items.length > 0 && (
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="px-4 py-5 sm:p-6">
-                                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                            含まれる項目
-                                        </h3>
-                                        <ul className="space-y-2">
-                                            {servicePlan.included_items.map(
-                                                (item, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="flex items-start"
-                                                    >
-                                                        <SwatchIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700">
-                                                            {item}
-                                                        </span>
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-
-                        {/* 制限事項 */}
-                        {servicePlan.limitations &&
-                            servicePlan.limitations.length > 0 && (
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="px-4 py-5 sm:p-6">
-                                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                            制限事項
-                                        </h3>
-                                        <ul className="space-y-2">
-                                            {servicePlan.limitations.map(
-                                                (limitation, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="flex items-start"
-                                                    >
-                                                        <XMarkIcon className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700">
-                                                            {limitation}
-                                                        </span>
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-                    </div>
-
-                    {/* その他の情報 */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                その他の情報
-                            </h3>
-
-                            <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        最大修正回数
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.max_revisions ||
-                                            "制限なし"}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        表示順序
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.sort_order}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        スラッグ
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900 font-mono">
-                                        {servicePlan.slug}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        アイコン
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.icon || "未設定"}
-                                    </dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
-
-                    {/* 管理情報 */}
-                    <div className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                管理情報
-                            </h3>
-
-                            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        作成者
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.creator?.name || "不明"}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        最終更新者
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {servicePlan.updater?.name || "未更新"}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        作成日時
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {new Date(
-                                            servicePlan.created_at,
-                                        ).toLocaleString("ja-JP")}
-                                    </dd>
-                                </div>
-
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        最終更新日時
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {new Date(
-                                            servicePlan.updated_at,
-                                        ).toLocaleString("ja-JP")}
-                                    </dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
-
-                    {/* 操作ボタン */}
-                    <div className="flex items-center justify-end space-x-3">
-                        <Link
-                            href={route(
-                                "admin.service.plan.edit",
-                                servicePlan.id,
-                            )}
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            <PencilIcon className="h-4 w-4 mr-2" />
-                            編集
-                        </Link>
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                        >
-                            <TrashIcon className="h-4 w-4 mr-2" />
-                            削除
-                        </button>
-                    </div>
+            <div className="space-y-6">
+                {/* 操作ボタン */}
+                <div className="flex items-center justify-end space-x-3">
+                    <Link
+                        href={route("admin.service.plan.edit", servicePlan.id)}
+                    >
+                        <EditButton>プラン情報を編集</EditButton>
+                    </Link>
+                    <DeleteButton onClick={handleDelete}>削除</DeleteButton>
                 </div>
+
+                {/* 基本情報カード */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>基本情報</span>
+                            <StatusBadge
+                                isActive={servicePlan.status === "active"}
+                            />
+                        </CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <Dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <Dt>プラン名</Dt>
+                                <Dd className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {servicePlan.name}
+                                </Dd>
+                            </div>
+
+                            <div>
+                                <Dt>サービス</Dt>
+                                <Dd>{servicePlan.service?.name || "未設定"}</Dd>
+                            </div>
+
+                            <div>
+                                <Dt>基本料金</Dt>
+                                <Dd className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                    ¥
+                                    {Number(
+                                        servicePlan.base_price || 0,
+                                    ).toLocaleString()}
+                                </Dd>
+                            </div>
+
+                            {servicePlan.discount_amount > 0 && (
+                                <div>
+                                    <Dt>割引額</Dt>
+                                    <Dd className="text-xl font-bold text-red-600 dark:text-red-400">
+                                        ¥
+                                        {Number(
+                                            servicePlan.discount_amount,
+                                        ).toLocaleString()}
+                                    </Dd>
+                                </div>
+                            )}
+
+                            <div>
+                                <Dt>請求サイクル</Dt>
+                                <Dd>
+                                    {getBillingCycleLabel(
+                                        servicePlan.billing_cycle,
+                                    )}
+                                </Dd>
+                            </div>
+
+                            {servicePlan.setup_fee > 0 && (
+                                <div>
+                                    <Dt>初期費用</Dt>
+                                    <Dd>
+                                        ¥
+                                        {Number(
+                                            servicePlan.setup_fee,
+                                        ).toLocaleString()}
+                                    </Dd>
+                                </div>
+                            )}
+
+                            <div>
+                                <Dt>標準納期</Dt>
+                                <Dd>
+                                    {servicePlan.estimated_delivery_days
+                                        ? `${servicePlan.estimated_delivery_days}日`
+                                        : "要相談"}
+                                </Dd>
+                            </div>
+                        </Dl>
+
+                        {servicePlan.description && (
+                            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <Dt>説明</Dt>
+                                <Dd className="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                    {servicePlan.description}
+                                </Dd>
+                            </div>
+                        )}
+                    </CardBody>
+                </Card>
+
+                {/* サービスアイテム */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>含まれるサービスアイテム</CardTitle>
+                            <div className="flex items-center space-x-2">
+                                {hasItems && (
+                                    <Link
+                                        href={route(
+                                            "admin.service.plan.items.edit",
+                                            servicePlan.id,
+                                        )}
+                                    >
+                                        <button className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            <PencilIcon className="h-4 w-4 mr-2" />
+                                            編集
+                                        </button>
+                                    </Link>
+                                )}
+                                <Link
+                                    href={route(
+                                        "admin.service.plan.items.create",
+                                        servicePlan.id,
+                                    )}
+                                >
+                                    <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
+                                        <PlusIcon className="h-4 w-4 mr-2" />
+                                        {hasItems ? "追加" : "アイテムを追加"}
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardBody>
+                        {hasItems ? (
+                            <div className="space-y-3">
+                                {servicePlan.service_plan_items.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+                                    >
+                                        <div className="flex-1">
+                                            <div className="flex items-center space-x-3">
+                                                <h4 className="font-medium text-gray-900 dark:text-white">
+                                                    {item.service_item?.name ||
+                                                        "アイテム名不明"}
+                                                </h4>
+                                                {item.service_item
+                                                    ?.item_type ===
+                                                "included" ? (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                        プランに含まれる
+                                                    </span>
+                                                ) : item.service_item
+                                                      ?.item_type ===
+                                                  "optional" ? (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                        オプション
+                                                    </span>
+                                                ) : item.service_item
+                                                      ?.item_type ===
+                                                  "addon" ? (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                        アドオン
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                            <div className="mt-1 flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                                                <span>
+                                                    数量: {item.quantity || 1}
+                                                </span>
+                                                {item.estimated_days > 0 && (
+                                                    <span>
+                                                        納期:{" "}
+                                                        {item.estimated_days}日
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            {item.service_item?.item_type ===
+                                            "included" ? (
+                                                <span className="text-lg font-semibold text-green-600 dark:text-green-400">
+                                                    ¥0
+                                                </span>
+                                            ) : (
+                                                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                    ¥
+                                                    {(
+                                                        Number(
+                                                            item.service_item
+                                                                ?.standard_price ||
+                                                                0,
+                                                        ) * (item.quantity || 1)
+                                                    ).toLocaleString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* 価格サマリー */}
+                                <div className="mt-6 pt-4 border-t-2 border-gray-300 dark:border-gray-600">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                                            <div className="text-sm text-blue-700 dark:text-blue-300 mb-1">
+                                                基本料金
+                                            </div>
+                                            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                                                ¥
+                                                {Number(
+                                                    servicePlan.base_price || 0,
+                                                ).toLocaleString()}
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                                            <div className="text-sm text-purple-700 dark:text-purple-300 mb-1">
+                                                アイテム合計
+                                            </div>
+                                            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                                                ¥
+                                                {servicePlan.service_plan_items
+                                                    .reduce((sum, item) => {
+                                                        if (
+                                                            item.service_item
+                                                                ?.item_type ===
+                                                            "included"
+                                                        )
+                                                            return sum;
+                                                        return (
+                                                            sum +
+                                                            Number(
+                                                                item
+                                                                    .service_item
+                                                                    ?.standard_price ||
+                                                                    0,
+                                                            ) *
+                                                                (item.quantity ||
+                                                                    1)
+                                                        );
+                                                    }, 0)
+                                                    .toLocaleString()}
+                                            </div>
+                                        </div>
+
+                                        {servicePlan.discount_amount > 0 && (
+                                            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
+                                                <div className="text-sm text-red-700 dark:text-red-300 mb-1">
+                                                    割引額
+                                                </div>
+                                                <div className="text-2xl font-bold text-red-900 dark:text-red-100">
+                                                    ¥
+                                                    {Number(
+                                                        servicePlan.discount_amount,
+                                                    ).toLocaleString()}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <CurrencyYenIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+                                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    アイテムが登録されていません
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    このプランにサービスアイテムを追加してください。
+                                </p>
+                            </div>
+                        )}
+                    </CardBody>
+                </Card>
             </div>
         </AdminAuthenticatedLayout>
     );

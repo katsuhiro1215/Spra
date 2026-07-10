@@ -129,7 +129,7 @@
             </div>
 
             <div class="button">
-                <a href="{{ route('user.quote.response.register', ['token' => $quoteResponse->token]) }}">
+                <a href="{{ route('quote.response.register', ['token' => $quoteResponse->token]) }}">
                     アカウント作成ページへ
                 </a>
             </div>

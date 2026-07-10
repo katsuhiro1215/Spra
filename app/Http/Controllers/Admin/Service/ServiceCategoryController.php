@@ -33,7 +33,7 @@ class ServiceCategoryController extends Controller
             $statuses = $this->serviceCategoryService->getStatuses();
             $stats = $this->serviceCategoryService->getServiceCategoryStats();
 
-            return Inertia::render('Admin/Service/Categories/Index', [
+            return Inertia::render('Admin/Service/Category/Index', [
                 'serviceCategories' => $serviceCategories,
                 'statuses' => $statuses,
                 'filters' => $filters,
@@ -42,7 +42,7 @@ class ServiceCategoryController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServiceCategory index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/Categories/Index', [
+            return Inertia::render('Admin/Service/Category/Index', [
                 'serviceCategories' => [],
                 'statuses' => [],
                 'filters' => [],
@@ -59,7 +59,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Categories/Create', [
+        return Inertia::render('Admin/Service/Category/Create', [
             'statuses' => $statuses,
         ]);
     }
@@ -87,7 +87,7 @@ class ServiceCategoryController extends Controller
      */
     public function show(ServiceCategory $serviceCategory): Response
     {
-        return Inertia::render('Admin/Service/Categories/Show', [
+        return Inertia::render('Admin/Service/Category/Show', [
             'serviceCategory' => $serviceCategory->load(['creator', 'updater']),
             'servicesCount' => $serviceCategory->services()->count(),
         ]);
@@ -100,7 +100,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Categories/Edit', [
+        return Inertia::render('Admin/Service/Category/Edit', [
             'serviceCategory' => $serviceCategory,
             'statuses' => $statuses,
         ]);

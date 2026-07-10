@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Contract;
+use App\Models\Quote;
+use App\Models\Service;
 use App\Repositories\Contracts\ContractRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,7 +20,22 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findById(string $id): ?Contract
     {
-        return Contract::with(['project', 'user', 'company', 'documents', 'invoices', 'histories', 'signatures'])->find($id);
+        return Contract::with([
+            'user.profile',
+            'company',
+            'quote',
+            'project',
+            'currentVersion.items.serviceItem',
+            'versions' => function ($query) {
+                $query->orderBy('version', 'asc');
+            },
+            'creator.profile',
+            'updater.profile',
+            'documents',
+            'invoices',
+            'histories',
+            'signatures'
+        ])->find($id);
     }
 
     public function findByIdForClient(string $id, string $userId): ?Contract
@@ -32,7 +49,12 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findWithFilters(array $filters): Builder
     {
-        $query = Contract::query()->with(['project', 'user', 'company']);
+        $query = Contract::query()->with([
+            'user.profile',
+            'company',
+            'project',
+            'currentVersion'
+        ]);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -129,6 +151,32 @@ class ContractRepository implements ContractRepositoryInterface
         return Contract::create($data);
     }
 
+    /**
+     * 契約番号を生成
+     * フォーマット: C202407001 (C + 年月 + 連番4桁)
+     */
+    public function generateContractNumber(): string
+    {
+        $year = date('Y');
+        $month = date('m');
+        $prefix = "C{$year}{$month}";
+
+        // 今月の最新の契約番号を取得
+        $latestContract = Contract::where('contract_number', 'like', "{$prefix}%")
+            ->orderBy('contract_number', 'desc')
+            ->first();
+
+        if ($latestContract) {
+            // 最後の4桁を取得してインクリメント
+            $lastNumber = (int) substr($latestContract->contract_number, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        return sprintf('%s%04d', $prefix, $newNumber);
+    }
+
     public function update(Contract $contract, array $data): Contract
     {
         $contract->update($data);
@@ -145,6 +193,14 @@ class ContractRepository implements ContractRepositoryInterface
         return Contract::where('user_id', $userId)
             ->where('status', 'active')
             ->with(['project', 'invoices'])
+            ->get();
+    }
+
+    public function getByUserAndStatus(string $userId, string $status): Collection
+    {
+        return Contract::where('user_id', $userId)
+            ->where('status', $status)
+            ->with(['project', 'quote'])
             ->get();
     }
 
@@ -168,7 +224,9 @@ class ContractRepository implements ContractRepositoryInterface
             'draft' => Contract::where('status', 'draft')->count(),
             'suspended' => Contract::where('status', 'suspended')->count(),
             'cancelled' => Contract::where('status', 'cancelled')->count(),
-            'total_amount' => Contract::whereIn('status', ['active', 'pending_signature'])->sum('amount'),
+            'total_amount' => \App\Models\ContractVersion::whereHas('contract', function ($query) {
+                $query->whereIn('status', ['active', 'pending_signature']);
+            })->where('is_current', true)->sum('total_amount'),
         ];
     }
 }

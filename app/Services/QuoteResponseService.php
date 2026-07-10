@@ -135,6 +135,14 @@ class QuoteResponseService extends BaseService
                 'admin_notified_at' => now(),
             ]);
 
+            // 対応する Quote も更新（user_id と company_id を同期）
+            if ($quoteResponse->quote_id) {
+                $quoteResponse->quote()->update([
+                    'user_id' => $user->id,
+                    'company_id' => $company->id,
+                ]);
+            }
+
             return $user;
         });
     }

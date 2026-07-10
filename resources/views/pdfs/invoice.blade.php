@@ -103,45 +103,6 @@
             font-weight: bold;
         }
 
-        .invoice-meta .due-date {
-            color: #d9534f;
-            font-weight: bold;
-        }
-
-        /* 請求明細 */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .items-table th {
-            background-color: #333;
-            color: white;
-            padding: 8px;
-            text-align: left;
-            font-size: 9pt;
-            border: 1px solid #333;
-        }
-
-        .items-table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            font-size: 9pt;
-        }
-
-        .items-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .items-table .text-right {
-            text-align: right;
-        }
-
-        .items-table .text-center {
-            text-align: center;
-        }
-
         /* 金額サマリー */
         .amount-summary {
             float: right;
@@ -181,25 +142,20 @@
             clear: both;
             margin-top: 30px;
             padding: 15px;
-            border: 2px solid #d9534f;
-            background-color: #fff5f5;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
         }
 
         .payment-info h3 {
-            font-size: 12pt;
+            font-size: 11pt;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #d9534f;
-        }
-
-        .payment-info p {
-            margin: 5px 0;
         }
 
         .payment-info table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            font-size: 9pt;
         }
 
         .payment-info td {
@@ -231,26 +187,7 @@
         .notes p {
             white-space: pre-wrap;
             line-height: 1.8;
-        }
-
-        /* 会社情報 */
-        .company-info {
-            margin-top: 30px;
-            padding: 15px;
-            border: 2px solid #333;
-            background-color: #f9f9f9;
-        }
-
-        .company-info h3 {
-            font-size: 12pt;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .company-info p {
-            margin: 3px 0;
-            text-align: center;
+            font-size: 9pt;
         }
 
         /* フッター */
@@ -262,6 +199,14 @@
             font-size: 9pt;
             color: #666;
         }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -269,111 +214,72 @@
     <div class="container">
         <!-- ヘッダー -->
         <div class="header">
-            <h1>御請求書</h1>
+            <h1>請求書</h1>
             <div class="header-info">
                 <div class="header-left">
-                    <p><strong>請求書番号:</strong> {{ $invoice->invoice_number }}</p>
-                    <p><strong>発行日:</strong> {{ $invoice->created_at->format('Y年m月d日') }}</p>
-                    @if ($invoice->due_date)
-                        <p class="due-date"><strong>お支払期限:</strong>
-                            {{ \Carbon\Carbon::parse($invoice->due_date)->format('Y年m月d日') }}</p>
+                    <p><strong>{{ $invoice->company->name ?? 'Company Name' }}</strong></p>
+                    @if ($invoice->company && $invoice->company->addresses->count() > 0)
+                        <p style="font-size: 9pt; color: #666;">
+                            {{ $invoice->company->addresses->first()->formatted_address ?? '' }}
+                        </p>
                     @endif
                 </div>
                 <div class="header-right">
-                    <p><strong>{{ config('app.name') }}</strong></p>
-                    @if ($invoice->created_by_admin)
-                        <p>担当者:
-                            {{ $invoice->created_by_admin->profile->full_name ?? $invoice->created_by_admin->email }}
-                        </p>
-                    @endif
+                    <p><strong>請求書番号:</strong> {{ $invoice->invoice_number }}</p>
+                    <p><strong>発行日:</strong>
+                        {{ $invoice->issue_date ? \Carbon\Carbon::parse($invoice->issue_date)->format('Y年m月d日') : '-' }}
+                    </p>
                 </div>
             </div>
         </div>
 
         <!-- クライアント情報 -->
-        <div class="client-info">
-            <h2>お客様情報</h2>
-            @if ($invoice->company)
-                <p><strong>会社名:</strong> {{ $invoice->company->name }}</p>
-            @endif
-            @if ($invoice->user)
-                <p><strong>お名前:</strong> {{ $invoice->user->profile->full_name ?? $invoice->user->email }} 様</p>
-                @if ($invoice->user->profile && $invoice->user->profile->address)
-                    <p><strong>住所:</strong> {{ $invoice->user->profile->address }}</p>
-                @endif
-                <p><strong>メールアドレス:</strong> {{ $invoice->user->email }}</p>
-                @if ($invoice->user->profile && $invoice->user->profile->phone)
-                    <p><strong>電話番号:</strong> {{ $invoice->user->profile->phone }}</p>
-                @endif
-            @endif
-        </div>
+        @if ($invoice->user)
+            <div class="client-info">
+                <h2>ご請求先</h2>
+                <p><strong>{{ $invoice->user->profile->full_name ?? $invoice->user->email }}</strong></p>
+                <p>{{ $invoice->user->profile->company_name ?? '' }}</p>
+            </div>
+        @endif
 
         <!-- 請求情報 -->
         <div class="invoice-meta">
             <table>
-                @if ($invoice->contract)
-                    <tr>
-                        <td>契約</td>
-                        <td>{{ $invoice->contract->contract_number }} - {{ $invoice->contract->title }}</td>
-                    </tr>
-                @endif
-                @if ($invoice->title)
-                    <tr>
-                        <td>件名</td>
-                        <td>{{ $invoice->title }}</td>
-                    </tr>
-                @endif
-                @if ($invoice->billing_period_start && $invoice->billing_period_end)
-                    <tr>
-                        <td>請求期間</td>
-                        <td>{{ \Carbon\Carbon::parse($invoice->billing_period_start)->format('Y年m月d日') }} ～
-                            {{ \Carbon\Carbon::parse($invoice->billing_period_end)->format('Y年m月d日') }}</td>
-                    </tr>
-                @endif
+                <tr>
+                    <td>支払期限</td>
+                    <td>{{ $invoice->due_date ? \Carbon\Carbon::parse($invoice->due_date)->format('Y年m月d日') : '-' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>請求状態</td>
+                    <td>{{ $status_label ?? $invoice->status }}</td>
+                </tr>
             </table>
         </div>
 
-        <!-- 請求明細 -->
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 35%;">品目</th>
-                    <th style="width: 30%;">説明</th>
-                    <th style="width: 10%;" class="text-center">数量</th>
-                    <th style="width: 10%;" class="text-right">単価</th>
-                    <th style="width: 10%;" class="text-right">金額</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($invoice->items as $index => $item)
-                    <tr>
-                        <td class="text-center">{{ $index + 1 }}</td>
-                        <td><strong>{{ $item->name }}</strong></td>
-                        <td><small style="color: #666;">{{ $item->description ?? '-' }}</small></td>
-                        <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
-                        <td class="text-right">¥{{ number_format($item->unit_price) }}</td>
-                        <td class="text-right">¥{{ number_format($item->amount) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <!-- 請求内容 -->
+        <h3 style="margin: 30px 0 15px 0; color: #2563eb;">ご請求内容</h3>
+        @if ($invoice->billing_period_start || $invoice->billing_period_end)
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                請求期間:
+                @if ($invoice->billing_period_start)
+                    {{ \Carbon\Carbon::parse($invoice->billing_period_start)->format('Y年m月d日') }}
+                @endif
+                @if ($invoice->billing_period_end)
+                    ～ {{ \Carbon\Carbon::parse($invoice->billing_period_end)->format('Y年m月d日') }}
+                @endif
+            </p>
+        @endif
 
         <!-- 金額サマリー -->
         <div class="amount-summary">
             <table>
                 <tr>
-                    <td>小計</td>
+                    <td>小計（税抜き）</td>
                     <td>¥{{ number_format($invoice->subtotal) }}</td>
                 </tr>
-                @if ($invoice->discount_amount > 0)
-                    <tr>
-                        <td>値引き</td>
-                        <td style="color: #d9534f;">-¥{{ number_format($invoice->discount_amount) }}</td>
-                    </tr>
-                @endif
                 <tr>
-                    <td>消費税 ({{ number_format($invoice->tax_rate * 100, 1) }}%)</td>
+                    <td>消費税（{{ number_format($invoice->tax_rate * 100, 1) }}%）</td>
                     <td>¥{{ number_format($invoice->tax_amount) }}</td>
                 </tr>
                 <tr class="total-row">
@@ -384,30 +290,25 @@
         </div>
 
         <!-- 支払い情報 -->
-        <div class="payment-info">
-            <h3>お振込先</h3>
-            <table>
-                <tr>
-                    <td>銀行名</td>
-                    <td>○○銀行 ○○支店</td>
-                </tr>
-                <tr>
-                    <td>口座種別</td>
-                    <td>普通</td>
-                </tr>
-                <tr>
-                    <td>口座番号</td>
-                    <td>1234567</td>
-                </tr>
-                <tr>
-                    <td>口座名義</td>
-                    <td>{{ config('app.name') }}</td>
-                </tr>
-            </table>
-            <p style="margin-top: 10px; color: #d9534f; font-weight: bold;">
-                ※ お振込手数料はお客様のご負担にてお願いいたします。
-            </p>
-        </div>
+        @if ($invoice->contract && $invoice->contract->current_version)
+            <div class="payment-info">
+                <h3>契約情報</h3>
+                <table>
+                    <tr>
+                        <td>契約番号</td>
+                        <td>{{ $invoice->contract->contract_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>契約名</td>
+                        <td>{{ $invoice->contract->title }}</td>
+                    </tr>
+                    <tr>
+                        <td>契約金額</td>
+                        <td>¥{{ number_format($invoice->contract->current_version->total_amount) }}</td>
+                    </tr>
+                </table>
+            </div>
+        @endif
 
         <!-- 備考 -->
         @if ($invoice->notes)
@@ -417,18 +318,9 @@
             </div>
         @endif
 
-        <!-- 会社情報 -->
-        <div class="company-info">
-            <h3>{{ config('app.name') }}</h3>
-            <p>〒000-0000 東京都○○区○○ 1-2-3</p>
-            <p>TEL: 03-0000-0000 / FAX: 03-0000-0001</p>
-            <p>Email: info@example.com</p>
-            <p>https://example.com</p>
-        </div>
-
         <!-- フッター -->
         <div class="footer">
-            <p>本請求書は、お支払い完了後も大切に保管ください。</p>
+            <p>このドキュメントは自動生成されました。</p>
             <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
         </div>
     </div>

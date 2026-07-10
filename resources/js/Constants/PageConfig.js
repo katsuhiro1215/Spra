@@ -270,6 +270,68 @@ export const PageConfig = {
         },
     },
 
+    // サービス項目管理
+    serviceItems: {
+        title: "🛠️ サービス項目管理",
+        description: "サービス項目を管理します",
+        documentTitle: "サービス項目管理",
+        breadcrumbs: ["ホーム", "サービス項目管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("サービス項目"),
+        form: createFormTemplates("サービス項目"),
+        ui: createIndexPageUITemplates(
+            "サービス項目",
+            "サービス項目名またはスラッグで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            service: {
+                label: "サービス",
+                placeholder: "すべて",
+            },
+            plan: {
+                label: "プラン",
+                placeholder: "すべて",
+            },
+            type: {
+                label: "タイプ",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    // サービスプラン管理
+    servicePlans: {
+        title: "🛠️ サービスプラン管理",
+        description: "サービスプランを管理します",
+        documentTitle: "サービスプラン管理",
+        breadcrumbs: ["ホーム", "サービスプラン管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("サービスプラン"),
+        form: createFormTemplates("サービスプラン"),
+        ui: createIndexPageUITemplates(
+            "サービスプラン",
+            "サービスプラン名またはスラッグで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+            type: {
+                label: "タイプ",
+                placeholder: "すべて",
+            },
+        },
+    },
+
     /**
      * スケジュール管理
      */
@@ -452,6 +514,30 @@ export const PageConfig = {
     },
 
     /**
+     * プロジェクトテンプレート管理
+     */
+    projectTemplates: {
+        title: "📋 プロジェクトテンプレート管理",
+        description: "プロジェクトのテンプレートを管理します",
+        documentTitle: "プロジェクトテンプレート管理",
+        breadcrumbs: ["ホーム", "プロジェクトテンプレート管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("プロジェクトテンプレート"),
+        ui: createIndexPageUITemplates(
+            "プロジェクトテンプレート",
+            "テンプレート名、説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    /**
      * プロジェクトカテゴリ管理
      */
     projectCategories: {
@@ -485,6 +571,7 @@ export const PageConfig = {
         actions: {
             ...CommonUIConstants.actions,
         },
+        pages: createPageTemplates("プロジェクト"),
         ui: createIndexPageUITemplates(
             "プロジェクト",
             "プロジェクト名で検索...",
@@ -645,6 +732,26 @@ export const PageConfig = {
         actions: {
             ...CommonUIConstants.actions,
         },
+        pages: createPageTemplates("お問い合わせ"),
+        search: createSearchTemplate("お問い合わせ"),
+        ui: createIndexPageUITemplates(
+            "お問い合わせ",
+            "お問い合わせ名で検索...",
+        ),
+    },
+
+    // お問い合わせカテゴリ管理
+    contactCategories: {
+        title: "🏷️ カテゴリ管理",
+        description: "お問い合わせのカテゴリを管理します",
+        documentTitle: "カテゴリ管理",
+        breadcrumbs: ["ホーム", "お問い合わせ", "カテゴリ"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("カテゴリ"),
+        search: createSearchTemplate("カテゴリ"),
+        ui: createIndexPageUITemplates("カテゴリ", "カテゴリ名で検索..."),
     },
 
     /**

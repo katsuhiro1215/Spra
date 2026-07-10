@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Contact;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\Admin;
+use App\Models\ContactCategory;
 use App\Services\ContactService;
 use App\Http\Requests\ContactRequest;
 use Illuminate\Http\Request;
@@ -39,10 +40,17 @@ class ContactController extends Controller
         $contacts = $this->contactService->getPaginatedForAdmin($filters, $sort, 20);
         $stats = $this->contactService->getStatsForAdmin();
 
-        return Inertia::render('Admin/Contacts/Index', [
+        // カテゴリオプションを取得
+        $categories = ContactCategory::where('is_active', true)
+            ->orderBy('sort_order')
+            ->select('id', 'name')
+            ->get();
+
+        return Inertia::render('Admin/Contact/Index', [
             'contacts' => $contacts,
             'stats' => $stats,
             'filters' => $filters,
+            'categories' => $categories,
             'admins' => Admin::select('id', 'email')->get(),
         ]);
     }
@@ -55,12 +63,13 @@ class ContactController extends Controller
         // リレーション読み込み
         $contact->load([
             'assignedAdmin',
+            'contactCategory',
             'responses.admin',
             'invitations.invitedBy',
             'invitations.user',
         ]);
 
-        return Inertia::render('Admin/Contacts/Show', [
+        return Inertia::render('Admin/Contact/Show', [
             'contact' => $contact,
             'admins' => Admin::select('id', 'email')->get(),
         ]);
@@ -91,7 +100,7 @@ class ContactController extends Controller
         try {
             $this->contactService->deleteContact($contact);
 
-            return redirect()->route('admin.contacts.index')
+            return redirect()->route('admin.contact.index')
                 ->with('success', 'お問い合わせを削除しました。');
         } catch (\Exception $e) {
             Log::error('Contact delete error: ' . $e->getMessage());

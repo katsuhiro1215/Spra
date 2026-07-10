@@ -17,7 +17,7 @@ class AdminSeeder extends Seeder
         $admins = [
             // Owner - 最高権限
             [
-                'email' => 'kakoi10@smartsprouts.jp',
+                'email' => 'katsuhiro.k1215@gmail.com',
                 'role' => 'owner',
                 'status' => 'active',
             ],

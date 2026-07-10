@@ -37,11 +37,11 @@ class AdminController extends Controller
             'direction' => $request->input('sort_direction', 'desc'),
         ];
         // 管理者のページネーション取得
-        $admins = $this->adminService->getPaginated($filters, $sort, 20);
+        $admins = $this->adminService->getPaginated($filters, $sort, 5);
         // 統計情報の取得
         $stats = $this->adminService->getStats();
 
-        return Inertia::render('Admin/Admins/Index', [
+        return Inertia::render('Admin/Admin/Index', [
             'admins' => $admins,
             'filters' => $filters,
             'stats' => $stats,
@@ -55,7 +55,7 @@ class AdminController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Admins/Create', [
+        return Inertia::render('Admin/Admin/Create', [
             'roles' => $this->adminService->getRoles(),
         ]);
     }
@@ -68,7 +68,7 @@ class AdminController extends Controller
         $result = $this->adminService->createAdmin($request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $result['admin'])
+            ->route('admin.admin.show', $result['admin'])
             ->with('success', '管理者を作成しました。初期パスワード: ' . $result['password']);
     }
 
@@ -95,7 +95,7 @@ class AdminController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
-        return Inertia::render('Admin/Admins/Show', [
+        return Inertia::render('Admin/Admin/Show', [
             'admin' => $admin,
             'mediaList' => $mediaList,
         ]);
@@ -108,7 +108,7 @@ class AdminController extends Controller
     {
         $admin->load('profile');
 
-        return Inertia::render('Admin/Admins/Edit', [
+        return Inertia::render('Admin/Admin/Edit', [
             'admin' => $admin,
             'roles' => $this->adminService->getRoles(),
             'statuses' => $this->adminService->getStatuses(),
@@ -123,7 +123,7 @@ class AdminController extends Controller
         $this->adminService->updateAdmin($admin, $request->validated());
 
         return redirect()
-            ->route('admin.admins.show', $admin)
+            ->route('admin.admin.show', $admin)
             ->with('success', '管理者情報を更新しました。');
     }
 
@@ -136,11 +136,11 @@ class AdminController extends Controller
             $this->adminService->deleteAdmin($admin, auth('admin')->id());
 
             return redirect()
-                ->route('admin.admins.index')
+                ->route('admin.admin.index')
                 ->with('success', '管理者を削除しました。');
         } catch (\Exception $e) {
             return redirect()
-                ->route('admin.admins.index')
+                ->route('admin.admin.index')
                 ->with('error', $e->getMessage());
         }
     }

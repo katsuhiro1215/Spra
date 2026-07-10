@@ -4,8 +4,9 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
-import SearchFilter from "@/Components/Layout/SearchFilter";
+import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
+import SearchFilter from "@/Components/Layout/SearchFilter";
 // Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
 // Constants
@@ -99,42 +100,38 @@ export default function Index({
     ];
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
-            label: "サービスプランを追加",
+            label: PageConfig.servicePlans.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.service.plan.create"),
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス管理", href: null },
-        { label: "サービスプラン一覧", href: null },
-    ];
-
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービスプラン管理"
-                    description="サービスプランの作成、編集、削除を行います"
+                    title={PageConfig.servicePlans.pages.index.title}
+                    description={
+                        PageConfig.servicePlans.pages.index.description
+                    }
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.servicePlans.breadcrumbs}
                 />
             }
         >
-            <Head title="サービスプラン一覧" />
+            <Head title={PageConfig.servicePlans.pages.index.title} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div className="p-6">
+            <div className="w-full flex flex-col gap-4">
+                <Card>
+                    <div className="p-4 space-y-4">
                         <SearchFilter
                             data={data}
                             updateData={updateData}
@@ -142,21 +139,19 @@ export default function Index({
                             onSearch={handleSearch}
                             processing={processing}
                         />
-
-                        <ServicePlansTable
-                            servicePlans={servicePlans.data || []}
-                            onDelete={handleDelete}
-                            isDeleting={isDeleting}
-                            billingCycles={billingCycles}
-                        />
-
-                        {servicePlans.last_page > 1 && (
-                            <div className="mt-6">
-                                <Pagination links={servicePlans.links} />
-                            </div>
-                        )}
                     </div>
-                </div>
+                </Card>
+                {/* サービスプラン一覧 */}
+                <ServicePlansTable
+                    servicePlans={servicePlans.data || []}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                    billingCycles={billingCycles}
+                />
+                {/* ページネーション */}
+                {servicePlans.data.length > 0 && (
+                    <Pagination paginationData={servicePlans} />
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

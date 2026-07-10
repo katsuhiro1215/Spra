@@ -17,33 +17,47 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
+use App\Http\Controllers\Admin\Service\ServicePlanItemController;
 use App\Http\Controllers\Admin\Service\ServiceItemController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
+use App\Http\Controllers\Admin\Contact\ContactCategoryController;
 use App\Http\Controllers\Admin\Contact\ResponseController;
 use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
 
 use App\Http\Controllers\Admin\UserInvitationController;
 use App\Http\Controllers\Admin\OnboardingController;
 
-use App\Http\Controllers\Admin\Project\ProjectCategoryController;
+use App\Models\Project;
+use App\Http\Controllers\Admin\Project\ProjectTemplateController;
+use App\Http\Controllers\Admin\Project\ProjectTemplateMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectController;
-use App\Http\Controllers\Admin\Project\ProjectInquiryController;
+use App\Http\Controllers\Admin\Project\ProjectVersionController;
 use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
+use App\Http\Controllers\Admin\Project\ProjectItemController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
-
-use App\Http\Controllers\Admin\ContractController;
-use App\Http\Controllers\Admin\ContractSignatureController;
+use App\Http\Controllers\Admin\Project\GanttChartController;
 
 use App\Http\Controllers\Admin\Quote\QuoteController;
+use App\Http\Controllers\Admin\Quote\QuoteVersionController;
+use App\Http\Controllers\Admin\Quote\QuoteItemController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
 
+use App\Http\Controllers\Admin\Contract\ContractController;
+use App\Http\Controllers\Admin\Contract\ContractVersionController;
+use App\Http\Controllers\Admin\Contract\ContractItemController;
+use App\Http\Controllers\Admin\Contract\ContractSignatureController;
+use App\Http\Controllers\Admin\Contract\ContractGroupController;
+
+use App\Http\Controllers\Admin\Invoice\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReceiptController;
 
 use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\Admin\TermController;
+
+use App\Http\Controllers\Admin\Term\TermController;
+use App\Http\Controllers\Admin\Term\TermVersionController;
+use App\Http\Controllers\Admin\Term\TermItemController;
 
 use App\Http\Controllers\Admin\Homepage\PageController;
 use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
@@ -165,6 +179,16 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::prefix('service')->name('service.')->group(function () {
         Route::resource('category', ServiceCategoryController::class)->parameters(['category' => 'serviceCategory']);
         Route::resource('plan', ServicePlanController::class)->parameters(['plan' => 'servicePlan']);
+
+        // ServicePlanItemの管理ルート
+        Route::prefix('plan/{servicePlan}')->name('plan.')->group(function () {
+            Route::get('items/create', [ServicePlanItemController::class, 'addItems'])->name('items.create');
+            Route::post('items', [ServicePlanItemController::class, 'storeItems'])->name('items.store');
+            Route::get('items/edit', [ServicePlanItemController::class, 'editItems'])->name('items.edit');
+            Route::put('items', [ServicePlanItemController::class, 'updateItems'])->name('items.update');
+            Route::delete('items/{servicePlanItem}', [ServicePlanItemController::class, 'destroyItem'])->name('items.destroy');
+        });
+
         Route::resource('item', ServiceItemController::class)->parameters(['item' => 'serviceItem']);
     });
 
@@ -174,6 +198,10 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     /**************************************
      * お問い合わせ
      **************************************/
+    // お問い合わせカテゴリ管理
+    Route::prefix('contact')->name('contact.')->group(function () {
+        Route::resource('category', ContactCategoryController::class)->except(['show']);
+    });
     // お問い合わせ管理
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('/contact/bulk-update', [ContactController::class, 'bulkUpdate'])->name('contact.bulk-update');
@@ -184,34 +212,36 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
 
     // お問い合わせ返答管理（Contact配下）
     Route::prefix('contact/{contact}')->name('contact.')->group(function () {
-        Route::resource('responses', ResponseController::class)->except(['index']);
-        Route::post('responses/{response}/send', [ResponseController::class, 'send'])->name('responses.send');
+        Route::resource('response', ResponseController::class)->except(['index']);
+        Route::post('response/{response}/send', [ResponseController::class, 'send'])->name('response.send');
         // ユーザー招待管理
-        Route::post('invitations', [UserInvitationController::class, 'store'])->name('invitations.store');
+        Route::post('invitation', [UserInvitationController::class, 'store'])->name('invitation.store');
     });
     // ユーザー招待管理（グローバル）
-    Route::prefix('invitations')->name('invitations.')->group(function () {
+    Route::prefix('invitation')->name('invitation.')->group(function () {
         Route::post('{invitation}/resend', [UserInvitationController::class, 'resend'])->name('resend');
         Route::patch('{invitation}/revoke', [UserInvitationController::class, 'revoke'])->name('revoke');
     });
 
     // 返答テンプレート管理
-    Route::resource('responseTemplate', ResponseTemplateController::class);
+    Route::prefix('response')->name('response.')->group(function () {
+        Route::resource('template', ResponseTemplateController::class);
+    });
 
     /**************************************
      * プロジェクト
      **************************************/
-    Route::prefix('project')->name('project.')->group(function () {
-        // プロジェクトカテゴリ管理
-        Route::resource('category', ProjectCategoryController::class)->parameters(['category' => 'projectCategory']);
-        // プロジェクト問い合わせ管理
-        Route::resource('inquiry', ProjectInquiryController::class)->parameters(['inquiries' => 'projectInquiry'])->only(['index', 'show', 'destroy']);
-    });
-    // プロジェクト管理
-    Route::resource('project', ProjectController::class);
     // プロジェクト関連のマイルストーンとアップデート管理
     Route::prefix('project')->name('project.')->group(function () {
-        // Milestones
+        // ProjectTemplate
+        Route::resource('template', ProjectTemplateController::class);
+
+        // ProjectTemplateMilestone (ネストされたリソース)
+        Route::prefix('template/{projectTemplate}')->name('template.')->group(function () {
+            Route::resource('milestone', ProjectTemplateMilestoneController::class)->except(['index']);
+        });
+
+        // ProjectMilestone
         Route::post('/{project}/milestones', [ProjectMilestoneController::class, 'store'])->name('milestones.store');
         Route::put('/{project}/milestones/{milestone}', [ProjectMilestoneController::class, 'update'])->name('milestones.update');
         Route::delete('/{project}/milestones/{milestone}', [ProjectMilestoneController::class, 'destroy'])->name('milestones.destroy');
@@ -219,12 +249,24 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{project}/updates', [ProjectUpdateController::class, 'store'])->name('updates.store');
         Route::put('/{project}/updates/{update}', [ProjectUpdateController::class, 'update'])->name('updates.update');
         Route::delete('/{project}/updates/{update}', [ProjectUpdateController::class, 'destroy'])->name('updates.destroy');
+        // ガントチャート
+        Route::get('/gantt', [GanttChartController::class, 'index'])->name('gantt.index');
+        Route::get('/{project}/gantt', [GanttChartController::class, 'show'])->name('gantt.show');
     });
-    // ガントチャート
-    Route::prefix('gantt')->name('gantt.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Projects/GanttChart/Index');
-        })->name('index');
+    // Project
+    Route::resource('project', ProjectController::class);
+
+    // ProjectVersion ネストされたリソース
+    Route::prefix('project/{project}')->name('project.')->group(function () {
+        Route::resource('versions', ProjectVersionController::class);
+        Route::post('versions/{version}/set-current', [ProjectVersionController::class, 'setCurrent'])->name('versions.setCurrent');
+
+        // ProjectMilestone ネストされたリソース
+        Route::prefix('versions/{version}')->name('versions.')->group(function () {
+            Route::resource('milestones', ProjectMilestoneController::class)->except(['index']);
+            // ProjectItem ネストされたリソース
+            Route::resource('items', ProjectItemController::class)->except(['index']);
+        });
     });
 
     // 契約管理
@@ -237,6 +279,27 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{id}/documents', [ContractController::class, 'uploadDocument'])->name('documents.upload');
         Route::patch('/{id}/billing-settings', [ContractController::class, 'updateBillingSettings'])->name('billing-settings.update');
         Route::post('/{id}/send', [ContractController::class, 'send'])->name('send');
+        Route::get('/{id}/pdf', [ContractController::class, 'generatePdf'])->name('pdf');
+        Route::get('/{id}/pdf/preview', [ContractController::class, 'previewPdf'])->name('pdf.preview');
+
+        // 契約明細管理
+        Route::get('/{contract}/item/create', [ContractItemController::class, 'create'])->name('item.create');
+        Route::post('/{contract}/item', [ContractItemController::class, 'store'])->name('item.store');
+        Route::get('/{contract}/item/edit', [ContractItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{contract}/item', [ContractItemController::class, 'update'])->name('item.update');
+        Route::delete('/{contract}/item', [ContractItemController::class, 'destroy'])->name('item.destroy');
+
+        // 手動で明細を追加/編集（QuoteItemがない場合）
+        Route::get('/{contract}/item/add-manual', [ContractItemController::class, 'create'])->name('item.add-manual');
+        Route::post('/{contract}/item/manual', [ContractItemController::class, 'store'])->name('item.store-manual');
+        Route::get('/{contract}/item/edit', [ContractItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{contract}/item', [ContractItemController::class, 'update'])->name('item.update');
+        Route::delete('/{contract}/item', [ContractItemController::class, 'destroy'])->name('item.destroy');
+
+        // 契約条項編集
+        Route::get('/{id}/terms/edit', [ContractController::class, 'editTerms'])->name('terms.edit');
+        Route::post('/{id}/terms', [ContractController::class, 'updateTerms'])->name('terms.update');
+        Route::get('/{id}/preview', [ContractController::class, 'preview'])->name('preview');
 
         // 署名関連ルート
         Route::post('/{id}/signature/user', [ContractSignatureController::class, 'storeUserSignature'])->name('signature.user.store');
@@ -246,9 +309,29 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::post('/{id}/signature/reject', [ContractSignatureController::class, 'rejectSignature'])->name('signature.reject');
     });
 
+    // 契約グループ管理
+    Route::prefix('contract-group')->name('contract-group.')->group(function () {
+        Route::get('/', [ContractGroupController::class, 'index'])->name('index');
+        Route::get('/create', [ContractGroupController::class, 'create'])->name('create');
+        Route::post('/', [ContractGroupController::class, 'store'])->name('store');
+        Route::get('/{id}', [ContractGroupController::class, 'show'])->name('show');
+        Route::post('/{id}/send', [ContractGroupController::class, 'send'])->name('send');
+        Route::post('/{id}/add-contract', [ContractGroupController::class, 'addContract'])->name('add-contract');
+        Route::delete('/{id}/remove-contract/{contractId}', [ContractGroupController::class, 'removeContract'])->name('remove-contract');
+        Route::delete('/{id}', [ContractGroupController::class, 'destroy'])->name('destroy');
+    });
+
     // 見積もり管理
     Route::resource('quote', QuoteController::class);
     Route::prefix('quote')->name('quote.')->group(function () {
+        // 見積明細管理
+        Route::get('/{quote}/item/create', [QuoteItemController::class, 'create'])->name('item.create');
+        Route::post('/{quote}/item', [QuoteItemController::class, 'store'])->name('item.store');
+        Route::get('/{quote}/item/edit', [QuoteItemController::class, 'edit'])->name('item.edit');
+        Route::put('/{quote}/item', [QuoteItemController::class, 'update'])->name('item.update');
+        Route::delete('/{quote}/item', [QuoteItemController::class, 'destroy'])->name('item.destroy');
+
+        // その他の見積もり機能
         Route::get('/{quote}/preview', [QuoteController::class, 'preview'])->name('preview');
         Route::post('/{quote}/send', [QuoteController::class, 'send'])->name('send');
         Route::post('/{quote}/approve', [QuoteController::class, 'approve'])->name('approve');
@@ -285,7 +368,12 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('pdf.preview');
         Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
         Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
+        Route::post('/{id}/receipt/issue', [InvoiceController::class, 'issueReceipt'])->name('receipt.issue');
+        Route::post('/{invoiceId}/payment-notification/{notificationId}/acknowledge', [InvoiceController::class, 'acknowledgePaymentNotification'])->name('payment-notification.acknowledge');
+        Route::get('/{id}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('receipt.download');
     });
+
+
 
     // 領収書管理
     Route::resource('receipt', ReceiptController::class);

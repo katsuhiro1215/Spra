@@ -1,15 +1,23 @@
-import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
-import SearchFilter from "@/Components/Layout/SearchFilter";
+import { Card } from "@/Components/Card";
+import { CreateButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
+import { DeleteAlert } from "@/Components/Alerts";
+import TabNavigation from "@/Components/TabNavigation";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
 // Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
+import {
+    SERVICE_STATUS_OPTIONS,
+} from "@/Constants/SelectOptions";
 // ServiceItem Components
 import ServiceItemsTable from "./_components/ServiceItemsTable";
 
@@ -21,6 +29,14 @@ export default function Index({
     servicePlans,
     filters: initialFilters,
 }) {
+    // ========================================
+    // State & Form
+    // ========================================
+    const [showFilters, setShowFilters] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [processing, setProcessing] = useState(false);
+
     const [data, setData] = useState(
         initialFilters || {
             search: "",
@@ -30,173 +46,282 @@ export default function Index({
             item_type: "",
         },
     );
-    const [processing, setProcessing] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(null);
 
-    // データ更新用のヘルパー関数
-    const updateData = (key, value) => {
-        setData((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
-    };
+    // ========================================
+    // Effects
+    // ========================================
+    // propsが更新されたらstateも更新
+    // フィルターがアクティブな場合は自動的に開く
+    useEffect(() => {
+        if (
+            data.status ||
+            data.service_id ||
+            data.service_plan_id ||
+            data.item_type
+        ) {
+            setShowFilters(true);
+        }
+    }, [data.status, data.service_id, data.service_plan_id, data.item_type]);
 
-    // 検索実行
+    // フィルター変更時に自動検索
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (
+                data.status !== initialFilters.status ||
+                data.service_id !== initialFilters.service_id ||
+                data.service_plan_id !== initialFilters.service_plan_id ||
+                data.item_type !== initialFilters.item_type
+            ) {
+                handleSearch();
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [data.status, data.service_id, data.service_plan_id, data.item_type]);
+
+    // ========================================
+    // Handlers - Search & Filter
+    // ========================================
     const handleSearch = () => {
-        setProcessing(true);
-        router.get(route("admin.service.item.index"), data, {
+        get(route("admin.service.item.index"), {
             preserveState: true,
             preserveScroll: true,
-            replace: true,
-            onFinish: () => setProcessing(false),
         });
     };
 
-    // フィルター適用（debounce付き）
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
-            router.get(route("admin.service.item.index"), data, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [data]);
-
-    const handleDelete = (serviceItem) => {
-        if (!window.confirm("このサービス項目を削除しますか？")) {
-            return;
-        }
-
-        setIsDeleting(serviceItem.id);
-
-        router.delete(
-            route("admin.service.service-items.destroy", serviceItem.id),
-            {
-                preserveScroll: true,
-                onFinish: () => setIsDeleting(null),
-            },
-        );
+    const handleClearFilters = () => {
+        setData({
+            search: "",
+            service_id: "",
+            service_plan_id: "",
+            item_type: "",
+            status: "",
+        });
+        setShowFilters(false);
+        get(route("admin.service.item.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス管理", href: null },
-        { label: "サービス項目一覧", href: null },
+    const hasActiveFilters =
+        data.search ||
+        data.status ||
+        data.service_id ||
+        data.service_plan_id ||
+        data.item_type;
+
+    const activeFilterCount = [
+        data.status,
+        data.service_id,
+        data.service_plan_id,
+        data.item_type,
+    ].filter(Boolean).length;
+
+    // ========================================
+    // Handlers - Delete
+    // ========================================
+    const handleDelete = (service) => {
+        setDeleteTarget(service);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deleteTarget) {
+            setIsDeleting(deleteTarget.id);
+            router.delete(
+                route("admin.service.item.destroy", deleteTarget.id),
+                {
+                    onFinish: () => {
+                        setIsDeleting(null);
+                        setDeleteTarget(null);
+                    },
+                },
+            );
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteTarget(null);
+    };
+
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.serviceItems.actions.create,
+            icon: PlusIcon,
+            variant: "primary",
+            route: route("admin.service.item.create"),
+        },
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
-                <h2 className="font-semibold text-xl leading-tight">
-                    サービス項目一覧
-                </h2>
+                <PageHeader
+                    title={PageConfig.serviceItems.pages.index.title}
+                    description={
+                        PageConfig.serviceItems.pages.index.description
+                    }
+                    actions={headerActions}
+                    breadcrumbs={PageConfig.serviceItems.breadcrumbs}
+                />
             }
         >
-            <Head title="サービス項目一覧" />
+            <Head title={PageConfig.serviceItems.pages.index.title} />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <FlashMessage />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
-                    <PageHeader
-                        title="サービス項目一覧"
-                        description="サービスの個別項目とオプションを管理します"
-                        breadcrumbs={breadcrumbs}
-                        action={
-                            <Link
-                                href={route("admin.service.item.create")}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                新規作成
-                            </Link>
-                        }
-                    />
+            {/* 削除アラート */}
+            <DeleteAlert
+                show={!!deleteTarget}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                itemName={deleteTarget?.name}
+            />
 
-                    {/* 検索とフィルター */}
-                    <div className="mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <SearchFilter
-                            value={data.search}
-                            onChange={(value) => updateData("search", value)}
-                            placeholder="項目名で検索..."
-                        />
-
-                        <select
-                            value={data.service_id}
-                            onChange={(e) =>
-                                updateData("service_id", e.target.value)
-                            }
-                            className="border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
-                        >
-                            <option value="">すべてのサービス</option>
-                            {services.map((service) => (
-                                <option key={service.id} value={service.id}>
-                                    {service.name}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={data.service_plan_id}
-                            onChange={(e) =>
-                                updateData("service_plan_id", e.target.value)
-                            }
-                            className="border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
-                        >
-                            <option value="">すべてのプラン</option>
-                            {servicePlans.map((plan) => (
-                                <option key={plan.id} value={plan.id}>
-                                    {plan.name}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={data.item_type}
-                            onChange={(e) =>
-                                updateData("item_type", e.target.value)
-                            }
-                            className="border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
-                        >
-                            <option value="">すべてのタイプ</option>
-                            {itemTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={data.status}
-                            onChange={(e) =>
-                                updateData("status", e.target.value)
-                            }
-                            className="border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
-                        >
-                            <option value="">すべてのステータス</option>
-                            {statuses.map((status) => (
-                                <option key={status.value} value={status.value}>
-                                    {status.label}
-                                </option>
-                            ))}
-                        </select>
+            <div className="w-full flex flex-col gap-4">
+                <Card>
+                    <div className="p-4 space-y-4">
+                        {/* 検索とフィルター */}
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                            <div className="flex-shrink-0">{/* タブ */}</div>
+                            <div className="flex-1 max-w-md">
+                                <SearchBar
+                                    value={data.search}
+                                    onChange={(value) =>
+                                        setData("search", value)
+                                    }
+                                    onSearch={handleSearch}
+                                    placeholder={
+                                        PageConfig.admins.ui.search.placeholder
+                                    }
+                                    disabled={processing}
+                                />
+                            </div>
+                            {/* フィルタートグルボタン */}
+                            <div className="flex-shrink-0">
+                                <SecondaryButton
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    size="sm"
+                                    className="relative"
+                                >
+                                    <FunnelIcon className="h-4 w-4 mr-2" />
+                                    {PageConfig.services.ui.filter.button}
+                                    {activeFilterCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </SecondaryButton>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* テーブル */}
-                    <ServiceItemsTable
-                        serviceItems={serviceItems.data}
-                        onDelete={handleDelete}
-                        isDeleting={isDeleting}
-                    />
-
-                    {/* ページネーション */}
-                    <div className="mt-6">
-                        <Pagination links={serviceItems.links} />
-                    </div>
-                </div>
+                    {/* フィルターセクション（折りたたみ可能）*/}
+                    {showFilters && (
+                        <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                {/* アイテムフィルター */}
+                                <FilterSelect
+                                    label={
+                                        PageConfig.serviceItems.filters.service
+                                            .label
+                                    }
+                                    value={data.service_id}
+                                    onChange={(value) =>
+                                        setData("service_id", value)
+                                    }
+                                    options={services.map((service) => ({
+                                        value: service.id,
+                                        label: service.name,
+                                    }))}
+                                    placeholder={
+                                        PageConfig.serviceItems.filters.service
+                                            .placeholder
+                                    }
+                                />
+                                {/* プランフィルター */}
+                                <FilterSelect
+                                    label={
+                                        PageConfig.serviceItems.filters.plan
+                                            .label
+                                    }
+                                    value={data.service_plan_id}
+                                    onChange={(value) =>
+                                        setData("service_plan_id", value)
+                                    }
+                                    options={servicePlans.map((plan) => ({
+                                        value: plan.id,
+                                        label: plan.name,
+                                    }))}
+                                    placeholder={
+                                        PageConfig.serviceItems.filters.plan
+                                            .placeholder
+                                    }
+                                />
+                                {/* アイテムタイプフィルター */}
+                                <FilterSelect
+                                    label={
+                                        PageConfig.serviceItems.filters.type
+                                            .label
+                                    }
+                                    value={data.item_type}
+                                    onChange={(value) =>
+                                        setData("item_type", value)
+                                    }
+                                    options={itemTypes.map((type) => ({
+                                        value: type.value,
+                                        label: type.label,
+                                    }))}
+                                    placeholder={
+                                        PageConfig.serviceItems.filters.type
+                                            .placeholder
+                                    }
+                                />
+                                {/* ステータスフィルター */}
+                                <FilterSelect
+                                    label={
+                                        PageConfig.serviceItems.filters.status
+                                            .label
+                                    }
+                                    value={data.status}
+                                    onChange={(value) =>
+                                        setData("status", value)
+                                    }
+                                    options={SERVICE_STATUS_OPTIONS}
+                                    placeholder={
+                                        PageConfig.serviceItems.filters.status
+                                            .placeholder
+                                    }
+                                />
+                                {/* フィルタークリアボタン */}
+                                <div className="flex items-end">
+                                    <SecondaryButton
+                                        onClick={handleClearFilters}
+                                        disabled={!hasActiveFilters}
+                                        size="md"
+                                        className="w-full"
+                                    >
+                                        <XMarkIcon className="h-4 w-4 mr-2" />
+                                        {PageConfig.admins.ui.filter.clear}
+                                    </SecondaryButton>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Card>
+                {/* テーブル */}
+                <ServiceItemsTable
+                    serviceItems={serviceItems.data}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                />
+                {/* ページネーション */}
+                {serviceItems.data.length > 0 && (
+                    <Pagination paginationData={serviceItems} />
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

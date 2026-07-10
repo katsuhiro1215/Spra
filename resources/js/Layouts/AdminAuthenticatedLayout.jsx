@@ -1,8 +1,8 @@
+import { useState } from "react";
+import { usePage } from "@inertiajs/react";
 import AdminHeader from "@/Layouts/Admin/AdminHeader";
 import AdminSidebar from "@/Layouts/Admin/AdminSidebar";
 import AdminFooter from "@/Layouts/Admin/AdminFooter";
-import { usePage } from "@inertiajs/react";
-import { useState } from "react";
 
 export default function AdminAuthenticatedLayout({ header, children }) {
     const { props } = usePage();

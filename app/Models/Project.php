@@ -16,7 +16,6 @@ class Project extends Model
 
     protected $fillable = [
         'project_code',
-        'inquiry_id',
         'contract_id',
         'user_id',
         'company_id',
@@ -32,7 +31,6 @@ class Project extends Model
         'is_client_visible',
         'client_visible_notes',
         'internal_notes',
-        'sort_order',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -63,11 +61,6 @@ class Project extends Model
         'urgent' => '緊急',
     ];
 
-    public function inquiry(): BelongsTo
-    {
-        return $this->belongsTo(ProjectInquiry::class);
-    }
-
     public function contract(): BelongsTo
     {
         return $this->belongsTo(Contract::class);
@@ -88,19 +81,23 @@ class Project extends Model
         return $this->belongsTo(Admin::class);
     }
 
-    public function categories(): BelongsToMany
-    {
-        return $this->belongsToMany(ProjectCategory::class, 'project_category_project');
-    }
+    // マイルストーンはProjectVersionを経由してアクセス: $project->currentVersion->milestones
 
-    public function milestones(): HasMany
+    public function versions(): HasMany
     {
-        return $this->hasMany(ProjectMilestone::class)->orderBy('sort_order');
+        return $this->hasMany(ProjectVersion::class)->orderBy('version');
     }
 
     public function updates(): HasMany
     {
-        return $this->hasMany(ProjectUpdate::class)->orderByDesc('created_at');
+        return $this->hasMany(ProjectUpdate::class)->orderBy('created_at', 'desc');
+    }
+
+    public function currentVersion(): BelongsTo
+    {
+        return $this->belongsTo(ProjectVersion::class, 'id', 'project_id')
+            ->where('is_current', true)
+            ->latestOfMany();
     }
 
     public function clientVisibleUpdates(): HasMany

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('contacts', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->ulid('contact_category_id');
+            $table->foreign('contact_category_id')->references('id')->on('contact_categories')->onDelete('cascade');
             $table->string('name');
             $table->string('email');
             $table->uuid('user_id')->nullable()->comment('ユーザーアカウント紐付け用');

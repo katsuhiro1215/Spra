@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PaymentNotification;
 use App\Mail\ReceiptMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -107,5 +108,50 @@ class ReceiptService
     }
 
     return sprintf('RCP%s-%04d', $year, $nextNumber);
+  }
+
+  /**
+   * 支払い通知を作成
+   */
+  public function createPaymentNotification(Invoice $invoice, array $data): PaymentNotification
+  {
+    return PaymentNotification::create([
+      'invoice_id'      => $invoice->id,
+      'user_id'         => $invoice->user_id,
+      'company_id'      => $invoice->company_id,
+      'payment_method'  => $data['payment_method'],
+      'amount'          => $data['amount'],
+      'payment_date'    => $data['payment_date'],
+      'transaction_id'  => $data['transaction_id'] ?? null,
+      'notes'           => $data['notes'] ?? null,
+      'status'          => 'pending',
+    ]);
+  }
+
+  /**
+   * 支払い通知を確認（Admin操作）
+   */
+  public function acknowledgePaymentNotification(PaymentNotification $notification, string $adminId): void
+  {
+    $notification->acknowledge($adminId);
+  }
+
+  /**
+   * ペンディング中の支払い通知を取得（Admin用）
+   */
+  public function getPendingPaymentNotifications()
+  {
+    return PaymentNotification::pending()
+      ->with(['invoice', 'user', 'company'])
+      ->orderBy('created_at', 'desc')
+      ->get();
+  }
+
+  /**
+   * 支払い通知の数を取得
+   */
+  public function getPendingPaymentNotificationsCount(): int
+  {
+    return PaymentNotification::pending()->count();
   }
 }

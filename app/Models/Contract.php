@@ -22,13 +22,10 @@ class Contract extends Model
         'quote_id',
         'user_id',
         'company_id',
-        'service_id',
-        'service_plan_id',
         'title',
         'description',
+        'current_version_id',
         'type',
-        'amount',
-        'tax_rate',
         'start_date',
         'end_date',
         'status',
@@ -41,14 +38,13 @@ class Contract extends Model
         'termination_reason',
         'auto_renewal',
         'renewal_notice_days',
-        'terms_and_conditions',
-        'notes',
         'billing_day',
         'payment_due_days',
         'auto_invoice_generation',
         'next_billing_date',
         'last_invoiced_at',
         'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -60,8 +56,6 @@ class Contract extends Model
         'terminated_at'          => 'datetime',
         'next_billing_date'      => 'datetime',
         'last_invoiced_at'       => 'datetime',
-        'amount'                 => 'decimal:2',
-        'tax_rate'               => 'decimal:2',
         'auto_renewal'           => 'boolean',
         'auto_invoice_generation' => 'boolean',
     ];
@@ -116,14 +110,36 @@ class Contract extends Model
         return $this->belongsTo(Quote::class);
     }
 
-    public function service(): BelongsTo
+    /**
+     * 全てのContractVersions
+     */
+    public function versions(): HasMany
     {
-        return $this->belongsTo(Service::class);
+        return $this->hasMany(ContractVersion::class)->orderBy('version', 'asc');
     }
 
-    public function servicePlan(): BelongsTo
+    /**
+     * 現在のContractVersion
+     */
+    public function currentVersion(): BelongsTo
     {
-        return $this->belongsTo(ServicePlan::class);
+        return $this->belongsTo(ContractVersion::class, 'current_version_id');
+    }
+
+    /**
+     * 作成者（管理者）
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * 更新者（管理者）
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
     }
 
     public function documents(): HasMany

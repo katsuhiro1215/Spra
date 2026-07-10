@@ -29,32 +29,32 @@ return new class extends Migration
 
             // 要件
             $table->text('requirements')->nullable();
-            $table->json('custom_specifications')->nullable();
 
-            // 価格情報
-            $table->decimal('base_amount', 12, 2);
-            $table->decimal('discount_amount', 12, 2)->default(0);
-            $table->decimal('tax_rate', 5, 2)->default(10);
-            $table->decimal('tax_amount', 12, 2);
-            $table->decimal('total_amount', 12, 2);
+            // 現在採用されているVersion
+            $table->ulid('current_version_id')->nullable()->comment('現在有効なQuoteVersion');
 
-            // ステータス管理
-            $table->enum('status', ['draft', 'sent', 'reviewed', 'approved', 'rejected', 'expired'])->default('draft');
-            $table->text('client_feedback')->nullable();
-            $table->timestamp('sent_at')->nullable();
-            $table->timestamp('responded_at')->nullable();
-            $table->timestamp('expires_at')->nullable();
+            // 案件状態
+            $table->enum('status', [
+                'draft',
+                'negotiating',
+                'approved',
+                'rejected',
+                'contracted',
+                'cancelled'
+            ])->default('draft');
 
             // 管理情報
             $table->uuid('created_by');
             $table->foreign('created_by')->references('id')->on('admins')->onDelete('restrict');
             $table->uuid('updated_by')->nullable();
             $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['status', 'created_at']);
             $table->index(['user_id', 'status']);
+            $table->index(['contact_id', 'status']);
         });
     }
 

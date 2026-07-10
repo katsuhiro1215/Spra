@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('service_plans', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->string('name');
-            $table->string('slug')->unique();
             $table->ulid('service_id');
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
+            $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->text('details')->nullable();
 
             // 価格設定
             $table->decimal('base_price', 12, 2);
+            $table->decimal('discount_amount', 12, 2)->default(0)->comment('割引額（通常価格から値引き）');
             $table->enum('billing_cycle', ['one_time', 'monthly', 'quarterly', 'yearly'])->default('one_time');
             $table->decimal('setup_fee', 12, 2)->default(0);
 
@@ -30,8 +31,8 @@ return new class extends Migration
             $table->integer('estimated_delivery_days')->nullable();
 
             // 表示設定
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->boolean('is_featured')->default(false);
+            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->integer('sort_order')->default(0);
             $table->string('color', 7)->default('#3B82F6');
             $table->string('badge_text')->nullable();

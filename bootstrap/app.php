@@ -36,7 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // ミドルウェアエイリアスの設定
         $middleware->alias([
-            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

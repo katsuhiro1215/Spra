@@ -17,6 +17,12 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     const unreadContacts = props.notifications?.unreadContacts || 0;
     const pendingResponses = props.notifications?.pendingResponses || 0;
 
+    // デバッグ: admin データを確認
+    useEffect(() => {
+        console.log("Admin data:", admin);
+        console.log("Admin profile:", admin?.profile);
+    }, [admin]);
+
     // ダークモード状態管理
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (typeof window !== "undefined") {
@@ -77,6 +83,13 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
             console.log("Toggling dark mode:", prev, "->", newValue);
             return newValue;
         });
+    };
+
+    // 管理者の名前を取得
+    const getFullName = (adminUser) => {
+        return adminUser?.profile
+            ? `${adminUser.profile.last_name} ${adminUser.profile.first_name}`
+            : "Unknown";
     };
 
     const themes = [
@@ -291,7 +304,7 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                         ログイン中:
                                     </span>
                                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 ml-1">
-                                        {admin?.name || "Unknown"}
+                                        {getFullName(admin)}
                                     </span>
                                 </div>
 
@@ -304,11 +317,9 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                             </span>
                                             <div className="h-8 w-8 rounded-full bg-gray-800 dark:bg-gray-600 flex items-center justify-center">
                                                 <span className="text-white text-sm font-medium">
-                                                    {admin?.name
-                                                        ? admin.name
-                                                              .charAt(0)
-                                                              .toUpperCase()
-                                                        : "A"}
+                                                    {getFullName(admin)
+                                                        .charAt(0)
+                                                        .toUpperCase()}
                                                 </span>
                                             </div>
                                         </button>

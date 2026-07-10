@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import PrimaryButton from "@/Components/PrimaryButton";
-import DangerButton from "@/Components/DangerButton";
-import SecondaryButton from "@/Components/SecondaryButton";
-import { formatDate } from "@/Utils/Helpers";
+import PrimaryButton from "@/Components/Buttons/PrimaryButton";
+import DangerButton from "@/Components/Buttons/DangerButton";
+import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 
 export default function Index({ terms }) {
     const [expandedTitle, setExpandedTitle] = useState(null);

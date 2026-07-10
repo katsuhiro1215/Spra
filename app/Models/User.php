@@ -77,15 +77,20 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * Primary company - Get the primary company associated with this user
+     */
+    public function company(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->using(CompanyUser::class)
+            ->wherePivot('is_primary', true);
+    }
+
     public function primaryCompany(): HasOne
     {
         return $this->hasOne(Company::class, 'company_user', 'user_id')
             ->wherePivot('is_primary', true);
-    }
-
-    public function projectInquiries(): HasMany
-    {
-        return $this->hasMany(ProjectInquiry::class);
     }
 
     public function projects(): HasMany
@@ -121,6 +126,11 @@ class User extends Authenticatable
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);
+    }
+
+    public function quoteResponses(): HasMany
+    {
+        return $this->hasMany(QuoteResponse::class);
     }
 
     // -------------------------

@@ -96,9 +96,8 @@ class ServiceCategoryService extends BaseService
     public function getStatuses(): array
     {
         return [
-            'active' => '稼働中',
-            'inactive' => '停止中',
-            'suspended' => '一時停止',
+            ['value' => 'active', 'label' => '稼働中'],
+            ['value' => 'inactive', 'label' => '停止中'],
         ];
     }
 

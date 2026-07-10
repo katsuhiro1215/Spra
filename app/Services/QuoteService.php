@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\SendQuoteMail;
 use App\Models\Quote;
 use App\Models\QuoteResponse;
+use App\Models\ServiceItem;
 use App\Repositories\QuoteRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -67,6 +68,8 @@ class QuoteService extends BaseService
     /**
      * 新しい見積もりを作成
      *
+     * Quote作成 → QuoteVersion v1 作成 → QuoteItems作成
+     *
      * @param array $data
      * @return Quote
      */
@@ -78,51 +81,63 @@ class QuoteService extends BaseService
                 $data['quote_number'] = $this->repository->generateQuoteNumber();
             }
 
-            // デフォルトステータス
-            $data['status'] = $data['status'] ?? 'draft';
+            // Quote のステータス（案件管理）
+            $quoteStatus = $data['status'] ?? 'draft';
+            if (!in_array($quoteStatus, ['draft', 'negotiating', 'approved', 'rejected', 'contracted', 'cancelled'])) {
+                $quoteStatus = 'draft';
+            }
 
             // 作成者を設定
-            $data['created_by'] = $data['created_by'] ?? auth('admins')->id();
-            $data['updated_by'] = $data['updated_by'] ?? auth('admins')->id();
+            $createdBy = $data['created_by'] ?? auth('admins')->id();
 
-            // 金額フィールドのデフォルト値を設定
-            if (!isset($data['base_amount'])) {
-                $data['base_amount'] = 0;
-            }
-            if (!isset($data['tax_amount'])) {
-                $data['tax_amount'] = 0;
-            }
-            if (!isset($data['total_amount'])) {
-                $data['total_amount'] = 0;
-            }
+            // Quote を作成（プロジェクト管理レベル）
+            $quoteData = [
+                'quote_number' => $data['quote_number'],
+                'user_id' => $data['user_id'] ?? null,
+                'contact_id' => $data['contact_id'] ?? null,
+                'company_id' => $data['company_id'] ?? null,
+                'title' => $data['title'] ?? '',
+                'requirements' => $data['requirements'] ?? null,
+                'status' => $quoteStatus,
+                'created_by' => $createdBy,
+            ];
 
-            // custom_specificationsは既にJSON文字列なのでそのまま渡す
-            // (Quote::$castsで自動的にJSONとして処理される)
+            $quote = $this->repository->create($quoteData);
 
-            $quote = $this->repository->create($data);
+            // QuoteVersion v1 を作成（見積ドキュメント）
+            $versionData = [
+                'quote_id' => $quote->id,
+                'version' => 1,
+                'title' => $data['title'] ?? '',
+                'requirements' => $data['requirements'] ?? null,
+                'custom_specifications' => $data['custom_specifications'] ?? null,
+                'base_amount' => 0,
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'tax_rate' => $data['tax_rate'] ?? 10,
+                'tax_amount' => 0,
+                'total_amount' => 0,
+                'status' => 'draft',
+                'is_current' => true,
+                'created_by' => $createdBy,
+            ];
 
-            // QuoteItemsがあれば作成
-            if (!empty($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    // amountを計算（quantity × unit_price）
-                    if (!isset($item['amount'])) {
-                        $quantity = (float)($item['quantity'] ?? 1);
-                        $unitPrice = (float)($item['unit_price'] ?? 0);
-                        $item['amount'] = $quantity * $unitPrice;
-                    }
-                    $quote->items()->create($item);
-                }
+            $quoteVersion = $quote->versions()->create($versionData);
 
-                // 合計金額を再計算
-                $this->recalculateAmounts($quote);
-            }
+            // Quoteに current_version_id を設定
+            $quote->update(['current_version_id' => $quoteVersion->id]);
 
-            return $quote->fresh(['items']);
+            // items は QuoteItemController で別途追加する
+
+            return $quote->fresh(['versions', 'currentVersion']);
         });
     }
 
     /**
      * 見積もりを更新
+     *
+     * 常に新しいバージョンを作成して履歴を保持
+     * 更新のたびに version をインクリメント
+     * 最新バージョンのみが current_version_id として参照される
      *
      * @param Quote $quote
      * @param array $data
@@ -131,46 +146,128 @@ class QuoteService extends BaseService
     public function updateQuote(Quote $quote, array $data): Quote
     {
         return DB::transaction(function () use ($quote, $data) {
-            // 更新者を設定
-            $data['updated_by'] = $data['updated_by'] ?? auth('admins')->id();
-
-            // 金額フィールドのデフォルト値を設定
-            if (!isset($data['base_amount'])) {
-                $data['base_amount'] = $quote->base_amount ?? 0;
+            // Quote レベルの情報を更新（プロジェクト管理情報）
+            $quoteUpdate = [];
+            if (isset($data['title'])) {
+                $quoteUpdate['title'] = $data['title'];
             }
-            if (!isset($data['tax_amount'])) {
-                $data['tax_amount'] = $quote->tax_amount ?? 0;
+            if (isset($data['requirements'])) {
+                $quoteUpdate['requirements'] = $data['requirements'];
             }
-            if (!isset($data['total_amount'])) {
-                $data['total_amount'] = $quote->total_amount ?? 0;
+            if (isset($data['status'])) {
+                $quoteUpdate['status'] = $data['status'];
+            }
+            $quoteUpdate['updated_by'] = $data['updated_by'] ?? auth('admins')->id();
+
+            $quote->update($quoteUpdate);
+
+            // 現在のバージョンを取得
+            $currentVersion = $quote->currentVersion;
+
+            if (!$currentVersion) {
+                throw new \Exception('現在のバージョンが見つかりません。');
             }
 
-            // custom_specificationsは既にJSON文字列なのでそのまま渡す
-            // (Quote::$castsで自動的にJSONとして処理される)
+            // draft状態なら現在のバージョンを上書き更新、それ以外は新しいバージョンを作成
+            if ($currentVersion->status === 'draft') {
+                // draft状態: 既存バージョンを上書き更新
+                $versionUpdate = [
+                    'title' => $data['title'] ?? $currentVersion->title,
+                    'requirements' => $data['requirements'] ?? $currentVersion->requirements,
+                    'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
+                    'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
+                    'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
+                    'updated_by' => auth('admins')->id(),
+                ];
+                $currentVersion->update($versionUpdate);
 
-            $this->repository->update($quote, $data);
+                // 既存のitemsを削除
+                $currentVersion->items()->delete();
 
-            // QuoteItemsの更新
-            if (isset($data['items'])) {
-                // 既存のアイテムを削除
-                $quote->items()->delete();
+                // QuoteItems を作成
+                if (isset($data['items'])) {
+                    foreach ($data['items'] as $item) {
+                        // service_id を確保
+                        $item = $this->ensureServiceIdInItem($item);
 
-                // 新しいアイテムを作成
-                foreach ($data['items'] as $item) {
-                    // amountを計算（quantity × unit_price）
-                    if (!isset($item['amount'])) {
-                        $quantity = (float)($item['quantity'] ?? 1);
-                        $unitPrice = (float)($item['unit_price'] ?? 0);
-                        $item['amount'] = $quantity * $unitPrice;
+                        if (!isset($item['amount'])) {
+                            $quantity = (float)($item['quantity'] ?? 1);
+                            $unitPrice = (float)($item['unit_price'] ?? 0);
+                            $item['amount'] = $quantity * $unitPrice;
+                        }
+                        $item['quote_version_id'] = $currentVersion->id;
+                        $currentVersion->items()->create($item);
                     }
-                    $quote->items()->create($item);
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($currentVersion);
                 }
 
-                // 合計金額を再計算
-                $this->recalculateAmounts($quote);
-            }
+                return $quote->fresh(['versions', 'currentVersion.items']);
+            } else {
+                // sent以上の状態: 新しいバージョンを作成
+                // バージョン番号をインクリメント
+                $newVersion = $currentVersion->version + 1;
 
-            return $quote->fresh(['items']);
+                $versionData = [
+                    'quote_id' => $quote->id,
+                    'version' => $newVersion,
+                    'title' => $data['title'] ?? $currentVersion->title,
+                    'requirements' => $data['requirements'] ?? $currentVersion->requirements,
+                    'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
+                    'base_amount' => 0,
+                    'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
+                    'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
+                    'tax_amount' => 0,
+                    'total_amount' => 0,
+                    'status' => 'draft', // 新バージョンはドラフト状態で作成
+                    'is_current' => true, // 新バージョンを現在のバージョンにセット
+                    'created_by' => auth('admins')->id(),
+                ];
+
+                $newQuoteVersion = $quote->versions()->create($versionData);
+
+                // 旧バージョンの is_current を false に（履歴として保持）
+                $currentVersion->update(['is_current' => false]);
+
+                // QuoteItems を新バージョンに作成
+                if (isset($data['items'])) {
+                    foreach ($data['items'] as $item) {
+                        // service_id を確保
+                        $item = $this->ensureServiceIdInItem($item);
+
+                        if (!isset($item['amount'])) {
+                            $quantity = (float)($item['quantity'] ?? 1);
+                            $unitPrice = (float)($item['unit_price'] ?? 0);
+                            $item['amount'] = $quantity * $unitPrice;
+                        }
+                        $item['quote_version_id'] = $newQuoteVersion->id;
+                        $newQuoteVersion->items()->create($item);
+                    }
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($newQuoteVersion);
+                } else {
+                    // アイテムがない場合、旧バージョンのアイテムを複製
+                    foreach ($currentVersion->items as $oldItem) {
+                        $newItem = $oldItem->replicate();
+                        $newItem->quote_version_id = $newQuoteVersion->id;
+                        $newItem->save();
+                    }
+
+                    // 合計金額を再計算
+                    $this->recalculateVersionAmounts($newQuoteVersion);
+                }
+
+                // Quote の current_version_id を新バージョンに更新
+                // 見積修正時はステータスを draft に戻して、再度送信可能にする
+                $quote->update([
+                    'current_version_id' => $newQuoteVersion->id,
+                    'status' => 'draft', // 新しいバージョン作成後、ドラフト状態にリセット
+                ]);
+
+                return $quote->fresh(['versions', 'currentVersion.items']);
+            }
         });
     }
 
@@ -187,19 +284,16 @@ class QuoteService extends BaseService
             throw new \Exception('承認済みの見積もりは削除できません。');
         }
 
-        // 契約が作成されている場合は削除できない
-        if ($quote->contracts()->exists()) {
-            throw new \Exception('契約が作成されている見積もりは削除できません。');
-        }
-
         DB::transaction(function () use ($quote) {
-            // QuoteItemsも一緒に削除される（cascade）
+            // QuoteVersionsとQuoteItemsも一緒に削除される（cascade）
             $this->repository->delete($quote);
         });
     }
 
     /**
      * 見積もりを送信
+     *
+     * 現在のQuoteVersionのステータスを'sent'に変更
      *
      * @param Quote $quote
      * @param string|null $token
@@ -208,13 +302,19 @@ class QuoteService extends BaseService
      */
     public function sendQuote(Quote $quote, ?string $token = null, string $responseFormUrl = ''): Quote
     {
-        if (!in_array($quote->status, ['draft', 'reviewed'])) {
-            throw new \Exception('下書き或いは確認済み状態の見積もりのみ送信できます。');
+        $currentVersion = $quote->currentVersion;
+
+        if (!$currentVersion) {
+            throw new \Exception('現在のバージョンが見つかりません。');
         }
 
-        return DB::transaction(function () use ($quote, $token, $responseFormUrl) {
+        if (!in_array($currentVersion->status, ['draft', 'revision_requested'])) {
+            throw new \Exception('ドラフト或いは修正要求済み状態の見積もりのみ送信できます。');
+        }
+
+        return DB::transaction(function () use ($quote, $currentVersion, $token, $responseFormUrl) {
             // Load relationships for email
-            $quote->load(['user.profile', 'contact', 'items']);
+            $quote->load(['user.profile', 'contact', 'currentVersion.items.serviceItem']);
 
             // Get recipient email
             $recipientEmail = $quote->user?->email ?? $quote->contact?->email;
@@ -229,7 +329,7 @@ class QuoteService extends BaseService
             }
 
             // Create QuoteResponse with token
-            $quoteResponse = \App\Models\QuoteResponse::create([
+            \App\Models\QuoteResponse::create([
                 'quote_id' => $quote->id,
                 'token' => $token,
                 'email' => $recipientEmail,
@@ -245,20 +345,27 @@ class QuoteService extends BaseService
                 $formUrl
             ));
 
-            // Update quote status
-            $quote->update([
+            // Update QuoteVersion status
+            $currentVersion->update([
                 'status' => 'sent',
                 'sent_at' => now(),
             ]);
 
+            // Update Quote status to negotiating if still draft
+            if ($quote->status === 'draft') {
+                $quote->update(['status' => 'negotiating']);
+            }
+
             $this->logInfo('sent', $quote->id);
 
-            return $quote->fresh();
+            return $quote->fresh(['currentVersion']);
         });
     }
 
     /**
      * 見積もりを承認
+     *
+     * 現在のQuoteVersionのステータスを'approved'に変更
      *
      * @param Quote $quote
      * @param string|null $clientFeedback
@@ -266,21 +373,35 @@ class QuoteService extends BaseService
      */
     public function approveQuote(Quote $quote, ?string $clientFeedback = null): Quote
     {
-        return DB::transaction(function () use ($quote, $clientFeedback) {
-            $quote->update([
+        $currentVersion = $quote->currentVersion;
+
+        if (!$currentVersion) {
+            throw new \Exception('現在のバージョンが見つかりません。');
+        }
+
+        return DB::transaction(function () use ($quote, $currentVersion, $clientFeedback) {
+            // QuoteVersion のステータスを approved に
+            $currentVersion->update([
                 'status' => 'approved',
                 'responded_at' => now(),
                 'client_feedback' => $clientFeedback,
             ]);
 
+            // Quote のステータスも approved に
+            $quote->update([
+                'status' => 'approved',
+            ]);
+
             $this->logInfo('approved', $quote->id);
 
-            return $quote->fresh();
+            return $quote->fresh(['currentVersion']);
         });
     }
 
     /**
      * 見積もりを却下
+     *
+     * 現在のQuoteVersionのステータスを'rejected'に変更
      *
      * @param Quote $quote
      * @param string|null $clientFeedback
@@ -288,55 +409,78 @@ class QuoteService extends BaseService
      */
     public function rejectQuote(Quote $quote, ?string $clientFeedback = null): Quote
     {
-        return DB::transaction(function () use ($quote, $clientFeedback) {
-            $quote->update([
+        $currentVersion = $quote->currentVersion;
+
+        if (!$currentVersion) {
+            throw new \Exception('現在のバージョンが見つかりません。');
+        }
+
+        return DB::transaction(function () use ($quote, $currentVersion, $clientFeedback) {
+            // QuoteVersion のステータスを rejected に
+            $currentVersion->update([
                 'status' => 'rejected',
                 'responded_at' => now(),
                 'client_feedback' => $clientFeedback,
             ]);
 
+            // Quote のステータスも rejected に
+            $quote->update([
+                'status' => 'rejected',
+            ]);
+
             $this->logInfo('rejected', $quote->id);
 
-            return $quote->fresh();
+            return $quote->fresh(['currentVersion']);
         });
     }
 
     /**
-     * 見積もりの金額を再計算
-     *
-     * @param Quote $quote
-     * @return void
+     * QuoteVersionの合計金額を再計算
      */
-    protected function recalculateAmounts(Quote $quote): void
+    public function recalculateVersionAmounts(\App\Models\QuoteVersion $quoteVersion): void
     {
-        $baseAmount = $quote->items()->sum('amount');
-        $discountAmount = $quote->discount_amount ?? 0;
-        $taxRate = ($quote->tax_rate ?? 10) / 100; // 整数（10）を小数（0.10）に変換
+        $baseAmount = $quoteVersion->items()->sum('amount');
+        $discountAmount = $quoteVersion->discount_amount ?? 0;
+        $taxRate = ($quoteVersion->tax_rate ?? 10) / 100; // 整数（10）を小数（0.10）に変換
 
         $subtotal = $baseAmount - $discountAmount;
         $taxAmount = round($subtotal * $taxRate);
         $totalAmount = $subtotal + $taxAmount;
 
-        $quote->update([
+        $quoteVersion->update([
             'base_amount' => $baseAmount,
             'discount_amount' => $discountAmount,
-            'tax_rate' => $quote->tax_rate ?? 10, // 元の整数値を保存
+            'tax_rate' => $quoteVersion->tax_rate ?? 10, // 元の整数値を保存
             'tax_amount' => $taxAmount,
             'total_amount' => $totalAmount,
         ]);
     }
 
     /**
-     * ステータス定義を取得
-     *
-     * @return array
+     * Quoteのステータス定義を取得
      */
     public function getStatuses(): array
     {
         return [
             'draft' => '下書き',
+            'negotiating' => '交渉中',
+            'approved' => '承認済み',
+            'rejected' => '却下',
+            'contracted' => '契約済み',
+            'cancelled' => 'キャンセル',
+        ];
+    }
+
+    /**
+     * QuoteVersionのステータス定義を取得
+     */
+    public function getVersionStatuses(): array
+    {
+        return [
+            'draft' => '下書き',
             'sent' => '送信済み',
-            'reviewed' => '確認済み',
+            'viewed' => '確認済み',
+            'revision_requested' => '修正要求',
             'approved' => '承認済み',
             'rejected' => '却下',
             'expired' => '期限切れ',
@@ -356,15 +500,11 @@ class QuoteService extends BaseService
         $unitPrice = $overrides['unit_price'] ?? $serviceItem->price;
         $amount = $quantity * $unitPrice;
 
-        // ServicePlanからbilling_cycleを取得
-        $billingType = 'one_time';
-        if ($serviceItem->service_plan_id && $serviceItem->servicePlan) {
-            $billingType = $serviceItem->servicePlan->billing_cycle ?? 'one_time';
-        }
+        // billing_typeはoverridesから取得、またはデフォルト値
+        $billingType = $overrides['billing_type'] ?? 'one_time';
 
         return array_merge([
             'service_id' => $serviceItem->service_id,
-            'service_plan_id' => $serviceItem->service_plan_id,
             'service_item_id' => $serviceItem->id,
             'name' => $serviceItem->name,
             'description' => $serviceItem->description,
@@ -406,5 +546,30 @@ class QuoteService extends BaseService
         }
 
         return $items;
+    }
+
+    /**
+     * 見積もり明細データに service_id を付与（必要に応じて service_item_id から取得）
+     *
+     * @param array $item 見積もり明細データ
+     * @return array service_id を含む見積もり明細データ
+     */
+    private function ensureServiceIdInItem(array $item): array
+    {
+        // service_id がない場合、service_item_id から取得
+        if (empty($item['service_id']) && !empty($item['service_item_id'])) {
+            $serviceItem = ServiceItem::find($item['service_item_id']);
+            if ($serviceItem) {
+                $item['service_id'] = $serviceItem->service_id;
+            } else {
+                throw new \Exception('Service Item not found: ' . $item['service_item_id']);
+            }
+        }
+
+        if (empty($item['service_id'])) {
+            throw new \Exception('service_id is required in quote item');
+        }
+
+        return $item;
     }
 }

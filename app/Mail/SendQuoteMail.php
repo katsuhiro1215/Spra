@@ -42,6 +42,8 @@ class SendQuoteMail extends Mailable
       view: 'emails.quote.send',
       with: [
         'quote' => $this->quote,
+        'currentVersion' => $this->quote->currentVersion,
+        'items' => $this->quote->currentVersion?->items ?? collect(),
         'recipientName' => $this->getRecipientName(),
         'recipientEmail' => $this->getRecipientEmail(),
         'responseFormUrl' => $this->responseFormUrl,

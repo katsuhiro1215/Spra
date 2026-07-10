@@ -18,7 +18,7 @@ class UserProfileController extends Controller
      */
     public function create(User $user): Response
     {
-        return Inertia::render('Admin/Users/Profile/Create', [
+        return Inertia::render('Admin/User/Profile/Create', [
             'user' => $user,
         ]);
     }
@@ -42,7 +42,7 @@ class UserProfileController extends Controller
     {
         $user->load('profile');
 
-        return Inertia::render('Admin/Users/Profile/Edit', [
+        return Inertia::render('Admin/User/Profile/Edit', [
             'user' => $user,
         ]);
     }

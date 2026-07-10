@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Quote;
+use App\Models\QuoteVersion;
 use App\Repositories\Contracts\QuoteRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -59,7 +60,14 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
      */
     protected function getDefaultRelations(): array
     {
-        return ['user.profile', 'company', 'items', 'creator.profile', 'updater.profile'];
+        return [
+            'user.profile',
+            'contact',
+            'company',
+            'currentVersion.items.serviceItem',
+            'creator.profile',
+            'updater.profile'
+        ];
     }
 
     /**
@@ -194,8 +202,9 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
             ->pluck('count', 'status')
             ->toArray();
 
-        $stats['total_amount'] = Quote::sum('total_amount');
-        $stats['average_amount'] = Quote::avg('total_amount');
+        // total_amountはQuoteVersionテーブルに保存されているため、そこから取得
+        $stats['total_amount'] = QuoteVersion::sum('total_amount');
+        $stats['average_amount'] = QuoteVersion::avg('total_amount');
 
         return $stats;
     }

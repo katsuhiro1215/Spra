@@ -74,7 +74,7 @@ class ProfileController extends Controller
 
         $profile->save();
 
-        return redirect()->route('user.onboarding.company')
+        return redirect()->route('user.dashboard')
             ->with('success', 'プロフィール情報を保存しました');
     }
 }

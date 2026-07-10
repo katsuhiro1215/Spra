@@ -55,7 +55,7 @@ class UserRepository extends SoftDeletableRepository implements UserRepositoryIn
      */
     protected function getDefaultRelations(): array
     {
-        return ['profile'];
+        return ['profile', 'company'];
     }
 
     /**

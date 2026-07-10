@@ -1,5 +1,10 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
+// Components
+import { Card, CardHeader } from "@/Components/Card";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
+import { Badge } from "@/Components/Badges";
+// Icons
 import {
     EyeIcon,
     PencilIcon,
@@ -67,61 +72,26 @@ export default function ServiceItemsTable({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            項目名
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            サービス
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            プラン
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            タイプ
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            価格
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
-                            ステータス
-                        </th>
-                        <th
-                            scope="col"
-                            className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                        >
+        <Card>
+            <CardHeader>管理者一覧 ({serviceItems.total}件)</CardHeader>
+            <Table>
+                <THead>
+                    <Tr hover={false}>
+                        <Th scope="col">項目名</Th>
+                        <Th scope="col">サービス</Th>
+                        <Th scope="col">プラン</Th>
+                        <Th scope="col">タイプ</Th>
+                        <Th scope="col">価格</Th>
+                        <Th scope="col">ステータス</Th>
+                        <Th scope="col" className="text-right">
                             アクション
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        </Th>
+                    </Tr>
+                </THead>
+                <TBody>
                     {serviceItems.map((item) => (
-                        <tr
-                            key={item.id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                            <td className="px-6 py-4 whitespace-nowrap">
+                        <Tr key={item.id}>
+                            <Td>
                                 <div className="flex items-center">
                                     <div>
                                         <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
@@ -137,34 +107,30 @@ export default function ServiceItemsTable({
                                         )}
                                     </div>
                                 </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            </Td>
+                            <Td>
                                 <div className="text-sm text-gray-900 dark:text-gray-100">
                                     {item.service?.name || "---"}
                                 </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            </Td>
+                            <Td>
                                 <div className="text-sm text-gray-900 dark:text-gray-100">
                                     {item.service_plan?.name || "---"}
                                 </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                {getItemTypeBadge(item.item_type)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            </Td>
+                            <Td>{getItemTypeBadge(item.item_type)}</Td>
+                            <Td>
                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                    ¥{Number(item.price).toLocaleString()}
+                                    ¥{Number(item.standard_price).toLocaleString()}
                                 </div>
                                 {item.estimated_days && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">
                                         {item.estimated_days}日
                                     </div>
                                 )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                {getStatusBadge(item.status)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            </Td>
+                            <Td>{getStatusBadge(item.status)}</Td>
+                            <Td>
                                 <div className="flex items-center justify-end gap-2">
                                     <Link
                                         href={route(
@@ -192,11 +158,11 @@ export default function ServiceItemsTable({
                                         <TrashIcon className="h-5 w-5" />
                                     </button>
                                 </div>
-                            </td>
-                        </tr>
+                            </Td>
+                        </Tr>
                     ))}
-                </tbody>
-            </table>
-        </div>
+                </TBody>
+            </Table>
+        </Card>
     );
 }

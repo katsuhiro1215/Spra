@@ -81,10 +81,11 @@ class ServicePlanController extends Controller
     public function store(ServicePlanRequest $request)
     {
         try {
-            $this->servicePlanService->createServicePlan($request->validated());
-            $service = $request->service_id;
+            $validated = $request->validated();
+            $servicePlan = $this->servicePlanService->createServicePlan($validated);
 
-            return redirect()->route('admin.service.show', $service)
+            // ServicePlan詳細ページへリダイレクト
+            return redirect()->route('admin.service.plan.show', $servicePlan)
                 ->with('success', 'サービスプランが作成されました。');
         } catch (\Exception $e) {
             Log::error('ServicePlan store error: ' . $e->getMessage());
@@ -100,7 +101,12 @@ class ServicePlanController extends Controller
     public function show(ServicePlan $servicePlan): Response
     {
         return Inertia::render('Admin/Service/ServicePlans/Show', [
-            'servicePlan' => $servicePlan->load(['service.serviceCategory', 'serviceItems', 'creator', 'updater']),
+            'servicePlan' => $servicePlan->load([
+                'service.serviceCategory',
+                'servicePlanItems.serviceItem',
+                'creator',
+                'updater'
+            ]),
         ]);
     }
 
@@ -127,10 +133,11 @@ class ServicePlanController extends Controller
     public function update(ServicePlanRequest $request, ServicePlan $servicePlan)
     {
         try {
-            $this->servicePlanService->updateServicePlan($servicePlan, $request->validated());
-            $service = $request->service_id;
+            $validated = $request->validated();
+            $this->servicePlanService->updateServicePlan($servicePlan, $validated);
 
-            return redirect()->route('admin.service.show', $service)
+            // ServicePlan詳細ページへリダイレクト
+            return redirect()->route('admin.service.plan.show', $servicePlan)
                 ->with('success', 'サービスプランが更新されました。');
         } catch (\Exception $e) {
             Log::error('ServicePlan update error: ' . $e->getMessage());

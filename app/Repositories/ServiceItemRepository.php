@@ -44,7 +44,8 @@ class ServiceItemRepository extends SoftDeletableRepository implements ServiceIt
             'updated_at',
             'name',
             'status',
-            'price',
+            'standard_price',
+            'internal_cost',
             'sort_order',
         ];
     }
@@ -56,7 +57,7 @@ class ServiceItemRepository extends SoftDeletableRepository implements ServiceIt
      */
     protected function getDefaultRelations(): array
     {
-        return ['service', 'servicePlan', 'creator', 'updater'];
+        return ['service', 'servicePlans', 'creator', 'updater'];
     }
 
     /**

@@ -38,7 +38,7 @@ class ResponseTemplateController extends Controller
             $request->input('per_page', 20)
         );
 
-        return Inertia::render('Admin/Settings/ResponseTemplates/Index', [
+        return Inertia::render('Admin/Contact/Template/Index', [
             'templates' => $templates,
             'filters' => $filters,
             'sort' => $sort,
@@ -52,7 +52,7 @@ class ResponseTemplateController extends Controller
      */
     public function create(): InertiaResponse
     {
-        return Inertia::render('Admin/Settings/ResponseTemplates/Create', [
+        return Inertia::render('Admin/Contact/Template/Create', [
             'categories' => $this->responseTemplateService->getCategories(),
             'statuses' => $this->responseTemplateService->getStatuses(),
             'placeholders' => $this->responseTemplateService->getAvailablePlaceholders(),
@@ -72,7 +72,7 @@ class ResponseTemplateController extends Controller
 
             $this->responseTemplateService->createResponseTemplate($validated);
 
-            return redirect()->route('admin.response-templates.index')
+            return redirect()->route('admin.response.template.index')
                 ->with('success', '返答テンプレートを作成しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの作成に失敗しました: ' . $e->getMessage());
@@ -86,7 +86,7 @@ class ResponseTemplateController extends Controller
     {
         $responseTemplate->load(['creator', 'updater']);
 
-        return Inertia::render('Admin/Settings/ResponseTemplates/Show', [
+        return Inertia::render('Admin/Contact/Template/Show', [
             'template' => $responseTemplate,
             'placeholders' => $this->responseTemplateService->getAvailablePlaceholders(),
         ]);
@@ -97,7 +97,7 @@ class ResponseTemplateController extends Controller
      */
     public function edit(ResponseTemplate $responseTemplate): InertiaResponse
     {
-        return Inertia::render('Admin/Settings/ResponseTemplates/Edit', [
+        return Inertia::render('Admin/Contact/Template/Edit', [
             'template' => $responseTemplate,
             'categories' => $this->responseTemplateService->getCategories(),
             'statuses' => $this->responseTemplateService->getStatuses(),
@@ -117,7 +117,7 @@ class ResponseTemplateController extends Controller
 
             $this->responseTemplateService->updateResponseTemplate($responseTemplate, $validated);
 
-            return redirect()->route('admin.response-templates.index')
+            return redirect()->route('admin.response.template.index')
                 ->with('success', '返答テンプレートを更新しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの更新に失敗しました: ' . $e->getMessage());
@@ -132,7 +132,7 @@ class ResponseTemplateController extends Controller
         try {
             $this->responseTemplateService->deleteResponseTemplate($responseTemplate);
 
-            return redirect()->route('admin.response-templates.index')
+            return redirect()->route('admin.response.template.index')
                 ->with('success', '返答テンプレートを削除しました。');
         } catch (\Exception $e) {
             return back()->with('error', 'テンプレートの削除に失敗しました: ' . $e->getMessage());

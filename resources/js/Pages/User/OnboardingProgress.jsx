@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+// Icons
 import {
     CheckCircleIcon,
     ClockIcon,
@@ -8,20 +10,20 @@ import {
     MapPinIcon,
     DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import TextInput from "@/Components/Forms/TextInput";
-import InputLabel from "@/Components/Forms/InputLabel";
-import InputError from "@/Components/Forms/InputError";
 
 export default function OnboardingProgress({ user }) {
-    const [completedSteps, setCompletedSteps] = useState({
-        profile: !!user.profile,
-        address:
-            user.companies?.length > 0 &&
-            user.companies[0]?.addresses?.length > 0,
-        company: !!user.companies?.length > 0,
-    });
+    const completedSteps = useMemo(
+        () => ({
+            profile: !!user.profile,
+            address:
+                user.companies?.length > 0 &&
+                user.companies[0]?.addresses?.length > 0 &&
+                !!user.companies[0]?.addresses[0]?.postal_code,
+            company:
+                user.companies?.length > 0 && !!user.companies[0]?.legal_name,
+        }),
+        [user.profile, user.companies],
+    );
 
     const progressSteps = [
         {
@@ -166,7 +168,7 @@ export default function OnboardingProgress({ user }) {
                                 <p className="mt-1 text-sm text-green-700">
                                     ご登録いただいた情報は確認後、契約書をお送りいたします。ご不明な点がございましたら、
                                     <Link
-                                        href={route("public.contact")}
+                                        href={route("contact")}
                                         className="underline font-semibold"
                                     >
                                         お問い合わせ

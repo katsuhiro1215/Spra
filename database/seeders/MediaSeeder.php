@@ -22,7 +22,7 @@ class MediaSeeder extends Seeder
         $this->command->info('Creating media...');
 
         // 管理者（作成者として使用）
-        $admin = Admin::where('email', 'kakoi10@smartsprouts.jp')->first();
+        $admin = Admin::where('email', 'katsuhiro.k1215@gmail.com')->first();
 
         if (!$admin) {
             $this->command->warn('Admin not found. Skipping media seeding.');

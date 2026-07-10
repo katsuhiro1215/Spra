@@ -18,12 +18,12 @@ class Invoice extends Model
         'invoice_number',
         'issue_date',
         'contract_id',
+        'invoice_template_id',
         'user_id',
         'company_id',
         'billing_period_start',
         'billing_period_end',
         'subtotal',
-        'discount_amount',
         'tax_rate',
         'tax_amount',
         'total_amount',
@@ -56,6 +56,7 @@ class Invoice extends Model
         'tax_rate'             => 'decimal:2',
         'tax_amount'           => 'decimal:2',
         'total_amount'         => 'decimal:2',
+        'deposit_amount'       => 'decimal:2',
     ];
 
     public const STATUSES = [
@@ -82,10 +83,12 @@ class Invoice extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function items(): HasMany
+    public function invoiceTemplate(): BelongsTo
     {
-        return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
+        return $this->belongsTo(InvoiceTemplate::class);
     }
+
+
 
     public function payments(): HasMany
     {
@@ -95,6 +98,11 @@ class Invoice extends Model
     public function receipt(): HasOne
     {
         return $this->hasOne(Receipt::class);
+    }
+
+    public function paymentNotifications(): HasMany
+    {
+        return $this->hasMany(PaymentNotification::class)->orderBy('created_at', 'desc');
     }
 
     public function clientDownloadedBy(): BelongsTo

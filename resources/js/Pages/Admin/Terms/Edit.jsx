@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import { Head, useForm, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
-import InputError from "@/Components/InputError";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
-import DangerButton from "@/Components/DangerButton";
-import { formatDate } from "@/Utils/Helpers";
+import PrimaryButton from "@/Components/Buttons/PrimaryButton";
+import SecondaryButton from "@/Components/Buttons/SecondaryButton";
+import DangerButton from "@/Components/Buttons/DangerButton";
 
 export default function Edit({ term, versions }) {
     const [showCreateVersion, setShowCreateVersion] = useState(false);
+
+    const formatDate = (date) => {
+        if (!date) return "-";
+        return new Date(date).toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        });
+    };
+
     const { data, setData, post, processing, errors } = useForm({
         title: term.title,
         content: term.content,

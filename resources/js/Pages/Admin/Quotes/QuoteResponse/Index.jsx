@@ -118,12 +118,12 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                             >
                                 <FunnelIcon className="w-4 h-4" />
                                 フィルター
                                 {activeFilterCount > 0 && (
-                                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full">
+                                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-full">
                                         {activeFilterCount}
                                     </span>
                                 )}
@@ -141,7 +141,7 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                         </div>
 
                         {showFilters && (
-                            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+                            <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg space-y-3">
                                 <FilterSelect
                                     label="返信状態"
                                     value={data.status}
@@ -167,42 +167,42 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                 <Card>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         メールアドレス
                                     </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         見積番号
                                     </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         返信タイプ
                                     </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         返信状態
                                     </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         返信日時
                                     </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         操作
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {quoteResponses.data.map((response) => (
                                     <tr
                                         key={response.id}
-                                        className="hover:bg-gray-50"
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-800"
                                     >
-                                        <td className="px-4 py-3 text-gray-900">
+                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                             {response.email}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-900">
+                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                             {response.quote?.quote_number ||
                                                 "-"}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-900">
+                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                             {getResponseTypeBadge(
                                                 response.response_type,
                                             )}
@@ -210,7 +210,7 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                         <td className="px-4 py-3">
                                             {getStatusBadge(response)}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-900">
+                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                             {response.responded_at
                                                 ? new Date(
                                                       response.responded_at,
@@ -235,7 +235,7 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                         </table>
 
                         {quoteResponses.data.length === 0 && (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                                 返信がまだありません
                             </div>
                         )}

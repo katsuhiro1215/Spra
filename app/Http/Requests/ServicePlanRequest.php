@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ServicePlanRequest extends FormRequest
 {
@@ -13,13 +14,23 @@ class ServicePlanRequest extends FormRequest
 
     public function rules(): array
     {
+        $slugRule = ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'];
+
+        // PATCH リクエストの場合は、同じ ID の slug を除外
+        if ($this->isMethod('patch') && $this->route('servicePlan')) {
+            $slugRule[] = Rule::unique('service_plans', 'slug')->ignore($this->route('servicePlan')->id);
+        } else {
+            $slugRule[] = 'unique:service_plans,slug';
+        }
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:service_plans,slug'],
+            'slug' => $slugRule,
             'service_id' => ['required', 'exists:services,id'],
             'description' => ['nullable', 'string', 'max:1000'],
             'details' => ['nullable', 'string'],
             'base_price' => ['required', 'numeric', 'min:0'],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'billing_cycle' => ['required', 'in:one_time,monthly,quarterly,yearly'],
             'setup_fee' => ['nullable', 'numeric', 'min:0'],
             'max_revisions' => ['nullable', 'integer', 'min:0'],

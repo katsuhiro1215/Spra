@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\Contract;
 use App\Models\Term;
+use App\Services\ContractPdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -62,6 +63,25 @@ class ContractEmail extends Mailable
     public function attachments(): array
     {
         $attachments = [];
+
+        // 契約書をPDFで添付（4ページ）
+        $pdfService = new ContractPdfService();
+        try {
+            $mpdf = $pdfService->generateFullContract($this->contract);
+            $pdfContent = $mpdf->Output('', 'S'); // 文字列として出力
+
+            $attachments[] = Attachment::fromData(
+                function () use ($pdfContent) {
+                    return $pdfContent;
+                },
+                $pdfService->getFileName($this->contract)
+            )->withMime('application/pdf');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to generate contract PDF', [
+                'contract_id' => $this->contract->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // 規約をPDFで添付（有効な規約がある場合）
         if ($this->terms) {

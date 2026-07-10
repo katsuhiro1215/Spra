@@ -17,7 +17,7 @@ class Contact extends Model
         'user_id',
         'phone',
         'company',
-        'category',
+        'contact_category_id',
         'subject',
         'message',
         'attachments',
@@ -27,6 +27,8 @@ class Contact extends Model
         'assigned_to',
         // 流入元トラッキング情報
         'source',
+        'source_id',
+        'api_client_id',
         'ip',
         'user_agent',
         'referrer',
@@ -46,6 +48,11 @@ class Contact extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function contactCategory(): BelongsTo
+    {
+        return $this->belongsTo(ContactCategory::class, 'category_id');
     }
 
     public function responses(): HasMany
@@ -94,9 +101,9 @@ class Contact extends Model
         return $query->where('created_at', '>=', now()->subDays($days));
     }
 
-    public function scopeByCategory($query, $category)
+    public function scopeByCategory($query, $categoryId)
     {
-        return $query->where('category', $category);
+        return $query->where('category_id', $categoryId);
     }
 
     // アクセサ
@@ -124,13 +131,7 @@ class Contact extends Model
     protected function categoryLabel(): Attribute
     {
         return Attribute::make(
-            get: fn() => match ($this->category) {
-                'estimate' => '見積もり',
-                'partnership' => '業務提携',
-                'support' => 'サポート',
-                'other' => 'その他',
-                default => $this->category
-            }
+            get: fn() => $this->contactCategory?->name ?? '-'
         );
     }
 }

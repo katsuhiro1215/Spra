@@ -136,8 +136,8 @@
 
             <h2>見積もり内容</h2>
             <p><strong>見積番号:</strong> {{ $quote->quote_number }}</p>
-            @if ($quote->expires_at)
-                <p><strong>有効期限:</strong> {{ $quote->expires_at->toDate()->format('Y年m月d日') }}</p>
+            @if ($quote->currentVersion?->expires_at)
+                <p><strong>有効期限:</strong> {{ $quote->currentVersion->expires_at->toDate()->format('Y年m月d日') }}</p>
             @endif
 
             <h3>見積明細</h3>
@@ -151,9 +151,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($quote->items as $item)
+                    @foreach ($items as $item)
                         <tr>
-                            <td>{{ $item->name }}</td>
+                            <td>{{ $item->service_item?->name ?? $item->name }}</td>
                             <td style="text-align: right;">{{ number_format($item->quantity, 2) }}</td>
                             <td style="text-align: right;">¥{{ number_format($item->unit_price, 0) }}</td>
                             <td style="text-align: right;">¥{{ number_format($item->amount, 0) }}</td>
@@ -166,32 +166,32 @@
             <div class="summary">
                 <div class="summary-row">
                     <span>小計</span>
-                    <span>¥{{ number_format($quote->base_amount, 0) }}</span>
+                    <span>¥{{ number_format($quote->currentVersion?->base_amount ?? 0, 0) }}</span>
                 </div>
-                @if ($quote->discount_amount > 0)
+                @if (($quote->currentVersion?->discount_amount ?? 0) > 0)
                     <div class="summary-row">
                         <span>割引</span>
-                        <span>-¥{{ number_format($quote->discount_amount, 0) }}</span>
+                        <span>-¥{{ number_format($quote->currentVersion->discount_amount, 0) }}</span>
                     </div>
                 @endif
                 <div class="summary-row">
-                    <span>消費税 ({{ $quote->tax_rate }}%)</span>
-                    <span>¥{{ number_format($quote->tax_amount, 0) }}</span>
+                    <span>消費税 ({{ $quote->currentVersion?->tax_rate ?? 0 }}%)</span>
+                    <span>¥{{ number_format($quote->currentVersion?->tax_amount ?? 0, 0) }}</span>
                 </div>
                 <div class="summary-row summary-total">
                     <span>合計</span>
-                    <span>¥{{ number_format($quote->total_amount, 0) }}</span>
+                    <span>¥{{ number_format($quote->currentVersion?->total_amount ?? 0, 0) }}</span>
                 </div>
             </div>
 
-            @if ($quote->requirements)
+            @if ($quote->currentVersion?->requirements)
                 <h3>ご要件</h3>
-                <p>{!! nl2br(e($quote->requirements)) !!}</p>
+                <p>{!! nl2br(e($quote->currentVersion->requirements)) !!}</p>
             @endif
 
-            @if ($quote->custom_specifications)
+            @if ($quote->currentVersion?->custom_specifications)
                 <h3>仕様</h3>
-                <p>{!! nl2br(e($quote->custom_specifications)) !!}</p>
+                <p>{!! nl2br(e(json_encode($quote->currentVersion->custom_specifications, JSON_UNESCAPED_UNICODE))) !!}</p>
             @endif
 
             <!-- プロセス説明セクション -->

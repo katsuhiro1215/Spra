@@ -5,18 +5,37 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import { Dl, Dt, Dd } from "@/Components/Description";
+import {
+    EditButton,
+    DeleteButton,
+} from "@/Components/Buttons";
 // Icons
-import { PencilIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+    ArrowLeftIcon,
+    CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ serviceItem }) {
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "サービス管理", href: null },
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
         {
-            label: "サービス項目一覧",
-            href: route("admin.service.item.index"),
+            label: PageConfig.serviceItems.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "default",
+            route: route("admin.service.item.index"),
         },
-        { label: serviceItem.name, href: null },
+    ];
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.serviceItems.breadcrumbs,
+        PageConfig.serviceItems.pages.show.breadcrumb,
     ];
 
     const getStatusBadge = (status) => {
@@ -67,30 +86,40 @@ export default function Show({ serviceItem }) {
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title={serviceItem.name}
-                    description="サービス項目の詳細情報"
+                    title={PageConfig.serviceItems.pages.show.title}
+                    description={PageConfig.serviceItems.pages.show.description}
+                    actions={headerActions}
                     breadcrumbs={breadcrumbs}
-                    action={
-                        <Link
-                            href={route(
-                                "admin.service.item.edit",
-                                serviceItem.id,
-                            )}
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-                        >
-                            <PencilIcon className="h-5 w-5 mr-2" />
-                            編集
-                        </Link>
-                    }
                 />
             }
         >
-            <Head title={`サービス項目詳細 - ${serviceItem.name}`} />
+            <Head
+                title={`${PageConfig.serviceItems.pages.show.title} - ${serviceItem.name}`}
+            />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="space-y-6">
+                {/* 編集ボタンと削除ボタン */}
+                <div className="flex items-center justify-end gap-2">
+                    <Link
+                        href={route(
+                            "admin.service.item.edit",
+                            serviceItem.id,
+                        )}
+                    >
+                        <EditButton>編集</EditButton>
+                    </Link>
+                    <Link
+                        href={route(
+                            "admin.service.item.destroy",
+                            serviceItem.id,
+                        )}
+                    >
+                        <DeleteButton>削除</DeleteButton>
+                    </Link>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* メイン情報 */}
                     <div className="lg:col-span-2 space-y-6">
@@ -99,24 +128,20 @@ export default function Show({ serviceItem }) {
                                 <CardTitle>基本情報</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <dl className="space-y-4">
+                                <Dl>
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            項目名
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 flex items-center">
+                                        <Dt>項目名</Dt>
+                                        <Dd>
                                             {serviceItem.name}
                                             {serviceItem.is_required && (
                                                 <CheckCircleIcon className="ml-2 h-5 w-5 text-green-500" />
                                             )}
-                                        </dd>
+                                        </Dd>
                                     </div>
 
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            サービス
-                                        </dt>
-                                        <dd className="mt-1 text-sm">
+                                        <Dt>サービス</Dt>
+                                        <Dd>
                                             <Link
                                                 href={route(
                                                     "admin.service.show",
@@ -138,15 +163,13 @@ export default function Show({ serviceItem }) {
                                                     )
                                                 </span>
                                             )}
-                                        </dd>
+                                        </Dd>
                                     </div>
 
                                     {serviceItem.service_plan && (
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                                サービスプラン
-                                            </dt>
-                                            <dd className="mt-1 text-sm">
+                                            <Dt>サービスプラン</Dt>
+                                            <Dd>
                                                 <Link
                                                     href={route(
                                                         "admin.service.plan.show",
@@ -160,41 +183,33 @@ export default function Show({ serviceItem }) {
                                                             .name
                                                     }
                                                 </Link>
-                                            </dd>
+                                            </Dd>
                                         </div>
                                     )}
 
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            項目タイプ
-                                        </dt>
-                                        <dd className="mt-1">
+                                        <Dt>項目タイプ</Dt>
+                                        <Dd>
                                             {getItemTypeBadge(
                                                 serviceItem.item_type,
                                             )}
-                                        </dd>
+                                        </Dd>
                                     </div>
 
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            ステータス
-                                        </dt>
-                                        <dd className="mt-1">
+                                        <Dt>ステータス</Dt>
+                                        <Dd>
                                             {getStatusBadge(serviceItem.status)}
-                                        </dd>
+                                        </Dd>
                                     </div>
 
                                     {serviceItem.description && (
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                                説明
-                                            </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                                {serviceItem.description}
-                                            </dd>
+                                            <Dt>説明</Dt>
+                                            <Dd>{serviceItem.description}</Dd>
                                         </div>
                                     )}
-                                </dl>
+                                </Dl>
                             </CardBody>
                         </Card>
 
@@ -203,30 +218,35 @@ export default function Show({ serviceItem }) {
                                 <CardTitle>料金・納期情報</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <dl className="space-y-4">
+                                <Dl>
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            価格
-                                        </dt>
-                                        <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                        <Dt>標準価格</Dt>
+                                        <Dd>
                                             ¥
                                             {Number(
-                                                serviceItem.price,
+                                                serviceItem.standard_price,
                                             ).toLocaleString()}
-                                        </dd>
+                                        </Dd>
+                                    </div>
+                                    <div>
+                                        <Dt>原価</Dt>
+                                        <Dd>
+                                            ¥
+                                            {Number(
+                                                serviceItem.internal_cost,
+                                            ).toLocaleString()}
+                                        </Dd>
                                     </div>
 
                                     {serviceItem.estimated_days && (
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                                作業日数目安
-                                            </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                            <Dt>作業日数目安</Dt>
+                                            <Dd>
                                                 {serviceItem.estimated_days}日
-                                            </dd>
+                                            </Dd>
                                         </div>
                                     )}
-                                </dl>
+                                </Dl>
                             </CardBody>
                         </Card>
                     </div>
@@ -240,23 +260,17 @@ export default function Show({ serviceItem }) {
                             <CardBody>
                                 <dl className="space-y-4">
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            必須項目
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                        <Dt>必須項目</Dt>
+                                        <Dd>
                                             {serviceItem.is_required
                                                 ? "はい"
                                                 : "いいえ"}
-                                        </dd>
+                                        </Dd>
                                     </div>
 
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            表示順
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                            {serviceItem.sort_order}
-                                        </dd>
+                                        <Dt>表示順</Dt>
+                                        <Dd>{serviceItem.sort_order}</Dd>
                                     </div>
                                 </dl>
                             </CardBody>
@@ -269,42 +283,34 @@ export default function Show({ serviceItem }) {
                             <CardBody>
                                 <dl className="space-y-4 text-sm">
                                     <div>
-                                        <dt className="text-gray-500 dark:text-gray-400">
-                                            作成者
-                                        </dt>
-                                        <dd className="mt-1 text-gray-900 dark:text-gray-100">
+                                        <Dt>作成者</Dt>
+                                        <Dd>
                                             {serviceItem.creator?.name || "---"}
-                                        </dd>
+                                        </Dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500 dark:text-gray-400">
-                                            作成日時
-                                        </dt>
-                                        <dd className="mt-1 text-gray-900 dark:text-gray-100">
+                                        <Dt>作成日時</Dt>
+                                        <Dd>
                                             {new Date(
                                                 serviceItem.created_at,
                                             ).toLocaleString("ja-JP")}
-                                        </dd>
+                                        </Dd>
                                     </div>
                                     {serviceItem.updater && (
                                         <>
                                             <div>
-                                                <dt className="text-gray-500 dark:text-gray-400">
-                                                    更新者
-                                                </dt>
-                                                <dd className="mt-1 text-gray-900 dark:text-gray-100">
+                                                <Dt>更新者</Dt>
+                                                <Dd>
                                                     {serviceItem.updater.name}
-                                                </dd>
+                                                </Dd>
                                             </div>
                                             <div>
-                                                <dt className="text-gray-500 dark:text-gray-400">
-                                                    更新日時
-                                                </dt>
-                                                <dd className="mt-1 text-gray-900 dark:text-gray-100">
+                                                <Dt>更新日時</Dt>
+                                                <Dd>
                                                     {new Date(
                                                         serviceItem.updated_at,
                                                     ).toLocaleString("ja-JP")}
-                                                </dd>
+                                                </Dd>
                                             </div>
                                         </>
                                     )}

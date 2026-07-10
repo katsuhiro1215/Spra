@@ -27,6 +27,7 @@ class StoreContactRequest extends FormRequest
       'email' => ['required', 'email', 'max:255'],
       'phone' => ['nullable', 'string', 'max:20'],
       'company' => ['nullable', 'string', 'max:255'],
+      'contact_category_id' => ['required', 'exists:contact_categories,id'],
       'subject' => ['required', 'string', 'max:255'],
       'message' => ['required', 'string', 'max:5000'],
     ];
@@ -44,6 +45,7 @@ class StoreContactRequest extends FormRequest
       'email' => 'メールアドレス',
       'phone' => '電話番号',
       'company' => '会社名',
+      'contact_category_id' => 'お問い合わせ種別',
       'subject' => '件名',
       'message' => 'お問い合わせ内容',
     ];
@@ -64,6 +66,8 @@ class StoreContactRequest extends FormRequest
       'email.max' => ':attributeは:max文字以内で入力してください。',
       'phone.max' => ':attributeは:max文字以内で入力してください。',
       'company.max' => ':attributeは:max文字以内で入力してください。',
+      'contact_category_id.required' => ':attributeを選択してください。',
+      'contact_category_id.exists' => '選択された:attributeは無効です。',
       'subject.required' => ':attributeを入力してください。',
       'subject.max' => ':attributeは:max文字以内で入力してください。',
       'message.required' => ':attributeを入力してください。',

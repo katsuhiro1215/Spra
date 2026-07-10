@@ -1,172 +1,170 @@
-import React, { useState } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Head, router, Link, usePage, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import { Badge } from "@/Components/Badges";
-import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-import UserSignatureForm from "@/Components/UserSignatureForm";
-import AdminSignatureVerification from "@/Components/AdminSignatureVerification";
-// Icons
+import {
+    PrimaryButton,
+    SecondaryButton,
+    DangerButton,
+} from "@/Components/Buttons";
+import { Card, CardBody } from "@/Components/Card";
 import {
     ArrowLeftIcon,
     PencilIcon,
+    DocumentTextIcon,
+    PaperAirplaneIcon,
+    PlusIcon,
     CheckCircleIcon,
     XCircleIcon,
-    DocumentArrowUpIcon,
-    DocumentTextIcon,
-    TrashIcon,
-    CurrencyYenIcon,
+    SparklesIcon,
 } from "@heroicons/react/24/outline";
+import SuccessAlert from "@/Components/Alerts/SuccessAlert";
+import { ConfirmAlert } from "@/Components/Alerts";
+import DigitalStamp from "@/Components/DigitalStamp";
+
+// Custom Components
+import ContractBasicInfo from "./_components/ContractBasicInfo";
+import ContractItems from "./_components/ContractItems";
+import ContractAmount from "./_components/ContractAmount";
+import ContractVersionHistory from "./_components/ContractVersionHistory";
+import ContractClientInfo from "./_components/ContractClientInfo";
 
 export default function Show({ contract }) {
-    const [uploading, setUploading] = useState(false);
-    const [editingBilling, setEditingBilling] = useState(false);
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const { data, setData, post, reset } = useForm({
-        document: null,
+    const { flash } = usePage().props;
+    const [activeTab, setActiveTab] = useState("basic");
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [showAdminSignatureModal, setShowAdminSignatureModal] =
+        useState(false);
+    const [adminStamp, setAdminStamp] = useState(null);
+    const [alertState, setAlertState] = useState({
+        type: null, // 'empty-signature', 'success', 'error'
+        isOpen: false,
     });
 
-    const billingForm = useForm({
-        billing_day: contract.billing_day || 10,
-        payment_due_days: contract.payment_due_days || 15,
-        auto_invoice_generation: contract.auto_invoice_generation ?? true,
+    const { data, setData, post, processing, errors } = useForm({
+        signature_image: null,
+        method: "canvas",
     });
 
-    // ステータスのバッジカラーを取得
-    const getContractStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            pending_signature: "bg-yellow-100 text-yellow-800",
-            active: "bg-green-100 text-green-800",
-            suspended: "bg-orange-100 text-orange-800",
-            completed: "bg-blue-100 text-blue-800",
-            cancelled: "bg-red-100 text-red-800",
-        };
-        return colors[status] || "bg-gray-100 text-gray-800";
+    // フラッシュメッセージの成功時に Alert を表示
+    useEffect(() => {
+        if (flash?.success) {
+            setSuccessMessage(flash.success);
+            setShowSuccessAlert(true);
+        }
+    }, [flash?.success]);
+
+    const tabs = [
+        { id: "basic", label: "基本情報", icon: "📋" },
+        { id: "items", label: "契約明細", icon: "📝" },
+        { id: "amount", label: "金額情報", icon: "💰" },
+        { id: "terms", label: "契約条項", icon: "📄" },
+        { id: "versions", label: "バージョン履歴", icon: "📜" },
+        { id: "client", label: "クライアント情報", icon: "👤" },
+        { id: "quote", label: "見積書", icon: "📑" },
+        { id: "invoices", label: "請求書", icon: "💵" },
+        { id: "receipts", label: "領収書", icon: "🧾" },
+    ];
+
+    const STATUSES = {
+        draft: "下書き",
+        pending_review: "レビュー待ち",
+        approved: "承認済み",
+        sent: "送信済み",
+        pending_signature: "署名待ち",
+        signed: "署名済み",
+        active: "有効",
+        suspended: "一時停止",
+        completed: "完了",
+        cancelled: "キャンセル",
     };
 
-    // ステータスのラベルを取得
-    const getStatusLabel = (status) => {
-        const labels = {
-            draft: "下書き",
-            pending_signature: "署名待ち",
-            active: "契約中",
-            suspended: "一時停止",
-            completed: "完了",
-            cancelled: "キャンセル",
-        };
-        return labels[status] || status;
-    };
-
-    // タイプのラベルを取得
-    const getTypeLabel = (type) => {
-        const labels = {
-            one_time: "一括払い",
-            monthly: "月額",
-            annual: "年額",
-        };
-        return labels[type] || type;
-    };
-
-    // 金額をフォーマット
-    const formatAmount = (amount) => {
-        return new Intl.NumberFormat("ja-JP", {
-            style: "currency",
-            currency: "JPY",
-        }).format(amount);
-    };
-
-    // 日付をフォーマット
-    const formatDate = (date) => {
-        if (!date) return "-";
-        return new Date(date).toLocaleDateString("ja-JP", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
-    };
-
-    // 税込金額を計算
-    const getTotalWithTax = () => {
-        const amount = parseFloat(contract.amount) || 0;
-        const taxRate = parseFloat(contract.tax_rate) || 0;
-        return amount * (1 + taxRate / 100);
-    };
+    const currentVersion = contract.current_version || contract.versions?.[0];
+    const hasItems = currentVersion?.items?.length > 0;
+    const hasTerms =
+        currentVersion?.terms_and_conditions ||
+        currentVersion?.special_provisions;
+    const canSend = hasItems && hasTerms && currentVersion?.status === "draft";
 
     // ========================================
-    // Handlers
+    // アクションハンドラー
     // ========================================
-    const handleActivate = () => {
-        const confirmed = confirm(
-            `契約「${contract.title}」を有効化してもよろしいですか？`,
-        );
-        if (confirmed) {
-            router.patch(route("admin.contract.activate", contract.id));
+
+    const handleAddItems = () => {
+        if (contract.quote_id) {
+            // QuoteItemからコピー
+            router.get(route("admin.contract.item.create", contract.id));
+        } else {
+            alert("見積書がないため、明細を追加できません");
         }
     };
 
-    const handleCancel = () => {
-        const reason = prompt("キャンセル理由を入力してください（任意）:");
-        if (reason !== null) {
-            router.patch(route("admin.contract.cancel", contract.id), {
-                cancellation_reason: reason,
-            });
-        }
+    const handleEditTerms = () => {
+        router.get(route("admin.contract.terms.edit", contract.id));
+    };
+
+    const handlePreview = () => {
+        router.get(route("admin.contract.preview", contract.id));
+    };
+
+    const handleEdit = () => {
+        router.get(route("admin.contract.edit", contract.id));
     };
 
     const handleDelete = () => {
-        const confirmed = confirm(
-            `契約「${contract.title}」を削除してもよろしいですか？`,
-        );
-        if (confirmed) {
+        if (confirm(`契約「${contract.title}」を削除してもよろしいですか？`)) {
             router.delete(route("admin.contract.destroy", contract.id));
         }
     };
 
-    const handleSend = () => {
-        const confirmed = confirm(
-            `契約「${contract.title}」をクライアントにメール送信してもよろしいですか？`,
-        );
-        if (confirmed) {
-            router.post(route("admin.contract.send", contract.id));
-        }
+    const handleCreateProject = () => {
+        // 契約データをクエリパラメータで渡して Project/Create に遷移
+        router.get(route("admin.project.create"), {
+            contract_id: contract.id,
+        });
     };
 
-    const handleDocumentUpload = (e) => {
-        e.preventDefault();
-        setUploading(true);
+    const handleCreateInvoice = () => {
+        // 請求書作成ページへ遷移（contract_id パラメータを渡す）
+        router.get(route("admin.invoice.create"), { contract_id: contract.id });
+    };
 
-        post(route("admin.contract.documents.upload", contract.id), {
+    const handleAdminSignSubmit = (e) => {
+        e.preventDefault();
+
+        if (!adminStamp) {
+            setAlertState({ type: "empty-signature", isOpen: true });
+            return;
+        }
+
+        setData("signature_image", adminStamp);
+
+        // Admin署名を送信
+        post(route("admin.contract.signature.admin.store", contract.id), {
             onSuccess: () => {
-                reset();
-                setUploading(false);
+                setShowAdminSignatureModal(false);
+                setAlertState({ type: "success", isOpen: true });
+                setTimeout(() => {
+                    router.reload();
+                }, 2000);
             },
-            onError: () => {
-                setUploading(false);
+            onError: (errors) => {
+                console.error("Admin署名送信エラー:", errors);
+                setAlertState({ type: "error", isOpen: true });
             },
         });
     };
 
-    const handleBillingSettingsUpdate = (e) => {
-        e.preventDefault();
-        billingForm.patch(
-            route("admin.contract.billing-settings.update", contract.id),
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setEditingBilling(false);
-                },
-            },
-        );
+    const handleAdminStampChange = (stampData) => {
+        setAdminStamp(stampData);
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Header Actions & Breadcrumbs
     // ========================================
+
     const headerActions = [
         {
             label: "戻る",
@@ -175,19 +173,6 @@ export default function Show({ contract }) {
             route: route("admin.contract.index"),
         },
     ];
-
-    // ステータスに応じてアクションボタンを追加
-    if (
-        contract.status === "draft" ||
-        contract.status === "pending_signature"
-    ) {
-        headerActions.push({
-            label: "編集",
-            icon: PencilIcon,
-            variant: "secondary",
-            route: route("admin.contract.edit", contract.id),
-        });
-    }
 
     const breadcrumbs = [
         { label: "ダッシュボード", href: "/admin/dashboard" },
@@ -199,703 +184,535 @@ export default function Show({ contract }) {
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title={contract.title}
-                    description="契約詳細"
+                    title={`契約詳細: ${contract.contract_number}`}
+                    description={`${STATUSES[contract.status] || contract.status} • ${contract.title}`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title={`契約詳細 - ${contract.title}`} />
+            <Head title={`契約: ${contract.contract_number}`} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="space-y-6">
-                {/* 基本情報 */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle>基本情報</CardTitle>
-                            <Badge
-                                className={getContractStatusColor(
-                                    contract.status,
-                                )}
-                            >
-                                {getStatusLabel(contract.status)}
-                            </Badge>
-                        </div>
-                    </CardHeader>
-                    <CardBody>
-                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <dt className="text-sm font-medium text-gray-500">
-                                    契約番号
-                                </dt>
-                                <dd className="mt-1 text-sm text-gray-900 font-mono">
-                                    {contract.contract_number || "-"}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className="text-sm font-medium text-gray-500">
-                                    タイトル
-                                </dt>
-                                <dd className="mt-1 text-sm text-gray-900">
-                                    {contract.title}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className="text-sm font-medium text-gray-500">
-                                    契約タイプ
-                                </dt>
-                                <dd className="mt-1">
-                                    <Badge className="bg-purple-100 text-purple-800">
-                                        {getTypeLabel(contract.type)}
-                                    </Badge>
-                                </dd>
-                            </div>
-                            {contract.quote && (
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        関連見積もり
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-blue-600">
-                                        {contract.quote.quote_number} -{" "}
-                                        {contract.quote.title}
-                                    </dd>
-                                </div>
-                            )}
-                            {contract.project && (
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        関連プロジェクト
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-blue-600">
-                                        {contract.project.project_code ||
-                                            contract.project.title}
-                                    </dd>
-                                </div>
-                            )}
-                            {contract.description && (
-                                <div className="md:col-span-2">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        契約内容
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                                        {contract.description}
-                                    </dd>
-                                </div>
-                            )}
-                        </dl>
-                    </CardBody>
-                </Card>
+            {/* 成功アラート */}
+            <SuccessAlert
+                isOpen={showSuccessAlert}
+                onClose={() => setShowSuccessAlert(false)}
+                title="処理完了"
+                message={successMessage || "処理が正常に完了しました。"}
+                autoClose={true}
+                autoCloseDelay={4000}
+            />
 
-                {/* クライアント情報 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>クライアント情報</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {contract.user && (
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        ユーザー
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {contract.user.profile?.full_name ||
-                                            contract.user.email}
-                                    </dd>
-                                </div>
-                            )}
-                            {contract.company && (
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        会社
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {contract.company.name}
-                                    </dd>
-                                </div>
-                            )}
-                        </dl>
-                    </CardBody>
-                </Card>
-
-                {/* 契約金額 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>契約金額</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        <div className="bg-blue-50 p-6 rounded-lg">
-                            <div className="space-y-3">
-                                <div className="flex justify-between text-base">
-                                    <span className="text-gray-600">
-                                        契約金額:
-                                    </span>
-                                    <span className="font-semibold">
-                                        {formatAmount(contract.amount)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-base">
-                                    <span className="text-gray-600">
-                                        消費税 ({contract.tax_rate}%):
-                                    </span>
-                                    <span className="font-semibold">
-                                        {formatAmount(
-                                            contract.amount *
-                                                (contract.tax_rate / 100),
-                                        )}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-xl font-bold pt-3 border-t border-blue-200">
-                                    <span>税込合計:</span>
-                                    <span className="text-blue-600">
-                                        {formatAmount(getTotalWithTax())}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-
-                {/* 請求設定 (月額契約のみ) */}
-                {contract.type === "monthly" && (
+            <div className="max-w-7xl space-y-6">
+                {/* ワークフロー進捗 */}
+                {contract.status === "draft" && (
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <CurrencyYenIcon className="h-5 w-5 text-gray-500" />
-                                請求設定
-                            </CardTitle>
-                            {!editingBilling && (
-                                <SecondaryButton
-                                    onClick={() => setEditingBilling(true)}
-                                    size="sm"
-                                >
-                                    <PencilIcon className="h-4 w-4 mr-1" />
-                                    編集
-                                </SecondaryButton>
-                            )}
-                        </CardHeader>
                         <CardBody>
-                            {editingBilling ? (
-                                <form
-                                    onSubmit={handleBillingSettingsUpdate}
-                                    className="space-y-4"
+                            <h3 className="text-lg font-semibold mb-4">
+                                📌 契約書作成ワークフロー
+                            </h3>
+                            <div className="space-y-3">
+                                <div
+                                    className={`flex items-center gap-3 ${hasItems ? "text-green-600" : "text-gray-500"}`}
                                 >
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            請求日
-                                        </label>
-                                        <select
-                                            value={billingForm.data.billing_day}
-                                            onChange={(e) =>
-                                                billingForm.setData(
-                                                    "billing_day",
-                                                    parseInt(e.target.value),
-                                                )
-                                            }
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                            {Array.from(
-                                                { length: 31 },
-                                                (_, i) => i + 1,
-                                            ).map((day) => (
-                                                <option key={day} value={day}>
-                                                    毎月 {day} 日
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {billingForm.errors.billing_day && (
-                                            <p className="mt-1 text-sm text-red-600">
-                                                {billingForm.errors.billing_day}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            支払期限 (請求日から)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="90"
-                                            value={
-                                                billingForm.data
-                                                    .payment_due_days
-                                            }
-                                            onChange={(e) =>
-                                                billingForm.setData(
-                                                    "payment_due_days",
-                                                    parseInt(e.target.value),
-                                                )
-                                            }
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            {billingForm.data.payment_due_days}{" "}
-                                            日後
-                                        </p>
-                                        {billingForm.errors
-                                            .payment_due_days && (
-                                            <p className="mt-1 text-sm text-red-600">
-                                                {
-                                                    billingForm.errors
-                                                        .payment_due_days
-                                                }
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={
-                                                    billingForm.data
-                                                        .auto_invoice_generation
-                                                }
-                                                onChange={(e) =>
-                                                    billingForm.setData(
-                                                        "auto_invoice_generation",
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700">
-                                                自動請求書発行を有効にする
-                                            </span>
-                                        </label>
-                                        <p className="mt-1 ml-6 text-sm text-gray-500">
-                                            毎月自動的に請求書を生成・送付します
-                                        </p>
-                                        {billingForm.errors
-                                            .auto_invoice_generation && (
-                                            <p className="mt-1 text-sm text-red-600">
-                                                {
-                                                    billingForm.errors
-                                                        .auto_invoice_generation
-                                                }
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {contract.next_billing_date && (
-                                        <div className="bg-blue-50 p-3 rounded-md">
-                                            <p className="text-sm text-blue-800">
-                                                <span className="font-medium">
-                                                    次回請求日:
-                                                </span>{" "}
-                                                {formatDate(
-                                                    contract.next_billing_date,
-                                                )}
-                                            </p>
-                                        </div>
+                                    {hasItems ? (
+                                        <CheckCircleIcon className="h-5 w-5" />
+                                    ) : (
+                                        <XCircleIcon className="h-5 w-5" />
                                     )}
-
-                                    <div className="flex gap-2 pt-2">
-                                        <PrimaryButton
-                                            type="submit"
-                                            disabled={billingForm.processing}
-                                        >
-                                            保存
-                                        </PrimaryButton>
+                                    <span className="font-medium">
+                                        ① 契約明細の追加
+                                    </span>
+                                    {!hasItems && (
                                         <SecondaryButton
-                                            type="button"
-                                            onClick={() => {
-                                                setEditingBilling(false);
-                                                billingForm.reset();
-                                            }}
-                                            disabled={billingForm.processing}
+                                            size="sm"
+                                            onClick={handleAddItems}
                                         >
-                                            キャンセル
+                                            <PlusIcon className="h-4 w-4 mr-1" />
+                                            明細を追加
                                         </SecondaryButton>
-                                    </div>
-                                </form>
-                            ) : (
-                                <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            請求日
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900">
-                                            毎月 {contract.billing_day} 日
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            支払期限
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900">
-                                            請求日から{" "}
-                                            {contract.payment_due_days} 日後
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            自動請求書発行
-                                        </dt>
-                                        <dd className="mt-1">
-                                            {contract.auto_invoice_generation ? (
-                                                <Badge className="bg-green-100 text-green-800">
-                                                    <CheckCircleIcon className="h-4 w-4 mr-1 inline" />
-                                                    有効
-                                                </Badge>
-                                            ) : (
-                                                <Badge className="bg-gray-100 text-gray-800">
-                                                    <XCircleIcon className="h-4 w-4 mr-1 inline" />
-                                                    無効
-                                                </Badge>
-                                            )}
-                                        </dd>
-                                    </div>
-                                    {contract.next_billing_date && (
-                                        <div>
-                                            <dt className="text-sm font-medium text-gray-500">
-                                                次回請求日
-                                            </dt>
-                                            <dd className="mt-1 text-sm font-medium text-blue-600">
-                                                {formatDate(
-                                                    contract.next_billing_date,
-                                                )}
-                                            </dd>
-                                        </div>
                                     )}
-                                </dl>
-                            )}
-                        </CardBody>
-                    </Card>
-                )}
-
-                {/* 契約期間 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>契約期間</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <dt className="text-sm font-medium text-gray-500">
-                                    開始日
-                                </dt>
-                                <dd className="mt-1 text-sm text-gray-900">
-                                    {formatDate(contract.start_date)}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className="text-sm font-medium text-gray-500">
-                                    終了日
-                                </dt>
-                                <dd className="mt-1 text-sm text-gray-900">
-                                    {formatDate(contract.end_date)}
-                                </dd>
-                            </div>
-                            {contract.auto_renewal && (
-                                <>
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            自動更新
-                                        </dt>
-                                        <dd className="mt-1">
-                                            <Badge className="bg-green-100 text-green-800">
-                                                有効
-                                            </Badge>
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            更新通知日数
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900">
-                                            {contract.renewal_notice_days}日前
-                                        </dd>
-                                    </div>
-                                </>
-                            )}
-                            {contract.signed_at && (
-                                <div>
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        署名日時
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {formatDate(contract.signed_at)}
-                                    </dd>
                                 </div>
-                            )}
-                        </dl>
-                    </CardBody>
-                </Card>
-
-                {/* 詳細設定 */}
-                {(contract.payment_terms ||
-                    contract.terms_and_conditions ||
-                    contract.notes) && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>詳細設定</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <dl className="space-y-6">
-                                {contract.payment_terms && (
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            支払い条件
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                                            {contract.payment_terms}
-                                        </dd>
-                                    </div>
-                                )}
-                                {contract.terms_and_conditions && (
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            利用規約
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                                            {contract.terms_and_conditions}
-                                        </dd>
-                                    </div>
-                                )}
-                                {contract.notes && (
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">
-                                            備考
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                                            {contract.notes}
-                                        </dd>
-                                    </div>
-                                )}
-                            </dl>
-                        </CardBody>
-                    </Card>
-                )}
-
-                {/* 契約書類 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>契約書類</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        {/* アップロードフォーム */}
-                        <form onSubmit={handleDocumentUpload} className="mb-4">
-                            <div className="flex items-end space-x-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        書類をアップロード
-                                    </label>
-                                    <input
-                                        type="file"
-                                        onChange={(e) =>
-                                            setData(
-                                                "document",
-                                                e.target.files[0],
-                                            )
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        accept=".pdf,.doc,.docx,.txt"
-                                    />
-                                </div>
-                                <PrimaryButton
-                                    type="submit"
-                                    disabled={!data.document || uploading}
+                                <div
+                                    className={`flex items-center gap-3 ${hasTerms ? "text-green-600" : "text-gray-500"}`}
                                 >
-                                    {uploading
-                                        ? "アップロード中..."
-                                        : "アップロード"}
-                                </PrimaryButton>
-                            </div>
-                        </form>
-
-                        {/* 書類リスト */}
-                        {contract.documents && contract.documents.length > 0 ? (
-                            <div className="space-y-2">
-                                {contract.documents.map((doc) => (
-                                    <div
-                                        key={doc.id}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                    {hasTerms ? (
+                                        <CheckCircleIcon className="h-5 w-5" />
+                                    ) : (
+                                        <XCircleIcon className="h-5 w-5" />
+                                    )}
+                                    <span className="font-medium">
+                                        ② 契約条項の記入
+                                    </span>
+                                    <SecondaryButton
+                                        size="sm"
+                                        onClick={handleEditTerms}
                                     >
-                                        <div className="flex items-center space-x-3">
-                                            <DocumentTextIcon className="h-5 w-5 text-gray-400" />
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {doc.name}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    {formatDate(doc.created_at)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <a
-                                            href={route(
-                                                "admin.contract.documents.download",
-                                                [contract.id, doc.id],
-                                            )}
-                                            className="text-blue-600 hover:text-blue-800 text-sm"
+                                        <PencilIcon className="h-4 w-4 mr-1" />
+                                        {hasTerms ? "条項を編集" : "条項を記入"}
+                                    </SecondaryButton>
+                                </div>
+                                <div
+                                    className={`flex items-center gap-3 ${canSend ? "text-blue-600" : "text-gray-400"}`}
+                                >
+                                    <PaperAirplaneIcon className="h-5 w-5" />
+                                    <span className="font-medium">
+                                        ③ プレビューと送信
+                                    </span>
+                                    {canSend && (
+                                        <PrimaryButton
+                                            size="sm"
+                                            onClick={handlePreview}
                                         >
-                                            ダウンロード
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-500">
-                                書類はアップロードされていません
-                            </p>
-                        )}
-                    </CardBody>
-                </Card>
-
-                {/* メール送信履歴 */}
-                {contract.histories && contract.histories.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>メール送信履歴</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-3">
-                                {contract.histories
-                                    .filter((h) => h.action === "sent")
-                                    .map((history) => (
-                                        <div
-                                            key={history.id}
-                                            className="p-3 border rounded-lg bg-gray-50"
-                                        >
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-sm">
-                                                            {
-                                                                history.recipient_email
-                                                            }
-                                                        </span>
-                                                        <Badge
-                                                            variant={
-                                                                history.status ===
-                                                                "sent"
-                                                                    ? "success"
-                                                                    : history.status ===
-                                                                        "pending"
-                                                                      ? "info"
-                                                                      : "danger"
-                                                            }
-                                                        >
-                                                            {history.status ===
-                                                            "sent"
-                                                                ? "送信済み"
-                                                                : history.status ===
-                                                                    "pending"
-                                                                  ? "ペンディング"
-                                                                  : "失敗"}
-                                                        </Badge>
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        {history.subject}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400 mt-1">
-                                                        {formatDate(
-                                                            history.sent_at ||
-                                                                history.created_at,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            <PaperAirplaneIcon className="h-4 w-4 mr-1" />
+                                            プレビュー
+                                        </PrimaryButton>
+                                    )}
+                                    {!canSend && (
+                                        <span className="text-sm text-gray-500">
+                                            (明細と条項を入力後に送信可能)
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </CardBody>
                     </Card>
                 )}
 
-                {/* 署名管理 */}
-                {contract.signature_status && (
-                    <Card key={`signature-${refreshKey}`}>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <CardTitle>署名管理</CardTitle>
-                                <Badge
-                                    className={
-                                        contract.signature_status ===
-                                        "fully_signed"
-                                            ? "bg-green-100 text-green-800"
-                                            : contract.signature_status ===
-                                                "user_signed"
-                                              ? "bg-blue-100 text-blue-800"
-                                              : contract.signature_status ===
-                                                  "rejected"
-                                                ? "bg-red-100 text-red-800"
-                                                : "bg-yellow-100 text-yellow-800"
-                                    }
-                                >
-                                    {contract.signature_status ===
-                                    "fully_signed"
-                                        ? "完全署名"
-                                        : contract.signature_status ===
-                                            "user_signed"
-                                          ? "ユーザー署名済み"
-                                          : contract.signature_status ===
-                                              "rejected"
-                                            ? "却下"
-                                            : "署名待ち"}
-                                </Badge>
-                            </div>
-                        </CardHeader>
+                {/* 署名状態と次のステップ */}
+                {(contract.status === "pending_signature" ||
+                    contract.status === "active") && (
+                    <Card>
                         <CardBody>
-                            <AdminSignatureVerification
-                                contract={contract}
-                                onSuccess={() => {
-                                    setRefreshKey((k) => k + 1);
-                                    router.reload({
-                                        only: ["contract"],
-                                    });
-                                }}
-                            />
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-4">
+                                        ✍️ 署名状況
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                                ユーザー署名
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                {contract.user_signed_at ? (
+                                                    <>
+                                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                                        <span className="text-green-600 font-semibold">
+                                                            署名済み
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircleIcon className="h-5 w-5 text-yellow-600" />
+                                                        <span className="text-yellow-600 font-semibold">
+                                                            署名待ち
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {contract.user_signed_at && (
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                    署名日時:{" "}
+                                                    {new Date(
+                                                        contract.user_signed_at,
+                                                    ).toLocaleDateString(
+                                                        "ja-JP",
+                                                    )}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                                Admin 署名
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                {contract.admin_signed_at ? (
+                                                    <>
+                                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                                        <span className="text-green-600 font-semibold">
+                                                            署名済み
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircleIcon className="h-5 w-5 text-yellow-600" />
+                                                        <span className="text-yellow-600 font-semibold">
+                                                            署名待ち
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {contract.admin_signed_at && (
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                    署名日時:{" "}
+                                                    {new Date(
+                                                        contract.admin_signed_at,
+                                                    ).toLocaleDateString(
+                                                        "ja-JP",
+                                                    )}
+                                                </p>
+                                            )}
+                                            {contract.user_signed_at &&
+                                                !contract.admin_signed_at && (
+                                                    <button
+                                                        onClick={() =>
+                                                            setShowAdminSignatureModal(
+                                                                true,
+                                                            )
+                                                        }
+                                                        className="mt-3 w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                                    >
+                                                        署名する
+                                                    </button>
+                                                )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ユーザー署名後のプロジェクト・請求書作成ボタン */}
+                                {contract.user_signed_at && (
+                                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                                            次のステップ
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <button
+                                                onClick={handleCreateProject}
+                                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                            >
+                                                <SparklesIcon className="h-5 w-5" />
+                                                プロジェクトを作成
+                                            </button>
+                                            <button
+                                                onClick={handleCreateInvoice}
+                                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                            >
+                                                <DocumentTextIcon className="h-5 w-5" />
+                                                請求書を作成
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
+                                            プロジェクトと請求書は平行して作成できます。
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </CardBody>
                     </Card>
                 )}
 
                 {/* アクションボタン */}
-                <Card>
-                    <CardBody>
-                        <div className="flex justify-between items-center">
-                            <div className="flex space-x-4">
-                                {(contract.status === "draft" ||
-                                    contract.status ===
-                                        "pending_signature") && (
-                                    <>
-                                        <PrimaryButton onClick={handleSend}>
-                                            <DocumentArrowUpIcon className="h-5 w-5 mr-2" />
-                                            メール送信
-                                        </PrimaryButton>
-                                        <PrimaryButton onClick={handleActivate}>
-                                            <CheckCircleIcon className="h-5 w-5 mr-2" />
-                                            契約を有効化
-                                        </PrimaryButton>
-                                    </>
-                                )}
-                                {contract.status === "active" && (
-                                    <SecondaryButton onClick={handleCancel}>
-                                        <XCircleIcon className="h-5 w-5 mr-2" />
-                                        契約をキャンセル
-                                    </SecondaryButton>
-                                )}
-                            </div>
-                            {contract.status === "draft" && (
+                <div className="flex justify-end gap-3 flex-wrap">
+                    {contract.status === "draft" && (
+                        <>
+                            <SecondaryButton onClick={handleEdit}>
+                                <PencilIcon className="h-4 w-4 mr-2" />
+                                基本情報を編集
+                            </SecondaryButton>
+                            <DangerButton onClick={handleDelete}>
+                                削除
+                            </DangerButton>
+                        </>
+                    )}
+                    {contract.user_signed_at &&
+                        !contract.admin_signed_at &&
+                        (contract.signature_required_from === "admin" ||
+                            contract.signature_required_from === "both") && (
+                            <>
                                 <SecondaryButton
-                                    onClick={handleDelete}
-                                    className="text-red-600 hover:text-red-800"
+                                    onClick={() =>
+                                        setShowAdminSignatureModal(true)
+                                    }
                                 >
-                                    <TrashIcon className="h-5 w-5 mr-2" />
-                                    削除
+                                    <PencilIcon className="h-4 w-4 mr-2" />
+                                    Admin署名
                                 </SecondaryButton>
+                                <SecondaryButton onClick={handleCreateInvoice}>
+                                    <DocumentTextIcon className="h-4 w-4 mr-2" />
+                                    請求書作成
+                                </SecondaryButton>
+                                <PrimaryButton onClick={handleCreateProject}>
+                                    <SparklesIcon className="h-4 w-4 mr-2" />
+                                    プロジェクト作成
+                                </PrimaryButton>
+                            </>
+                        )}
+                </div>
+
+                {/* タブナビゲーション */}
+                <Card>
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-wrap">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                                        activeTab === tab.id
+                                            ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                                            : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                                    }`}
+                                >
+                                    <span className="mr-2">{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 pr-4">
+                            <Link
+                                href={route("admin.contract.edit", contract.id)}
+                                title="編集"
+                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                            >
+                                <PencilIcon className="w-5 h-5" />
+                            </Link>
+                            {canSend && (
+                                <Link
+                                    href={route(
+                                        "admin.contract.preview",
+                                        contract.id,
+                                    )}
+                                    title="プレビュー"
+                                    className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
+                                >
+                                    <PaperAirplaneIcon className="w-5 h-5" />
+                                </Link>
+                            )}
+                            {hasItems ? (
+                                <Link
+                                    href={route(
+                                        "admin.contract.item.edit",
+                                        contract.id,
+                                    )}
+                                    title="契約明細を編集"
+                                    className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                >
+                                    <PencilIcon className="w-5 h-5" />
+                                </Link>
+                            ) : (
+                                <Link
+                                    href={route(
+                                        "admin.contract.item.create",
+                                        contract.id,
+                                    )}
+                                    title="契約明細を作成"
+                                    className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                >
+                                    <PlusIcon className="w-5 h-5" />
+                                </Link>
                             )}
                         </div>
+                    </div>
+
+                    {/* タブコンテンツ */}
+                    <CardBody>
+                        {activeTab === "basic" && (
+                            <ContractBasicInfo
+                                contract={contract}
+                                statuses={STATUSES}
+                            />
+                        )}
+                        {activeTab === "items" && (
+                            <ContractItems contract={contract} />
+                        )}
+                        {activeTab === "amount" && (
+                            <ContractAmount contract={contract} />
+                        )}
+                        {activeTab === "terms" && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">
+                                        契約条項
+                                    </h3>
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                        {currentVersion?.terms_and_conditions ||
+                                            "未記入"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">
+                                        特別条項
+                                    </h3>
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                        {currentVersion?.special_provisions ||
+                                            "未記入"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">
+                                        備考
+                                    </h3>
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                        {currentVersion?.notes || "未記入"}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === "versions" && (
+                            <ContractVersionHistory contract={contract} />
+                        )}
+                        {activeTab === "client" && (
+                            <ContractClientInfo contract={contract} />
+                        )}
+                        {activeTab === "quote" && (
+                            <>
+                                {contract.quote ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                見積書番号
+                                            </span>
+                                            <p className="mt-1 text-gray-900 dark:text-gray-100">
+                                                {contract.quote.quote_number}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                タイトル
+                                            </span>
+                                            <p className="mt-1 text-gray-900 dark:text-gray-100">
+                                                {contract.quote.title}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                金額
+                                            </span>
+                                            <p className="mt-1 text-lg font-semibold text-blue-600 dark:text-blue-400">
+                                                ¥
+                                                {(
+                                                    contract.quote
+                                                        .total_amount || 0
+                                                ).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                ステータス
+                                            </span>
+                                            <p className="mt-1 text-gray-900 dark:text-gray-100">
+                                                {contract.quote.status}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 dark:text-gray-400">
+                                        この契約に関連する見積書はありません。
+                                    </p>
+                                )}
+                            </>
+                        )}
+                        {activeTab === "invoices" && (
+                            <>
+                                <p className="text-gray-500 dark:text-gray-400">
+                                    請求書表示機能は準備中です。
+                                </p>
+                            </>
+                        )}
+                        {activeTab === "receipts" && (
+                            <>
+                                <p className="text-gray-500 dark:text-gray-400">
+                                    領収書表示機能は準備中です。
+                                </p>
+                            </>
+                        )}
                     </CardBody>
                 </Card>
             </div>
+
+            {/* Admin署名モーダル */}
+            {showAdminSignatureModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <Card className="w-full max-w-md max-h-screen overflow-y-auto">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold mb-4">
+                                Admin署名
+                            </h2>
+                            <form
+                                onSubmit={handleAdminSignSubmit}
+                                className="space-y-4"
+                            >
+                                <div>
+                                    <DigitalStamp
+                                        onStampChange={handleAdminStampChange}
+                                    />
+                                </div>
+
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-800 dark:text-blue-200">
+                                    <p>
+                                        この契約に対してAdmin署名を行います。
+                                        <br />
+                                        署名後、契約は有効状態となります。
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <PrimaryButton
+                                        type="submit"
+                                        disabled={processing}
+                                    >
+                                        {processing
+                                            ? "送信中..."
+                                            : "署名を送信"}
+                                    </PrimaryButton>
+                                    <SecondaryButton
+                                        type="button"
+                                        disabled={processing}
+                                        onClick={() =>
+                                            setShowAdminSignatureModal(false)
+                                        }
+                                    >
+                                        キャンセル
+                                    </SecondaryButton>
+                                </div>
+                            </form>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* アラート */}
+            <SuccessAlert
+                isOpen={alertState.type === "success" && alertState.isOpen}
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                title="署名が完了しました"
+                message="Admin署名が正常に完了しました。ページを再読み込みしています..."
+                autoClose={true}
+                autoCloseDelay={2000}
+            />
+
+            <ConfirmAlert
+                isOpen={
+                    alertState.type === "empty-signature" && alertState.isOpen
+                }
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                onConfirm={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                title="署名が必要です"
+                message="Admin署名を作成してください。"
+                confirmText="OK"
+                type="warning"
+                showCancel={false}
+            />
+
+            <ConfirmAlert
+                isOpen={alertState.type === "error" && alertState.isOpen}
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                onConfirm={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                title="エラー"
+                message="Admin署名の送信に失敗しました。もう一度お試しください。"
+                confirmText="OK"
+                type="error"
+                showCancel={false}
+            />
         </AdminAuthenticatedLayout>
     );
 }

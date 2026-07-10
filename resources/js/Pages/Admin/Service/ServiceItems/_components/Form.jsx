@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardTitle, CardHeader, CardBody } from "@/Components/Card";
 import {
     FormGroup,
@@ -6,31 +6,80 @@ import {
     TextArea,
     SelectInput,
     NumberInput,
-    Checkbox,
 } from "@/Components/Forms";
+import { StoreButton, SecondaryButton } from "@/Components/Buttons";
 
 const ServiceItemForm = ({
     data,
     setData,
     errors,
+    processing,
+    onSubmit,
+    cancelRoute,
     statuses,
     itemTypes,
     services,
-    servicePlans,
     mode = "create",
 }) => {
-    // item_typeがaddonの場合、service_plan_idを自動的にNULLに設定
-    const handleItemTypeChange = (e) => {
-        const type = e.target.value;
-        setData("item_type", type);
+    const [autoSlug, setAutoSlug] = useState(mode === "create");
 
-        if (type === "addon") {
-            setData("service_plan_id", "");
+    const generateSlug = (name) => {
+        return name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .trim("-");
+    };
+
+    const handleNameChange = (e) => {
+        const name = e.target.value;
+        setData("name", name);
+        if (autoSlug && name) {
+            setData("slug", generateSlug(name));
         }
     };
 
+    const handleAutoGenerateSlug = () => {
+        setAutoSlug(true);
+        setData("slug", generateSlug(data.name));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit();
+    };
+
+    // オプション処理関数
+    const getStatusOptions = () => {
+        if (!statuses) return [];
+        if (Array.isArray(statuses)) return statuses;
+        return Object.entries(statuses).map(([key, value]) => ({
+            value: key,
+            label: value,
+        }));
+    };
+
+    const getItemTypeOptions = () => {
+        if (!itemTypes) return [];
+        if (Array.isArray(itemTypes)) return itemTypes;
+        return Object.entries(itemTypes).map(([key, value]) => ({
+            value: key,
+            label: value,
+        }));
+    };
+
+    const getServiceOptions = () => {
+        if (!services) return [];
+        return services.map((service) => ({
+            value: service.id,
+            label: service.name,
+        }));
+    };
+
     return (
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 基本情報 */}
             <Card>
                 <CardHeader>
                     <CardTitle>基本情報</CardTitle>
@@ -38,21 +87,19 @@ const ServiceItemForm = ({
                 <CardBody>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 項目名 */}
-                        <div className="md:col-span-2">
-                            <FormGroup
-                                label="項目名"
-                                required
-                                error={errors.name}
-                            >
-                                <TextInput
-                                    value={data.name}
-                                    onChange={(e) =>
-                                        setData("name", e.target.value)
-                                    }
-                                    placeholder="例: 追加ページ制作"
-                                />
-                            </FormGroup>
-                        </div>
+                        <FormGroup
+                            label="項目名"
+                            required
+                            error={errors.name}
+                            className="md:col-span-2"
+                        >
+                            <TextInput
+                                value={data.name}
+                                onChange={handleNameChange}
+                                placeholder="例: 追加ページ制作"
+                                disabled={processing}
+                            />
+                        </FormGroup>
 
                         {/* サービス選択 */}
                         <FormGroup
@@ -65,32 +112,33 @@ const ServiceItemForm = ({
                                 onChange={(e) =>
                                     setData("service_id", e.target.value)
                                 }
-                                options={services.map((service) => ({
-                                    value: service.id,
-                                    label: service.name,
-                                }))}
-                                placeholder="選択してください"
-                            />
+                                options={getServiceOptions()}
+                                disabled={processing}
+                            >
+                                <option value="">選択してください</option>
+                            </SelectInput>
                         </FormGroup>
 
-                        {/* プラン選択 */}
-                        <FormGroup
-                            label="サービスプラン"
-                            hint="addon選択時は不要"
-                            error={errors.service_plan_id}
-                        >
-                            <SelectInput
-                                value={data.service_plan_id}
-                                onChange={(e) =>
-                                    setData("service_plan_id", e.target.value)
-                                }
-                                options={servicePlans.map((plan) => ({
-                                    value: plan.id,
-                                    label: plan.name,
-                                }))}
-                                placeholder="選択なし"
-                                disabled={data.item_type === "addon"}
-                            />
+                        {/* スラッグ */}
+                        <FormGroup label="スラッグ" error={errors.slug}>
+                            <div className="flex items-center gap-2">
+                                <TextInput
+                                    value={data.slug}
+                                    onChange={(e) =>
+                                        setData("slug", e.target.value)
+                                    }
+                                    placeholder="自動生成"
+                                    disabled={processing}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAutoGenerateSlug}
+                                    className="px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                                    disabled={processing}
+                                >
+                                    自動生成
+                                </button>
+                            </div>
                         </FormGroup>
 
                         {/* 項目タイプ */}
@@ -101,11 +149,11 @@ const ServiceItemForm = ({
                         >
                             <SelectInput
                                 value={data.item_type}
-                                onChange={handleItemTypeChange}
-                                options={itemTypes.map((type) => ({
-                                    value: type.value,
-                                    label: type.label,
-                                }))}
+                                onChange={(e) =>
+                                    setData("item_type", e.target.value)
+                                }
+                                options={getItemTypeOptions()}
+                                disabled={processing}
                             />
                         </FormGroup>
 
@@ -120,10 +168,8 @@ const ServiceItemForm = ({
                                 onChange={(e) =>
                                     setData("status", e.target.value)
                                 }
-                                options={statuses.map((status) => ({
-                                    value: status.value,
-                                    label: status.label,
-                                }))}
+                                options={getStatusOptions()}
+                                disabled={processing}
                             />
                         </FormGroup>
                     </div>
@@ -138,36 +184,55 @@ const ServiceItemForm = ({
                                 }
                                 rows={4}
                                 placeholder="項目の詳細説明"
+                                disabled={processing}
                             />
                         </FormGroup>
                     </div>
                 </CardBody>
             </Card>
 
+            {/* 価格・納期設定 */}
             <Card>
                 <CardHeader>
-                    <CardTitle>料金・納期設定</CardTitle>
+                    <CardTitle>価格・納期設定</CardTitle>
                 </CardHeader>
                 <CardBody>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* 価格 */}
+                        {/* 標準価格 */}
                         <FormGroup
-                            label="価格 (円)"
+                            label="標準価格（円）"
                             required
-                            error={errors.price}
+                            error={errors.standard_price}
                         >
                             <NumberInput
-                                value={data.price}
-                                onChange={(value) => setData("price", value)}
+                                value={data.standard_price}
+                                onChange={(value) => setData("standard_price", value)}
                                 min={0}
                                 step={100}
                                 placeholder="10000"
+                                disabled={processing}
+                            />
+                        </FormGroup>
+
+                        {/* 原価 */}
+                        <FormGroup
+                            label="原価（円）"
+                            required
+                            error={errors.internal_cost}
+                        >
+                            <NumberInput
+                                value={data.internal_cost}
+                                onChange={(value) => setData("internal_cost", value)}
+                                min={0}
+                                step={100}
+                                placeholder="10000"
+                                disabled={processing}
                             />
                         </FormGroup>
 
                         {/* 作業日数目安 */}
                         <FormGroup
-                            label="作業日数目安 (日)"
+                            label="作業日数目安（日）"
                             error={errors.estimated_days}
                         >
                             <NumberInput
@@ -178,12 +243,31 @@ const ServiceItemForm = ({
                                 min={0}
                                 step={1}
                                 placeholder="5"
+                                disabled={processing}
+                            />
+                        </FormGroup>
+
+                        {/* 作業時間目安 */}
+                        <FormGroup
+                            label="作業時間目安（時間）"
+                            error={errors.estimated_hours}
+                        >
+                            <NumberInput
+                                value={data.estimated_hours}
+                                onChange={(value) =>
+                                    setData("estimated_hours", value)
+                                }
+                                min={0}
+                                step={0.5}
+                                placeholder="10"
+                                disabled={processing}
                             />
                         </FormGroup>
                     </div>
                 </CardBody>
             </Card>
 
+            {/* 表示設定 */}
             <Card>
                 <CardHeader>
                     <CardTitle>表示設定</CardTitle>
@@ -200,27 +284,23 @@ const ServiceItemForm = ({
                                 min={0}
                                 step={1}
                                 placeholder="0"
+                                disabled={processing}
                             />
                         </FormGroup>
-
-                        {/* 必須項目 */}
-                        <div>
-                            <label className="flex items-center mt-6">
-                                <Checkbox
-                                    checked={data.is_required}
-                                    onChange={(e) =>
-                                        setData("is_required", e.target.checked)
-                                    }
-                                />
-                                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                                    必須項目
-                                </span>
-                            </label>
-                        </div>
                     </div>
                 </CardBody>
             </Card>
-        </div>
+
+            {/* アクション */}
+            <div className="flex items-center justify-end gap-4">
+                <SecondaryButton href={cancelRoute} disabled={processing}>
+                    キャンセル
+                </SecondaryButton>
+                <StoreButton type="submit" processing={processing}>
+                    {mode === "edit" ? "更新" : "作成"}
+                </StoreButton>
+            </div>
+        </form>
     );
 };
 

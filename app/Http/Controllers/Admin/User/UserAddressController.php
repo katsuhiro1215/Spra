@@ -17,7 +17,7 @@ class UserAddressController extends Controller
      */
     public function create(User $user): Response
     {
-        return Inertia::render('Admin/Users/Address/Create', [
+        return Inertia::render('Admin/User/Address/Create', [
             'user' => $user,
             'types' => $this->getAddressTypes(),
         ]);
@@ -31,7 +31,7 @@ class UserAddressController extends Controller
         $user->addresses()->create($request->validated());
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.user.show', $user)
             ->with('success', '住所を追加しました。');
     }
 
@@ -40,7 +40,7 @@ class UserAddressController extends Controller
      */
     public function edit(User $user, Address $address): Response
     {
-        return Inertia::render('Admin/Users/Address/Edit', [
+        return Inertia::render('Admin/User/Address/Edit', [
             'user' => $user,
             'address' => $address,
             'types' => $this->getAddressTypes(),
@@ -55,7 +55,7 @@ class UserAddressController extends Controller
         $address->update($request->validated());
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.user.show', $user)
             ->with('success', '住所を更新しました。');
     }
 
@@ -67,7 +67,7 @@ class UserAddressController extends Controller
         $address->delete();
 
         return redirect()
-            ->route('admin.users.show', $user)
+            ->route('admin.user.show', $user)
             ->with('success', '住所を削除しました。');
     }
 

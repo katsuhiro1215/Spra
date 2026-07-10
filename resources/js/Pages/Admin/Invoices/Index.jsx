@@ -65,7 +65,7 @@ export default function Index({ invoices, filters, stats }) {
 
     const handleSend = (invoice) => {
         const confirmed = confirm(
-            `請求書「${invoice.invoice_number}」を送付済みにしてもよろしいですか？`,
+            `請求書「${invoice.invoice_number}」をクライアントに送付してもよろしいですか？`,
         );
         if (confirmed) {
             router.patch(route("admin.invoice.send", invoice.id));
@@ -133,12 +133,12 @@ export default function Index({ invoices, filters, stats }) {
 
             {/* ヘッダー */}
             <div className="w-full flex flex-col gap-4">
-                <div className="px-6 py-4 border-b border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex justify-between items-center">
                         <div className="flex space-x-2">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                                 <FunnelIcon className="h-4 w-4 mr-2" />
                                 フィルター
@@ -149,45 +149,45 @@ export default function Index({ invoices, filters, stats }) {
 
                 {/* 統計情報 */}
                 {stats && (
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <div className="grid grid-cols-5 gap-4">
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-gray-900">
+                                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                                     {stats.total || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     総件数
                                 </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                     {stats.sent || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     送付済み
                                 </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-emerald-600">
+                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {stats.paid || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     支払済み
                                 </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-red-600">
+                                <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                                     {stats.overdue || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     期限超過
                                 </div>
                             </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-gray-600">
+                                <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">
                                     {stats.draft || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     下書き
                                 </div>
                             </div>
