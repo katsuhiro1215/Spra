@@ -32,22 +32,25 @@ use App\Models\Project;
 use App\Http\Controllers\Admin\Project\ProjectTemplateController;
 use App\Http\Controllers\Admin\Project\ProjectTemplateMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectController;
-use App\Http\Controllers\Admin\Project\ProjectInquiryController;
+use App\Http\Controllers\Admin\Project\ProjectVersionController;
 use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
+use App\Http\Controllers\Admin\Project\ProjectItemController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
+use App\Http\Controllers\Admin\Project\GanttChartController;
 
 use App\Http\Controllers\Admin\Quote\QuoteController;
+use App\Http\Controllers\Admin\Quote\QuoteVersionController;
 use App\Http\Controllers\Admin\Quote\QuoteItemController;
-use App\Http\Controllers\Admin\Quote\VersionController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
 
 use App\Http\Controllers\Admin\Contract\ContractController;
 use App\Http\Controllers\Admin\Contract\ContractVersionController;
 use App\Http\Controllers\Admin\Contract\ContractItemController;
 use App\Http\Controllers\Admin\Contract\ContractSignatureController;
+use App\Http\Controllers\Admin\Contract\ContractGroupController;
 
+use App\Http\Controllers\Admin\Invoice\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReceiptController;
 
 use App\Http\Controllers\Admin\FaqController;
@@ -247,15 +250,24 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::put('/{project}/updates/{update}', [ProjectUpdateController::class, 'update'])->name('updates.update');
         Route::delete('/{project}/updates/{update}', [ProjectUpdateController::class, 'destroy'])->name('updates.destroy');
         // ガントチャート
-        Route::get('/{project}/gantt', function (Project $project) {
-            $project->load(['milestones', 'items']);
-            return Inertia::render('Admin/Projects/GanttChart/Index', [
-                'project' => $project,
-            ]);
-        })->name('gantt.show');
+        Route::get('/gantt', [GanttChartController::class, 'index'])->name('gantt.index');
+        Route::get('/{project}/gantt', [GanttChartController::class, 'show'])->name('gantt.show');
     });
     // Project
     Route::resource('project', ProjectController::class);
+
+    // ProjectVersion ネストされたリソース
+    Route::prefix('project/{project}')->name('project.')->group(function () {
+        Route::resource('versions', ProjectVersionController::class);
+        Route::post('versions/{version}/set-current', [ProjectVersionController::class, 'setCurrent'])->name('versions.setCurrent');
+
+        // ProjectMilestone ネストされたリソース
+        Route::prefix('versions/{version}')->name('versions.')->group(function () {
+            Route::resource('milestones', ProjectMilestoneController::class)->except(['index']);
+            // ProjectItem ネストされたリソース
+            Route::resource('items', ProjectItemController::class)->except(['index']);
+        });
+    });
 
     // 契約管理
     Route::resource('contract', ContractController::class);
@@ -295,6 +307,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/signature/admin', [ContractSignatureController::class, 'showAdminSignaturePage'])->name('signature.admin.show');
         Route::post('/{id}/signature/admin', [ContractSignatureController::class, 'storeAdminSignature'])->name('signature.admin.store');
         Route::post('/{id}/signature/reject', [ContractSignatureController::class, 'rejectSignature'])->name('signature.reject');
+    });
+
+    // 契約グループ管理
+    Route::prefix('contract-group')->name('contract-group.')->group(function () {
+        Route::get('/', [ContractGroupController::class, 'index'])->name('index');
+        Route::get('/create', [ContractGroupController::class, 'create'])->name('create');
+        Route::post('/', [ContractGroupController::class, 'store'])->name('store');
+        Route::get('/{id}', [ContractGroupController::class, 'show'])->name('show');
+        Route::post('/{id}/send', [ContractGroupController::class, 'send'])->name('send');
+        Route::post('/{id}/add-contract', [ContractGroupController::class, 'addContract'])->name('add-contract');
+        Route::delete('/{id}/remove-contract/{contractId}', [ContractGroupController::class, 'removeContract'])->name('remove-contract');
+        Route::delete('/{id}', [ContractGroupController::class, 'destroy'])->name('destroy');
     });
 
     // 見積もり管理
@@ -349,8 +373,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{id}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('receipt.download');
     });
 
-    // 契約から請求書を生成
-    Route::post('contract/{contract}/create-invoice', [InvoiceController::class, 'createFromContract'])->name('invoice.create-from-contract');
+
 
     // 領収書管理
     Route::resource('receipt', ReceiptController::class);

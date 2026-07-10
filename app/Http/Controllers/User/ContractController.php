@@ -38,8 +38,21 @@ class ContractController extends Controller
         $contract = $this->service->findByIdForClient($id, $userId);
         abort_unless($contract, 404);
 
+        // 関連データを取得
+        $quote = null;
+        if ($contract->quote_id) {
+            $quote = \App\Models\Quote::find($contract->quote_id);
+        }
+
+        // TODO: 今後 invoices, receipts を追加
+        $invoices = [];
+        $receipts = [];
+
         return Inertia::render('User/Contracts/Show', [
             'contract' => $contract,
+            'quote' => $quote,
+            'invoices' => $invoices,
+            'receipts' => $receipts,
         ]);
     }
 

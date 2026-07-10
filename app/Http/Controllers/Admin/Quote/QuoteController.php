@@ -10,7 +10,6 @@ use App\Models\Contact;
 use App\Models\Company;
 use App\Models\Service;
 use App\Models\ServicePlan;
-use App\Models\ProjectInquiry;
 use App\Services\QuoteService;
 use App\Services\ServiceCategoryService;
 use App\Services\ServiceItemService;
@@ -81,17 +80,6 @@ class QuoteController extends Controller
                 ];
             });
 
-        // ProjectInquiryから見積もりを作成する場合
-        $projectInquiry = null;
-        if ($request->has('from_inquiry_id')) {
-            $projectInquiry = ProjectInquiry::with([
-                'user.profile',
-                'serviceCategory',
-                'service',
-                'servicePlan',
-            ])->find($request->input('from_inquiry_id'));
-        }
-
         // Contactから見積もりを作成する場合
         $contact = null;
         if ($request->has('contact_id')) {
@@ -115,7 +103,6 @@ class QuoteController extends Controller
 
         return Inertia::render('Admin/Quotes/Create', [
             'users' => $users,
-            'projectInquiry' => $projectInquiry,
             'contact' => $contact,
             'user' => $user,
             'company' => $company,
@@ -151,16 +138,6 @@ class QuoteController extends Controller
             // Quote作成（QuoteVersion v1 も自動作成される）
             $quote = $this->quoteService->createQuote($quoteData);
 
-            // ProjectInquiryから作成した場合、関連付けとステータス更新
-            if ($request->has('from_inquiry_id')) {
-                $inquiry = ProjectInquiry::find($request->input('from_inquiry_id'));
-                if ($inquiry) {
-                    $inquiry->update([
-                        'quote_id' => $quote->id,
-                        'status' => 'estimated',
-                    ]);
-                }
-            }
 
             return redirect()->route('admin.quote.show', $quote)
                 ->with('success', '見積もりを作成しました。見積明細を追加してください。');

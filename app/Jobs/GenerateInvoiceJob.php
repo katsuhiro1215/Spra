@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Contract;
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Auth;
@@ -77,40 +76,14 @@ class GenerateInvoiceJob implements ShouldQueue
       'company_id' => $this->contract->company_id,
       'billing_period_start' => $this->contract->start_date,
       'billing_period_end' => $this->contract->end_date,
-      'subtotal' => $this->contract->amount,
-      'discount_amount' => 0,
-      'tax_rate' => $this->contract->tax_rate ?? 0,
-      'tax_amount' => round($this->contract->amount * ($this->contract->tax_rate ?? 0) / 100, 2),
-      'total_amount' => $this->contract->amount + round($this->contract->amount * ($this->contract->tax_rate ?? 0) / 100, 2),
+      'subtotal' => $this->contract->current_version?->total_amount || 0,
+      'tax_rate' => $this->contract->current_version?->tax_rate ?? 0,
+      'tax_amount' => round(($this->contract->current_version?->total_amount || 0) * ($this->contract->current_version?->tax_rate ?? 0) / 100, 2),
+      'total_amount' => ($this->contract->current_version?->total_amount || 0) + round(($this->contract->current_version?->total_amount || 0) * ($this->contract->current_version?->tax_rate ?? 0) / 100, 2),
       'status' => 'draft',
-      'due_date' => $issueDate->addDays(30)->toDateString(), // デフォルト30日後
+      'due_date' => $issueDate->copy()->addDays(30)->toDateString(),
       'created_by' => null,
     ]);
-
-    // 請求項目を作成（契約から）
-    if ($this->contract->quote && $this->contract->quote->items()->exists()) {
-      $sortOrder = 1;
-      foreach ($this->contract->quote->items as $quoteItem) {
-        InvoiceItem::create([
-          'invoice_id' => $invoice->id,
-          'description' => $quoteItem->description,
-          'quantity' => $quoteItem->quantity,
-          'unit_price' => $quoteItem->unit_price,
-          'amount' => $quoteItem->quantity * $quoteItem->unit_price,
-          'sort_order' => $sortOrder++,
-        ]);
-      }
-    } else {
-      // Quote がない場合は契約自体を 1 行として追加
-      InvoiceItem::create([
-        'invoice_id' => $invoice->id,
-        'description' => $this->contract->title,
-        'quantity' => 1,
-        'unit_price' => $this->contract->amount,
-        'amount' => $this->contract->amount,
-        'sort_order' => 1,
-      ]);
-    }
 
     // 履歴記録
     $this->contract->histories()->create([

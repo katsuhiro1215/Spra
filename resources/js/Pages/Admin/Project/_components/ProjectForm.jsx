@@ -29,35 +29,18 @@ export default function ProjectForm({
     data,
     setData,
     errors,
-    inquiries = [],
     contracts = [],
     users = [],
     companies = [],
     admins = [],
-    categories = [],
     isEditMode = false,
 }) {
     const handleChange = (field, value) => {
         setData(field, value);
     };
 
-    const handleCategoryToggle = (categoryId) => {
-        const currentIds = data.category_ids || [];
-        const newIds = currentIds.includes(categoryId)
-            ? currentIds.filter((id) => id !== categoryId)
-            : [...currentIds, categoryId];
-        setData("category_ids", newIds);
-    };
-
+    console.log("ProjectForm data:", data);
     // オプションに変換
-    const inquiryOptions = [
-        { value: "", label: "なし" },
-        ...inquiries.map((inquiry) => ({
-            value: inquiry.id,
-            label: inquiry.subject || `問い合わせ #${inquiry.id}`,
-        })),
-    ];
-
     const contractOptions = [
         { value: "", label: "なし" },
         ...contracts.map((contract) => ({
@@ -70,7 +53,7 @@ export default function ProjectForm({
         { value: "", label: "選択してください" },
         ...users.map((user) => ({
             value: user.id,
-            label: user.name,
+            label: user.profile?.full_name || user.email,
         })),
     ];
 
@@ -86,7 +69,7 @@ export default function ProjectForm({
         { value: "", label: "選択してください" },
         ...admins.map((admin) => ({
             value: admin.id,
-            label: admin.name,
+            label: admin.profile?.full_name || admin.email,
         })),
     ];
 
@@ -172,17 +155,6 @@ export default function ProjectForm({
                 </h3>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormGroup label="問い合わせ" error={errors.inquiry_id}>
-                            <SelectInput
-                                value={data.inquiry_id || ""}
-                                onChange={(e) =>
-                                    handleChange("inquiry_id", e.target.value)
-                                }
-                                options={inquiryOptions}
-                                error={errors.inquiry_id}
-                            />
-                        </FormGroup>
-
                         <FormGroup label="契約" error={errors.contract_id}>
                             <SelectInput
                                 value={data.contract_id || ""}
@@ -332,50 +304,7 @@ export default function ProjectForm({
                             error={errors.client_visible_notes}
                         />
                     </FormGroup>
-
-                    <FormGroup label="内部ノート" error={errors.internal_notes}>
-                        <TextArea
-                            value={data.internal_notes || ""}
-                            onChange={(e) =>
-                                handleChange("internal_notes", e.target.value)
-                            }
-                            placeholder="内部のみのノート（クライアントには表示されません）"
-                            rows={4}
-                            error={errors.internal_notes}
-                        />
-                    </FormGroup>
                 </div>
-            </div>
-
-            {/* カテゴリ */}
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
-                    カテゴリ
-                </h3>
-                <FormGroup error={errors.category_ids}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {categories.map((category) => (
-                            <div
-                                key={category.id}
-                                className="flex items-center gap-2"
-                            >
-                                <Checkbox
-                                    checked={
-                                        data.category_ids?.includes(
-                                            category.id,
-                                        ) || false
-                                    }
-                                    onChange={() =>
-                                        handleCategoryToggle(category.id)
-                                    }
-                                />
-                                <label className="text-sm text-slate-700 dark:text-slate-300">
-                                    {category.name}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
-                </FormGroup>
             </div>
         </div>
     );

@@ -7,8 +7,6 @@ use App\Repositories\Contracts\ServiceCategoryRepositoryInterface;
 use App\Repositories\ServiceCategoryRepository;
 use App\Repositories\Contracts\ServiceRepositoryInterface;
 use App\Repositories\ServiceRepository;
-use App\Repositories\Contracts\ProjectInquiryRepositoryInterface;
-use App\Repositories\ProjectInquiryRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -27,12 +25,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             ServiceRepositoryInterface::class,
             ServiceRepository::class
-        );
-
-        // ProjectInquiry Repository Binding
-        $this->app->bind(
-            ProjectInquiryRepositoryInterface::class,
-            ProjectInquiryRepository::class
         );
     }
 

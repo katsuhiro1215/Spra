@@ -24,12 +24,9 @@ class Invoice extends Model
         'billing_period_start',
         'billing_period_end',
         'subtotal',
-        'discount_amount',
         'tax_rate',
         'tax_amount',
         'total_amount',
-        'deposit_rate',
-        'deposit_amount',
         'status',
         'due_date',
         'sent_at',
@@ -91,10 +88,7 @@ class Invoice extends Model
         return $this->belongsTo(InvoiceTemplate::class);
     }
 
-    public function items(): HasMany
-    {
-        return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
-    }
+
 
     public function payments(): HasMany
     {

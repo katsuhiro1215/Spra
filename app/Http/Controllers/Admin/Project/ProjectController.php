@@ -8,7 +8,7 @@ use App\Models\Contract;
 use App\Models\Admin;
 use App\Services\ProjectTemplateService;
 use App\Services\ProjectService;
-use App\Http\Requests\StoreProjectFromTemplateRequest;
+use App\Http\Requests\StoreProjectRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -41,28 +41,22 @@ class ProjectController extends Controller
     {
         $templates = $this->templateService->getAll();
         $admins = Admin::select('id', 'email')->with('profile')->get();
+        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
+        $companies = \App\Models\Company::all();
+        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
         $contract = null;
 
         // URLパラメータから contract_id を取得
         if (request()->has('contract_id')) {
-            $contract = Contract::with('user', 'company')
+            $contract = \App\Models\Contract::with('user', 'company')
                 ->findOrFail(request()->input('contract_id'));
         }
 
         return Inertia::render('Admin/Project/Create', [
             'contract' => $contract,
-            'templates' => $templates->map(fn($template) => [
-                'id' => $template->id,
-                'name' => $template->name,
-                'description' => $template->description,
-                'icon' => $template->icon,
-                'milestones' => $template->milestones->map(fn($milestone) => [
-                    'id' => $milestone->id,
-                    'milestone_name' => $milestone->milestone_name,
-                    'description' => $milestone->description,
-                    'order' => $milestone->order,
-                ])->all(),
-            ])->all(),
+            'contracts' => $contracts,
+            'users' => $users,
+            'companies' => $companies,
             'admins' => $admins,
         ]);
     }
@@ -70,9 +64,9 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProjectFromTemplateRequest $request): RedirectResponse
+    public function store(StoreProjectRequest $request): RedirectResponse
     {
-        $project = $this->projectService->createFromTemplate($request->validated());
+        $project = $this->projectService->create($request->validated());
 
         return redirect()
             ->route('admin.project.show', $project->id)
@@ -84,19 +78,46 @@ class ProjectController extends Controller
      */
     public function show(Project $project): Response
     {
-        $project->load(['user', 'company', 'admin', 'contract', 'milestones', 'updates', 'items']);
+        $project->load([
+            'user',
+            'company',
+            'admin',
+            'contract',
+            'versions',
+            'updates'
+        ]);
+
+        $currentVersion = $project->versions()
+            ->where('is_current', true)
+            ->first();
+
+        if ($currentVersion) {
+            $currentVersion->load(['milestones', 'items']);
+        }
 
         return Inertia::render('Admin/Project/Show', [
             'project' => $project,
+            'currentVersion' => $currentVersion,
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Project $project): void
+    public function edit(Project $project): Response
     {
-        // TODO: Implement edit logic
+        $admins = Admin::select('id', 'email')->with('profile')->get();
+        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
+        $companies = \App\Models\Company::all();
+        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
+
+        return Inertia::render('Admin/Project/Edit', [
+            'project' => $project,
+            'contracts' => $contracts,
+            'users' => $users,
+            'companies' => $companies,
+            'admins' => $admins,
+        ]);
     }
 
     /**

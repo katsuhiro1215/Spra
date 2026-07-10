@@ -25,6 +25,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->integer('sort_order')->default(0);
             $table->boolean('is_featured')->default(false);
+            $table->unsignedTinyInteger('deposit_rate')->default(50)->comment('Deposit rate as percentage');
             // 監査用カラム
             $table->foreignUuid('created_by')->nullable()->constrained('admins')->nullOnDelete()->comment('作成者');
             $table->foreignUuid('updated_by')->nullable()->constrained('admins')->nullOnDelete()->comment('更新者');

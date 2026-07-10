@@ -37,7 +37,7 @@ const priorityConfig = {
     urgent: { variant: "danger", label: "緊急" },
 };
 
-export default function Show({ project }) {
+export default function Show({ project, currentVersion }) {
     const [activeTab, setActiveTab] = useState("overview");
 
     const formatDate = (dateString) => {
@@ -64,15 +64,21 @@ export default function Show({ project }) {
 
     const headerActions = [
         {
+            label: "バージョン管理",
+            icon: FolderIcon,
+            variant: "primary",
+            route: route("admin.project.versions.index", project.id),
+        },
+        {
             label: "戻る",
             icon: ArrowLeftIcon,
             variant: "secondary",
-            route: route("admin.projects.index"),
+            route: route("admin.project.index"),
         },
     ];
 
     const breadcrumbs = [
-        { label: "プロジェクト", href: route("admin.projects.index") },
+        { label: "プロジェクト", href: route("admin.project.index") },
         { label: project.title },
     ];
 
@@ -114,7 +120,7 @@ export default function Show({ project }) {
                     </div>
 
                     <SecondaryButton
-                        href={route("admin.projects.edit", project.id)}
+                        href={route("admin.project.edit", project.id)}
                         icon={PencilIcon}
                     >
                         編集
@@ -231,8 +237,100 @@ export default function Show({ project }) {
                                 </CardBody>
                             </Card>
 
+                            {/* 現在のバージョン */}
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <FolderIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                                現在のバージョン
+                                            </h2>
+                                        </div>
+                                        <SecondaryButton
+                                            href={route(
+                                                "admin.project.versions.index",
+                                                project.id,
+                                            )}
+                                            size="sm"
+                                        >
+                                            バージョン管理
+                                        </SecondaryButton>
+                                    </div>
+                                </CardHeader>
+                                <CardBody>
+                                    {currentVersion ? (
+                                        <div className="space-y-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                                            v{currentVersion.version} - {currentVersion.title}
+                                                        </h3>
+                                                        <Badge variant="success">現在</Badge>
+                                                    </div>
+                                                    {currentVersion.description && (
+                                                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                            {currentVersion.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                                <div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500">マイルストーン</p>
+                                                    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                                        {currentVersion.milestones?.length || 0} 件
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500">アイテム</p>
+                                                    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                                        {currentVersion.items?.length || 0} 件
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                <SecondaryButton
+                                                    href={route(
+                                                        "admin.project.versions.show",
+                                                        [project.id, currentVersion.id],
+                                                    )}
+                                                    className="flex-1"
+                                                >
+                                                    バージョン詳細
+                                                </SecondaryButton>
+                                                <SecondaryButton
+                                                    onClick={() => setActiveTab("gantt")}
+                                                    className="flex-1"
+                                                >
+                                                    <ChartBarIcon className="w-4 h-4" />
+                                                    ガントチャート
+                                                </SecondaryButton>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="mb-4 text-slate-600 dark:text-slate-400">
+                                                プロジェクトバージョンがまだ作成されていません
+                                            </p>
+                                            <SecondaryButton
+                                                href={route(
+                                                    "admin.project.versions.create",
+                                                    project.id,
+                                                )}
+                                            >
+                                                最初のバージョンを作成
+                                            </SecondaryButton>
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+
                             {/* 関連情報 */}
-                            {(project.inquiry || project.contract) && (
+                            {project.contract && (
                                 <Card>
                                     <CardHeader>
                                         <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
@@ -241,19 +339,6 @@ export default function Show({ project }) {
                                     </CardHeader>
                                     <CardBody>
                                         <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {project.inquiry && (
-                                                <div>
-                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                                        問い合わせ
-                                                    </dt>
-                                                    <dd className="mt-1 text-sm text-slate-900 dark:text-slate-100">
-                                                        {project.inquiry
-                                                            .subject ||
-                                                            `問い合わせ #${project.inquiry.id}`}
-                                                    </dd>
-                                                </div>
-                                            )}
-
                                             {project.contract && (
                                                 <div>
                                                     <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -442,45 +527,172 @@ export default function Show({ project }) {
                 )}
 
                 {activeTab === "milestones" && (
-                    <Card>
-                        <CardBody>
-                            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                                マイルストーン機能は準備中です
-                            </div>
-                        </CardBody>
-                    </Card>
+                    <div className="space-y-6">
+                        {!currentVersion ? (
+                            <Card>
+                                <CardBody>
+                                    <div className="text-center py-12">
+                                        <p className="text-slate-600 dark:text-slate-400 mb-4">
+                                            プロジェクトバージョンがまだ作成されていません
+                                        </p>
+                                        <SecondaryButton
+                                            href={route(
+                                                "admin.project.versions.create",
+                                                project.id,
+                                            )}
+                                        >
+                                            最初のバージョンを作成
+                                        </SecondaryButton>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                        現在のバージョン: v{currentVersion.version} - {currentVersion.title}
+                                    </h2>
+                                    <SecondaryButton
+                                        href={route(
+                                            "admin.project.versions.show",
+                                            [project.id, currentVersion.id],
+                                        )}
+                                    >
+                                        バージョン詳細を表示
+                                    </SecondaryButton>
+                                </div>
+
+                                {currentVersion.milestones?.length > 0 ? (
+                                    <div className="grid gap-4">
+                                        {currentVersion.milestones.map(
+                                            (milestone) => (
+                                                <Card key={milestone.id}>
+                                                    <CardBody>
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex-1">
+                                                                <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                                                    {milestone.title}
+                                                                </h3>
+                                                                {milestone.description && (
+                                                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                                                                        {milestone.description}
+                                                                    </p>
+                                                                )}
+                                                                {milestone.due_date && (
+                                                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                                                                        期限: {formatDate(milestone.due_date)}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <Badge variant="info">
+                                                                {milestone.status === "pending" && "未着手"}
+                                                                {milestone.status === "in_progress" && "進行中"}
+                                                                {milestone.status === "completed" && "完了"}
+                                                                {milestone.status === "skipped" && "スキップ"}
+                                                            </Badge>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            ),
+                                        )}
+                                    </div>
+                                ) : (
+                                    <Card>
+                                        <CardBody>
+                                            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                                マイルストーンがまだ作成されていません
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                )}
+                            </>
+                        )}
+                    </div>
                 )}
 
                 {activeTab === "updates" && (
-                    <Card>
-                        <CardBody>
-                            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                                更新履歴機能は準備中です
+                    <div className="space-y-6">
+                        {project.updates?.length > 0 ? (
+                            <div className="space-y-4">
+                                {project.updates.map((update) => (
+                                    <Card key={update.id}>
+                                        <CardBody>
+                                            <div className="flex items-start justify-between mb-2">
+                                                <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                                    {update.title}
+                                                </h3>
+                                                <span className="text-xs text-slate-500 dark:text-slate-500">
+                                                    {formatDate(update.created_at)}
+                                                </span>
+                                            </div>
+                                            {update.content && (
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                                    {update.content}
+                                                </p>
+                                            )}
+                                            {update.created_by_admin && (
+                                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                                                    投稿者: {update.created_by_admin.profile?.full_name || update.created_by_admin.email}
+                                                </p>
+                                            )}
+                                        </CardBody>
+                                    </Card>
+                                ))}
                             </div>
-                        </CardBody>
-                    </Card>
+                        ) : (
+                            <Card>
+                                <CardBody>
+                                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                        更新履歴はまだありません
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        )}
+                    </div>
                 )}
 
                 {activeTab === "gantt" && (
-                    <div className="text-center">
-                        <Card>
-                            <CardBody className="py-12">
-                                <p className="mb-4 text-slate-600 dark:text-slate-400">
-                                    ガントチャートエディタを開く
-                                </p>
-                                <Link
-                                    href={route(
-                                        "admin.project.gantt.show",
-                                        project.id,
-                                    )}
-                                >
-                                    <SecondaryButton>
-                                        <ChartBarIcon className="w-5 h-5" />
-                                        ガントチャートを表示
-                                    </SecondaryButton>
-                                </Link>
-                            </CardBody>
-                        </Card>
+                    <div>
+                        {!currentVersion ? (
+                            <Card>
+                                <CardBody className="py-12">
+                                    <div className="text-center">
+                                        <p className="mb-4 text-slate-600 dark:text-slate-400">
+                                            ガントチャートを表示するには、まずプロジェクトバージョンを作成してください
+                                        </p>
+                                        <SecondaryButton
+                                            href={route(
+                                                "admin.project.versions.create",
+                                                project.id,
+                                            )}
+                                        >
+                                            バージョンを作成
+                                        </SecondaryButton>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        ) : (
+                            <Card>
+                                <CardBody className="py-12">
+                                    <div className="text-center">
+                                        <p className="mb-4 text-slate-600 dark:text-slate-400">
+                                            v{currentVersion.version} - {currentVersion.title} のガントチャートを表示
+                                        </p>
+                                        <Link
+                                            href={route(
+                                                "admin.project.gantt.show",
+                                                project.id,
+                                            )}
+                                        >
+                                            <SecondaryButton>
+                                                <ChartBarIcon className="w-5 h-5" />
+                                                ガントチャートを開く
+                                            </SecondaryButton>
+                                        </Link>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        )}
                     </div>
                 )}
 

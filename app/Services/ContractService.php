@@ -166,7 +166,7 @@ class ContractService
                 'auto_invoice_generation' => $data['auto_invoice_generation'] ?? true,
                 'auto_renewal' => $data['auto_renewal'] ?? false,
                 'renewal_notice_days' => $data['renewal_notice_days'] ?? 30,
-                'signature_required_from' => $data['signature_required_from'] ?? 'user',
+                'signature_required_from' => $data['signature_required_from'] ?? 'both',
                 'created_by' => $createdBy,
             ];
 

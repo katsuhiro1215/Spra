@@ -13,7 +13,6 @@ import QuoteForm from "./_components/Form";
 
 export default function Create({
     users,
-    projectInquiry = null,
     contact = null,
     user = null,
     company = null,
@@ -26,23 +25,11 @@ export default function Create({
         requirements: "",
         custom_specifications: "",
         status: "draft",
-        from_inquiry_id: projectInquiry?.id || null,
     });
 
     // 初期値を設定
     useEffect(() => {
         const updates = {};
-
-        // ProjectInquiryから見積もりを作成する場合
-        if (projectInquiry) {
-            updates.user_id = projectInquiry.user_id;
-            updates.title =
-                projectInquiry.title ||
-                `${projectInquiry.service?.name} - ${projectInquiry.service_plan?.name}`;
-            updates.requirements = projectInquiry.summary || "";
-            updates.custom_specifications = `見積もり依頼 ${projectInquiry.inquiry_code} から作成`;
-            updates.from_inquiry_id = projectInquiry.id;
-        }
 
         // Contactから見積もりを作成する場合
         if (contact) {
@@ -70,7 +57,7 @@ export default function Create({
         if (Object.keys(updates).length > 0) {
             setData((prev) => ({ ...prev, ...updates }));
         }
-    }, [projectInquiry, contact, user, company]);
+    }, [contact, user, company]);
 
     const submit = () => {
         post(route("admin.quote.store"));
@@ -95,12 +82,12 @@ export default function Create({
     ];
 
     // タイトルをコンテキストに応じて変更
+    // タイトルをコンテキストに応じて変更
     const getTitle = () => {
         if (contact) return `${contact.name} 様への見積もり作成`;
         if (user)
             return `${user.profile?.full_name || user.email} 様への見積もり作成`;
         if (company) return `${company.name} 様への見積もり作成`;
-        if (projectInquiry) return `見積もり依頼から見積もり作成`;
         return "見積もり新規作成";
     };
 

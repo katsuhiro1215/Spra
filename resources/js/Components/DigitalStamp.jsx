@@ -14,7 +14,7 @@ export default function DigitalStamp({ onStampChange }) {
         const width = canvas.width;
         const height = canvas.height;
 
-        // キャンバスをクリア
+        // キャンバスを白でクリア（mPDFの透明処理対応）
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, width, height);
 
@@ -29,21 +29,15 @@ export default function DigitalStamp({ onStampChange }) {
         const centerY = height / 2;
         const radius = Math.min(width, height) / 2 - 10;
 
-        // 赤い円形背景
-        ctx.fillStyle = "#dc2626"; // red-600
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // 黒い縁
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
+        // 赤い円線（背景なし）
+        ctx.strokeStyle = "#dc2626"; // red-600
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // テキストを描画（中央に配置）
-        ctx.fillStyle = "white";
+        // テキストを描画（赤色、中央に配置）
+        ctx.fillStyle = "#dc2626"; // red-600
         ctx.font = `bold ${Math.min(width, height) / 3}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -59,7 +53,7 @@ export default function DigitalStamp({ onStampChange }) {
 
         ctx.fillText(text, centerX, centerY);
 
-        // Base64 画像を取得
+        // Base64 画像を取得（白い背景付き）
         const dataUrl = canvas.toDataURL("image/png");
         setStampImage(dataUrl);
         onStampChange(dataUrl);
@@ -106,6 +100,7 @@ export default function DigitalStamp({ onStampChange }) {
                         width={200}
                         height={200}
                         className="border border-gray-200 rounded"
+                        style={{ backgroundColor: "transparent" }}
                     />
                 </div>
                 {stampImage && (

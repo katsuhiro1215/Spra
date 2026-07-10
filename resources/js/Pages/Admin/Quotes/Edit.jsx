@@ -103,7 +103,6 @@ export default function Edit({
                     services={services}
                     serviceItems={serviceItems}
                     servicePlans={servicePlans}
-                    projectInquiry={null}
                     isEdit={true}
                 />
             </div>

@@ -65,10 +65,11 @@ export default function Index({ quotes = [], meta = null }) {
                                         <td className="px-6 py-4 text-sm">
                                             <Badge
                                                 variant={
-                                                    quote.status === "sent"
+                                                    quote.status ===
+                                                    "negotiating"
                                                         ? "info"
                                                         : quote.status ===
-                                                            "accepted"
+                                                            "approved"
                                                           ? "success"
                                                           : quote.status ===
                                                               "rejected"
@@ -76,15 +77,21 @@ export default function Index({ quotes = [], meta = null }) {
                                                             : "default"
                                                 }
                                             >
-                                                {quote.status === "sent"
-                                                    ? "送信済み"
+                                                {quote.status === "negotiating"
+                                                    ? "交渉中"
                                                     : quote.status ===
-                                                        "accepted"
+                                                        "approved"
                                                       ? "承認済み"
                                                       : quote.status ===
                                                           "rejected"
                                                         ? "却下"
-                                                        : quote.status}
+                                                        : quote.status ===
+                                                            "draft"
+                                                          ? "下書き"
+                                                          : quote.status ===
+                                                              "contracted"
+                                                            ? "契約済み"
+                                                            : "キャンセル"}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4 text-sm">

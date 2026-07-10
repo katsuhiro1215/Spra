@@ -13,12 +13,10 @@ import ProjectForm from "./_components/ProjectForm";
 
 export default function Edit({
     project,
-    inquiries = [],
     contracts = [],
     users = [],
     companies = [],
     admins = [],
-    categories = [],
 }) {
     const { data, setData, put, processing, errors } = useForm({
         project_code: project.project_code || "",
@@ -26,7 +24,6 @@ export default function Edit({
         description: project.description || "",
         status: project.status || "planning",
         priority: project.priority || "medium",
-        inquiry_id: project.inquiry_id || "",
         contract_id: project.contract_id || "",
         user_id: project.user_id || "",
         company_id: project.company_id || "",
@@ -41,9 +38,6 @@ export default function Edit({
         is_client_visible: project.is_client_visible || false,
         client_visible_notes: project.client_visible_notes || "",
         internal_notes: project.internal_notes || "",
-        category_ids: project.categories
-            ? project.categories.map((cat) => cat.id)
-            : [],
     });
 
     const submit = (e) => {
@@ -90,12 +84,10 @@ export default function Edit({
                                 data={data}
                                 setData={setData}
                                 errors={errors}
-                                inquiries={inquiries}
                                 contracts={contracts}
                                 users={users}
                                 companies={companies}
                                 admins={admins}
-                                categories={categories}
                                 isEditMode={true}
                             />
                         </div>

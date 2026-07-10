@@ -3,20 +3,24 @@
 namespace App\Services;
 
 use App\Models\Project;
+use App\Models\ProjectVersion;
 use App\Models\ProjectMilestone;
 use App\Models\ProjectUpdate;
 use App\Models\ProjectItem;
 use App\Models\ProjectTemplate;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ProjectVersionRepository;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProjectService
 {
   public function __construct(
-    private ProjectRepository $repository
+    private ProjectRepository $repository,
+    private ProjectVersionRepository $versionRepository
   ) {}
 
   public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
@@ -39,14 +43,47 @@ class ProjectService
     return $this->repository->findByIdForClient($id, $userId);
   }
 
-  public function create(array $data, array $categoryIds = []): Project
+  public function create(array $data): Project
   {
-    return DB::transaction(function () use ($data, $categoryIds) {
+    return DB::transaction(function () use ($data) {
+      // Generate unique project code if not provided
+      if (empty($data['project_code'])) {
+        $timestamp = time() % 10000; // Last 4 digits of timestamp
+        $random = Str::random(4, '0123456789');
+        $code = 'PRJ-' . date('Y') . '-' . str_pad($timestamp, 4, '0', STR_PAD_LEFT) . $random;
+
+        // Ensure uniqueness (unlikely but possible)
+        $counter = 0;
+        while (Project::where('project_code', $code)->exists() && $counter < 10) {
+          $random = Str::random(4, '0123456789');
+          $code = 'PRJ-' . date('Y') . '-' . str_pad($timestamp, 4, '0', STR_PAD_LEFT) . $random;
+          $counter++;
+        }
+        $data['project_code'] = $code;
+      }
+
+      // Set created_by if not already set
+      if (empty($data['created_by'])) {
+        $data['created_by'] = auth('admins')->id();
+      }
+
+      // Create project
       $project = $this->repository->create($data);
 
-      if (!empty($categoryIds)) {
-        $this->repository->syncCategories($project, $categoryIds);
-      }
+      // Create initial ProjectVersion (v1, is_current = true)
+      $versionData = [
+        'project_id' => $project->id,
+        'version' => 1,
+        'title' => sprintf('%s - Version 1', $project->title),
+        'description' => $project->description ?? null,
+        'start_date' => $project->start_date,
+        'estimated_end_date' => $project->estimated_end_date ?? null,
+        'status' => 'draft',
+        'is_current' => true,
+        'created_by' => auth('admins')->id(),
+      ];
+
+      $this->versionRepository->create($versionData);
 
       return $project;
     });
@@ -76,6 +113,21 @@ class ProjectService
       // Create project
       $project = $this->repository->create($projectData);
 
+      // Create initial ProjectVersion (v1, is_current = true)
+      $versionData = [
+        'project_id' => $project->id,
+        'version' => 1,
+        'title' => sprintf('%s - Version 1', $project->title),
+        'description' => $project->description,
+        'start_date' => $project->start_date,
+        'estimated_end_date' => $project->estimated_end_date,
+        'status' => 'draft',
+        'is_current' => true,
+        'created_by' => auth('admins')->id(),
+      ];
+
+      $version = $this->versionRepository->create($versionData);
+
       // Get selected milestone IDs
       $selectedMilestoneIds = $data['milestone_ids'] ?? [];
       $selectedMilestones = $template->milestones()
@@ -91,7 +143,7 @@ class ProjectService
         ? intval($totalDays / $selectedMilestones->count())
         : $totalDays;
 
-      // Create milestones and items
+      // Create milestones and items via ProjectVersion
       foreach ($selectedMilestones as $index => $templateMilestone) {
         $milestoneStartDate = (clone $startDate)
           ->addDays($daysPerMilestone * $index);
@@ -99,7 +151,7 @@ class ProjectService
           ->addDays($daysPerMilestone - 1);
 
         // Create milestone
-        $milestone = $project->milestones()->create([
+        $milestone = $version->milestones()->create([
           'title' => $templateMilestone->milestone_name,
           'description' => $templateMilestone->description,
           'status' => 'pending',
@@ -110,7 +162,7 @@ class ProjectService
 
         // Create item for this milestone
         ProjectItem::create([
-          'project_id' => $project->id,
+          'project_version_id' => $version->id,
           'milestone_id' => $milestone->id,
           'name' => $templateMilestone->milestone_name,
           'description' => $templateMilestone->description,
@@ -168,9 +220,9 @@ class ProjectService
     return $this->repository->getActiveByUser($userId);
   }
 
-  public function addMilestone(Project $project, array $data): ProjectMilestone
+  public function addMilestone(ProjectVersion $version, array $data): ProjectMilestone
   {
-    return $project->milestones()->create($data);
+    return $version->milestones()->create($data);
   }
 
   public function updateMilestone(ProjectMilestone $milestone, array $data): ProjectMilestone

@@ -106,10 +106,7 @@ class Admin extends Authenticatable
         return $this->hasMany(Project::class, 'admin_id');
     }
 
-    public function assignedInquiries(): HasMany
-    {
-        return $this->hasMany(ProjectInquiry::class, 'assigned_admin_id');
-    }
+
 
     public function acknowledgedPaymentNotifications(): HasMany
     {

@@ -36,7 +36,7 @@ return new class extends Migration
             $table->json('metadata')->nullable(); // エラー情報など
 
             // 作成者（Admin）
-            $table->ulid('created_by')->nullable();
+            $table->uuid('created_by')->nullable();
             $table->foreign('created_by')
                 ->references('id')
                 ->on('admins')

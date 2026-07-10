@@ -1,5 +1,5 @@
 import { Head, Link } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
@@ -10,20 +10,52 @@ import GanttToolbar from "@/Components/GanttChart/GanttToolbar";
 import GanttTimeline from "@/Components/GanttChart/GanttTimeline";
 import GanttTaskList from "@/Components/GanttChart/GanttTaskList";
 import GanttCanvas from "@/Components/GanttChart/GanttCanvas";
-// Mock Data
-import { mockTasks, getProjectDateRange } from "@/Data/mockGanttData";
 
-export default function Index({ project }) {
+export default function Index({ project, currentVersion, milestones = [], items = [] }) {
     const [viewMode, setViewMode] = useState("month");
     const [showFilter, setShowFilter] = useState(false);
-    const [tasks, setTasks] = useState(mockTasks);
+
+    // ProjectItemsをガントチャートタスク形式に変換
+    const convertItemsToTasks = useMemo(() => {
+        if (!items || items.length === 0) return [];
+
+        return items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            start: new Date(item.start_date),
+            end: new Date(item.end_date),
+            progress: item.status === "completed" ? 100 : item.status === "in_progress" ? 50 : 0,
+            type: "task",
+            resource: item.assigned_to || "未割当",
+            dependencies: [],
+            status: item.status,
+            priority: item.priority,
+            description: item.description,
+            children: [],
+        }));
+    }, [items]);
+
+    const [tasks, setTasks] = useState(convertItemsToTasks);
+
+    // プロジェクトの期間を取得
+    const getProjectDateRange = () => {
+        const startDate = currentVersion?.start_date
+            ? new Date(currentVersion.start_date)
+            : new Date();
+        const endDate = currentVersion?.estimated_end_date
+            ? new Date(currentVersion.estimated_end_date)
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        return { startDate, endDate };
+    };
+
     const { startDate, endDate } = getProjectDateRange();
 
     const breadcrumbs = [
-        { label: "プロジェクト", href: route("admin.projects.index") },
+        { label: "プロジェクト", href: route("admin.project.index") },
         {
             label: project.title,
-            href: route("admin.projects.show", project.id),
+            href: route("admin.project.show", project.id),
         },
         { label: "ガントチャート" },
     ];
@@ -149,10 +181,10 @@ export default function Index({ project }) {
 
     const headerActions = [
         {
-            label: "プロジェクト詳細に戻る",
+            label: "プロジェクト一覧に戻る",
             icon: ArrowLeftIcon,
             variant: "secondary",
-            route: route("admin.projects.show", project.id),
+            route: route("admin.project.index"),
         },
     ];
 
@@ -166,58 +198,6 @@ export default function Index({ project }) {
                 actions={headerActions}
             />
 
-            <div className="h-[calc(100vh-280px)] flex flex-col">
-                {/* ツールバー */}
-                <GanttToolbar
-                    viewMode={viewMode}
-                    onViewModeChange={handleViewModeChange}
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                    onAddTask={handleAddTask}
-                    onToggleFilter={handleToggleFilter}
-                    showFilter={showFilter}
-                />
-
-                {/* メインエリア */}
-                <div className="flex-1 flex overflow-hidden">
-                    {/* 左側：タスクリスト */}
-                    <div className="w-[600px] flex-shrink-0 overflow-y-auto">
-                        <GanttTaskList
-                            tasks={tasks}
-                            onTaskClick={handleTaskClick}
-                            onEditTask={handleEditTask}
-                            onDeleteTask={handleDeleteTask}
-                            onTaskReorder={handleTaskReorder}
-                            onTaskProgressUpdate={handleTaskProgressUpdate}
-                        />
-                    </div>
-
-                    {/* 右側：ガントチャート */}
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        {/* タイムライン */}
-                        <div className="flex-shrink-0">
-                            <GanttTimeline
-                                viewMode={viewMode}
-                                startDate={startDate}
-                                endDate={endDate}
-                            />
-                        </div>
-
-                        {/* キャンバス */}
-                        <div className="flex-1 overflow-auto">
-                            <GanttCanvas
-                                tasks={tasks}
-                                viewMode={viewMode}
-                                startDate={startDate}
-                                endDate={endDate}
-                                onTaskBarClick={handleTaskBarClick}
-                                onTaskUpdate={handleTaskUpdate}
-                                onTaskProgressUpdate={handleTaskProgressUpdate}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
         </AdminAuthenticatedLayout>
     );
 }

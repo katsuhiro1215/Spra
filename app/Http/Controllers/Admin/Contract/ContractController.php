@@ -48,6 +48,9 @@ class ContractController extends Controller
         $contract = $this->service->findById($contract->id);
         abort_unless($contract, 404);
 
+        // quote を含めて読み込む
+        $contract->load('quote');
+
         return Inertia::render('Admin/Contracts/Show', [
             'contract' => $contract,
         ]);
@@ -439,7 +442,8 @@ class ContractController extends Controller
         $contract = $this->service->findById($id);
         abort_unless($contract, 404);
 
-        $pdf = $this->pdfService->generate($contract);
+        // 4ページの完全なPDFを生成
+        $pdf = $this->pdfService->generateFullContract($contract);
         $fileName = $this->pdfService->getFileName($contract);
 
         return response($pdf->Output($fileName, 'S'), 200, [
@@ -456,7 +460,8 @@ class ContractController extends Controller
         $contract = $this->service->findById($id);
         abort_unless($contract, 404);
 
-        $pdf = $this->pdfService->generate($contract);
+        // 4ページの完全なPDFを生成
+        $pdf = $this->pdfService->generateFullContract($contract);
 
         return response($pdf->Output('', 'S'), 200, [
             'Content-Type' => 'application/pdf',

@@ -8,9 +8,10 @@ use App\Services\ServiceCategoryService;
 use App\Services\ServiceService;
 use App\Services\ServicePlanService;
 use App\Services\ServiceItemService;
-use App\Services\ProjectInquiryService;
+use App\Models\Contact;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EstimateSimulatorController extends Controller
 {
@@ -18,8 +19,7 @@ class EstimateSimulatorController extends Controller
         private ServiceCategoryService $serviceCategoryService,
         private ServiceService $serviceService,
         private ServicePlanService $servicePlanService,
-        private ServiceItemService $serviceItemService,
-        private ProjectInquiryService $projectInquiryService
+        private ServiceItemService $serviceItemService
     ) {}
 
     /**
@@ -141,7 +141,7 @@ class EstimateSimulatorController extends Controller
     }
 
     /**
-     * 見積もり依頼を保存
+     * シミュレーション結果から Contact を作成
      *
      * @param Request $request
      * @return RedirectResponse
@@ -159,11 +159,29 @@ class EstimateSimulatorController extends Controller
             'summary' => 'nullable|string',
         ]);
 
-        $this->projectInquiryService->createFromEstimateSimulator(
-            $validated,
-            auth()->id()
-        );
+        return DB::transaction(function () use ($validated) {
+            // Contact を作成（見積もり依頼）
+            $contact = Contact::create([
+                'user_id' => auth()->id(),
+                'first_name' => '見積依頼',
+                'last_name' => '',
+                'email' => auth()->user()->email,
+                'phone' => '',
+                'category_id' => 1, // デフォルトカテゴリ
+                'message' => sprintf(
+                    "見積もりシミュレーションからの自動送信\n\nサービス：%s\n概算金額：%s円\n概算日数：%s日\n\n内容：%s",
+                    $validated['title'],
+                    number_format($validated['estimated_price']),
+                    $validated['estimated_days'] ?? '不明',
+                    $validated['summary'] ?? ''
+                ),
+                'is_public' => false,
+                'status' => 'new',
+            ]);
 
-        return redirect()->back()->with('success', '見積もり依頼を保存しました。');
+            return redirect()
+                ->route('admin.contact.show', $contact)
+                ->with('success', 'お問い合わせを作成しました。');
+        });
     }
 }

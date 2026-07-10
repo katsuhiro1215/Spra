@@ -22,11 +22,8 @@ class ProjectMilestoneRequest extends FormRequest
     return [
       'title' => ['required', 'string', 'max:255'],
       'description' => ['nullable', 'string'],
-      'status' => ['required', 'in:pending,in_progress,completed,skipped'],
-      'due_date' => ['nullable', 'date'],
-      'completed_at' => ['nullable', 'date'],
-      'sort_order' => ['integer', 'min:0'],
-      'is_client_visible' => ['boolean'],
+      'target_date' => ['required', 'date'],
+      'order' => ['nullable', 'integer', 'min:0'],
     ];
   }
 
@@ -38,11 +35,8 @@ class ProjectMilestoneRequest extends FormRequest
     return [
       'title' => 'タイトル',
       'description' => '説明',
-      'status' => 'ステータス',
-      'due_date' => '期限',
-      'completed_at' => '完了日時',
-      'sort_order' => '表示順',
-      'is_client_visible' => 'クライアント閲覧可否',
+      'target_date' => '目標日',
+      'order' => '順序',
     ];
   }
 }

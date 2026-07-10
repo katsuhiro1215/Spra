@@ -7,7 +7,6 @@ use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Media;
-use App\Models\ProjectInquiry;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -95,22 +94,9 @@ class UserController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
-        // ユーザーの見積もり依頼を取得
-        $projectInquiries = ProjectInquiry::where('user_id', $user->id)
-            ->with([
-                'serviceCategory',
-                'service',
-                'servicePlan',
-                'assignedAdmin.profile',
-                'quote'
-            ])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
         return Inertia::render('Admin/User/Show', [
             'user' => $user,
             'mediaList' => $mediaList,
-            'projectInquiries' => $projectInquiries,
         ]);
     }
 

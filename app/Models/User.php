@@ -93,11 +93,6 @@ class User extends Authenticatable
             ->wherePivot('is_primary', true);
     }
 
-    public function projectInquiries(): HasMany
-    {
-        return $this->hasMany(ProjectInquiry::class);
-    }
-
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);

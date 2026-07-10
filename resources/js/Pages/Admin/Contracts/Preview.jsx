@@ -9,12 +9,14 @@ import {
     ArrowLeftIcon,
     PaperAirplaneIcon,
     EyeIcon,
+    DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import ContractConfirmAlert from "@/Components/Alerts/ContractConfirmAlert";
 
 export default function Preview({ contract }) {
     const [sending, setSending] = useState(false);
     const [showConfirmAlert, setShowConfirmAlert] = useState(false);
+    const [pdfError, setPdfError] = useState(false);
     const currentVersion = contract.currentVersion || contract.versions?.[0];
     const items = currentVersion?.items || [];
 
@@ -104,7 +106,7 @@ export default function Preview({ contract }) {
                                     以下の内容で契約書を送信します。内容をご確認ください。
                                     送信後は編集できません。修正が必要な場合は「戻る」をクリックしてください。
                                 </p>
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 flex-wrap">
                                     <SecondaryButton
                                         onClick={() =>
                                             router.visit(
@@ -125,27 +127,98 @@ export default function Preview({ contract }) {
                                         <PaperAirplaneIcon className="h-4 w-4 mr-2" />
                                         {sending ? "送信中..." : "送信する"}
                                     </PrimaryButton>
+                                    <SecondaryButton
+                                        onClick={() => {
+                                            const link =
+                                                document.createElement("a");
+                                            link.href = route(
+                                                "admin.contract.pdf",
+                                                contract.id,
+                                            );
+                                            link.download = true;
+                                            link.click();
+                                        }}
+                                    >
+                                        <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                                        PDF ダウンロード
+                                    </SecondaryButton>
                                 </div>
                             </div>
                         </div>
                     </CardBody>
                 </Card>
 
-                {/* 契約書プレビュー */}
+                {/* PDF プレビュー */}
                 <Card>
-                    <CardBody className="p-12 bg-white dark:bg-gray-900">
-                        {/* ヘッダー */}
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl font-bold mb-2">
-                                業務委託契約書
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                契約番号: {contract.contract_number}
-                            </p>
-                        </div>
+                    <CardHeader>
+                        <CardTitle>
+                            📄 契約書 PDF プレビュー (4ページ)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        {!pdfError ? (
+                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                                <iframe
+                                    src={route(
+                                        "admin.contract.pdf.preview",
+                                        contract.id,
+                                    )}
+                                    className="w-full h-screen md:h-[800px] border-0"
+                                    onError={() => setPdfError(true)}
+                                    title="契約書 PDF プレビュー"
+                                />
+                            </div>
+                        ) : (
+                            <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
+                                <p className="text-red-800 dark:text-red-200">
+                                    ❌
+                                    PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
+                                </p>
+                            </div>
+                        )}
+                    </CardBody>
+                </Card>
 
+                {/* PDF プレビュー */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>
+                            📄 契約書 PDF プレビュー (4ページ)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        {!pdfError ? (
+                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                                <iframe
+                                    src={route(
+                                        "admin.contract.pdf.preview",
+                                        contract.id,
+                                    )}
+                                    className="w-full h-screen md:h-[800px] border-0"
+                                    onError={() => setPdfError(true)}
+                                    title="契約書 PDF プレビュー"
+                                />
+                            </div>
+                        ) : (
+                            <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
+                                <p className="text-red-800 dark:text-red-200">
+                                    ❌
+                                    PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
+                                </p>
+                            </div>
+                        )}
+                    </CardBody>
+                </Card>
+
+                {/* 契約内容サマリー */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>📋 契約内容サマリー</CardTitle>
+                    </CardHeader>
+                    <CardBody className="space-y-6">
                         {/* 基本情報 */}
-                        <div className="mb-8 space-y-4">
+                        <div>
+                            <h3 className="font-semibold mb-3">契約基本情報</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -165,21 +238,11 @@ export default function Preview({ contract }) {
                                     </p>
                                 </div>
                             </div>
-                            {contract.description && (
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        契約概要
-                                    </p>
-                                    <p className="whitespace-pre-wrap">
-                                        {contract.description}
-                                    </p>
-                                </div>
-                            )}
                         </div>
 
-                        {/* クライアント情報 */}
-                        <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <h3 className="font-semibold mb-2">委託者（乙）</h3>
+                        {/* 契約者情報 */}
+                        <div>
+                            <h3 className="font-semibold mb-3">委託者（乙）</h3>
                             <p className="font-medium">
                                 {contract.user?.profile?.full_name ||
                                     contract.user?.email}
@@ -191,127 +254,64 @@ export default function Preview({ contract }) {
                             )}
                         </div>
 
-                        {/* 契約明細 */}
-                        <div className="mb-8">
-                            <h3 className="font-semibold mb-4">業務内容</h3>
-                            <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
-                                <thead className="bg-gray-100 dark:bg-gray-800">
-                                    <tr>
-                                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">
-                                            項目名
-                                        </th>
-                                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left">
-                                            説明
-                                        </th>
-                                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                            数量
-                                        </th>
-                                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                            単価
-                                        </th>
-                                        <th className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                            金額
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {items.map((item, index) => (
-                                        <tr key={index}>
-                                            <td className="border border-gray-300 dark:border-gray-700 px-4 py-2">
-                                                {item.name}
-                                            </td>
-                                            <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm">
-                                                {item.description || "-"}
-                                            </td>
-                                            <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                                {item.quantity}
-                                            </td>
-                                            <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                                ¥
-                                                {item.unit_price.toLocaleString()}
-                                            </td>
-                                            <td className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-right">
-                                                ¥{item.amount.toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-
-                            {/* 金額サマリー */}
-                            <div className="mt-4 flex justify-end">
-                                <div className="w-64 space-y-2">
-                                    <div className="flex justify-between">
-                                        <span>小計</span>
+                        {/* 金額情報 */}
+                        <div>
+                            <h3 className="font-semibold mb-3">金額情報</h3>
+                            <div className="space-y-2 max-w-xs">
+                                <div className="flex justify-between">
+                                    <span>小計</span>
+                                    <span className="font-medium">
+                                        ¥{subtotal.toLocaleString()}
+                                    </span>
+                                </div>
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-red-600">
+                                        <span>割引</span>
                                         <span className="font-medium">
-                                            ¥{subtotal.toLocaleString()}
+                                            -¥{discount.toLocaleString()}
                                         </span>
                                     </div>
-                                    {discount > 0 && (
-                                        <div className="flex justify-between text-red-600">
-                                            <span>割引</span>
-                                            <span className="font-medium">
-                                                -¥{discount.toLocaleString()}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between">
-                                        <span>消費税 ({taxRate}%)</span>
-                                        <span className="font-medium">
-                                            ¥{taxAmount.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between pt-2 border-t-2 border-gray-300 dark:border-gray-700 text-lg font-bold">
-                                        <span>合計</span>
-                                        <span>¥{total.toLocaleString()}</span>
-                                    </div>
+                                )}
+                                <div className="flex justify-between">
+                                    <span>消費税 ({taxRate}%)</span>
+                                    <span className="font-medium">
+                                        ¥{taxAmount.toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between pt-2 border-t-2 border-gray-300 dark:border-gray-700 text-lg font-bold">
+                                    <span>合計</span>
+                                    <span>¥{total.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 契約条項 */}
-                        {currentVersion?.terms_and_conditions && (
-                            <div className="mb-8">
-                                <h3 className="font-semibold mb-4">契約条項</h3>
-                                <div className="whitespace-pre-wrap text-sm leading-relaxed border-l-4 border-blue-500 pl-4">
-                                    {currentVersion.terms_and_conditions}
+                        {/* 契約条項の有無 */}
+                        <div>
+                            <h3 className="font-semibold mb-3">
+                                契約ドキュメント
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex items-center">
+                                    <span className="text-lg mr-2">
+                                        {currentVersion?.terms_and_conditions
+                                            ? "✅"
+                                            : "⚠️"}
+                                    </span>
+                                    <span>契約条項</span>
                                 </div>
-                            </div>
-                        )}
-
-                        {/* 特別条項 */}
-                        {currentVersion?.special_provisions && (
-                            <div className="mb-8">
-                                <h3 className="font-semibold mb-4">特別条項</h3>
-                                <div className="whitespace-pre-wrap text-sm leading-relaxed border-l-4 border-yellow-500 pl-4">
-                                    {currentVersion.special_provisions}
+                                <div className="flex items-center">
+                                    <span className="text-lg mr-2">
+                                        {currentVersion?.special_provisions
+                                            ? "✅"
+                                            : "⚠️"}
+                                    </span>
+                                    <span>特別条項</span>
                                 </div>
-                            </div>
-                        )}
-
-                        {/* 署名欄 */}
-                        <div className="mt-12 pt-8 border-t-2 border-gray-300 dark:border-gray-700">
-                            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-8">
-                                上記の内容で契約を締結することに合意します。
-                            </p>
-                            <div className="grid grid-cols-2 gap-8">
-                                <div>
-                                    <p className="font-semibold mb-2">
-                                        委託者（乙）
-                                    </p>
-                                    <p>署名: _____________________</p>
-                                    <p className="mt-2 text-sm">
-                                        日付: _____________________
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="font-semibold mb-2">
-                                        受託者（甲）
-                                    </p>
-                                    <p>署名: _____________________</p>
-                                    <p className="mt-2 text-sm">
-                                        日付: _____________________
-                                    </p>
+                                <div className="flex items-center">
+                                    <span className="text-lg mr-2">
+                                        {currentVersion?.notes ? "✅" : "⚠️"}
+                                    </span>
+                                    <span>備考</span>
                                 </div>
                             </div>
                         </div>

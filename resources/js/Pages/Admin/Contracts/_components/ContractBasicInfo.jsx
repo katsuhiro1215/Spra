@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 export default function ContractBasicInfo({ contract, statuses }) {
     const formatDate = (date) => {
@@ -70,6 +71,76 @@ export default function ContractBasicInfo({ contract, statuses }) {
                     </div>
                 </CardBody>
             </Card>
+
+            {/* 署名情報 */}
+            {(contract.user_signed_at || contract.admin_signed_at) && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>署名情報</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* ユーザー署名 */}
+                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    {contract.user_signed_at ? (
+                                        <>
+                                            <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                            <p className="text-sm font-semibold text-green-600">
+                                                ユーザー署名済み
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <XCircleIcon className="h-5 w-5 text-yellow-600" />
+                                            <p className="text-sm font-semibold text-yellow-600">
+                                                ユーザー署名待ち
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+                                {contract.user_signed_at && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                        署名日時:{" "}
+                                        {new Date(
+                                            contract.user_signed_at,
+                                        ).toLocaleDateString("ja-JP")}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Admin 署名 */}
+                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    {contract.admin_signed_at ? (
+                                        <>
+                                            <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                            <p className="text-sm font-semibold text-green-600">
+                                                Admin 署名済み
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <XCircleIcon className="h-5 w-5 text-yellow-600" />
+                                            <p className="text-sm font-semibold text-yellow-600">
+                                                Admin 署名待ち
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+                                {contract.admin_signed_at && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                        署名日時:{" "}
+                                        {new Date(
+                                            contract.admin_signed_at,
+                                        ).toLocaleDateString("ja-JP")}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
 
             {contract.description && (
                 <Card>

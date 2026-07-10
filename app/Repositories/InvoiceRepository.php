@@ -18,7 +18,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 
   public function findById(string $id): ?Invoice
   {
-    return Invoice::with(['contract', 'user', 'company', 'items', 'payments'])->find($id);
+    return Invoice::with(['contract', 'user', 'company', 'payments'])->find($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Invoice
@@ -26,7 +26,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     return Invoice::where('id', $id)
       ->where('user_id', $userId)
       ->whereNotIn('status', ['draft'])
-      ->with(['contract', 'items', 'payments'])
+      ->with(['contract', 'payments'])
       ->first();
   }
 
@@ -75,7 +75,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
   {
     $query = Invoice::where('user_id', $userId)
       ->whereNotIn('status', ['draft'])
-      ->with(['contract', 'items']);
+      ->with(['contract']);
 
     if (!empty($filters['status'])) {
       $query->where('status', $filters['status']);
@@ -106,7 +106,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
   {
     return Invoice::where('user_id', $userId)
       ->unpaid()
-      ->with(['contract', 'items'])
+      ->with(['contract'])
       ->get();
   }
 

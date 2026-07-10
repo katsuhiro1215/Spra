@@ -15,6 +15,7 @@ use App\Http\Controllers\User\ReceiptController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
+use App\Http\Controllers\User\QuoteController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -82,12 +83,11 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
 
     // 見積書（クライアント向け）
-    Route::get('/quotes', function () {
-        return Inertia::render('User/Quote/Index');
-    })->name('quote.index');
-    Route::get('/quotes/{id}', function () {
-        return Inertia::render('User/Quote/Show');
-    })->name('quote.show');
+    Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');
+    Route::get('/quotes/{id}', [QuoteController::class, 'show'])->name('quote.show');
+    Route::get('/quotes/{id}/pdf', [QuoteController::class, 'pdf'])->name('quote.pdf');
+    Route::post('/quotes/{id}/accept', [QuoteController::class, 'accept'])->name('quote.accept');
+    Route::post('/quotes/{id}/reject', [QuoteController::class, 'reject'])->name('quote.reject');
 
     // 進捗状況（クライアント向け）
     Route::get('/progress', function () {
