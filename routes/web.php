@@ -78,9 +78,12 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
     Route::post('/invoice/{invoice}/payment-notification', [InvoiceController::class, 'storePaymentNotification'])->name('invoice.payment-notification.store');
     Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
+    Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoice.pdf');
+    Route::get('/invoice/{invoice}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('invoice.pdf.preview');
 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
+    Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
 
     // 見積書（クライアント向け）
     Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\ContractVersion;
-use App\Models\Quote;
 use App\Repositories\ContractRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -197,76 +196,6 @@ class ContractService
             // items は ContractItemController で別途追加する
 
             return $contract->fresh(['versions', 'currentVersion']);
-        });
-    }
-
-    /**
-     * Quote から Contract を作成
-     * QuoteItem を ContractItem にコピーしてスナップショット化
-     *
-     * @param Quote $quote
-     * @param array $additionalData
-     * @return Contract
-     */
-    public function createFromQuote(Quote $quote, array $additionalData = []): Contract
-    {
-        return DB::transaction(function () use ($quote, $additionalData) {
-            $quote->load(['currentVersion.items', 'user', 'company']);
-
-            if (!$quote->currentVersion) {
-                throw new \Exception('見積もりに有効なバージョンがありません。');
-            }
-
-            $createdBy = $additionalData['created_by'] ?? auth('admins')->id();
-
-            // Contract データを準備
-            $contractData = [
-                'contract_number' => $this->generateContractNumber(),
-                'quote_id' => $quote->id,
-                'user_id' => $quote->user_id,
-                'company_id' => $quote->company_id,
-                'title' => $additionalData['title'] ?? $quote->title,
-                'description' => $additionalData['description'] ?? $quote->requirements,
-                'type' => $additionalData['type'] ?? 'one_time',
-                'start_date' => $additionalData['start_date'] ?? now(),
-                'end_date' => $additionalData['end_date'] ?? null,
-                'terms_and_conditions' => $additionalData['terms_and_conditions'] ?? null,
-                'special_provisions' => $additionalData['special_provisions'] ?? null,
-                'notes' => $additionalData['notes'] ?? null,
-                'created_by' => $createdBy,
-            ];
-
-            // QuoteVersion から金額情報をコピー
-            $contractData['base_amount'] = $quote->currentVersion->base_amount;
-            $contractData['discount_amount'] = $quote->currentVersion->discount_amount;
-            $contractData['tax_rate'] = $quote->currentVersion->tax_rate;
-            $contractData['tax_amount'] = $quote->currentVersion->tax_amount;
-            $contractData['total_amount'] = $quote->currentVersion->total_amount;
-
-            // QuoteItem を ContractItem にコピー
-            $contractData['items'] = $quote->currentVersion->items->map(function ($quoteItem) {
-                return [
-                    'service_id' => $quoteItem->service_id,
-                    'service_item_id' => $quoteItem->service_item_id,
-                    'name' => $quoteItem->name,
-                    'description' => $quoteItem->description,
-                    'item_type' => $quoteItem->item_type,
-                    'billing_type' => $quoteItem->billing_type,
-                    'quantity' => $quoteItem->quantity,
-                    'unit_price' => $quoteItem->unit_price,
-                    'amount' => $quoteItem->amount,
-                    'estimated_days' => $quoteItem->estimated_days,
-                    'sort_order' => $quoteItem->sort_order,
-                ];
-            })->toArray();
-
-            // Contract を作成
-            $contract = $this->createContract($contractData);
-
-            // Quote のステータスを contracted に更新
-            $quote->update(['status' => 'contracted']);
-
-            return $contract;
         });
     }
 

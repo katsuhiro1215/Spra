@@ -98,11 +98,7 @@ class InvoiceController extends Controller
     public function store(InvoiceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-
-        // Generate invoice number
-        $latestInvoice = Invoice::latest('id')->first();
-        $nextNumber = $latestInvoice ? ((int)substr($latestInvoice->invoice_number, -6)) + 1 : 1;
-        $validated['invoice_number'] = 'INV-' . date('Ym') . '-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $validated['invoice_number'] = $this->service->generateInvoiceNumber();
 
         $invoice = $this->service->create($validated);
 
@@ -231,10 +227,12 @@ class InvoiceController extends Controller
         $invoice = $this->service->findById($id);
         abort_unless($invoice, 404);
 
+        $invoice->load('items');
         $status_label = $this->getStatusLabel($invoice->status);
 
         $pdf = Pdf::loadView('pdfs.invoice', compact('invoice', 'status_label'))
             ->setPaper('A4', 'portrait');
+        \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
         $filename = sprintf('請求書_%s_%s.pdf', $invoice->invoice_number, date('Ymd'));
 
@@ -246,10 +244,12 @@ class InvoiceController extends Controller
         $invoice = $this->service->findById($id);
         abort_unless($invoice, 404);
 
+        $invoice->load('items');
         $status_label = $this->getStatusLabel($invoice->status);
 
         $pdf = Pdf::loadView('pdfs.invoice', compact('invoice', 'status_label'))
             ->setPaper('A4', 'portrait');
+        \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
         return $pdf->stream();
     }
@@ -279,7 +279,11 @@ class InvoiceController extends Controller
     }
 
     /**
-     * 入金確認して領収書を発行
+     * 入金確認（金額照合なしの手動確定）
+     *
+     * 現金手渡しなど、ユーザーからの入金通知を経由しないケース向けの手動確定操作。
+     * 通常の入金記録(recordPayment)と同様にPaymentレコードを作成するため、
+     * 請求額との比較・領収書自動発行は他の経路と同じロジックで行われる。
      */
     public function confirmPayment(string $id): RedirectResponse
     {
@@ -292,25 +296,19 @@ class InvoiceController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($invoice) {
-                // 請求書のステータスを支払い済みに更新
-                $invoice->update([
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                ]);
+            $this->paymentService->create([
+                'invoice_id' => $invoice->id,
+                'company_id' => $invoice->company_id,
+                'amount' => $invoice->balance,
+                'payment_method' => 'other',
+                'payment_date' => now()->toDateString(),
+                'notes' => '管理者による確認（金額照合なしの手動確定）',
+                'status' => 'completed',
+                'confirmed_by' => auth('admins')->id(),
+                'confirmed_at' => now(),
+            ]);
 
-                // 領収書を発行（自動的にPDF生成・保存）
-                $receipt = $this->receiptService->issueReceipt($invoice);
-
-                // 領収書のPDFを生成
-                $this->receiptService->generateAndSavePdf($receipt);
-
-                // 領収書を発行済みに更新して送信
-                $receipt->update(['status' => 'issued']);
-                $this->receiptService->sendReceipt($receipt);
-            });
-
-            return back()->with('success', '入金を確認し、領収書を発行・送信しました。');
+            return back()->with('success', '入金を確認しました。請求額に達したため領収書を発行・送信しました。');
         } catch (\Exception $e) {
             return back()->with('error', '入金確認処理に失敗しました: ' . $e->getMessage());
         }
@@ -344,7 +342,7 @@ class InvoiceController extends Controller
 
 
     /**
-     * 領収書を発行
+     * 領収書を発行（手動、通常は支払済み時に自動発行される）
      */
     public function issueReceipt(string $id, Request $request): RedirectResponse
     {
@@ -353,19 +351,16 @@ class InvoiceController extends Controller
 
         try {
             $paymentNotificationId = $request->input('payment_notification_id');
-            $paymentNotification = null;
+            $payment = null;
 
             if ($paymentNotificationId) {
                 $paymentNotification = $invoice->paymentNotifications()
                     ->where('id', $paymentNotificationId)
                     ->first();
+                $payment = $paymentNotification?->payment;
             }
 
-            $receipt = $this->receiptService->issueReceipt(
-                $invoice,
-                $paymentNotification,
-                auth('admins')->id()
-            );
+            $receipt = $this->receiptService->issueReceipt($invoice, $payment);
 
             // 領収書をユーザーに送付
             $this->receiptService->sendReceipt($receipt);
@@ -379,6 +374,7 @@ class InvoiceController extends Controller
 
     /**
      * 支払い通知を確認
+     * 実際の入金記録(Payment)を作成し、請求額との比較により自動的に支払済み判定・領収書発行を行う
      */
     public function acknowledgePaymentNotification(string $invoiceId, string $notificationId): RedirectResponse
     {
@@ -391,12 +387,34 @@ class InvoiceController extends Controller
 
         abort_unless($notification, 404);
 
-        $this->receiptService->acknowledgePaymentNotification(
-            $notification,
-            auth('admins')->id()
-        );
+        if (!$notification->isPending()) {
+            return back()->with('error', 'この通知は既に確認済みです。');
+        }
 
-        return back()->with('success', '支払い通知を確認しました。');
+        try {
+            DB::transaction(function () use ($invoice, $notification) {
+                $adminId = auth('admins')->id();
+
+                $payment = $this->paymentService->create([
+                    'invoice_id' => $invoice->id,
+                    'company_id' => $invoice->company_id,
+                    'amount' => $notification->amount,
+                    'payment_method' => $notification->payment_method,
+                    'payment_date' => $notification->payment_date,
+                    'transaction_id' => $notification->transaction_id,
+                    'notes' => $notification->notes,
+                    'status' => 'completed',
+                    'confirmed_by' => $adminId,
+                    'confirmed_at' => now(),
+                ]);
+
+                $this->receiptService->acknowledgePaymentNotification($notification, $adminId, $payment->id);
+            });
+
+            return back()->with('success', '支払い通知を確認し、入金を記録しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', '支払い通知の確認に失敗しました: ' . $e->getMessage());
+        }
     }
 
     /**

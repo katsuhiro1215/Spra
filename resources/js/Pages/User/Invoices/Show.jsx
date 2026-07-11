@@ -18,7 +18,7 @@ import {
     SelectInput,
     InputError,
 } from "@/Components/Forms";
-import Modal from "@/Components/Modal";
+import Modal from "@/Components/Layout/Modal";
 
 export default function InvoiceShow({ invoice }) {
     const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -52,6 +52,15 @@ export default function InvoiceShow({ invoice }) {
         bank_transfer: "銀行振込",
         credit_card: "クレジットカード",
         cash: "現金",
+        other: "その他",
+    };
+
+    const invoiceTypeLabels = {
+        deposit: "着手金",
+        interim: "中間金",
+        final: "完了金",
+        full: "一括",
+        monthly: "月額",
         other: "その他",
     };
 
@@ -188,6 +197,33 @@ export default function InvoiceShow({ invoice }) {
                                         {invoice.contract?.title}
                                     </p>
                                 </div>
+                                {invoice.invoice_type && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            請求区分
+                                        </p>
+                                        <p className="text-gray-900 dark:text-white">
+                                            {invoiceTypeLabels[
+                                                invoice.invoice_type
+                                            ] || invoice.invoice_type}
+                                        </p>
+                                    </div>
+                                )}
+                                {invoice.contract?.current_version
+                                    ?.total_amount && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            契約金額（総額）
+                                        </p>
+                                        <p className="text-gray-900 dark:text-white">
+                                            {formatAmount(
+                                                invoice.contract
+                                                    .current_version
+                                                    .total_amount,
+                                            )}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </CardBody>
                     </Card>
@@ -315,7 +351,7 @@ export default function InvoiceShow({ invoice }) {
                                 </div>
                             )}
                             <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                                <span>消費税 ({invoice.tax_rate * 100}%):</span>
+                                <span>消費税 ({invoice.tax_rate}%):</span>
                                 <span>{formatAmount(invoice.tax_amount)}</span>
                             </div>
                             <div className="flex justify-between text-2xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-3">
@@ -324,6 +360,24 @@ export default function InvoiceShow({ invoice }) {
                                     {formatAmount(invoice.total_amount)}
                                 </span>
                             </div>
+                            {invoice.paid_amount > 0 && !isPaid && (
+                                <>
+                                    <div className="flex justify-between text-green-700 dark:text-green-400">
+                                        <span>入金済み:</span>
+                                        <span>
+                                            {formatAmount(
+                                                invoice.paid_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold text-gray-900 dark:text-white">
+                                        <span>残額:</span>
+                                        <span>
+                                            {formatAmount(invoice.balance)}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </CardBody>
                 </Card>

@@ -182,6 +182,7 @@ class ContractController extends Controller
                 'end_date' => $validated['end_date'] ?? null,
                 'billing_day' => $validated['billing_day'] ?? 10,
                 'payment_due_days' => $validated['payment_due_days'] ?? 15,
+                'auto_invoice_generation' => $validated['auto_invoice_generation'] ?? true,
                 'auto_renewal' => $validated['auto_renewal'] ?? false,
             ];
 
@@ -375,7 +376,9 @@ class ContractController extends Controller
             'auto_invoice_generation' => 'required|boolean',
         ]);
 
-        // 次回請求日を計算
+        // 次回請求日を計算(calculateNextBillingDateはbilling_dayを参照するため、
+        // 先にメモリ上の値を新しいbilling_dayへ更新してから計算する)
+        $contract->billing_day = $validated['billing_day'];
         if ($validated['auto_invoice_generation']) {
             $validated['next_billing_date'] = $contract->calculateNextBillingDate();
         } else {
@@ -467,92 +470,6 @@ class ContractController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline',
         ]);
-    }
-
-    /**
-     * 契約明細追加ページ（QuoteItemからコピー）
-     */
-    public function addItems(string $id): Response|RedirectResponse
-    {
-        $contract = $this->service->findById($id);
-        abort_unless($contract, 404);
-
-        if (!$contract->quote_id) {
-            return redirect()->route('admin.contract.show', $id)
-                ->with('error', '見積書が紐付いていないため、明細を追加できません。');
-        }
-
-        $quote = Quote::with(['currentVersion.items.service', 'currentVersion.items.serviceItem'])
-            ->find($contract->quote_id);
-
-        if (!$quote) {
-            return redirect()->route('admin.contract.show', $id)
-                ->with('error', '見積書が見つかりません。');
-        }
-
-        return Inertia::render('Admin/Contracts/AddItems', [
-            'contract' => $contract,
-            'quote' => $quote,
-        ]);
-    }
-
-    /**
-     * 契約明細を保存（QuoteItemからスナップショット）
-     */
-    public function storeItems(Request $request, string $id): RedirectResponse
-    {
-        $contract = $this->service->findById($id);
-        abort_unless($contract, 404);
-
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.service_id' => 'required|ulid|exists:services,id',
-            'items.*.service_item_id' => 'required|ulid|exists:service_items,id',
-            'items.*.name' => 'required|string|max:255',
-            'items.*.description' => 'nullable|string',
-            'items.*.item_type' => 'nullable|string',
-            'items.*.billing_type' => 'required|in:one_time,monthly,quarterly,yearly',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.amount' => 'required|numeric|min:0',
-            'items.*.estimated_days' => 'nullable|integer|min:0',
-            'items.*.sort_order' => 'nullable|integer',
-            'items.*.selected' => 'boolean',
-        ]);
-
-        try {
-            $currentVersion = $contract->currentVersion;
-            if (!$currentVersion) {
-                return back()->with('error', '現在のバージョンが見つかりません。');
-            }
-
-            // 選択された明細のみ追加
-            $selectedItems = array_filter($validated['items'], fn($item) => $item['selected'] ?? true);
-
-            foreach ($selectedItems as $item) {
-                $currentVersion->items()->create([
-                    'service_id' => $item['service_id'],
-                    'service_item_id' => $item['service_item_id'],
-                    'name' => $item['name'],
-                    'description' => $item['description'] ?? null,
-                    'item_type' => $item['item_type'] ?? null,
-                    'billing_type' => $item['billing_type'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'amount' => $item['amount'],
-                    'estimated_days' => $item['estimated_days'] ?? null,
-                    'sort_order' => $item['sort_order'] ?? 0,
-                ]);
-            }
-
-            // 金額を再計算
-            $this->service->recalculateVersionAmounts($currentVersion);
-
-            return redirect()->route('admin.contract.show', $id)
-                ->with('success', '契約明細を追加しました。');
-        } catch (\Exception $e) {
-            return back()->with('error', '明細の追加に失敗しました: ' . $e->getMessage());
-        }
     }
 
     /**

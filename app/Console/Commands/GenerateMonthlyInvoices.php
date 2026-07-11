@@ -43,7 +43,7 @@ class GenerateMonthlyInvoices extends Command
                 $query->whereNull('next_billing_date')
                     ->orWhere('next_billing_date', '<=', now());
             })
-            ->with(['user', 'company'])
+            ->with(['user.profile', 'company'])
             ->get();
 
         if ($contracts->isEmpty()) {
@@ -66,21 +66,21 @@ class GenerateMonthlyInvoices extends Command
                 if (!$isDryRun) {
                     $invoice = $invoiceService->generateMonthlyInvoice($contract);
                     $this->newLine();
-                    $this->line("✓ [{$contract->contract_number}] {$contract->user->name} - 請求書生成: {$invoice->invoice_number}");
+                    $this->line("✓ [{$contract->contract_number}] " . $this->clientName($contract) . " - 請求書生成: {$invoice->invoice_number}");
                 } else {
                     $this->newLine();
-                    $this->line("○ [{$contract->contract_number}] {$contract->user->name} - 生成対象 (ドライラン)");
+                    $this->line("○ [{$contract->contract_number}] " . $this->clientName($contract) . " - 生成対象 (ドライラン)");
                 }
                 $successCount++;
             } catch (\Exception $e) {
                 $errorCount++;
                 $errors[] = [
                     'contract' => $contract->contract_number,
-                    'user' => $contract->user->name,
+                    'user' => $this->clientName($contract),
                     'error' => $e->getMessage(),
                 ];
                 $this->newLine();
-                $this->error("✗ [{$contract->contract_number}] {$contract->user->name} - エラー: {$e->getMessage()}");
+                $this->error("✗ [{$contract->contract_number}] " . $this->clientName($contract) . " - エラー: {$e->getMessage()}");
             }
             $progressBar->advance();
         }
@@ -109,5 +109,13 @@ class GenerateMonthlyInvoices extends Command
         }
 
         return $errorCount > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * クライアント表示名を取得(Userにnameカラムは無いためprofile経由で解決)
+     */
+    private function clientName(Contract $contract): string
+    {
+        return $contract->user?->profile?->full_name ?? $contract->user?->email ?? '(不明)';
     }
 }

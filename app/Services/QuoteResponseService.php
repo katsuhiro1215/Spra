@@ -159,4 +159,33 @@ class QuoteResponseService extends BaseService
             ->with(['quote', 'quote.contact', 'user', 'company'])
             ->findOrFail($id);
     }
+
+    /**
+     * 長期間クライアントからの回答がない見積を、管理者が目視確認のうえ
+     * 手動で「見送り(NG)」として記録する。自動処理は行わない。
+     *
+     * @param QuoteResponse $quoteResponse
+     * @param string $adminId
+     * @param string|null $note
+     * @return QuoteResponse
+     * @throws \Exception
+     */
+    public function markAsDeclined(QuoteResponse $quoteResponse, string $adminId, ?string $note = null): QuoteResponse
+    {
+        if (!$quoteResponse->isPending()) {
+            throw new \Exception('既に回答済みの見積には手動判定を行えません。');
+        }
+
+        $quoteResponse->update([
+            'response_type' => 'decline',
+            'response_text' => $note,
+            'responded_at' => now(),
+            'admin_notified_at' => now(),
+            'decided_by_admin_id' => $adminId,
+        ]);
+
+        $this->logInfo('marked_declined', $quoteResponse->id, ['admin_id' => $adminId]);
+
+        return $quoteResponse->fresh();
+    }
 }

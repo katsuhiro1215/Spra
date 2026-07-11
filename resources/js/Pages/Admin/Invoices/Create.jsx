@@ -15,10 +15,20 @@ export default function Create({
     contract = null,
 }) {
     const today = new Date().toISOString().split("T")[0];
-    const [depositRate, setDepositRate] = useState(50); // デフォルト着手金率
+    const [billingRate, setBillingRate] = useState(50); // 契約金額に対する請求割合(%)
+
+    const invoiceTypeOptions = [
+        { value: "deposit", label: "着手金" },
+        { value: "interim", label: "中間金" },
+        { value: "final", label: "完了金" },
+        { value: "full", label: "一括" },
+        { value: "monthly", label: "月額" },
+        { value: "other", label: "その他" },
+    ];
 
     const { data, setData, post, processing, errors } = useForm({
         contract_id: contract?.id || "",
+        invoice_type: "full",
         issue_date: today,
         user_id: contract?.user_id || "",
         company_id: contract?.company_id || "",
@@ -32,6 +42,9 @@ export default function Create({
         total_amount: 0,
         notes: "",
     });
+
+    // 請求区分が「一括」以外の場合のみ、契約金額に対する割合で自動計算する
+    const isPartialBilling = !["full", "monthly"].includes(data.invoice_type);
 
     // コンテキストベースの初期化
     useEffect(() => {
@@ -58,14 +71,12 @@ export default function Create({
         }
 
         if (contract) {
-            // 契約から着手金を自動計算
             const contractAmount = contract.current_version?.total_amount || 0;
-            const depositAmount = Math.round(
-                contractAmount * (depositRate / 100),
-            );
+            const rate = isPartialBilling ? billingRate : 100;
+            const billedAmount = Math.round(contractAmount * (rate / 100));
             const taxRate = 0.1;
-            const taxAmount = Math.round(depositAmount * taxRate);
-            const totalAmount = depositAmount + taxAmount;
+            const taxAmount = Math.round(billedAmount * taxRate);
+            const totalAmount = billedAmount + taxAmount;
 
             setData((prev) => ({
                 ...prev,
@@ -74,12 +85,12 @@ export default function Create({
                 company_id: contract.company_id || "",
                 billing_period_start: contract.start_date || today,
                 billing_period_end: contract.end_date || "",
-                subtotal: depositAmount,
+                subtotal: billedAmount,
                 tax_amount: taxAmount,
                 total_amount: totalAmount,
             }));
         }
-    }, [company, user, contract, depositRate]);
+    }, [company, user, contract, billingRate, isPartialBilling]);
 
     const handleSubmit = () => {
         post(route("admin.invoice.store"));
@@ -116,10 +127,10 @@ export default function Create({
                                 契約: {contract.contract_number} -{" "}
                                 {contract.title}
                             </p>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-2 gap-4 text-sm mb-2">
                                 <div>
                                     <span className="text-blue-700 dark:text-blue-300">
-                                        契約金額：
+                                        契約金額（総額）：
                                     </span>
                                     <span className="font-semibold text-blue-900 dark:text-blue-100">
                                         ¥
@@ -131,41 +142,80 @@ export default function Create({
                                 </div>
                                 <div>
                                     <span className="text-blue-700 dark:text-blue-300">
-                                        着手金率：
+                                        請求区分：
                                     </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={depositRate}
+                                    <select
+                                        value={data.invoice_type}
                                         onChange={(e) =>
-                                            setDepositRate(
-                                                parseInt(e.target.value) || 0,
+                                            setData(
+                                                "invoice_type",
+                                                e.target.value,
                                             )
                                         }
-                                        className="w-16 px-2 py-1 border border-blue-300 dark:border-blue-600 rounded ml-1 dark:bg-slate-800 text-sm"
-                                    />
-                                    <span className="ml-1">%</span>
+                                        className="px-2 py-1 border border-blue-300 dark:border-blue-600 rounded ml-1 dark:bg-slate-800 text-sm"
+                                    >
+                                        {invoiceTypeOptions.map((opt) => (
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
+                            {isPartialBilling && (
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-blue-700 dark:text-blue-300">
+                                            契約金額に対する割合：
+                                        </span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={billingRate}
+                                            onChange={(e) =>
+                                                setBillingRate(
+                                                    parseInt(
+                                                        e.target.value,
+                                                    ) || 0,
+                                                )
+                                            }
+                                            className="w-16 px-2 py-1 border border-blue-300 dark:border-blue-600 rounded ml-1 dark:bg-slate-800 text-sm"
+                                        />
+                                        <span className="ml-1">%</span>
+                                    </div>
+                                </div>
+                            )}
                             <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                                <span>請求予定額：</span>
+                                <span>
+                                    今回のご請求（
+                                    {
+                                        invoiceTypeOptions.find(
+                                            (o) =>
+                                                o.value === data.invoice_type,
+                                        )?.label
+                                    }
+                                    ）：
+                                </span>
                                 <span className="font-semibold text-lg text-blue-900 dark:text-blue-100 ml-2">
                                     ¥
                                     {Math.round(
-                                        (contract.current_version
-                                            ?.total_amount || 0) *
-                                            (depositRate / 100),
+                                        data.subtotal || 0,
                                     ).toLocaleString()}
                                 </span>
-                                <span className="text-blue-700 dark:text-blue-300 ml-4">
-                                    残金：¥
-                                    {Math.round(
-                                        (contract.current_version
-                                            ?.total_amount || 0) *
-                                            ((100 - depositRate) / 100),
-                                    ).toLocaleString()}
-                                </span>
+                                {isPartialBilling && (
+                                    <span className="text-blue-700 dark:text-blue-300 ml-4">
+                                        残金：¥
+                                        {Math.round(
+                                            (contract.current_version
+                                                ?.total_amount || 0) -
+                                                (data.subtotal || 0),
+                                        ).toLocaleString()}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

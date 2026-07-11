@@ -32,6 +32,10 @@ export const getAdminNavigationItems = () => {
                     name: "テンプレート一覧",
                     href: "admin.response.template.index",
                 },
+                {
+                    name: "API連携設定",
+                    href: "admin.contact.api-client.index",
+                },
             ],
         },
         // 営業管理（ビジネスフローの開始）
@@ -42,10 +46,12 @@ export const getAdminNavigationItems = () => {
             currentPath: [
                 "admin.quote.*",
                 "admin.contract.*",
+                "admin.contract-group.*",
                 "admin.quote-response.*",
             ],
             children: [
                 { name: "契約管理", href: "admin.contract.index" },
+                { name: "契約グループ", href: "admin.contract-group.index" },
                 { name: "見積管理", href: "admin.quote.index" },
                 { name: "見積返信", href: "admin.quote-response.index" },
                 // 商談管理
@@ -157,41 +163,64 @@ export const getAdminNavigationItems = () => {
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
             currentPath: ["admin.website.*", "admin.faq.*", "admin.media.*"],
             children: [
-                { name: "ページ", href: "admin.website.page.index" },
+                {
+                    name: "ダッシュボード",
+                    href: "admin.website.dashboard",
+                },
+                { name: "固定ページ", href: "admin.website.page.index" },
                 { name: "ページタイプ", href: "admin.website.page.type.index" },
+                { name: "セクション", href: "admin.website.section.index" },
                 { name: "投稿", href: "admin.website.post.index" },
                 {
-                    name: "カテゴリ",
+                    name: "投稿カテゴリ",
                     href: "admin.website.post.category.index",
                 },
+                { name: "メニュー", href: "admin.website.menu.index" },
                 { name: "FAQ", href: "admin.website.faq.index" },
                 { name: "FAQカテゴリ", href: "admin.website.faq.category.index" },
-                { name: "ナビゲーション", href: "admin.website.siteSetting.navigation" },
-                { name: "フッター", href: "admin.website.siteSetting.footer" },
-                { name: "SEO", href: "admin.website.siteSetting.seo" },
-                { name: "OGP", href: "admin.website.siteSetting.ogp" },
                 {
                     name: "サイト設定",
                     href: "admin.website.siteSetting.index",
                 },
+                { name: "一般設定", href: "admin.website.siteSetting.general" },
+                { name: "ナビゲーション設定", href: "admin.website.siteSetting.navigation" },
+                { name: "フッター設定", href: "admin.website.siteSetting.footer" },
+                { name: "SEO設定", href: "admin.website.siteSetting.seo" },
+                { name: "OGP設定", href: "admin.website.siteSetting.ogp" },
             ],
         },
         // 分析管理
         {
             name: "分析管理",
-            href: "admin.media.index",
+            href: "admin.analytics.index",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
-            currentPath: "admin.media.*",
+            currentPath: "admin.analytics.*",
             children: [
-                { name: "ダッシュボード", href: "admin.media.index" },
-                { name: "アクセス解析", href: "admin.media.index" },
-                { name: "流入元", href: "admin.media.index" },
-                { name: "人気ページ", href: "admin.media.index" },
-                { name: "検索キーワード", href: "admin.media.index" },
-                { name: "問い合わせ分析", href: "admin.media.index" },
-                { name: "契約分析", href: "admin.media.index" },
-                { name: "保守分析", href: "admin.media.index" },
-                { name: "KPI", href: "admin.media.index" },
+                {
+                    name: "概要",
+                    href: "admin.analytics.index",
+                    query: { tab: "overview" },
+                },
+                {
+                    name: "アクセス解析",
+                    href: "admin.analytics.index",
+                    query: { tab: "traffic" },
+                },
+                {
+                    name: "流入元",
+                    href: "admin.analytics.index",
+                    query: { tab: "referrers" },
+                },
+                {
+                    name: "検索キーワード",
+                    href: "admin.analytics.index",
+                    query: { tab: "keywords" },
+                },
+                {
+                    name: "業務KPI",
+                    href: "admin.analytics.index",
+                    query: { tab: "business" },
+                },
             ],
         },
         // メディア管理

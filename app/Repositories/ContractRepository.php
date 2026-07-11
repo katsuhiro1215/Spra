@@ -25,6 +25,7 @@ class ContractRepository implements ContractRepositoryInterface
             'company',
             'quote',
             'project',
+            'contractGroup',
             'currentVersion.items.serviceItem',
             'versions' => function ($query) {
                 $query->orderBy('version', 'asc');

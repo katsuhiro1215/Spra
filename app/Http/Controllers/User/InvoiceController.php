@@ -7,10 +7,13 @@ use App\Http\Requests\StorePaymentNotificationRequest;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Services\ReceiptService;
+use App\Support\PdfFontRegistrar;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 
 class InvoiceController extends Controller
 {
@@ -57,7 +60,7 @@ class InvoiceController extends Controller
     // 支払い通知を作成
     $this->receiptService->createPaymentNotification($invoice, $request->validated());
 
-    return redirect()->route('user.invoices.show', $invoice->id)
+    return redirect()->route('user.invoice.show', $invoice->id)
       ->with('success', '入金通知を送信しました。管理者の確認をお待ちください。');
   }
 
@@ -76,5 +79,43 @@ class InvoiceController extends Controller
       storage_path('app/' . $receipt->pdf_path),
       $receipt->receipt_number . '.pdf'
     );
+  }
+
+  /**
+   * 請求書をPDFでダウンロード
+   */
+  public function downloadPdf(Invoice $invoice): HttpResponse
+  {
+    $userId = auth('users')->id();
+    $invoice = $this->service->findByIdForClient($invoice->id, $userId);
+    abort_unless($invoice, 404);
+
+    $status_label = Invoice::STATUSES[$invoice->status] ?? $invoice->status;
+
+    $pdf = Pdf::loadView('pdfs.invoice', compact('invoice', 'status_label'))
+      ->setPaper('A4', 'portrait');
+    PdfFontRegistrar::registerDomPdf($pdf);
+
+    $filename = sprintf('請求書_%s.pdf', $invoice->invoice_number);
+
+    return $pdf->download($filename);
+  }
+
+  /**
+   * 請求書PDFをプレビュー用に取得
+   */
+  public function previewPdf(Invoice $invoice): HttpResponse
+  {
+    $userId = auth('users')->id();
+    $invoice = $this->service->findByIdForClient($invoice->id, $userId);
+    abort_unless($invoice, 404);
+
+    $status_label = Invoice::STATUSES[$invoice->status] ?? $invoice->status;
+
+    $pdf = Pdf::loadView('pdfs.invoice', compact('invoice', 'status_label'))
+      ->setPaper('A4', 'portrait');
+    PdfFontRegistrar::registerDomPdf($pdf);
+
+    return $pdf->stream();
   }
 }

@@ -253,7 +253,7 @@ class CompanyController extends Controller
             'notes'          => 'nullable|string|max:1000',
         ]);
 
-        $address = $this->service->addAddress($company, $validated);
+        $address = $this->companyService->addAddress($company, $validated);
 
         return response()->json($address, 201);
     }
@@ -278,7 +278,7 @@ class CompanyController extends Controller
             'notes'          => 'nullable|string|max:1000',
         ]);
 
-        $address = $this->service->updateAddress($company, $address, $validated);
+        $address = $this->companyService->updateAddress($company, $address, $validated);
 
         return response()->json($address);
     }
@@ -288,7 +288,7 @@ class CompanyController extends Controller
      */
     public function destroyAddress(Company $company, Address $address)
     {
-        $this->service->deleteAddress($company, $address);
+        $this->companyService->deleteAddress($company, $address);
 
         return response()->json(['message' => '住所を削除しました']);
     }

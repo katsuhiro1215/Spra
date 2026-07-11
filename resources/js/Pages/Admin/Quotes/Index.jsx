@@ -145,11 +145,13 @@ export default function Index({ quotes, filters, stats, statuses }) {
                                                 className={`text-2xl font-bold ${
                                                     key === "draft"
                                                         ? "text-gray-600"
-                                                        : key === "sent"
+                                                        : key === "negotiating"
                                                           ? "text-blue-600"
-                                                          : key === "approved"
+                                                          : key === "approved" ||
+                                                              key === "contracted"
                                                             ? "text-green-600"
-                                                            : key === "rejected"
+                                                            : key === "rejected" ||
+                                                                key === "cancelled"
                                                               ? "text-red-600"
                                                               : "text-gray-600"
                                                 }`}

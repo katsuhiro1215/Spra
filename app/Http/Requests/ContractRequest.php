@@ -32,6 +32,7 @@ class ContractRequest extends FormRequest
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'billing_day' => 'nullable|integer|min:1|max:31',
             'payment_due_days' => 'nullable|integer|min:1',
+            'auto_invoice_generation' => 'boolean',
             'auto_renewal' => 'boolean',
         ];
     }

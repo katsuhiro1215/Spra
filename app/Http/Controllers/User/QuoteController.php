@@ -65,6 +65,7 @@ class QuoteController extends Controller
       ->setPaper('a4')
       ->setOption('isPhpEnabled', true)
       ->setOption('isHtml5ParserEnabled', true);
+    \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
     return $pdf->download("quote_{$quote->quote_number}.pdf");
   }

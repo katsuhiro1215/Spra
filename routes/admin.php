@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\User\UserAddressController;
 use App\Http\Controllers\Admin\Company\CompanyController;
 use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\AnalyticsController;
 
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Admin\Service\ServiceItemController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
 use App\Http\Controllers\Admin\Contact\ContactCategoryController;
+use App\Http\Controllers\Admin\Contact\ContactApiClientController;
 use App\Http\Controllers\Admin\Contact\ResponseController;
 use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
 
@@ -171,6 +173,11 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     });
 
     /**************************************
+     * 分析
+     **************************************/
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+
+    /**************************************
      * メディア
      **************************************/
     // メディア管理
@@ -204,9 +211,12 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     /**************************************
      * お問い合わせ
      **************************************/
-    // お問い合わせカテゴリ管理
+    // お問い合わせカテゴリ管理 / 外部API連携クライアント管理
     Route::prefix('contact')->name('contact.')->group(function () {
         Route::resource('category', ContactCategoryController::class)->except(['show']);
+        Route::resource('api-client', ContactApiClientController::class)->except(['show']);
+        Route::patch('api-client/{apiClient}/toggle-active', [ContactApiClientController::class, 'toggleActive'])->name('api-client.toggle-active');
+        Route::post('api-client/{apiClient}/regenerate', [ContactApiClientController::class, 'regenerate'])->name('api-client.regenerate');
     });
     // お問い合わせ管理
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
@@ -351,6 +361,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/', [QuoteResponseController::class, 'index'])->name('index');
         Route::get('/{quoteResponse}', [QuoteResponseController::class, 'show'])->name('show');
         Route::post('/{quoteResponse}/send-invitation', [QuoteResponseController::class, 'sendInvitation'])->name('send-invitation');
+        Route::post('/{quoteResponse}/mark-declined', [QuoteResponseController::class, 'markDeclined'])->name('mark-declined');
     });
 
     // オンボーディング管理
@@ -442,16 +453,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::resource('section', SectionController::class);
         // ポスト管理
         Route::prefix('post')->name('post.')->group(function () {
+            // カテゴリ関連ルートは post/{post} などの動的ルートに
+            // 食われないよう、Postリソースルートより先に登録する
+            Route::resource('category', PostCategoryController::class);
+            Route::controller(PostCategoryController::class)->name('category.')->group(function () {
+                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::post('/category/update-order', 'updateOrder')->name('update-order');
+            });
             Route::resource('', PostController::class)->parameters(['' => 'post']);
             Route::controller(PostController::class)->group(function () {
                 Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
                 Route::patch('/{post}/status', 'changeStatus')->name('change-status');
                 Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
-            });
-            Route::resource('category', PostCategoryController::class);
-            Route::controller(PostCategoryController::class)->name('category.')->group(function () {
-                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
-                Route::post('/category/update-order', 'updateOrder')->name('update-order');
             });
         });
         // FAQ管理

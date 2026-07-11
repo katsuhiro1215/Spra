@@ -8,6 +8,8 @@ use App\Models\ContractSignature;
 use App\Jobs\ContractSignedNotificationJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Response;
 use Inertia\Inertia;
 
@@ -67,20 +69,31 @@ class ContractSignatureController extends Controller
             return back()->withErrors(['signature' => 'この契約書はユーザー署名が不要です']);
         }
 
-        // 署名記録作成
-        $signature = ContractSignature::create([
-            'contract_id' => $contract->id,
-            'signed_by_user' => $contract->user_id,
-            'signature_image' => $request->signature_image,
-            'signature_type' => 'user',
-            'method' => $request->method,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'status' => 'pending',
-        ]);
+        try {
+            DB::transaction(function () use ($request, $contract) {
+                // 署名記録作成
+                $signature = ContractSignature::create([
+                    'contract_id' => $contract->id,
+                    'signed_by_user' => $contract->user_id,
+                    'signature_image' => $request->signature_image,
+                    'signature_type' => 'user',
+                    'method' => $request->method,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'status' => 'pending',
+                ]);
 
-        // 署名を確定
-        $signature->markAsSigned();
+                // 署名を確定（管理者署名が不要な契約は内部で fully_signed になる）
+                $signature->markAsSigned();
+            });
+        } catch (\Exception $e) {
+            Log::error('契約書ユーザー署名(Admin代理)エラー', [
+                'contract_id' => $contract->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors(['signature' => '署名の保存に失敗しました: ' . $e->getMessage()]);
+        }
 
         // キュー通知を送信（管理者に）
         ContractSignedNotificationJob::dispatch($contract, 'user_signed');
@@ -173,23 +186,31 @@ class ContractSignatureController extends Controller
             return back()->withErrors(['signature' => 'この契約書は管理者署名が不要です']);
         }
 
-        // 署名記録作成
-        $signature = ContractSignature::create([
-            'contract_id' => $contract->id,
-            'signed_by_admin' => auth('admins')->id(),
-            'signature_image' => $request->signature_image,
-            'signature_type' => 'admin',
-            'method' => $request->method,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'status' => 'pending',
-        ]);
+        try {
+            DB::transaction(function () use ($request, $contract) {
+                // 署名記録作成
+                $signature = ContractSignature::create([
+                    'contract_id' => $contract->id,
+                    'signed_by_admin' => auth('admins')->id(),
+                    'signature_image' => $request->signature_image,
+                    'signature_type' => 'admin',
+                    'method' => $request->method,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'status' => 'pending',
+                ]);
 
-        // 署名を確定
-        $signature->markAsSigned();
+                // 署名を確定（内部で signature_status を fully_signed に更新）
+                $signature->markAsSigned();
+            });
+        } catch (\Exception $e) {
+            Log::error('契約書管理者署名エラー', [
+                'contract_id' => $contract->id,
+                'error' => $e->getMessage(),
+            ]);
 
-        // 契約書ステータスを完全署名に更新
-        $contract->update(['signature_status' => 'fully_signed']);
+            return back()->withErrors(['signature' => '署名の保存に失敗しました: ' . $e->getMessage()]);
+        }
 
         // キュー通知を送信（クライアントに）
         ContractSignedNotificationJob::dispatch($contract, 'fully_signed');

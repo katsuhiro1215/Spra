@@ -34,6 +34,8 @@ use App\Repositories\Contracts\ServiceCategoryRepositoryInterface;
 use App\Repositories\Contracts\ServiceRepositoryInterface;
 use App\Repositories\Contracts\ServicePlanRepositoryInterface;
 use App\Repositories\Contracts\ServiceItemRepositoryInterface;
+use App\Contracts\SearchConsoleServiceInterface;
+use App\Services\Analytics\DummySearchConsoleService;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -63,6 +65,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ServicePlanRepositoryInterface::class, ServicePlanRepository::class);
         $this->app->bind(ServiceItemRepositoryInterface::class, ServiceItemRepository::class);
         $this->app->singleton(\App\Repositories\QuoteResponseRepository::class);
+
+        // Search Console連携: config('services.search_console.driver')で切り替え
+        // 本番移行時は 'google' 用の実装クラスをここに追加してbindを差し替える
+        $this->app->bind(SearchConsoleServiceInterface::class, function () {
+            return match (config('services.search_console.driver', 'dummy')) {
+                'google' => throw new \RuntimeException(
+                    'Google Search Console連携は未実装です。サービスアカウント認証情報を設定し、'
+                        . 'SearchConsoleServiceInterfaceを実装したクラスをbindしてください。'
+                ),
+                default => new DummySearchConsoleService(),
+            };
+        });
     }
 
     /**

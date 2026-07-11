@@ -41,9 +41,11 @@ class DashboardController extends Controller
 
     // Active ユーザーでアクティブな契約がある場合はダッシュボードを表示
     $pendingContracts = $this->contractService->getByUserAndStatus($userId, 'pending_signature');
+    $unpaidInvoices = $this->invoiceService->getUnpaidByUser($userId);
 
     return Inertia::render('User/Dashboard', [
       'pendingContracts' => $pendingContracts,
+      'unpaidInvoices' => $unpaidInvoices,
     ]);
   }
 }

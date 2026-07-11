@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Quote;
 use App\Models\QuoteResponse;
-use App\Models\Admin;
 use App\Notifications\QuoteResponseReceived;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,42 +65,6 @@ class QuoteResponseController extends Controller
         Notification::send($admins, new QuoteResponseReceived($quoteResponse));
 
         return redirect()->back();
-    }
-
-    /**
-     * Display a listing of quote responses (Admin).
-     */
-    public function index(Request $request): Response
-    {
-        $query = QuoteResponse::with('quote');
-
-        // Filter by status
-        if ($request->has('status') && $request->status === 'pending') {
-            $query->whereNull('responded_at');
-        } elseif ($request->has('status') && $request->status === 'responded') {
-            $query->whereNotNull('responded_at');
-        }
-
-        $responses = $query->orderBy('created_at', 'desc')->get();
-
-        return Inertia::render('Admin/QuoteResponses/Index', [
-            'responses' => $responses,
-            'filters' => [
-                'status' => $request->query('status'),
-            ],
-        ]);
-    }
-
-    /**
-     * Display the specified quote response (Admin).
-     */
-    public function detail(string $id): Response
-    {
-        $response = QuoteResponse::with('quote')->findOrFail($id);
-
-        return Inertia::render('Admin/QuoteResponses/Detail', [
-            'response' => $response,
-        ]);
     }
 
     /**

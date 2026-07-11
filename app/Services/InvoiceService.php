@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Contract;
+use App\Models\ContractVersion;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
 use App\Mail\InvoiceMail;
 use App\Mail\InvoiceReminderMail;
+use App\Support\PdfFontRegistrar;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -64,27 +66,6 @@ class InvoiceService
         ]);
     }
 
-    /**
-     * 支払いを記録する
-     */
-    public function recordPayment(Invoice $invoice, array $paymentData): Payment
-    {
-        return DB::transaction(function () use ($invoice, $paymentData) {
-            $payment = $this->paymentRepository->create(array_merge(
-                $paymentData,
-                ['invoice_id' => $invoice->id]
-            ));
-
-            // 支払い金額が請求額を満たしているか確認
-            $totalPaid = $invoice->payments()->where('status', 'confirmed')->sum('amount');
-            if ($totalPaid >= $invoice->total_amount) {
-                $this->invoiceRepository->update($invoice, ['status' => 'paid']);
-            }
-
-            return $payment;
-        });
-    }
-
     public function getUnpaidByUser(string $userId): Collection
     {
         return $this->invoiceRepository->getUnpaidByUser($userId);
@@ -101,42 +82,75 @@ class InvoiceService
     public function generateMonthlyInvoice(Contract $contract): Invoice
     {
         return DB::transaction(function () use ($contract) {
-            // 請求書番号を生成
-            $invoiceNumber = $this->generateInvoiceNumber();
+            $contract->loadMissing('currentVersion.items');
+            $currentVersion = $contract->currentVersion;
+
+            if (!$currentVersion) {
+                throw new \Exception('契約に有効なバージョンがありません。');
+            }
 
             // 請求日と支払期限を計算
             $issueDate = now();
-            $dueDate = now()->addDays($contract->payment_due_days);
+            $dueDate = now()->addDays($contract->payment_due_days ?? 15);
 
-            // 税額計算
-            $amount = $contract->amount;
-            $taxAmount = $amount * ($contract->tax_rate / 100);
-            $totalAmount = $amount + $taxAmount;
+            // 金額は契約の現行バージョンから取得(Contract自体にamount/tax_rateは存在しない)
+            $subtotal = (float) ($currentVersion->total_amount ?? 0);
+            $taxRate = (float) ($currentVersion->tax_rate ?? 0);
+            $taxAmount = round($subtotal * $taxRate / 100, 2);
+            $totalAmount = $subtotal + $taxAmount;
 
             // 請求書作成
             $invoice = $this->invoiceRepository->create([
-                'invoice_number' => $invoiceNumber,
+                'invoice_number' => $this->generateInvoiceNumber(),
+                'invoice_type' => 'monthly',
                 'contract_id' => $contract->id,
                 'user_id' => $contract->user_id,
                 'company_id' => $contract->company_id,
                 'issue_date' => $issueDate,
                 'due_date' => $dueDate,
-                'subtotal' => $amount,
-                'tax_rate' => $contract->tax_rate,
+                'billing_period_start' => $issueDate->copy()->startOfMonth(),
+                'billing_period_end' => $issueDate->copy()->endOfMonth(),
+                'subtotal' => $subtotal,
+                'tax_rate' => $taxRate,
                 'tax_amount' => $taxAmount,
                 'total_amount' => $totalAmount,
                 'status' => 'draft',
-                'created_by' => 'system',
+                'created_by' => null,
             ]);
 
+            $this->snapshotItemsFromContract($invoice, $currentVersion);
+
             // 契約の次回請求日と最終請求日を更新
+            // calculateNextBillingDate() は last_invoiced_at を基準に計算するため、
+            // 先にメモリ上で last_invoiced_at を確定させてから計算する(でないと更新前の古い値が使われる)
+            $contract->last_invoiced_at = now();
+            $nextBillingDate = $contract->calculateNextBillingDate();
             $contract->update([
-                'last_invoiced_at' => now(),
-                'next_billing_date' => $contract->calculateNextBillingDate(),
+                'last_invoiced_at' => $contract->last_invoiced_at,
+                'next_billing_date' => $nextBillingDate,
             ]);
+
+            // バッチ生成→自動送信まで一気通貫にする
+            \App\Jobs\SendInvoiceJob::dispatch($invoice);
 
             return $invoice;
         });
+    }
+
+    /**
+     * ContractVersionの明細(ContractItem)をInvoiceItemとしてスナップショットする
+     */
+    public function snapshotItemsFromContract(Invoice $invoice, ContractVersion $contractVersion): void
+    {
+        foreach ($contractVersion->items as $sortOrder => $contractItem) {
+            $invoice->items()->create([
+                'description' => $contractItem->name . ($contractItem->description ? '（' . $contractItem->description . '）' : ''),
+                'quantity' => $contractItem->quantity,
+                'unit_price' => $contractItem->unit_price,
+                'amount' => $contractItem->amount,
+                'sort_order' => $sortOrder,
+            ]);
+        }
     }
 
     /**
@@ -146,8 +160,10 @@ class InvoiceService
     {
         // PDF生成
         $pdf = Pdf::loadView('pdfs.invoice', [
-            'invoice' => $invoice->load(['user', 'company', 'contract']),
+            'invoice' => $invoice->load(['user', 'company', 'contract', 'items']),
+            'status_label' => Invoice::STATUSES[$invoice->status] ?? $invoice->status,
         ]);
+        PdfFontRegistrar::registerDomPdf($pdf);
 
         // 保存パス生成
         $directory = "invoices/{$invoice->user_id}";
@@ -210,7 +226,7 @@ class InvoiceService
     /**
      * 請求書番号を生成
      */
-    private function generateInvoiceNumber(): string
+    public function generateInvoiceNumber(): string
     {
         $year = date('Y');
         $lastInvoice = Invoice::whereYear('created_at', $year)

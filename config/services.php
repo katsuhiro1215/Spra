@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'search_console' => [
+        // 'dummy'（デフォルト）または 'google'。本番移行時に 'google' へ切り替える
+        'driver' => env('SEARCH_CONSOLE_DRIVER', 'dummy'),
+        'site_url' => env('SEARCH_CONSOLE_SITE_URL'),
+        // サービスアカウントJSON鍵のパス（'google'ドライバ用、未実装）
+        'credentials_path' => env('SEARCH_CONSOLE_CREDENTIALS_PATH'),
+    ],
+
 ];

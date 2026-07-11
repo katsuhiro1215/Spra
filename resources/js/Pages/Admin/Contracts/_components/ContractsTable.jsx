@@ -8,6 +8,7 @@ import {
     PencilIcon,
     TrashIcon,
     DocumentTextIcon,
+    DocumentArrowDownIcon,
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
@@ -237,6 +238,16 @@ const ContractsTable = ({
                                             title="詳細"
                                         >
                                             <EyeIcon className="h-5 w-5" />
+                                        </Link>
+                                        <Link
+                                            href={route(
+                                                "admin.contract.pdf",
+                                                contract.id,
+                                            )}
+                                            className="text-gray-600 hover:text-gray-800"
+                                            title="PDFダウンロード"
+                                        >
+                                            <DocumentArrowDownIcon className="h-5 w-5" />
                                         </Link>
 
                                         {/* 署名完了 & 未承認 → 承認ボタン */}

@@ -18,7 +18,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 
   public function findById(string $id): ?Invoice
   {
-    return Invoice::with(['contract', 'user', 'company', 'payments'])->find($id);
+    return Invoice::with(['contract.currentVersion', 'user.profile', 'company', 'payments', 'items', 'receipt'])->find($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Invoice
@@ -26,7 +26,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     return Invoice::where('id', $id)
       ->where('user_id', $userId)
       ->whereNotIn('status', ['draft'])
-      ->with(['contract', 'payments'])
+      ->with(['contract.currentVersion', 'payments', 'items', 'receipt'])
       ->first();
   }
 
@@ -38,7 +38,12 @@ class InvoiceRepository implements InvoiceRepositoryInterface
       $search = $filters['search'];
       $query->where(function ($q) use ($search) {
         $q->where('invoice_number', 'like', "%{$search}%")
-          ->orWhere('title', 'like', "%{$search}%");
+          ->orWhereHas('user', function ($uq) use ($search) {
+            $uq->where('email', 'like', "%{$search}%");
+          })
+          ->orWhereHas('company', function ($cq) use ($search) {
+            $cq->where('name', 'like', "%{$search}%");
+          });
       });
     }
 
@@ -123,8 +128,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     return $query->where(function ($q) use ($search) {
       $q->where('invoice_number', 'like', "%{$search}%")
         ->orWhereHas('user', function ($q) use ($search) {
-          $q->where('name', 'like', "%{$search}%")
-            ->orWhere('email', 'like', "%{$search}%");
+          $q->where('email', 'like', "%{$search}%");
         })
         ->orWhereHas('company', function ($q) use ($search) {
           $q->where('name', 'like', "%{$search}%");

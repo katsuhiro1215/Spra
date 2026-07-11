@@ -8,6 +8,8 @@ use App\Services\ContractPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,8 +46,9 @@ class ContractController extends Controller
             $quote = \App\Models\Quote::find($contract->quote_id);
         }
 
-        // TODO: 今後 invoices, receipts を追加
-        $invoices = [];
+        $invoices = $contract->invoices()->orderBy('issue_date', 'desc')->get();
+
+        // TODO: Receipt機能の実装後に接続する（Invoice経由で発行される想定）
         $receipts = [];
 
         return Inertia::render('User/Contracts/Show', [
@@ -70,16 +73,26 @@ class ContractController extends Controller
             'signature' => 'required|string',
         ]);
 
+        // 既に署名済み、または署名待ち状態でない場合は多重署名を防ぐ
+        if (!$contract->isAwaitingUserSignature()) {
+            return redirect()
+                ->back()
+                ->with('error', 'この契約書は現在署名できる状態ではありません。');
+        }
+
         try {
             // Base64 署名画像を処理
             $signatureData = $request->input('signature');
-            if (preg_match('/^data:image\/(\w+);base64,/', $signatureData, $type)) {
-                $type = strtolower($type[1]);
+            if (!preg_match('/^data:image\/(\w+);base64,/', $signatureData, $type)) {
+                throw new \Exception('Invalid signature format');
+            }
 
-                if (!in_array($type, ['jpeg', 'jpg', 'gif', 'png'])) {
-                    throw new \Exception('Invalid image type');
-                }
+            $type = strtolower($type[1]);
+            if (!in_array($type, ['jpeg', 'jpg', 'gif', 'png'])) {
+                throw new \Exception('Invalid image type');
+            }
 
+            DB::transaction(function () use ($id, $userId, $signatureData, $request) {
                 // contract_signatures テーブルに保存
                 $signature = \App\Models\ContractSignature::create([
                     'contract_id' => $id,
@@ -89,23 +102,23 @@ class ContractController extends Controller
                     'method' => 'typed', // DigitalStamp コンポーネントで入力された方式
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
-                    'signed_at' => now(),
-                    'status' => 'signed',
+                    'status' => 'pending',
                 ]);
 
-                // コントラクトを更新
-                $contract->update([
-                    'user_signed_at' => now(),
-                    'signature_status' => 'user_signed',
-                ]);
+                // 署名を確定（管理者署名が不要な契約は内部で fully_signed になる）
+                $signature->markAsSigned();
+            });
 
-                return redirect()
-                    ->route('user.contract.show', $id)
-                    ->with('success', '署名が完了しました。管理者が確認後、契約が有効化されます。');
-            }
-
-            throw new \Exception('Invalid signature format');
+            return redirect()
+                ->route('user.contract.show', $id)
+                ->with('success', '署名が完了しました。管理者が確認後、契約が有効化されます。');
         } catch (\Exception $e) {
+            Log::error('契約書署名エラー', [
+                'contract_id' => $id,
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+
             return redirect()
                 ->back()
                 ->with('error', '署名の保存に失敗しました: ' . $e->getMessage());

@@ -6,7 +6,7 @@
     <title>見積書</title>
     <style>
         body {
-            font-family: "DejaVu Sans", sans-serif;
+            font-family: 'Noto Sans JP', "DejaVu Sans", sans-serif;
             margin: 0;
             padding: 0;
             color: #333;

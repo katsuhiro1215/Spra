@@ -23,6 +23,7 @@ class InvoiceRequest extends FormRequest
     {
         return [
             'contract_id'           => 'nullable|ulid|exists:contracts,id',
+            'invoice_type'          => 'nullable|string|in:deposit,interim,final,full,monthly,other',
             'issue_date'            => 'required|date',
             'user_id'               => 'nullable|uuid|exists:users,id',
             'company_id'            => 'nullable|ulid|exists:companies,id',

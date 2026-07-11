@@ -8,7 +8,10 @@ import {
     InputError,
     FormTextarea,
 } from "@/Components/Forms";
-import { INVOICE_STATUS_OPTIONS } from "@/Constants/SelectOptions";
+import {
+    INVOICE_STATUS_OPTIONS,
+    INVOICE_TYPE_OPTIONS,
+} from "@/Constants/SelectOptions";
 
 export default function InvoiceForm({
     data,
@@ -217,6 +220,26 @@ export default function InvoiceForm({
                                 <InputError
                                     className="mt-2"
                                     message={errors.status}
+                                />
+                            </FormGroup>
+
+                            <FormGroup label="請求区分" htmlFor="invoice_type">
+                                <SelectInput
+                                    id="invoice_type"
+                                    name="invoice_type"
+                                    value={data.invoice_type || "full"}
+                                    onChange={(e) =>
+                                        setData(
+                                            "invoice_type",
+                                            e.target.value,
+                                        )
+                                    }
+                                    options={INVOICE_TYPE_OPTIONS}
+                                    error={errors.invoice_type}
+                                />
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.invoice_type}
                                 />
                             </FormGroup>
                         </div>

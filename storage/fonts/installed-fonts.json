@@ -1,0 +1,8 @@
+{
+    "noto sans jp": {
+        "normal": "\/var\/www\/html\/storage\/fonts\/noto_sans_jp_normal_8f8531d030f7adf78748d13b844aed49",
+        "italic": "\/var\/www\/html\/storage\/fonts\/noto_sans_jp_italic_8f8531d030f7adf78748d13b844aed49",
+        "bold": "\/var\/www\/html\/storage\/fonts\/noto_sans_jp_bold_8f8531d030f7adf78748d13b844aed49",
+        "bold_italic": "noto_sans_jp_bold_italic_8f8531d030f7adf78748d13b844aed49"
+    }
+}

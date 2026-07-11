@@ -16,6 +16,7 @@ class PaymentService
   public function __construct(
     private PaymentRepository $paymentRepository,
     private InvoiceRepository $invoiceRepository,
+    private ReceiptService $receiptService,
   ) {}
 
   /**
@@ -119,9 +120,12 @@ class PaymentService
 
   /**
    * 請求書に対する支払い総額を計算してステータスを更新
+   * 新たに支払済みになった場合は領収書を自動発行・送付する
    */
   protected function updateInvoiceStatus(Invoice $invoice): void
   {
+    $wasPaid = $invoice->status === 'paid';
+
     // 完了した支払いの合計を計算
     $totalPaid = $invoice->payments()
       ->where('status', 'completed')
@@ -133,11 +137,41 @@ class PaymentService
         'status' => 'paid',
         'paid_at' => now(),
       ]);
-    } elseif ($invoice->status === 'paid') {
+
+      if (!$wasPaid) {
+        $this->issueReceiptForInvoice($invoice);
+      }
+    } elseif ($wasPaid) {
       // 支払い済みだったが不足している場合は元に戻す
       $this->invoiceRepository->update($invoice, [
         'status' => 'sent',
         'paid_at' => null,
+      ]);
+    }
+  }
+
+  /**
+   * 支払済みになった請求書の領収書を自動発行・送付する
+   * 既に発行済みの場合は何もしない(冪等)
+   */
+  private function issueReceiptForInvoice(Invoice $invoice): void
+  {
+    if ($invoice->receipt) {
+      return;
+    }
+
+    try {
+      $latestPayment = $invoice->payments()
+        ->where('status', 'completed')
+        ->latest('payment_date')
+        ->first();
+
+      $receipt = $this->receiptService->issueReceipt($invoice, $latestPayment);
+      $this->receiptService->sendReceipt($receipt);
+    } catch (\Exception $e) {
+      Log::error('領収書の自動発行に失敗しました', [
+        'invoice_id' => $invoice->id,
+        'error' => $e->getMessage(),
       ]);
     }
   }

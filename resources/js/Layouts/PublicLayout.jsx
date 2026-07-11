@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import { Header, Footer } from "@/Components/Public";
 import LoadingAnimation from "@/Components/Loading/LoadingAnimation";
+import { trackPageview } from "@/Utils/analytics";
 
 export default function PublicLayout({ children, auth, showLoading = false }) {
     const [hasShownInitialLoading, setHasShownInitialLoading] = useState(() => {
@@ -26,6 +27,11 @@ export default function PublicLayout({ children, auth, showLoading = false }) {
             setIsLoading(false);
         }
     }, [showLoading, hasShownInitialLoading]);
+
+    useEffect(() => {
+        // ページ表示をアクセス解析に送信（匿名・非同期、失敗しても表示に影響しない）
+        trackPageview();
+    }, []);
 
     useEffect(() => {
         // Inertiaのページ遷移イベントをリッスン

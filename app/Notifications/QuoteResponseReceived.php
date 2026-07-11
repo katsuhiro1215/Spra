@@ -37,7 +37,7 @@ class QuoteResponseReceived extends Notification implements ShouldQueue
       'response_type' => $this->quoteResponse->response_type,
       'response_type_label' => $this->quoteResponse->getResponseTypeLabel(),
       'email' => $this->quoteResponse->email,
-      'url' => route('admin.quote-response.detail', $this->quoteResponse->id),
+      'url' => route('admin.quote-response.show', $this->quoteResponse->id),
     ];
   }
 }

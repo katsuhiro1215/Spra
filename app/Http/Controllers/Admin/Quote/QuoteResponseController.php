@@ -93,4 +93,30 @@ class QuoteResponseController extends Controller
             return back()->with('error', '招待メール送信に失敗しました: ' . $e->getMessage());
         }
     }
+
+    /**
+     * 未回答の見積を管理者が目視確認のうえ手動で「見送り(NG)」として記録する
+     *
+     * @param Request $request
+     * @param QuoteResponse $quoteResponse
+     * @return RedirectResponse
+     */
+    public function markDeclined(Request $request, QuoteResponse $quoteResponse): RedirectResponse
+    {
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $this->quoteResponseService->markAsDeclined(
+                $quoteResponse,
+                auth('admins')->id(),
+                $validated['note'] ?? null
+            );
+
+            return back()->with('success', '未回答の見積を見送り(NG)として記録しました。');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }

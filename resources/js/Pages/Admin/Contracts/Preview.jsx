@@ -179,37 +179,6 @@ export default function Preview({ contract }) {
                     </CardBody>
                 </Card>
 
-                {/* PDF プレビュー */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            📄 契約書 PDF プレビュー (4ページ)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        {!pdfError ? (
-                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                <iframe
-                                    src={route(
-                                        "admin.contract.pdf.preview",
-                                        contract.id,
-                                    )}
-                                    className="w-full h-screen md:h-[800px] border-0"
-                                    onError={() => setPdfError(true)}
-                                    title="契約書 PDF プレビュー"
-                                />
-                            </div>
-                        ) : (
-                            <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
-                                <p className="text-red-800 dark:text-red-200">
-                                    ❌
-                                    PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
-                                </p>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
-
                 {/* 契約内容サマリー */}
                 <Card>
                     <CardHeader>

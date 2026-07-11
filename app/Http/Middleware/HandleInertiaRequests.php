@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn() => $request->session()->get('error'),
                 'warning' => fn() => $request->session()->get('warning'),
                 'info' => fn() => $request->session()->get('info'),
+                'apiKeyReveal' => fn() => $request->session()->get('api_key_reveal'),
             ],
             'notifications' => [
                 'unreadContacts' => $admin ? app(ContactService::class)->getUnreadCount() : 0,

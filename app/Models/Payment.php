@@ -30,6 +30,8 @@ class Payment extends Model
         'confirmed_at' => 'datetime',
     ];
 
+    protected $appends = ['method_name', 'status_name'];
+
     public const METHODS = [
         'bank_transfer' => '銀行振込',
         'credit_card'   => 'クレジットカード',

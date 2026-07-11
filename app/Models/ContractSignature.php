@@ -115,26 +115,19 @@ class ContractSignature extends Model
 
         // 契約書ステータスを更新
         if ($this->signature_type === 'user') {
-            $this->contract->update([
-                'signature_status' => 'user_signed',
-                'user_signed_at' => now(),
-            ]);
-        } elseif ($this->signature_type === 'admin') {
-            $statusMap = [
-                'user' => 'user_signed',      // User only, admin just approved
-                'admin' => 'fully_signed',    // Admin signature needed, now done
-                'both' => 'fully_signed',     // Both needed, admin just completed
-            ];
-
-            $newStatus = match ($this->contract->signature_required_from) {
-                'user' => 'user_signed',
-                'admin' => 'fully_signed',
-                'both' => $this->contract->signature_status === 'user_signed' ? 'fully_signed' : 'fully_signed',
-                default => 'fully_signed',
-            };
+            // 管理者側の署名が不要な契約は、ユーザー署名のみで完全署名とする
+            $newStatus = $this->contract->signature_required_from === 'user'
+                ? 'fully_signed'
+                : 'user_signed';
 
             $this->contract->update([
                 'signature_status' => $newStatus,
+                'user_signed_at' => now(),
+            ]);
+        } elseif ($this->signature_type === 'admin') {
+            // admin/both いずれの場合も、管理者の署名が行われれば完全署名
+            $this->contract->update([
+                'signature_status' => 'fully_signed',
                 'admin_signed_at' => now(),
             ]);
         }

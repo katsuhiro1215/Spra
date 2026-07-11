@@ -27,7 +27,6 @@ class Contact extends Model
         'assigned_to',
         // 流入元トラッキング情報
         'source',
-        'source_id',
         'api_client_id',
         'ip',
         'user_agent',
@@ -52,7 +51,12 @@ class Contact extends Model
 
     public function contactCategory(): BelongsTo
     {
-        return $this->belongsTo(ContactCategory::class, 'category_id');
+        return $this->belongsTo(ContactCategory::class, 'contact_category_id');
+    }
+
+    public function apiClient(): BelongsTo
+    {
+        return $this->belongsTo(ContactApiClient::class, 'api_client_id');
     }
 
     public function responses(): HasMany
@@ -103,7 +107,7 @@ class Contact extends Model
 
     public function scopeByCategory($query, $categoryId)
     {
-        return $query->where('category_id', $categoryId);
+        return $query->where('contact_category_id', $categoryId);
     }
 
     // アクセサ

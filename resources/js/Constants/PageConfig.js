@@ -827,6 +827,22 @@ export const PageConfig = {
     },
 
     /**
+     * お問い合わせAPI連携クライアント管理
+     */
+    contactApiClients: {
+        title: "🔌 API連携設定",
+        description: "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
+        documentTitle: "API連携設定",
+        breadcrumbs: ["ホーム", "お問い合わせ", "API連携設定"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("APIクライアント"),
+        search: createSearchTemplate("APIクライアント"),
+        ui: createIndexPageUITemplates("APIクライアント", "連携先名で検索..."),
+    },
+
+    /**
      * サービス管理
      */
     serviceTypes: {

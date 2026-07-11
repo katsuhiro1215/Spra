@@ -10,6 +10,7 @@ import {
     PlusIcon,
     MagnifyingGlassIcon,
     FunnelIcon,
+    RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
@@ -110,6 +111,12 @@ export default function Index({ contracts, filters, stats }) {
     // Constants - Header Actions & Breadcrumbs
     // ========================================
     const headerActions = [
+        {
+            label: "契約グループ",
+            icon: RectangleGroupIcon,
+            variant: "ghost",
+            route: route("admin.contract-group.index"),
+        },
         {
             label: "新規作成",
             icon: PlusIcon,

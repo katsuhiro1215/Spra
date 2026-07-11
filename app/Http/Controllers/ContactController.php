@@ -7,9 +7,6 @@ use App\Services\ContactService;
 use App\Services\ContactCategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\ContactReceivedMail;
-use App\Mail\ContactNotificationMail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -62,7 +59,7 @@ class ContactController extends Controller
             $contact = $this->contactService->createContact($contactData);
 
             // メール送信
-            $this->sendNotificationEmails($contact);
+            $this->contactService->sendNotificationEmails($contact);
 
             Log::info('お問い合わせを受信しました', [
                 'contact_id' => $contact->id,
@@ -83,35 +80,6 @@ class ContactController extends Controller
                 ->back()
                 ->withInput()
                 ->with('error', 'お問い合わせの送信に失敗しました。お手数ですが、しばらくしてから再度お試しください。');
-        }
-    }
-
-    /**
-     * 通知メールを送信
-     *
-     * @param mixed $contact
-     * @return void
-     */
-    private function sendNotificationEmails($contact): void
-    {
-        // お客様への自動返信メール送信
-        try {
-            Mail::to($contact->email)->send(new ContactReceivedMail($contact));
-        } catch (\Exception $e) {
-            Log::warning('自動返信メール送信失敗: ' . $e->getMessage(), [
-                'contact_id' => $contact->id,
-                'email' => $contact->email,
-            ]);
-        }
-
-        // 管理者への通知メール送信
-        try {
-            $adminEmail = config('mail.admin_address', 'admin@example.com');
-            Mail::to($adminEmail)->send(new ContactNotificationMail($contact));
-        } catch (\Exception $e) {
-            Log::warning('管理者通知メール送信失敗: ' . $e->getMessage(), [
-                'contact_id' => $contact->id,
-            ]);
         }
     }
 }

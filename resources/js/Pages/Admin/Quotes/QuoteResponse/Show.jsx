@@ -9,9 +9,20 @@ import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
+const QUOTE_STATUS_BADGE_VARIANT = {
+    draft: "secondary",
+    negotiating: "warning",
+    approved: "success",
+    rejected: "danger",
+    contracted: "success",
+    cancelled: "secondary",
+};
+
 export default function Detail({ quoteResponse, responseTypes }) {
     const { post, processing } = useForm();
+    const declineForm = useForm({ note: "" });
     const [showInvitationConfirm, setShowInvitationConfirm] = useState(false);
+    const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
     const handleSendInvitation = () => {
         setShowInvitationConfirm(true);
@@ -22,11 +33,26 @@ export default function Detail({ quoteResponse, responseTypes }) {
         setShowInvitationConfirm(false);
     };
 
+    const confirmDecline = () => {
+        declineForm.post(
+            route("admin.quote-response.mark-declined", quoteResponse.id),
+            {
+                preserveScroll: true,
+                onSuccess: () => setShowDeclineConfirm(false),
+            },
+        );
+    };
+
+    const elapsedDays = Math.floor(
+        (Date.now() - new Date(quoteResponse.created_at).getTime()) /
+            (1000 * 60 * 60 * 24),
+    );
+
     const getStatusBadge = (response) => {
         if (!response.responded_at) {
-            return <Badge variant="yellow">未返信</Badge>;
+            return <Badge variant="warning">未返信</Badge>;
         }
-        return <Badge variant="green">返信済み</Badge>;
+        return <Badge variant="success">返信済み</Badge>;
     };
 
     const getResponseTypeLabel = (responseType) => {
@@ -158,10 +184,9 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                     <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         <Badge
                                             variant={
-                                                quoteResponse.quote.status ===
-                                                "approved"
-                                                    ? "green"
-                                                    : "yellow"
+                                                QUOTE_STATUS_BADGE_VARIANT[
+                                                    quoteResponse.quote.status
+                                                ] || "secondary"
                                             }
                                         >
                                             {quoteResponse.quote.status}
@@ -286,6 +311,43 @@ export default function Detail({ quoteResponse, responseTypes }) {
                         </div>
                     </div>
                 </Card>
+
+                {/* 未回答: 管理者による手動NG判定 */}
+                {!quoteResponse.responded_at && (
+                    <Card>
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                未回答（送信から{elapsedDays}日経過）
+                            </h3>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                                クライアントからの回答がまだありません。しばらく様子を見ても回答が得られない場合は、内容を確認のうえ手動で見送り(NG)として記録できます。この処理は自動では行われません。
+                            </p>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    メモ（任意）
+                                </label>
+                                <textarea
+                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm"
+                                    rows={2}
+                                    value={declineForm.data.note}
+                                    onChange={(e) =>
+                                        declineForm.setData(
+                                            "note",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="例: 電話でも連絡が取れず見送りと判断"
+                                />
+                            </div>
+                            <PrimaryButton
+                                onClick={() => setShowDeclineConfirm(true)}
+                                disabled={declineForm.processing}
+                            >
+                                NG（未回答）として処理
+                            </PrimaryButton>
+                        </div>
+                    </Card>
+                )}
 
                 {/* アクション */}
                 {quoteResponse.response_type === "request" &&
@@ -416,6 +478,38 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                     disabled={processing}
                                 >
                                     送信
+                                </PrimaryButton>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* NG判定確認ダイアログ */}
+            {showDeclineConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-sm mx-4">
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                確認
+                            </h3>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                                この見積を見送り(NG)として記録します。よろしいですか？
+                            </p>
+                            <div className="flex justify-end gap-2">
+                                <SecondaryButton
+                                    onClick={() =>
+                                        setShowDeclineConfirm(false)
+                                    }
+                                    disabled={declineForm.processing}
+                                >
+                                    キャンセル
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    onClick={confirmDecline}
+                                    disabled={declineForm.processing}
+                                >
+                                    NGとして処理
                                 </PrimaryButton>
                             </div>
                         </div>

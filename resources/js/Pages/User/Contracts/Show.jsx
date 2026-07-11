@@ -32,7 +32,7 @@ export default function Show({
     });
     const [activeTab, setActiveTab] = useState("contract");
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { post, processing, errors, transform } = useForm({
         signature: null,
         agreed_at: new Date().toISOString(),
     });
@@ -112,9 +112,11 @@ export default function Show({
             return;
         }
 
-        setData("signature", stamp);
+        // stamp は直前に確定したローカル値。setData→postだとReactのstate更新が
+        // 非同期のため、post()がまだ古い(null)のdataを送信してしまい1回目は必ず
+        // 失敗する。transformで送信直前に確定値を注入することで回避する。
+        transform((data) => ({ ...data, signature: stamp }));
 
-        // 署名を送信
         post(route("user.contract.sign", contract.id), {
             onSuccess: () => {
                 setShowSignatureModal(false);
@@ -245,6 +247,7 @@ export default function Show({
                                     }}
                                 >
                                     <iframe
+                                        key={`${contract.user_signed_at ?? ""}-${contract.admin_signed_at ?? ""}`}
                                         src={route(
                                             "user.contract.pdf.preview",
                                             contract.id,
@@ -556,19 +559,28 @@ export default function Show({
                                                         key={invoice.id}
                                                         className="border-b border-gray-100 dark:border-gray-700"
                                                     >
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                                                            {
-                                                                invoice.invoice_number
-                                                            }
+                                                        <td className="px-4 py-3">
+                                                            <a
+                                                                href={route(
+                                                                    "user.invoice.show",
+                                                                    invoice.id,
+                                                                )}
+                                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                                            >
+                                                                {
+                                                                    invoice.invoice_number
+                                                                }
+                                                            </a>
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                                             {formatAmount(
-                                                                invoice.amount ||
+                                                                invoice.total_amount ||
                                                                     0,
                                                             )}
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                                                            {invoice.status}
+                                                            {invoice.status_name ||
+                                                                invoice.status}
                                                         </td>
                                                     </tr>
                                                 ))}

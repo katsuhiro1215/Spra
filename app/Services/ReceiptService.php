@@ -16,16 +16,19 @@ class ReceiptService
 {
   /**
    * 入金確認後に領収書を発行
+   * Invoice1件につき領収書は1件のみ(既に発行済みの場合はそれを返す)
    */
   public function issueReceipt(Invoice $invoice, ?Payment $payment = null): Receipt
   {
     return DB::transaction(function () use ($invoice, $payment) {
-      // 領収書番号を生成
-      $receiptNumber = $this->generateReceiptNumber();
+      $existing = $invoice->receipt()->first();
+      if ($existing) {
+        return $existing;
+      }
 
       // 領収書作成
       $receipt = Receipt::create([
-        'receipt_number' => $receiptNumber,
+        'receipt_number' => $this->generateReceiptNumber(),
         'invoice_id' => $invoice->id,
         'payment_id' => $payment?->id,
         'user_id' => $invoice->user_id,
@@ -35,7 +38,7 @@ class ReceiptService
         'total_amount' => $invoice->total_amount,
         'status' => 'draft',
         'issued_at' => now(),
-        'created_by' => auth()->guard('admins')->id() ?? 'system',
+        'created_by' => auth()->guard('admins')->id(),
       ]);
 
       return $receipt;
@@ -48,9 +51,10 @@ class ReceiptService
   public function generateAndSavePdf(Receipt $receipt): string
   {
     // PDF生成
-    $pdf = Pdf::loadView('pdf.receipt', [
+    $pdf = Pdf::loadView('pdfs.receipt', [
       'receipt' => $receipt->load(['user', 'company', 'invoice']),
     ]);
+    \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
     // 保存パス生成
     $directory = "receipts/{$receipt->user_id}";
@@ -130,10 +134,11 @@ class ReceiptService
 
   /**
    * 支払い通知を確認（Admin操作）
+   * paymentId が渡された場合、その入金記録と紐付ける
    */
-  public function acknowledgePaymentNotification(PaymentNotification $notification, string $adminId): void
+  public function acknowledgePaymentNotification(PaymentNotification $notification, string $adminId, ?string $paymentId = null): void
   {
-    $notification->acknowledge($adminId);
+    $notification->acknowledge($adminId, $paymentId);
   }
 
   /**

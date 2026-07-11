@@ -53,7 +53,6 @@ class PageController extends Controller
     public function create(): Response
     {
         $pageTypes = PageType::query()
-            ->orderBy('sort_order')
             ->orderBy('name')
             ->get(['id', 'name', 'key', 'description']);
 
@@ -97,7 +96,6 @@ class PageController extends Controller
     public function edit(Page $page): Response
     {
         $pageTypes = PageType::query()
-            ->orderBy('sort_order')
             ->orderBy('name')
             ->get(['id', 'name', 'key', 'description']);
 
