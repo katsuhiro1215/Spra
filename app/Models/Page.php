@@ -2,28 +2,63 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Page extends Model
 {
+    use HasUlid, SoftDeletes;
+
     protected $fillable = [
+        'page_type_id',
         'title',
         'slug',
         'template',
         'content',
-        'meta',
-        'settings',
+        'meta_title',
+        'meta_description',
         'is_published',
-        'sort_order'
+        'published_at',
+        'sort_order',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
-        'content' => 'array',
-        'meta' => 'array',
-        'settings' => 'array',
-        'is_published' => 'boolean'
+        'content' => 'array',  // JSON for block editor
+        'is_published' => 'boolean',
+        'published_at' => 'datetime',
     ];
+
+    // リレーションシップ
+    public function pageType(): BelongsTo
+    {
+        return $this->belongsTo(PageType::class);
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(Section::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(Admin::class, 'deleted_by');
+    }
 
     // スコープ
     public function scopePublished($query)
@@ -34,20 +69,5 @@ class Page extends Model
     public function scopeBySlug($query, $slug)
     {
         return $query->where('slug', $slug);
-    }
-
-    // アクセサ
-    protected function metaTitle(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->meta['title'] ?? $this->title
-        );
-    }
-
-    protected function metaDescription(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->meta['description'] ?? ''
-        );
     }
 }

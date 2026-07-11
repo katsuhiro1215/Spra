@@ -15,6 +15,7 @@ class Service extends Model
     use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'media_id',
         'name',
         'slug',
         'service_category_id',
@@ -39,6 +40,14 @@ class Service extends Model
     public function serviceCategory()
     {
         return $this->belongsTo(ServiceCategory::class);
+    }
+
+    /**
+     * Get the media (image) for this service.
+     */
+    public function media()
+    {
+        return $this->belongsTo(Media::class);
     }
 
     /**

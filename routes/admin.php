@@ -28,7 +28,6 @@ use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
 use App\Http\Controllers\Admin\UserInvitationController;
 use App\Http\Controllers\Admin\OnboardingController;
 
-use App\Models\Project;
 use App\Http\Controllers\Admin\Project\ProjectTemplateController;
 use App\Http\Controllers\Admin\Project\ProjectTemplateMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectController;
@@ -53,16 +52,21 @@ use App\Http\Controllers\Admin\Invoice\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReceiptController;
 
-use App\Http\Controllers\Admin\FaqController;
-
 use App\Http\Controllers\Admin\Term\TermController;
 use App\Http\Controllers\Admin\Term\TermVersionController;
 use App\Http\Controllers\Admin\Term\TermItemController;
 
-use App\Http\Controllers\Admin\Homepage\PageController;
-use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
-use App\Http\Controllers\Admin\Homepage\BlogController;
-use App\Http\Controllers\Admin\Homepage\SiteSettingController;
+use App\Http\Controllers\Admin\Website\DashboardController;
+use App\Http\Controllers\Admin\Website\PageTypeController;
+use App\Http\Controllers\Admin\Website\PageController;
+use App\Http\Controllers\Admin\Website\SectionController;
+use App\Http\Controllers\Admin\Website\PostCategoryController;
+use App\Http\Controllers\Admin\Website\PostController;
+use App\Http\Controllers\Admin\Website\MenuController;
+use App\Http\Controllers\Admin\Website\MenuItemController;
+use App\Http\Controllers\Admin\Website\FaqCategoryController;
+use App\Http\Controllers\Admin\Website\FaqController;
+use App\Http\Controllers\Admin\Website\SiteSettingController;
 
 use App\Http\Controllers\Admin\Schedule\HolidayController;
 use App\Http\Controllers\Admin\Schedule\ScheduleDefaultController;
@@ -155,6 +159,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::resource('company', CompanyController::class);
     Route::post('/company/bulk-destroy', [CompanyController::class, 'bulkDestroy'])->name('company.bulk-destroy');
     Route::patch('/company/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('company.toggle-status');
+    Route::post('/company/{company}/attach-media', [CompanyController::class, 'attachMedia'])->name('company.attach-media');
+    Route::delete('/company/{company}/detach-media', [CompanyController::class, 'detachMedia'])->name('company.detach-media');
     // 会社住所管理
     Route::controller(CompanyAddressController::class)->prefix('company/{company}/address')->name('company.address.')->group(function () {
         Route::get('/create', 'create')->name('create');
@@ -421,22 +427,65 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
 
     // ホームページ管理
-    Route::prefix('homepage')->name('homepage.')->group(function () {
-        Route::resource('pages', PageController::class);
-
-        // TODO: サービス管理との競合を避けるため一旦コメントアウト
-        // 後で 'homepage-services' など別名に変更する必要あり
-        // Route::resource('services', ServicesController::class);
-
-        Route::resource('blogCategories', BlogCategoryController::class);
-        Route::post('/blogCategories/bulk-action', [BlogCategoryController::class, 'bulkAction'])->name('blogCategories.bulk-action');
-        Route::post('/blogCategories/update-order', [BlogCategoryController::class, 'updateOrder'])->name('blogCategories.update-order');
-        Route::resource('blogs', BlogController::class);
-        Route::post('/blogs/bulk-action', [BlogController::class, 'bulkAction'])->name('blogs.bulk-action');
-        Route::patch('/blogs/{blog}/status', [BlogController::class, 'changeStatus'])->name('blogs.change-status');
-        Route::post('/blogs/upload-editor-image', [BlogController::class, 'uploadEditorImage'])->name('blogs.upload-editor-image');
-
-        Route::resource('site-settings', SiteSettingController::class);
+    Route::prefix('website')->name('website.')->group(function () {
+        // ダッシュボード
+        Route::controller(DashboardController::class)->group(function () {
+            Route::get('/', 'index')->name('dashboard');
+        });
+        // ページ管理
+        Route::prefix('page')->name('page.')->group(function () {
+            Route::resource('type', PageTypeController::class)->names('type');
+            Route::resource('', PageController::class)->parameters(['' => 'page']);
+            Route::post('/{page}/restore', [PageController::class, 'restore'])->name('restore')->withTrashed();
+        });
+        // セクション管理
+        Route::resource('section', SectionController::class);
+        // ポスト管理
+        Route::prefix('post')->name('post.')->group(function () {
+            Route::resource('', PostController::class)->parameters(['' => 'post']);
+            Route::controller(PostController::class)->group(function () {
+                Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::patch('/{post}/status', 'changeStatus')->name('change-status');
+                Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
+            });
+            Route::resource('category', PostCategoryController::class);
+            Route::controller(PostCategoryController::class)->name('category.')->group(function () {
+                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::post('/category/update-order', 'updateOrder')->name('update-order');
+            });
+        });
+        // FAQ管理
+        Route::prefix('faq')->name('faq.')->group(function () {
+            Route::resource('', FaqController::class)->parameters(['' => 'faq']);
+            Route::controller(FaqController::class)->group(function () {
+                Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::patch('/{faq}/status', 'changeStatus')->name('change-status');
+                Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
+            });
+            Route::resource('category', FaqCategoryController::class);
+            Route::controller(FaqCategoryController::class)->name('category.')->group(function () {
+                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::post('/category/update-order', 'updateOrder')->name('update-order');
+            });
+        });
+        // メニュー管理
+        Route::resource('menu', MenuController::class);
+        Route::prefix('menu')->name('menu.')->group(function () {
+            Route::resource('{menu}/item', MenuItemController::class)->parameters(['item' => 'menuItem']);
+        });
+        // サイト設定管理
+        Route::prefix('siteSetting')->name('siteSetting.')->group(function () {
+            // グループ別設定画面（表示・保存を同一ルートで受ける）
+            Route::controller(SiteSettingController::class)->group(function () {
+                Route::match(['get', 'post'], '/general', 'general')->name('general');
+                Route::match(['get', 'post'], '/navigation', 'navigation')->name('navigation');
+                Route::match(['get', 'post'], '/footer', 'footer')->name('footer');
+                Route::match(['get', 'post'], '/seo', 'seo')->name('seo');
+                Route::match(['get', 'post'], '/ogp', 'ogp')->name('ogp');
+            });
+            // 個別設定項目の汎用CRUD（プリセットにない項目向け）
+            Route::resource('', SiteSettingController::class)->parameters(['' => 'siteSetting']);
+        });
     });
 
     // ログ管理

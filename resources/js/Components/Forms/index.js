@@ -28,6 +28,7 @@ export { default as FileInput } from "./FileInput";
 export { default as NumberInput } from "./NumberInput";
 export { default as ColorInput } from "./ColorInput";
 export { default as ImageUpload } from "./ImageUpload";
+export { default as Toggle } from "./Toggle";
 
 // Advanced Components
 export { default as ButtonSelect } from "./ButtonSelect";

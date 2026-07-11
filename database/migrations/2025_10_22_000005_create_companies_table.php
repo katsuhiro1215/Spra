@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUuid('media_id')->nullable()->constrained('media')->nullOnDelete()->comment('会社画像(ロゴ)のメディアID(UUID)');
             $table->string('name');
             $table->enum('company_type', ['individual', 'corporate'])->default('individual');
             $table->string('legal_name')->nullable();           // 法人正式名称

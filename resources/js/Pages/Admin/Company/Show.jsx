@@ -1,16 +1,19 @@
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Badge } from "@/Components/Badges";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 import TabNavigation from "@/Components/TabNavigation";
+import MediaSelectModal from "@/Components/Media/MediaSelectModal";
 import {
     ArrowLeftIcon,
     PencilIcon,
     DocumentTextIcon,
     DocumentCurrencyYenIcon,
+    CameraIcon,
+    BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import { getStatusBadge } from "@/Constants/Badges";
@@ -31,8 +34,36 @@ export default function Show({
     quotes = [],
     payments = [],
     stats = {},
+    mediaList = [],
 }) {
     const [activeTab, setActiveTab] = useState("basic");
+    const [showMediaModal, setShowMediaModal] = useState(false);
+    const [mediaListState, setMediaListState] = useState(mediaList);
+
+    const handleMediaSelect = (mediaId) => {
+        router.post(
+            route("admin.company.attach-media", company.id),
+            { media_id: mediaId },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => setShowMediaModal(false),
+            },
+        );
+    };
+
+    const handleMediaUploaded = (newMedia) => {
+        setMediaListState((prev) => [newMedia, ...prev]);
+    };
+
+    const handleDetachMedia = () => {
+        if (confirm("会社画像を削除しますか？")) {
+            router.delete(route("admin.company.detach-media", company.id), {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
+    };
 
     const companyTypeLabels = {
         individual: "個人事業主",
@@ -154,14 +185,55 @@ export default function Show({
                 {/* ヘッダー */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                            {company.name}
-                        </h1>
-                        <Badge {...getStatusBadge(company.status)} />
-                        <Badge
-                            text={companyTypeLabels[company.company_type]}
-                            variant="info"
-                        />
+                        <div className="relative group flex-shrink-0">
+                            {company.media ? (
+                                <div className="relative">
+                                    <img
+                                        src={company.media.url}
+                                        alt={company.name}
+                                        className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                                        <button
+                                            onClick={() =>
+                                                setShowMediaModal(true)
+                                            }
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white rounded-full"
+                                        >
+                                            <CameraIcon className="h-4 w-4 text-slate-700" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowMediaModal(true)}
+                                    className="relative w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 group"
+                                >
+                                    <BuildingOffice2Icon className="h-7 w-7 text-slate-400" />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                                        <CameraIcon className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                </button>
+                            )}
+                            {company.media && (
+                                <button
+                                    onClick={handleDetachMedia}
+                                    className="mt-1 text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 block"
+                                >
+                                    画像を削除
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {company.name}
+                            </h1>
+                            <Badge {...getStatusBadge(company.status)} />
+                            <Badge
+                                text={companyTypeLabels[company.company_type]}
+                                variant="info"
+                            />
+                        </div>
                     </div>
 
                     <SecondaryButton
@@ -183,6 +255,17 @@ export default function Show({
                     <div className="p-6">{renderTabContent()}</div>
                 </div>
             </div>
+
+            {/* メディア選択モーダル */}
+            <MediaSelectModal
+                show={showMediaModal}
+                mediaList={mediaListState}
+                multiple={false}
+                uploadRoute={route("admin.media.store")}
+                onClose={() => setShowMediaModal(false)}
+                onSelect={handleMediaSelect}
+                onMediaUploaded={handleMediaUploaded}
+            />
         </AdminAuthenticatedLayout>
     );
 }

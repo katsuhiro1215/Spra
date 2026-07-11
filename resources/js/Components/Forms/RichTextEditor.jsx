@@ -7,6 +7,7 @@ const RichTextEditor = ({
     placeholder = "コンテンツを入力してください...",
     height = 400,
     id = "rich-text-editor",
+    uploadUrl = null,
 }) => {
     const editorRef = useRef(null);
 
@@ -91,45 +92,49 @@ const RichTextEditor = ({
                 ],
                 font_family_formats:
                     "Noto Sans JP=Noto Sans JP,sans-serif;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;AkrutiKndPadmini=Akpdmi-n",
-                // 画像アップロード設定
-                images_upload_handler: (blobInfo, success, failure) => {
-                    const formData = new FormData();
-                    formData.append(
-                        "file",
-                        blobInfo.blob(),
-                        blobInfo.filename()
-                    );
+                // 画像アップロード設定（uploadUrlが指定された場合のみ有効）
+                ...(uploadUrl
+                    ? {
+                          images_upload_handler: (blobInfo, success, failure) => {
+                              const formData = new FormData();
+                              formData.append(
+                                  "file",
+                                  blobInfo.blob(),
+                                  blobInfo.filename()
+                              );
 
-                    // CSRFトークンを追加
-                    const csrfToken = document.querySelector(
-                        'meta[name="csrf-token"]'
-                    );
-                    if (csrfToken) {
-                        formData.append(
-                            "_token",
-                            csrfToken.getAttribute("content")
-                        );
-                    }
+                              // CSRFトークンを追加
+                              const csrfToken = document.querySelector(
+                                  'meta[name="csrf-token"]'
+                              );
+                              if (csrfToken) {
+                                  formData.append(
+                                      "_token",
+                                      csrfToken.getAttribute("content")
+                                  );
+                              }
 
-                    fetch(route("admin.homepage.blogs.upload-editor-image"), {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                            "X-Requested-With": "XMLHttpRequest",
-                        },
-                    })
-                        .then((response) => response.json())
-                        .then((result) => {
-                            if (result.location) {
-                                success(result.location);
-                            } else {
-                                failure("画像のアップロードに失敗しました。");
-                            }
-                        })
-                        .catch(() => {
-                            failure("画像のアップロードに失敗しました。");
-                        });
-                },
+                              fetch(uploadUrl, {
+                                  method: "POST",
+                                  body: formData,
+                                  headers: {
+                                      "X-Requested-With": "XMLHttpRequest",
+                                  },
+                              })
+                                  .then((response) => response.json())
+                                  .then((result) => {
+                                      if (result.location) {
+                                          success(result.location);
+                                      } else {
+                                          failure("画像のアップロードに失敗しました。");
+                                      }
+                                  })
+                                  .catch(() => {
+                                      failure("画像のアップロードに失敗しました。");
+                                  });
+                          },
+                      }
+                    : { paste_data_images: false }),
                 // リンクの設定
                 link_default_target: "_blank",
                 link_title: false,
@@ -141,7 +146,6 @@ const RichTextEditor = ({
                     width: "100%",
                 },
                 // その他の設定
-                paste_data_images: true,
                 paste_as_text: false,
                 smart_paste: true,
                 browser_spellcheck: true,

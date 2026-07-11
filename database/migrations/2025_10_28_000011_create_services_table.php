@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUuid('media_id')->nullable()->constrained('media')->nullOnDelete()->comment('サービス画像のメディアID(UUID)');
             $table->string('name');
             $table->string('slug')->unique();
             $table->ulid('service_category_id');

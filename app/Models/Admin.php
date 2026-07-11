@@ -96,9 +96,9 @@ class Admin extends Authenticatable
             ->where('is_active', true);
     }
 
-    public function blogs(): HasMany
+    public function posts(): HasMany
     {
-        return $this->hasMany(Blog::class, 'author_id');
+        return $this->hasMany(Post::class, 'author_id');
     }
 
     public function assignedProjects(): HasMany

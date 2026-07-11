@@ -6,6 +6,7 @@ use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -15,6 +16,7 @@ class Company extends Model
     use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'media_id',
         'name',
         'company_type',
         'legal_name',
@@ -59,6 +61,11 @@ class Company extends Model
     // -------------------------
     // Relationships
     // -------------------------
+
+    public function media(): BelongsTo
+    {
+        return $this->belongsTo(Media::class);
+    }
 
     public function users(): BelongsToMany
     {
