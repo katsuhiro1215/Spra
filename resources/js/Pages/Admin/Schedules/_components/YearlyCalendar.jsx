@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { router } from "@inertiajs/react";
 
-export default function YearlyCalendar({ year, calendar }) {
+const todayStr = () => new Date().toISOString().split("T")[0];
+
+export default function YearlyCalendar({ year, calendar, appointments = {} }) {
+    const today = todayStr();
     // 12ヶ月分のカレンダーを生成
     const months = useMemo(() => {
         const monthsData = [];
@@ -41,23 +44,37 @@ export default function YearlyCalendar({ year, calendar }) {
     }, [year, calendar]);
 
     const getDayCellStyle = (day) => {
-        if (!day) return "text-gray-300";
+        if (!day) return "text-gray-300 dark:text-gray-600 rounded";
 
         const classes = [];
 
-        if (day.is_holiday) {
-            classes.push("bg-red-100 text-red-800 font-semibold");
+        if (day.date === today) {
+            classes.push(
+                "bg-amber-400 text-white font-bold rounded-full",
+            );
+        } else if (day.is_holiday) {
+            classes.push(
+                "bg-red-100 text-red-800 font-semibold dark:bg-red-900/40 dark:text-red-300 rounded",
+            );
+        } else if (day.is_exception && !day.is_business_day) {
+            classes.push(
+                "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded",
+            );
         } else if (!day.is_business_day) {
-            classes.push("bg-gray-100 text-gray-500");
+            classes.push(
+                "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 rounded",
+            );
         } else {
-            classes.push("text-gray-700");
+            classes.push("text-gray-700 dark:text-gray-300 rounded");
         }
 
-        // 土日の色
-        if (day.day_of_week === 0) {
-            classes.push("text-red-600");
-        } else if (day.day_of_week === 6) {
-            classes.push("text-blue-600");
+        // 土日の色（今日は上書きしない）
+        if (day.date !== today) {
+            if (day.day_of_week === 0) {
+                classes.push("text-red-600 dark:text-red-400");
+            } else if (day.day_of_week === 6) {
+                classes.push("text-blue-600 dark:text-blue-400");
+            }
         }
 
         return classes.join(" ");
@@ -76,11 +93,11 @@ export default function YearlyCalendar({ year, calendar }) {
             {months.map((monthData) => (
                 <div
                     key={monthData.month}
-                    className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => handleMonthClick(monthData.month)}
                 >
                     {/* 月ヘッダー */}
-                    <div className="text-center font-bold text-gray-800 mb-2">
+                    <div className="text-center font-bold text-gray-800 dark:text-gray-100 mb-2">
                         {monthData.name}
                     </div>
 
@@ -92,10 +109,10 @@ export default function YearlyCalendar({ year, calendar }) {
                                     key={day}
                                     className={`text-center text-xs font-medium ${
                                         index === 0
-                                            ? "text-red-600"
+                                            ? "text-red-600 dark:text-red-400"
                                             : index === 6
-                                              ? "text-blue-600"
-                                              : "text-gray-600"
+                                              ? "text-blue-600 dark:text-blue-400"
+                                              : "text-gray-600 dark:text-gray-400"
                                     }`}
                                 >
                                     {day}
@@ -106,14 +123,27 @@ export default function YearlyCalendar({ year, calendar }) {
 
                     {/* カレンダーグリッド */}
                     <div className="grid grid-cols-7 gap-px">
-                        {monthData.grid.map((day, index) => (
-                            <div
-                                key={index}
-                                className={`text-center text-xs py-1 rounded ${getDayCellStyle(day)}`}
-                            >
-                                {day ? new Date(day.date).getDate() : ""}
-                            </div>
-                        ))}
+                        {monthData.grid.map((day, index) => {
+                            const dayAppointmentCount = day
+                                ? (appointments[day.date] || []).length
+                                : 0;
+                            return (
+                                <div
+                                    key={index}
+                                    className={`relative text-center text-xs py-1 ${getDayCellStyle(day)}`}
+                                    title={
+                                        dayAppointmentCount > 0
+                                            ? `予約 ${dayAppointmentCount}件`
+                                            : undefined
+                                    }
+                                >
+                                    {day ? new Date(day.date).getDate() : ""}
+                                    {dayAppointmentCount > 0 && (
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             ))}

@@ -71,6 +71,21 @@ class AppointmentSlot extends Model
   }
 
   /**
+   * 予約可能な枠のみに絞り込む
+   */
+  public function scopeAvailableForBooking($query, ?string $excludeSlotId = null)
+  {
+    return $query->where(function ($q) use ($excludeSlotId) {
+      $q->where('status', 'available')
+        ->whereRaw('current_bookings < max_capacity');
+
+      if ($excludeSlotId) {
+        $q->orWhere('id', $excludeSlotId);
+      }
+    })->where('date', '>=', now()->format('Y-m-d'));
+  }
+
+  /**
    * 予約可能かチェック
    */
   public function isAvailable(): bool

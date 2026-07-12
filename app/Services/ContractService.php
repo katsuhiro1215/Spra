@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\ContractVersion;
 use App\Repositories\ContractRepository;
+use App\Services\ContractBenefitService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,8 @@ use Illuminate\Support\Facades\DB;
 class ContractService
 {
     public function __construct(
-        private ContractRepository $repository
+        private ContractRepository $repository,
+        private ContractBenefitService $benefitService,
     ) {}
 
     public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
@@ -68,6 +70,9 @@ class ContractService
             if ($contract->user) {
                 $contract->user->update(['status' => 'active']);
             }
+
+            // 契約特典（チケット）の初回付与
+            $this->benefitService->generateInitialBenefits($contract);
 
             return $contract;
         });
@@ -150,6 +155,7 @@ class ContractService
             $contractData = [
                 'contract_number' => $data['contract_number'],
                 'quote_id' => $data['quote_id'] ?? null,
+                'service_plan_id' => $data['service_plan_id'] ?? null,
                 'user_id' => $data['user_id'],
                 'company_id' => $data['company_id'] ?? null,
                 'contract_group_id' => $data['contract_group_id'] ?? null,

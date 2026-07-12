@@ -37,8 +37,9 @@ const priorityConfig = {
     urgent: { variant: "danger", label: "緊急" },
 };
 
-export default function Show({ project, currentVersion }) {
+export default function Show({ project, currentVersion, progress = 0 }) {
     const [activeTab, setActiveTab] = useState("overview");
+    const isCompleted = progress >= 100;
 
     const formatDate = (dateString) => {
         if (!dateString) return null;
@@ -117,6 +118,9 @@ export default function Show({ project, currentVersion }) {
                         >
                             {getPriorityBadge(project.priority).label}
                         </Badge>
+                        {isCompleted && (
+                            <Badge variant="success">完了</Badge>
+                        )}
                     </div>
 
                     <SecondaryButton
@@ -138,6 +142,26 @@ export default function Show({ project, currentVersion }) {
                         </span>
                     </div>
                 )}
+
+                {/* 全体進捗 */}
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            全体進捗
+                        </span>
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                            {progress}%
+                        </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all ${
+                                isCompleted ? "bg-green-500" : "bg-blue-500"
+                            }`}
+                            style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                        />
+                    </div>
+                </div>
 
                 {/* タブ */}
                 <div className="border-b border-slate-200 dark:border-slate-700">

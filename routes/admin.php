@@ -429,6 +429,11 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     });
 
     // 予約枠管理
+    Route::prefix('appointment-slots')->name('appointment-slots.')->group(function () {
+        Route::get('/bulk-create', [AppointmentSlotController::class, 'bulkCreate'])->name('bulk-create');
+        Route::post('/bulk-store', [AppointmentSlotController::class, 'bulkStore'])->name('bulk-store');
+        Route::post('/quick-store', [AppointmentSlotController::class, 'quickStore'])->name('quick-store');
+    });
     Route::resource('appointment-slots', AppointmentSlotController::class);
 
     // 予約管理

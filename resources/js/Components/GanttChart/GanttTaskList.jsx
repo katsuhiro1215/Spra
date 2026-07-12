@@ -16,6 +16,7 @@ export default function GanttTaskList({
     onDeleteTask,
     onTaskReorder,
     onTaskProgressUpdate,
+    readOnly = false,
 }) {
     // デフォルトで全て展開
     const getAllTaskIds = (taskList) => {
@@ -65,13 +66,13 @@ export default function GanttTaskList({
     const getStatusColor = (status) => {
         switch (status) {
             case "completed":
-                return "bg-green-100 text-green-800 border-green-200";
+                return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800";
             case "in_progress":
-                return "bg-blue-100 text-blue-800 border-blue-200";
+                return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800";
             case "not_started":
-                return "bg-gray-100 text-gray-800 border-gray-200";
+                return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600";
             default:
-                return "bg-gray-100 text-gray-800 border-gray-200";
+                return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600";
         }
     };
 
@@ -269,8 +270,9 @@ export default function GanttTaskList({
                 )}
 
                 <div
-                    draggable={!isFirstTask}
+                    draggable={!isFirstTask && !readOnly}
                     onDragStart={(e) =>
+                        !readOnly &&
                         handleDragStart(
                             e,
                             task,
@@ -280,17 +282,17 @@ export default function GanttTaskList({
                             isFirstTask,
                         )
                     }
-                    onDragOver={(e) => handleDragOver(e, task, level)}
+                    onDragOver={(e) => !readOnly && handleDragOver(e, task, level)}
                     onDragEnd={handleDragEnd}
-                    onDrop={(e) => handleDrop(e, task)}
+                    onDrop={(e) => !readOnly && handleDrop(e, task)}
                     onContextMenu={(e) =>
                         handleContextMenu(e, task, isFirstTask)
                     }
-                    className={`flex items-center border-b border-gray-200 hover:bg-gray-50 group relative ${
+                    className={`flex items-center border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 group relative ${
                         isDragging ? "opacity-50" : ""
-                    } ${isFirstTask ? "" : "cursor-move"} ${
+                    } ${isFirstTask || readOnly ? "" : "cursor-move"} ${
                         isDropTarget && dropPosition === "child"
-                            ? "bg-blue-50"
+                            ? "bg-blue-50 dark:bg-blue-900/30"
                             : ""
                     }`}
                     style={{
@@ -303,12 +305,12 @@ export default function GanttTaskList({
                         {hasChildren && (
                             <button
                                 onClick={() => toggleExpand(task.id)}
-                                className="p-0.5 hover:bg-gray-200 rounded"
+                                className="p-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded"
                             >
                                 {isExpanded ? (
-                                    <ChevronDownIcon className="h-3.5 w-3.5 text-gray-600" />
+                                    <ChevronDownIcon className="h-3.5 w-3.5 text-gray-600 dark:text-slate-400" />
                                 ) : (
-                                    <ChevronRightIcon className="h-3.5 w-3.5 text-gray-600" />
+                                    <ChevronRightIcon className="h-3.5 w-3.5 text-gray-600 dark:text-slate-400" />
                                 )}
                             </button>
                         )}
@@ -323,8 +325,8 @@ export default function GanttTaskList({
                             <span
                                 className={`text-sm truncate ${
                                     task.status === "completed"
-                                        ? "line-through text-gray-500"
-                                        : "text-gray-900"
+                                        ? "line-through text-gray-500 dark:text-slate-500"
+                                        : "text-gray-900 dark:text-slate-100"
                                 } ${hasChildren ? "font-medium" : ""}`}
                                 title={task.name}
                             >
@@ -341,7 +343,7 @@ export default function GanttTaskList({
                     </div>
 
                     {/* 日付範囲 */}
-                    <div className="w-24 flex-shrink-0 text-xs text-gray-600 pr-2">
+                    <div className="w-24 flex-shrink-0 text-xs text-gray-600 dark:text-slate-400 pr-2">
                         {formatDate(task.startDate)} -{" "}
                         {formatDate(task.endDate)}
                     </div>
@@ -360,7 +362,7 @@ export default function GanttTaskList({
                         {task.assignee && (
                             <div className="flex items-center space-x-1.5">
                                 {renderAvatar(task.assignee)}
-                                <span className="text-xs text-gray-700 truncate">
+                                <span className="text-xs text-gray-700 dark:text-slate-300 truncate">
                                     {task.assignee}
                                 </span>
                             </div>
@@ -368,22 +370,24 @@ export default function GanttTaskList({
                     </div>
 
                     {/* アクションボタン */}
-                    <div className="flex items-center space-x-0.5 pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={() => onEditTask && onEditTask(task)}
-                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                            title="編集"
-                        >
-                            <PencilIcon className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                            onClick={() => onDeleteTask && onDeleteTask(task)}
-                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                            title="削除"
-                        >
-                            <TrashIcon className="h-3.5 w-3.5" />
-                        </button>
-                    </div>
+                    {!readOnly && (
+                        <div className="flex items-center space-x-0.5 pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => onEditTask && onEditTask(task)}
+                                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-500 dark:hover:text-blue-400 dark:hover:bg-blue-900/30 rounded"
+                                title="編集"
+                            >
+                                <PencilIcon className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                                onClick={() => onDeleteTask && onDeleteTask(task)}
+                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-slate-500 dark:hover:text-red-400 dark:hover:bg-red-900/30 rounded"
+                                title="削除"
+                            >
+                                <TrashIcon className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* 子タスク */}
@@ -413,11 +417,11 @@ export default function GanttTaskList({
 
     return (
         <div
-            className="bg-white border-r border-gray-300 overflow-y-auto relative"
+            className="bg-white dark:bg-slate-900 border-r border-gray-300 dark:border-slate-700 overflow-y-auto relative"
             onClick={closeContextMenu}
         >
             {/* ヘッダー */}
-            <div className="sticky top-0 bg-gray-100 border-b-2 border-gray-300 z-10 text-xs font-semibold text-gray-700">
+            <div className="sticky top-0 bg-gray-100 dark:bg-slate-800 border-b-2 border-gray-300 dark:border-slate-700 z-10 text-xs font-semibold text-gray-700 dark:text-slate-300">
                 <div
                     className="flex items-center"
                     style={{ height: `${ROW_HEIGHT}px` }}
@@ -438,7 +442,7 @@ export default function GanttTaskList({
                         renderTask(task, 0, null, index, index === 0),
                     )
                 ) : (
-                    <div className="p-8 text-center text-gray-500 text-sm">
+                    <div className="p-8 text-center text-gray-500 dark:text-slate-400 text-sm">
                         タスクがありません
                     </div>
                 )}
@@ -447,50 +451,57 @@ export default function GanttTaskList({
             {/* コンテキストメニュー */}
             {contextMenu.show && contextMenu.task && (
                 <div
-                    className="fixed bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                    className="fixed bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50"
                     style={{
                         left: `${contextMenu.x}px`,
                         top: `${contextMenu.y}px`,
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <button
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
-                        onClick={() => {
-                            if (onTaskProgressUpdate) {
-                                const newProgress = prompt(
-                                    `${contextMenu.task.name}の進捗率を入力してください (0-100):`,
-                                    contextMenu.task.progress || 0,
-                                );
-                                if (newProgress !== null) {
-                                    const progress = Math.min(
-                                        100,
-                                        Math.max(0, parseInt(newProgress) || 0),
+                    {!readOnly && (
+                        <button
+                            className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center space-x-2"
+                            onClick={() => {
+                                if (onTaskProgressUpdate) {
+                                    const newProgress = prompt(
+                                        `${contextMenu.task.name}の進捗率を入力してください (0-100):`,
+                                        contextMenu.task.progress || 0,
                                     );
-                                    onTaskProgressUpdate(
-                                        contextMenu.task.id,
-                                        progress,
-                                    );
+                                    if (newProgress !== null) {
+                                        const progress = Math.min(
+                                            100,
+                                            Math.max(
+                                                0,
+                                                parseInt(newProgress) || 0,
+                                            ),
+                                        );
+                                        onTaskProgressUpdate(
+                                            contextMenu.task.id,
+                                            progress,
+                                        );
+                                    }
                                 }
-                            }
-                            closeContextMenu();
-                        }}
-                    >
-                        <span>📊</span>
-                        <span>進捗率を変更</span>
-                    </button>
+                                closeContextMenu();
+                            }}
+                        >
+                            <span>📊</span>
+                            <span>進捗率を変更</span>
+                        </button>
+                    )}
+                    {!readOnly && (
+                        <button
+                            className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center space-x-2"
+                            onClick={() => {
+                                onEditTask && onEditTask(contextMenu.task);
+                                closeContextMenu();
+                            }}
+                        >
+                            <span>✏️</span>
+                            <span>編集</span>
+                        </button>
+                    )}
                     <button
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
-                        onClick={() => {
-                            onEditTask && onEditTask(contextMenu.task);
-                            closeContextMenu();
-                        }}
-                    >
-                        <span>✏️</span>
-                        <span>編集</span>
-                    </button>
-                    <button
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center space-x-2"
                         onClick={() => {
                             const hasChildren =
                                 contextMenu.task.children &&
@@ -510,17 +521,22 @@ export default function GanttTaskList({
                         <span>🔽</span>
                         <span>展開/折りたたみ</span>
                     </button>
-                    <div className="border-t border-gray-200 my-1"></div>
-                    <button
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                        onClick={() => {
-                            onDeleteTask && onDeleteTask(contextMenu.task);
-                            closeContextMenu();
-                        }}
-                    >
-                        <span>🗑️</span>
-                        <span>削除</span>
-                    </button>
+                    {!readOnly && (
+                        <>
+                            <div className="border-t border-gray-200 dark:border-slate-700 my-1"></div>
+                            <button
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center space-x-2"
+                                onClick={() => {
+                                    onDeleteTask &&
+                                        onDeleteTask(contextMenu.task);
+                                    closeContextMenu();
+                                }}
+                            >
+                                <span>🗑️</span>
+                                <span>削除</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
         </div>

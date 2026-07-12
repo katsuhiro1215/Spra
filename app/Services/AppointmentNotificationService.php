@@ -30,9 +30,21 @@ class AppointmentNotificationService
         }
       }
 
+      // 予約者本人（登録ユーザー）に通知
+      if ($appointment->user && $appointment->user->email) {
+        Mail::to($appointment->user->email)
+          ->send(new AppointmentConfirmedMail($appointment));
+      }
+
       // クライアント（企業）に通知
       if ($appointment->company && $appointment->company->email) {
         Mail::to($appointment->company->email)
+          ->send(new AppointmentConfirmedMail($appointment));
+      }
+
+      // 一般クライアント（アカウントなし）に通知
+      if (!$appointment->user && $appointment->guest_email) {
+        Mail::to($appointment->guest_email)
           ->send(new AppointmentConfirmedMail($appointment));
       }
 
@@ -53,9 +65,21 @@ class AppointmentNotificationService
   public function sendConfirmationNotification(Appointment $appointment): void
   {
     try {
+      // 予約者本人（登録ユーザー）に通知
+      if ($appointment->user && $appointment->user->email) {
+        Mail::to($appointment->user->email)
+          ->send(new AppointmentConfirmedMail($appointment));
+      }
+
       // クライアント（企業）に通知
       if ($appointment->company && $appointment->company->email) {
         Mail::to($appointment->company->email)
+          ->send(new AppointmentConfirmedMail($appointment));
+      }
+
+      // 一般クライアント（アカウントなし）に通知
+      if (!$appointment->user && $appointment->guest_email) {
+        Mail::to($appointment->guest_email)
           ->send(new AppointmentConfirmedMail($appointment));
       }
 
@@ -76,9 +100,21 @@ class AppointmentNotificationService
   public function sendCancellationNotification(Appointment $appointment): void
   {
     try {
+      // 予約者本人（登録ユーザー）に通知
+      if ($appointment->user && $appointment->user->email) {
+        Mail::to($appointment->user->email)
+          ->send(new AppointmentCancelledMail($appointment));
+      }
+
       // クライアント（企業）に通知
       if ($appointment->company && $appointment->company->email) {
         Mail::to($appointment->company->email)
+          ->send(new AppointmentCancelledMail($appointment));
+      }
+
+      // 一般クライアント（アカウントなし）に通知
+      if (!$appointment->user && $appointment->guest_email) {
+        Mail::to($appointment->guest_email)
           ->send(new AppointmentCancelledMail($appointment));
       }
 
@@ -123,15 +159,27 @@ class AppointmentNotificationService
         return;
       }
 
+      // 予約者本人（登録ユーザー）に通知
+      if ($appointment->user && $appointment->user->email) {
+        Mail::to($appointment->user->email)
+          ->send(new AppointmentReminderMail($appointment));
+      }
+
       // クライアント（企業）に通知
       if ($appointment->company && $appointment->company->email) {
         Mail::to($appointment->company->email)
           ->send(new AppointmentReminderMail($appointment));
-
-        // リマインダー送信日時を記録
-        $appointment->reminder_sent_at = now();
-        $appointment->save();
       }
+
+      // 一般クライアント（アカウントなし）に通知
+      if (!$appointment->user && $appointment->guest_email) {
+        Mail::to($appointment->guest_email)
+          ->send(new AppointmentReminderMail($appointment));
+      }
+
+      // リマインダー送信日時を記録（宛先の有無にかかわらず再送を防ぐため必ず記録する）
+      $appointment->reminder_sent_at = now();
+      $appointment->save();
 
       Log::info('Appointment reminder sent', [
         'appointment_id' => $appointment->id,
@@ -152,7 +200,7 @@ class AppointmentNotificationService
     try {
       $targetDate = now()->addHours($hoursBeforeAppointment);
 
-      $appointments = Appointment::with(['appointmentSlot', 'company'])
+      $appointments = Appointment::with(['appointmentSlot', 'company', 'user'])
         ->where('status', 'confirmed')
         ->where('send_reminder', true)
         ->whereNull('reminder_sent_at')

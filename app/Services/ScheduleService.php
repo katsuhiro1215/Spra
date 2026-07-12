@@ -187,13 +187,18 @@ class ScheduleService
 
     while ($current->lte($endDate)) {
       $isHoliday = $this->isHoliday($current);
-      $isBusinessDay = $this->isBusinessDay($current);
+      $exception = $this->getException($current);
+      $isBusinessDay = $isHoliday
+        ? false
+        : ($exception ? $exception->is_open : ($this->getDefaultSchedule($current->dayOfWeek)?->is_open ?? false));
       $hours = $isBusinessDay ? $this->getBusinessHours($current) : null;
 
       $calendar->put($current->format('Y-m-d'), [
         'date' => $current->format('Y-m-d'),
         'is_business_day' => $isBusinessDay,
         'is_holiday' => $isHoliday,
+        'is_exception' => $exception !== null,
+        'exception_reason' => $exception?->reason,
         'hours' => $hours,
         'day_of_week' => $current->dayOfWeek,
         'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],

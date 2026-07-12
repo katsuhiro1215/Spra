@@ -403,6 +403,9 @@ export default function Index({
                                                 件名
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                予約者
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 企業/プロジェクト
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -458,6 +461,18 @@ export default function Index({
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {
+                                                                appointment.booker_name
+                                                            }
+                                                        </div>
+                                                        {appointment.is_guest_booking && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mt-1">
+                                                                一般クライアント
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
                                                         <div className="text-sm text-gray-900">
                                                             {appointment.company
                                                                 ?.name || "-"}
@@ -467,7 +482,7 @@ export default function Index({
                                                                 {
                                                                     appointment
                                                                         .project
-                                                                        .name
+                                                                        .title
                                                                 }
                                                             </div>
                                                         )}

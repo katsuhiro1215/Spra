@@ -98,6 +98,7 @@ class ProjectController extends Controller
         return Inertia::render('Admin/Project/Show', [
             'project' => $project,
             'currentVersion' => $currentVersion,
+            'progress' => $project->calculateProgress($currentVersion),
         ]);
     }
 

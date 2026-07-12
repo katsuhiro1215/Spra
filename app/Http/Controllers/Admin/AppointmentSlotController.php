@@ -5,14 +5,26 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentSlot;
 use App\Models\Admin;
+use App\Services\ScheduleService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AppointmentSlotController extends Controller
 {
+  /**
+   * まとめて作成できる最大期間（日数）
+   */
+  private const BULK_CREATE_MAX_DAYS = 31;
+
+  public function __construct(private ScheduleService $scheduleService)
+  {
+  }
+
   /**
    * Display a listing of the resource.
    */
@@ -150,7 +162,7 @@ class AppointmentSlotController extends Controller
 
     try {
       $validated['current_bookings'] = 0;
-      $validated['created_by'] = Auth::guard('admin')->id();
+      $validated['created_by'] = Auth::guard('admins')->id();
 
       $appointmentSlot = AppointmentSlot::create($validated);
 
@@ -161,6 +173,217 @@ class AppointmentSlotController extends Controller
       return redirect()->back()
         ->withInput()
         ->with('error', '予約枠の作成に失敗しました。');
+    }
+  }
+
+  /**
+   * カレンダーからの単一予約枠のクイック作成
+   */
+  public function quickStore(Request $request)
+  {
+    $validated = $request->validate([
+      'date' => 'required|date',
+      'start_time' => 'required|date_format:H:i',
+      'end_time' => 'required|date_format:H:i|after:start_time',
+      'slot_type' => 'required|in:meeting,progress_review,consultation,other',
+      'max_capacity' => 'required|integer|min:1|max:100',
+      'assigned_admin_id' => 'nullable|exists:admins,id',
+      'status' => 'required|in:available,blocked',
+      'notes' => 'nullable|string|max:1000',
+    ]);
+
+    try {
+      $validated['current_bookings'] = 0;
+      $validated['created_by'] = Auth::guard('admins')->id();
+
+      AppointmentSlot::create($validated);
+
+      return redirect()->back()->with('success', '予約枠を作成しました。');
+    } catch (\Exception $e) {
+      Log::error('AppointmentSlot quickStore error: ' . $e->getMessage());
+      return redirect()->back()->with('error', '予約枠の作成に失敗しました。');
+    }
+  }
+
+  /**
+   * まとめて作成画面の表示（候補プレビューの生成を含む）
+   */
+  public function bulkCreate(Request $request): Response
+  {
+    $admins = Admin::with('profile')
+      ->whereHas('profile')
+      ->get()
+      ->map(fn($admin) => [
+        'value' => $admin->id,
+        'label' => $admin->profile->full_name ?? $admin->email
+      ]);
+
+    $slotTypes = [
+      ['value' => 'meeting', 'label' => '面談'],
+      ['value' => 'progress_review', 'label' => '進捗会'],
+      ['value' => 'consultation', 'label' => '相談'],
+      ['value' => 'other', 'label' => 'その他'],
+    ];
+
+    $params = $request->validate([
+      'start_date' => 'nullable|date',
+      'end_date' => 'nullable|date|after_or_equal:start_date',
+      'assigned_admin_id' => 'nullable|exists:admins,id',
+      'slot_type' => 'nullable|in:meeting,progress_review,consultation,other',
+      'duration_minutes' => 'nullable|integer|min:10|max:480',
+      'interval_minutes' => 'nullable|integer|min:10|max:480',
+      'max_capacity' => 'nullable|integer|min:1|max:100',
+    ]);
+
+    $startDate = isset($params['start_date']) ? Carbon::parse($params['start_date']) : now()->startOfDay();
+    $endDate = isset($params['end_date']) ? Carbon::parse($params['end_date']) : $startDate->copy()->addDays(6);
+    $durationMinutes = $params['duration_minutes'] ?? 50;
+    // デフォルトは60分間隔・50分枠（9:00-9:50, 10:00-10:50…と毎時0分始まりになる）
+    $intervalMinutes = $params['interval_minutes'] ?? 60;
+    $maxCapacity = $params['max_capacity'] ?? 1;
+    $slotType = $params['slot_type'] ?? 'meeting';
+    $assignedAdminId = $params['assigned_admin_id'] ?? null;
+
+    $preview = null;
+    $rangeError = null;
+
+    if ($startDate->diffInDays($endDate) + 1 > self::BULK_CREATE_MAX_DAYS) {
+      $rangeError = 'まとめて作成できる期間は最大' . self::BULK_CREATE_MAX_DAYS . '日間までです。';
+    } else {
+      // 期間内の既存予約枠（担当者が同じものは重複判定に使う）
+      $existingSlotsByDate = AppointmentSlot::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+        ->when($assignedAdminId, fn($q) => $q->where('assigned_admin_id', $assignedAdminId))
+        ->get()
+        ->groupBy(fn($slot) => $slot->date->format('Y-m-d'));
+
+      $preview = collect();
+      $current = $startDate->copy();
+
+      while ($current->lte($endDate)) {
+        if ($this->scheduleService->isBusinessDay($current)) {
+          $daySlots = $this->scheduleService->getAvailableTimeSlots($current, $intervalMinutes, $durationMinutes);
+          $existingForDay = $existingSlotsByDate->get($current->format('Y-m-d'), collect());
+
+          $rows = $daySlots
+            ->reject(function ($slot) use ($existingForDay) {
+              return $existingForDay->contains(function ($existing) use ($slot) {
+                $existingStart = substr($existing->start_time, 0, 5);
+                $existingEnd = substr($existing->end_time, 0, 5);
+
+                return $existingStart === $slot['start']
+                  || (
+                    $slot['start'] < $existingEnd
+                    && $slot['end'] > $existingStart
+                  );
+              });
+            })
+            ->map(fn($slot) => [
+              'date' => $current->format('Y-m-d'),
+              'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],
+              'start_time' => $slot['start'],
+              'end_time' => $slot['end'],
+              'include' => true,
+            ])
+            ->values();
+
+          if ($rows->isNotEmpty()) {
+            $preview->push([
+              'date' => $current->format('Y-m-d'),
+              'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],
+              'rows' => $rows,
+            ]);
+          }
+        }
+        $current->addDay();
+      }
+    }
+
+    return Inertia::render('Admin/AppointmentSlots/BulkCreate', [
+      'admins' => $admins,
+      'slotTypes' => $slotTypes,
+      'preview' => $preview,
+      'rangeError' => $rangeError,
+      'form' => [
+        'start_date' => $startDate->format('Y-m-d'),
+        'end_date' => $endDate->format('Y-m-d'),
+        'assigned_admin_id' => $assignedAdminId,
+        'slot_type' => $slotType,
+        'duration_minutes' => $durationMinutes,
+        'interval_minutes' => $intervalMinutes,
+        'max_capacity' => $maxCapacity,
+      ],
+      'maxDays' => self::BULK_CREATE_MAX_DAYS,
+    ]);
+  }
+
+  /**
+   * まとめて作成の一括保存
+   */
+  public function bulkStore(Request $request)
+  {
+    $validated = $request->validate([
+      'slot_type' => 'required|in:meeting,progress_review,consultation,other',
+      'max_capacity' => 'required|integer|min:1|max:100',
+      'assigned_admin_id' => 'nullable|exists:admins,id',
+      'slots' => 'required|array|min:1',
+      'slots.*.date' => 'required|date',
+      'slots.*.start_time' => 'required|date_format:H:i',
+      'slots.*.end_time' => 'required|date_format:H:i|after:slots.*.start_time',
+    ]);
+
+    $dates = collect($validated['slots'])->pluck('date');
+    if ($dates->max() && $dates->min()
+      && Carbon::parse($dates->min())->diffInDays(Carbon::parse($dates->max())) + 1 > self::BULK_CREATE_MAX_DAYS) {
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'まとめて作成できる期間は最大' . self::BULK_CREATE_MAX_DAYS . '日間までです。');
+    }
+
+    $createdBy = Auth::guard('admins')->id();
+    $createdCount = 0;
+    $skippedCount = 0;
+
+    try {
+      DB::transaction(function () use ($validated, $createdBy, &$createdCount, &$skippedCount) {
+        foreach ($validated['slots'] as $slot) {
+          // 同じ担当者・同日時の重複を防ぐ（保存直前の再チェック）
+          $overlaps = AppointmentSlot::where('date', $slot['date'])
+            ->where('assigned_admin_id', $validated['assigned_admin_id'] ?? null)
+            ->where('start_time', '<', $slot['end_time'])
+            ->where('end_time', '>', $slot['start_time'])
+            ->exists();
+
+          if ($overlaps) {
+            $skippedCount++;
+            continue;
+          }
+
+          AppointmentSlot::create([
+            'date' => $slot['date'],
+            'start_time' => $slot['start_time'],
+            'end_time' => $slot['end_time'],
+            'slot_type' => $validated['slot_type'],
+            'max_capacity' => $validated['max_capacity'],
+            'current_bookings' => 0,
+            'assigned_admin_id' => $validated['assigned_admin_id'] ?? null,
+            'status' => 'available',
+            'created_by' => $createdBy,
+          ]);
+          $createdCount++;
+        }
+      });
+
+      $message = "{$createdCount}件の予約枠を作成しました。";
+      if ($skippedCount > 0) {
+        $message .= "（{$skippedCount}件は重複のためスキップしました）";
+      }
+
+      return redirect()->route('admin.appointment-slots.index')->with('success', $message);
+    } catch (\Exception $e) {
+      Log::error('AppointmentSlot bulkStore error: ' . $e->getMessage());
+      return redirect()->back()
+        ->withInput()
+        ->with('error', '予約枠の一括作成に失敗しました。');
     }
   }
 
@@ -233,7 +456,7 @@ class AppointmentSlotController extends Controller
     ]);
 
     try {
-      $validated['updated_by'] = Auth::guard('admin')->id();
+      $validated['updated_by'] = Auth::guard('admins')->id();
 
       $appointmentSlot->update($validated);
 
@@ -259,7 +482,7 @@ class AppointmentSlotController extends Controller
           ->with('error', '予約が入っている予約枠は削除できません。');
       }
 
-      $appointmentSlot->deleted_by = Auth::guard('admin')->id();
+      $appointmentSlot->deleted_by = Auth::guard('admins')->id();
       $appointmentSlot->save();
       $appointmentSlot->delete();
 

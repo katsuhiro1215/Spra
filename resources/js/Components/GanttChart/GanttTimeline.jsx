@@ -84,21 +84,21 @@ export default function GanttTimeline({
 
     return (
         <div
-            className="bg-gray-50 border-b border-gray-300 overflow-x-auto"
+            className="bg-gray-50 dark:bg-slate-900 border-b border-gray-300 dark:border-slate-700 overflow-x-auto"
             style={{ height: `${ROW_HEIGHT}px` }}
         >
             <div className="flex h-full" style={{ minWidth: "100%" }}>
                 {timelineData.map((period, index) => (
                     <div
                         key={index}
-                        className="border-r border-gray-300 flex-shrink-0 flex items-center justify-center bg-gray-100"
+                        className="border-r border-gray-300 dark:border-slate-700 flex-shrink-0 flex items-center justify-center bg-gray-100 dark:bg-slate-800"
                         style={{ width: `${cellWidth}px` }}
                     >
                         <div className="text-center">
-                            <div className="text-xs font-semibold text-gray-900">
+                            <div className="text-xs font-semibold text-gray-900 dark:text-slate-100">
                                 {period.label}
                             </div>
-                            <div className="text-[10px] text-gray-600">
+                            <div className="text-[10px] text-gray-600 dark:text-slate-400">
                                 {period.subLabel}
                             </div>
                         </div>

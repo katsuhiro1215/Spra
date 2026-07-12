@@ -100,4 +100,18 @@ class ProjectItem extends Model
     {
         return $this->belongsTo(Admin::class, 'assigned_to');
     }
+
+    protected static function booted(): void
+    {
+        // ステータスが完了/未着手に変わったら進捗率も連動させる
+        static::saving(function (ProjectItem $item) {
+            if ($item->isDirty('status')) {
+                if ($item->status === 'completed') {
+                    $item->progress = 100;
+                } elseif ($item->status === 'not_started') {
+                    $item->progress = 0;
+                }
+            }
+        });
+    }
 }

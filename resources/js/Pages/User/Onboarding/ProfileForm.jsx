@@ -7,7 +7,12 @@ import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import InputError from "@/Components/Forms/InputError";
 
-export default function ProfileForm({ profile }) {
+export default function ProfileForm({
+    profile,
+    submitRoute = route("user.onboarding.profile.store"),
+    cancelRoute = route("user.dashboard"),
+    submitLabel = "次に進む",
+}) {
     const { data, setData, post, processing, errors } = useForm({
         first_name: profile?.first_name || "",
         last_name: profile?.last_name || "",
@@ -21,7 +26,7 @@ export default function ProfileForm({ profile }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.onboarding.profile.store"));
+        post(submitRoute);
     };
 
     return (
@@ -227,7 +232,7 @@ export default function ProfileForm({ profile }) {
 
                         {/* ボタン */}
                         <div className="flex gap-4 pt-6">
-                            <Link href={route("user.dashboard")}>
+                            <Link href={cancelRoute}>
                                 <SecondaryButton type="button">
                                     戻る
                                 </SecondaryButton>
@@ -237,7 +242,7 @@ export default function ProfileForm({ profile }) {
                                 disabled={processing}
                                 className="flex-1 justify-center"
                             >
-                                {processing ? "保存中..." : "次に進む"}
+                                {processing ? "保存中..." : submitLabel}
                             </PrimaryButton>
                         </div>
                     </form>

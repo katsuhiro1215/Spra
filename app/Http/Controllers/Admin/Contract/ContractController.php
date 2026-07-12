@@ -48,8 +48,8 @@ class ContractController extends Controller
         $contract = $this->service->findById($contract->id);
         abort_unless($contract, 404);
 
-        // quote を含めて読み込む
-        $contract->load('quote');
+        // quote・契約特典を含めて読み込む
+        $contract->load(['quote', 'benefits' => fn($q) => $q->orderBy('period_start')]);
 
         return Inertia::render('Admin/Contracts/Show', [
             'contract' => $contract,

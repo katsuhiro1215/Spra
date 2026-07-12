@@ -23,13 +23,17 @@ class DashboardController extends Controller
     $user = auth('users')->user()->load(['profile', 'companies', 'companies.addresses']);
     $userId = $user->id;
 
-    // アクティブな契約を取得
-    $activeContracts = $this->contractService->getByUserAndStatus($userId, 'active');
-    $hasActiveContract = count($activeContracts) > 0;
+    // オンボーディング（プロフィール・会社情報・会社住所）が完了しているかどうかで表示を切り替える
+    // 判定基準は resources/js/Pages/User/Onboarding/Progress.jsx の completedSteps と揃える
+    $primaryCompany = $user->companies->first();
+    $companyAddress = $primaryCompany?->addresses->firstWhere('type', 'office');
 
-    // ユーザーがまだ pending または、active だが契約がない場合は OnboardingProgress を表示
-    if ($user->status === 'pending' || !$hasActiveContract) {
-      return Inertia::render('User/OnboardingProgress', [
+    $onboardingComplete = $user->profile !== null
+      && $primaryCompany !== null && filled($primaryCompany->legal_name)
+      && $companyAddress !== null && filled($companyAddress->postal_code);
+
+    if (!$onboardingComplete) {
+      return Inertia::render('User/Onboarding/Progress', [
         'user' => [
           'id' => $user->id,
           'email' => $user->email,
@@ -39,7 +43,7 @@ class DashboardController extends Controller
       ]);
     }
 
-    // Active ユーザーでアクティブな契約がある場合はダッシュボードを表示
+    // オンボーディング完了後はダッシュボードを表示
     $pendingContracts = $this->contractService->getByUserAndStatus($userId, 'pending_signature');
     $unpaidInvoices = $this->invoiceService->getUnpaidByUser($userId);
 

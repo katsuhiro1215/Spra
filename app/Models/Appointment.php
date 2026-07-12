@@ -21,8 +21,14 @@ class Appointment extends Model
     'user_id',
     'company_id',
     'project_id',
+    'guest_name',
+    'guest_email',
+    'guest_phone',
     'subject',
     'description',
+    'location_type',
+    'meeting_tool',
+    'meeting_url',
     'status',
     'attended',
     'confirmed_at',
@@ -48,6 +54,16 @@ class Appointment extends Model
     'confirmed_at' => 'datetime',
     'cancelled_at' => 'datetime',
     'reminder_sent_at' => 'datetime',
+  ];
+
+  /**
+   * 常にJSONへ含める算出属性
+   *
+   * @var array<int, string>
+   */
+  protected $appends = [
+    'booker_name',
+    'is_guest_booking',
   ];
 
   /**
@@ -78,6 +94,60 @@ class Appointment extends Model
       'no_show' => 'gray',
       default => 'gray',
     };
+  }
+
+  /**
+   * 会議形式のラベル
+   */
+  public static function getLocationTypeLabel(string $locationType): string
+  {
+    return match ($locationType) {
+      'in_person' => '対面',
+      'online' => 'オンライン',
+      default => $locationType,
+    };
+  }
+
+  /**
+   * Web会議ツールのラベル
+   */
+  public static function getMeetingToolLabel(?string $meetingTool): ?string
+  {
+    return match ($meetingTool) {
+      'zoom' => 'Zoom',
+      'teams' => 'Microsoft Teams',
+      'google_meet' => 'Google Meet',
+      'other' => 'その他',
+      default => $meetingTool,
+    };
+  }
+
+  /**
+   * 予約者の表示名（User本人 → ゲスト氏名 → 企業名 の順にフォールバック）
+   */
+  public function getBookerNameAttribute(): string
+  {
+    if ($this->user) {
+      return $this->user->profile?->full_name ?? $this->user->email;
+    }
+
+    if ($this->guest_name) {
+      return $this->guest_name;
+    }
+
+    if ($this->company) {
+      return $this->company->name;
+    }
+
+    return 'ゲスト';
+  }
+
+  /**
+   * アカウントを持たない一般クライアントによる予約かどうか
+   */
+  public function getIsGuestBookingAttribute(): bool
+  {
+    return is_null($this->user_id) && filled($this->guest_name);
   }
 
   /**

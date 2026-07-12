@@ -14,6 +14,9 @@ Schedule::command('appointments:send-reminders')->dailyAt('09:00');
 // 月額請求書を毎日午前9時に自動生成
 Schedule::command('invoices:generate-monthly')->dailyAt('09:00');
 
+// 継続契約の契約特典（チケット）を毎日午前9時に自動生成
+Schedule::command('benefits:generate-monthly')->dailyAt('09:00');
+
 // 未送信請求書を毎日午前10時に送信
 Schedule::command('invoices:send-pending')->dailyAt('10:00');
 

@@ -12,9 +12,17 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
+const meetingToolOptions = [
+    { value: "zoom", label: "Zoom" },
+    { value: "teams", label: "Microsoft Teams" },
+    { value: "google_meet", label: "Google Meet" },
+    { value: "other", label: "その他" },
+];
+
 export default function Edit({
     appointment,
     availableSlots,
+    users,
     companies,
     projects,
     statuses,
@@ -27,10 +35,17 @@ export default function Edit({
 
     const { data, setData, put, processing, errors } = useForm({
         appointment_slot_id: appointment.appointment_slot_id || "",
+        user_id: appointment.user_id || "",
+        guest_name: appointment.guest_name || "",
+        guest_email: appointment.guest_email || "",
+        guest_phone: appointment.guest_phone || "",
         company_id: appointment.company_id || "",
         project_id: appointment.project_id || "",
         subject: appointment.subject || "",
         description: appointment.description || "",
+        location_type: appointment.location_type || "online",
+        meeting_tool: appointment.meeting_tool || "",
+        meeting_url: appointment.meeting_url || "",
         status: appointment.status || "pending",
         admin_notes: appointment.admin_notes || "",
         client_notes: appointment.client_notes || "",
@@ -52,7 +67,7 @@ export default function Edit({
 
         if (companyId) {
             setFilteredProjects(
-                projects.filter((p) => p.company_id === parseInt(companyId)),
+                projects.filter((p) => p.company_id === companyId),
             );
         } else {
             setFilteredProjects(projects);
@@ -132,6 +147,215 @@ export default function Edit({
                             />
                         </div>
 
+                        {/* 予約者選択 */}
+                        <div>
+                            <InputLabel htmlFor="user_id" value="予約者（登録ユーザー）" />
+                            <select
+                                id="user_id"
+                                value={data.user_id}
+                                onChange={(e) =>
+                                    setData("user_id", e.target.value)
+                                }
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            >
+                                <option value="">
+                                    選択なし（一般クライアント）
+                                </option>
+                                {users.map((user) => (
+                                    <option key={user.value} value={user.value}>
+                                        {user.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError
+                                message={errors.user_id}
+                                className="mt-2"
+                            />
+                        </div>
+
+                        {/* 一般クライアント連絡先（登録ユーザーを選択しない場合） */}
+                        {!data.user_id && (
+                            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 space-y-4">
+                                <p className="text-sm font-medium text-amber-800">
+                                    一般クライアント（アカウントなし）の連絡先
+                                </p>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="guest_name"
+                                        value="氏名 *"
+                                        required
+                                    />
+                                    <TextInput
+                                        id="guest_name"
+                                        type="text"
+                                        value={data.guest_name}
+                                        onChange={(e) =>
+                                            setData(
+                                                "guest_name",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-1 block w-full"
+                                    />
+                                    <InputError
+                                        message={errors.guest_name}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="guest_email"
+                                            value="メールアドレス"
+                                        />
+                                        <TextInput
+                                            id="guest_email"
+                                            type="email"
+                                            value={data.guest_email}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "guest_email",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="mt-1 block w-full"
+                                        />
+                                        <InputError
+                                            message={errors.guest_email}
+                                            className="mt-2"
+                                        />
+                                    </div>
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="guest_phone"
+                                            value="電話番号"
+                                        />
+                                        <TextInput
+                                            id="guest_phone"
+                                            type="text"
+                                            value={data.guest_phone}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "guest_phone",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="mt-1 block w-full"
+                                        />
+                                        <InputError
+                                            message={errors.guest_phone}
+                                            className="mt-2"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 会議形式 */}
+                        <div>
+                            <InputLabel value="会議形式 *" required />
+                            <div className="mt-2 flex items-center gap-6">
+                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                    <input
+                                        type="radio"
+                                        name="location_type"
+                                        value="online"
+                                        checked={
+                                            data.location_type === "online"
+                                        }
+                                        onChange={() =>
+                                            setData("location_type", "online")
+                                        }
+                                    />
+                                    オンライン（Web会議）
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                    <input
+                                        type="radio"
+                                        name="location_type"
+                                        value="in_person"
+                                        checked={
+                                            data.location_type === "in_person"
+                                        }
+                                        onChange={() =>
+                                            setData(
+                                                "location_type",
+                                                "in_person",
+                                            )
+                                        }
+                                    />
+                                    対面
+                                </label>
+                            </div>
+                            <InputError
+                                message={errors.location_type}
+                                className="mt-2"
+                            />
+                        </div>
+
+                        {/* Web会議ツール・URL */}
+                        {data.location_type === "online" && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <InputLabel
+                                        htmlFor="meeting_tool"
+                                        value="使用ツール *"
+                                        required
+                                    />
+                                    <select
+                                        id="meeting_tool"
+                                        value={data.meeting_tool}
+                                        onChange={(e) =>
+                                            setData(
+                                                "meeting_tool",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    >
+                                        <option value="">
+                                            選択してください
+                                        </option>
+                                        {meetingToolOptions.map((tool) => (
+                                            <option
+                                                key={tool.value}
+                                                value={tool.value}
+                                            >
+                                                {tool.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <InputError
+                                        message={errors.meeting_tool}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="meeting_url"
+                                        value="会議URL"
+                                    />
+                                    <TextInput
+                                        id="meeting_url"
+                                        type="text"
+                                        value={data.meeting_url}
+                                        onChange={(e) =>
+                                            setData(
+                                                "meeting_url",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-1 block w-full"
+                                        placeholder="https://zoom.us/j/..."
+                                    />
+                                    <InputError
+                                        message={errors.meeting_url}
+                                        className="mt-2"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {/* 企業選択 */}
                         <div>
                             <InputLabel htmlFor="company_id" value="企業" />
@@ -177,7 +401,7 @@ export default function Edit({
                                 <option value="">選択なし</option>
                                 {filteredProjects.map((project) => (
                                     <option key={project.id} value={project.id}>
-                                        {project.name}
+                                        {project.title}
                                     </option>
                                 ))}
                             </select>

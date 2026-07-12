@@ -18,6 +18,27 @@ class ProfileController extends Controller
      */
     public function create(): Response
     {
+        return $this->form(
+            route('user.onboarding.profile.store'),
+            route('user.dashboard'),
+            '次に進む',
+        );
+    }
+
+    /**
+     * Show profile form for editing from Settings
+     */
+    public function edit(): Response
+    {
+        return $this->form(
+            route('user.settings.profile.update'),
+            route('user.settings.index'),
+            '保存する',
+        );
+    }
+
+    private function form(string $submitRoute, string $cancelRoute, string $submitLabel): Response
+    {
         $user = auth('users')->user();
         $profile = $user->profile;
 
@@ -33,13 +54,35 @@ class ProfileController extends Controller
                 'birth_date' => $profile->birth_date,
                 'gender' => $profile->gender,
             ] : [],
+            'submitRoute' => $submitRoute,
+            'cancelRoute' => $cancelRoute,
+            'submitLabel' => $submitLabel,
         ]);
     }
 
     /**
-     * Store profile information
+     * Store profile information (onboarding)
      */
     public function store(Request $request): RedirectResponse
+    {
+        $this->save($request);
+
+        return redirect()->route('user.dashboard')
+            ->with('success', 'プロフィール情報を保存しました');
+    }
+
+    /**
+     * Update profile information (Settings)
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $this->save($request);
+
+        return redirect()->route('user.settings.index')
+            ->with('success', 'プロフィール情報を更新しました');
+    }
+
+    private function save(Request $request): Profile
     {
         $user = auth('users')->user();
 
@@ -61,10 +104,10 @@ class ProfileController extends Controller
             'last_name' => $validated['last_name'],
             'first_name_kana' => $validated['first_name_kana'],
             'last_name_kana' => $validated['last_name_kana'],
-            'phone' => $validated['phone'],
+            'phone' => $validated['phone'] ?? null,
             'mobile' => $validated['mobile'],
-            'birth_date' => $validated['birth_date'],
-            'gender' => $validated['gender'],
+            'birth_date' => $validated['birth_date'] ?? null,
+            'gender' => $validated['gender'] ?? null,
         ]);
 
         if (!$profile->exists) {
@@ -74,7 +117,6 @@ class ProfileController extends Controller
 
         $profile->save();
 
-        return redirect()->route('user.dashboard')
-            ->with('success', 'プロフィール情報を保存しました');
+        return $profile;
     }
 }

@@ -17,7 +17,7 @@ class ProjectRepository implements ProjectRepositoryInterface
 
   public function findById(string $id): ?Project
   {
-    return Project::with(['user', 'company', 'admin', 'categories', 'milestones', 'contracts'])->find($id);
+    return Project::with(['user', 'company', 'admin', 'milestones', 'contracts'])->find($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Project
@@ -25,13 +25,20 @@ class ProjectRepository implements ProjectRepositoryInterface
     return Project::where('id', $id)
       ->where('user_id', $userId)
       ->where('is_client_visible', true)
-      ->with(['milestones' => fn($q) => $q->where('is_client_visible', true), 'updates' => fn($q) => $q->clientVisible(), 'contracts'])
+      ->with([
+        'milestones' => fn($q) => $q->where('is_client_visible', true)
+          ->whereHas('projectVersion', fn($v) => $v->where('is_current', true)),
+        'updates' => fn($q) => $q->clientVisible(),
+        'contract',
+        'currentVersion.items' => fn($q) => $q->where('is_client_visible', true)->orderBy('sort_order'),
+        'currentVersion.items.assignee.profile',
+      ])
       ->first();
   }
 
   public function findWithFilters(array $filters): Builder
   {
-    $query = Project::query()->with(['user', 'company', 'admin', 'categories']);
+    $query = Project::query()->with(['user', 'company', 'admin']);
 
     if (!empty($filters['search'])) {
       $search = $filters['search'];
@@ -69,7 +76,10 @@ class ProjectRepository implements ProjectRepositoryInterface
   {
     $query = Project::where('user_id', $userId)
       ->where('is_client_visible', true)
-      ->with(['categories', 'milestones' => fn($q) => $q->where('is_client_visible', true)]);
+      ->with([
+        'milestones' => fn($q) => $q->where('is_client_visible', true)
+          ->whereHas('projectVersion', fn($v) => $v->where('is_current', true)),
+      ]);
 
     if (!empty($filters['status'])) {
       $query->where('status', $filters['status']);

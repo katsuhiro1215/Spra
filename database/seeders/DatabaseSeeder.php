@@ -35,9 +35,9 @@ class DatabaseSeeder extends Seeder
 
             // お問い合わせ
             ContactCategorySeeder::class,
-            ContactSeeder::class,
+            // ContactSeeder::class,
             ResponseTemplateSeeder::class,
-            ResponseSeeder::class,
+            // ResponseSeeder::class,
 
             // サービス関連
             ServiceCategorySeeder::class,

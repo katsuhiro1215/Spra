@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Project extends Model
@@ -81,7 +83,19 @@ class Project extends Model
         return $this->belongsTo(Admin::class);
     }
 
-    // マイルストーンはProjectVersionを経由してアクセス: $project->currentVersion->milestones
+    /**
+     * マイルストーンはProjectVersionを経由してアクセスする。
+     * 個別のバージョンのマイルストーンが欲しい場合は $project->currentVersion->milestones を使うこと。
+     */
+    public function milestones(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            ProjectMilestone::class,
+            ProjectVersion::class,
+            'project_id',
+            'project_version_id',
+        );
+    }
 
     public function versions(): HasMany
     {
@@ -93,9 +107,9 @@ class Project extends Model
         return $this->hasMany(ProjectUpdate::class)->orderBy('created_at', 'desc');
     }
 
-    public function currentVersion(): BelongsTo
+    public function currentVersion(): HasOne
     {
-        return $this->belongsTo(ProjectVersion::class, 'id', 'project_id')
+        return $this->hasOne(ProjectVersion::class)
             ->where('is_current', true)
             ->latestOfMany();
     }
@@ -123,6 +137,27 @@ class Project extends Model
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
+    }
+
+    /**
+     * 現在のバージョンに紐づくProjectItemの進捗から、プロジェクト全体の進捗率(0-100)を算出する。
+     */
+    public function calculateProgress(?ProjectVersion $version = null): int
+    {
+        $version ??= $this->versions()->where('is_current', true)->with('items')->first();
+
+        if (!$version) {
+            return 0;
+        }
+
+        $items = $version->relationLoaded('items') ? $version->items : $version->items()->get();
+        $items = $items->reject(fn (ProjectItem $item) => $item->status === 'cancelled');
+
+        if ($items->isEmpty()) {
+            return 0;
+        }
+
+        return (int) round($items->avg('progress'));
     }
 
     public function isActive(): bool

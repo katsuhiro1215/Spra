@@ -11,7 +11,12 @@ import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 // Icons
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+    PlusIcon,
+    FunnelIcon,
+    XMarkIcon,
+    Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
@@ -136,6 +141,12 @@ export default function Index({
     // Constants - Header Actions
     // ========================================
     const headerActions = [
+        {
+            label: "まとめて作成",
+            icon: Squares2X2Icon,
+            variant: "secondary",
+            route: route("admin.appointment-slots.bulk-create"),
+        },
         {
             label: PageConfig.appointmentSlots.actions.create,
             icon: PlusIcon,

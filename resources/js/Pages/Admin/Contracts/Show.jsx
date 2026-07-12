@@ -27,6 +27,7 @@ import DigitalStamp from "@/Components/DigitalStamp";
 // Custom Components
 import ContractBasicInfo from "./_components/ContractBasicInfo";
 import ContractItems from "./_components/ContractItems";
+import ContractBenefits from "./_components/ContractBenefits";
 import ContractAmount from "./_components/ContractAmount";
 import ContractVersionHistory from "./_components/ContractVersionHistory";
 import ContractClientInfo from "./_components/ContractClientInfo";
@@ -61,6 +62,7 @@ export default function Show({ contract }) {
     const tabs = [
         { id: "basic", label: "基本情報", icon: "📋" },
         { id: "items", label: "契約明細", icon: "📝" },
+        { id: "benefits", label: "契約特典", icon: "🎫" },
         { id: "amount", label: "金額情報", icon: "💰" },
         { id: "terms", label: "契約条項", icon: "📄" },
         ...(contract.type === "monthly"
@@ -552,6 +554,9 @@ export default function Show({ contract }) {
                         )}
                         {activeTab === "items" && (
                             <ContractItems contract={contract} />
+                        )}
+                        {activeTab === "benefits" && (
+                            <ContractBenefits contract={contract} />
                         )}
                         {activeTab === "amount" && (
                             <ContractAmount contract={contract} />
