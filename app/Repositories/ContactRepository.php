@@ -94,7 +94,7 @@ class ContactRepository extends BaseRepository implements ContactRepositoryInter
 
         // カテゴリフィルター
         if (!empty($filters['category'])) {
-            $query->where('category_id', $filters['category']);
+            $query->where('contact_category_id', $filters['category']);
         }
 
         // ソースフィルター

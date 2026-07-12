@@ -613,9 +613,50 @@ export const PageConfig = {
     },
 
     /**
-     * ホームページ管理
+     * Webサイト管理
      */
+    websiteDashboard: {
+        title: "🏠 Webサイト管理",
+        description: "Webサイトの管理を行います",
+        documentTitle: "Webサイト管理",
+        breadcrumbs: ["ホーム", "Webサイト管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("Webサイト管理"),
+    },
+
     //固定ページ管理
+    pageTypes: {
+        title: "📄 ページタイプ管理",
+        description: "ホームページのページタイプを管理します",
+        documentTitle: "ページタイプ管理",
+        breadcrumbs: ["ホーム", "ページタイプ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("ページタイプ"),
+        search: createSearchTemplate("ページタイプ"),
+        ui: createIndexPageUITemplates(
+            "ページタイプ",
+            "ページタイプ名またはスラッグで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべてのステータス",
+                options: {
+                    active: "アクティブ",
+                    inactive: "非アクティブ",
+                    featured: "おすすめ",
+                },
+            },
+        },
+        confirmMessages: createConfirmMessageTemplates("ページタイプ"),
+        notifications: createNotificationTemplates("ページタイプ"),
+        form: createFormTemplates("ページタイプ"),
+    },
+
     pages: {
         title: "📄 固定ページ管理",
         description: "ホームページの固定ページを管理します",
@@ -660,29 +701,60 @@ export const PageConfig = {
         form: createFormTemplates("ページ"),
     },
 
-    // ブログカテゴリ管理
-    blogCategories: {
-        title: "📂 ブログカテゴリ管理",
-        description: "ホームページのブログカテゴリを管理します",
-        documentTitle: "ブログカテゴリ管理",
-        breadcrumbs: ["ホーム", "ブログカテゴリ"],
+    //セクション管理
+    sections: {
+        title: "📄 セクション管理",
+        description: "ホームページのセクションを管理します",
+        documentTitle: "セクション管理",
+        breadcrumbs: ["ホーム", "セクション管理"],
         actions: {
             ...CommonUIConstants.actions,
         },
-        pages: createPageTemplates("ブログカテゴリ"),
-        search: createSearchTemplate("ブログカテゴリ"),
+        pages: createPageTemplates("セクション"),
+        search: createSearchTemplate("セクション"),
+        ui: createIndexPageUITemplates(
+            "セクション",
+            "セクション名またはスラッグで検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべてのステータス",
+                options: {
+                    active: "アクティブ",
+                    inactive: "非アクティブ",
+                    featured: "おすすめ",
+                },
+            },
+        },
+        confirmMessages: createConfirmMessageTemplates("セクション"),
+        notifications: createNotificationTemplates("セクション"),
+        form: createFormTemplates("セクション"),
     },
 
-    // ブログ管理
-    blogs: {
-        title: "📝 ブログ管理",
-        description: "ホームページのブログ記事を管理します",
-        documentTitle: "ブログ管理",
-        breadcrumbs: ["ホーム", "ブログ"],
+    // 投稿カテゴリ管理
+    postCategories: {
+        title: "📂 投稿カテゴリ管理",
+        description: "ホームページの投稿カテゴリを管理します",
+        documentTitle: "投稿カテゴリ管理",
+        breadcrumbs: ["ホーム", "投稿カテゴリ"],
         actions: {
             ...CommonUIConstants.actions,
         },
-        pages: createPageTemplates("ブログ"),
+        pages: createPageTemplates("投稿カテゴリ"),
+        search: createSearchTemplate("投稿カテゴリ"),
+    },
+
+    // 投稿管理
+    posts: {
+        title: "📝 投稿管理",
+        description: "ホームページの投稿を管理します",
+        documentTitle: "投稿管理",
+        breadcrumbs: ["ホーム", "投稿"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("投稿"),
     },
 
     // FAQ管理
@@ -752,6 +824,22 @@ export const PageConfig = {
         pages: createPageTemplates("カテゴリ"),
         search: createSearchTemplate("カテゴリ"),
         ui: createIndexPageUITemplates("カテゴリ", "カテゴリ名で検索..."),
+    },
+
+    /**
+     * お問い合わせAPI連携クライアント管理
+     */
+    contactApiClients: {
+        title: "🔌 API連携設定",
+        description: "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
+        documentTitle: "API連携設定",
+        breadcrumbs: ["ホーム", "お問い合わせ", "API連携設定"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("APIクライアント"),
+        search: createSearchTemplate("APIクライアント"),
+        ui: createIndexPageUITemplates("APIクライアント", "連携先名で検索..."),
     },
 
     /**

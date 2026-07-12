@@ -30,11 +30,14 @@ class DatabaseSeeder extends Seeder
             // メディア
             MediaSeeder::class,
 
+            // アクセス解析（デモ用のpageviewイベント）
+            AnalyticsEventSeeder::class,
+
             // お問い合わせ
             ContactCategorySeeder::class,
-            ContactSeeder::class,
+            // ContactSeeder::class,
             ResponseTemplateSeeder::class,
-            ResponseSeeder::class,
+            // ResponseSeeder::class,
 
             // サービス関連
             ServiceCategorySeeder::class,
@@ -43,8 +46,14 @@ class DatabaseSeeder extends Seeder
             ServicePlanSeeder::class,
             // ServicePlanItemSeeder::class,
 
-            // 規約（Terms）
-            // TermSeeder::class,
+            // 祝日
+            ScheduleDefaultSeeder::class,
+            ScheduleExceptionSeeder::class,
+            HolidaySeeder::class,
+
+            // 文書（規約・ヘルプ・APIドキュメント等）
+            DocumentCategorySeeder::class,
+            DocumentSeeder::class,
 
             // 見積（Quote）
             // QuoteSeeder::class,

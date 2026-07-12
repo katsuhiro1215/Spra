@@ -11,7 +11,7 @@
         }
 
         body {
-            font-family: "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            font-family: 'Noto Sans JP', "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
             font-size: 12pt;
             line-height: 1.6;
             color: #333;

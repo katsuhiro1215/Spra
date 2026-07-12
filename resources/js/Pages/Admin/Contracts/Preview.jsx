@@ -92,7 +92,7 @@ export default function Preview({ contract }) {
                 }}
             />
 
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="w-full mx-auto space-y-6">
                 {/* 送信確認 */}
                 <Card className="border-2 border-blue-500">
                     <CardBody>
@@ -148,175 +148,146 @@ export default function Preview({ contract }) {
                     </CardBody>
                 </Card>
 
-                {/* PDF プレビュー */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            📄 契約書 PDF プレビュー (4ページ)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        {!pdfError ? (
-                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                <iframe
-                                    src={route(
-                                        "admin.contract.pdf.preview",
-                                        contract.id,
-                                    )}
-                                    className="w-full h-screen md:h-[800px] border-0"
-                                    onError={() => setPdfError(true)}
-                                    title="契約書 PDF プレビュー"
-                                />
-                            </div>
-                        ) : (
-                            <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
-                                <p className="text-red-800 dark:text-red-200">
-                                    ❌
-                                    PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
-                                </p>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
-
-                {/* PDF プレビュー */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            📄 契約書 PDF プレビュー (4ページ)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        {!pdfError ? (
-                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                <iframe
-                                    src={route(
-                                        "admin.contract.pdf.preview",
-                                        contract.id,
-                                    )}
-                                    className="w-full h-screen md:h-[800px] border-0"
-                                    onError={() => setPdfError(true)}
-                                    title="契約書 PDF プレビュー"
-                                />
-                            </div>
-                        ) : (
-                            <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
-                                <p className="text-red-800 dark:text-red-200">
-                                    ❌
-                                    PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
-                                </p>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
-
-                {/* 契約内容サマリー */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>📋 契約内容サマリー</CardTitle>
-                    </CardHeader>
-                    <CardBody className="space-y-6">
-                        {/* 基本情報 */}
-                        <div>
-                            <h3 className="font-semibold mb-3">契約基本情報</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        契約件名
-                                    </p>
-                                    <p className="font-medium">
-                                        {contract.title}
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {/* PDF プレビュー */}
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>
+                                📄 契約書 PDF プレビュー (4ページ)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardBody>
+                            {!pdfError ? (
+                                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <iframe
+                                        src={route(
+                                            "admin.contract.pdf.preview",
+                                            contract.id,
+                                        )}
+                                        className="w-full h-screen md:h-[800px] border-0"
+                                        onError={() => setPdfError(true)}
+                                        title="契約書 PDF プレビュー"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
+                                    <p className="text-red-800 dark:text-red-200">
+                                        ❌
+                                        PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        契約期間
-                                    </p>
-                                    <p className="font-medium">
-                                        {contract.start_date} 〜{" "}
-                                        {contract.end_date || "期限なし"}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 契約者情報 */}
-                        <div>
-                            <h3 className="font-semibold mb-3">委託者（乙）</h3>
-                            <p className="font-medium">
-                                {contract.user?.profile?.full_name ||
-                                    contract.user?.email}
-                            </p>
-                            {contract.company && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {contract.company.name}
-                                </p>
                             )}
-                        </div>
+                        </CardBody>
+                    </Card>
 
-                        {/* 金額情報 */}
-                        <div>
-                            <h3 className="font-semibold mb-3">金額情報</h3>
-                            <div className="space-y-2 max-w-xs">
-                                <div className="flex justify-between">
-                                    <span>小計</span>
-                                    <span className="font-medium">
-                                        ¥{subtotal.toLocaleString()}
-                                    </span>
+                    {/* 契約内容サマリー */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>📋 契約内容サマリー</CardTitle>
+                        </CardHeader>
+                        <CardBody className="space-y-6">
+                            {/* 基本情報 */}
+                            <div>
+                                <h3 className="font-semibold mb-3">契約基本情報</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            契約件名
+                                        </p>
+                                        <p className="font-medium">
+                                            {contract.title}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            契約期間
+                                        </p>
+                                        <p className="font-medium">
+                                            {contract.start_date} 〜{" "}
+                                            {contract.end_date || "期限なし"}
+                                        </p>
+                                    </div>
                                 </div>
-                                {discount > 0 && (
-                                    <div className="flex justify-between text-red-600">
-                                        <span>割引</span>
+                            </div>
+
+                            {/* 契約者情報 */}
+                            <div>
+                                <h3 className="font-semibold mb-3">委託者（乙）</h3>
+                                <p className="font-medium">
+                                    {contract.user?.profile?.full_name ||
+                                        contract.user?.email}
+                                </p>
+                                {contract.company && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {contract.company.name}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* 金額情報 */}
+                            <div>
+                                <h3 className="font-semibold mb-3">金額情報</h3>
+                                <div className="space-y-2 max-w-xs">
+                                    <div className="flex justify-between">
+                                        <span>小計</span>
                                         <span className="font-medium">
-                                            -¥{discount.toLocaleString()}
+                                            ¥{subtotal.toLocaleString()}
                                         </span>
                                     </div>
-                                )}
-                                <div className="flex justify-between">
-                                    <span>消費税 ({taxRate}%)</span>
-                                    <span className="font-medium">
-                                        ¥{taxAmount.toLocaleString()}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between pt-2 border-t-2 border-gray-300 dark:border-gray-700 text-lg font-bold">
-                                    <span>合計</span>
-                                    <span>¥{total.toLocaleString()}</span>
+                                    {discount > 0 && (
+                                        <div className="flex justify-between text-red-600">
+                                            <span>割引</span>
+                                            <span className="font-medium">
+                                                -¥{discount.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                        <span>消費税 ({taxRate}%)</span>
+                                        <span className="font-medium">
+                                            ¥{taxAmount.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between pt-2 border-t-2 border-gray-300 dark:border-gray-700 text-lg font-bold">
+                                        <span>合計</span>
+                                        <span>¥{total.toLocaleString()}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* 契約条項の有無 */}
-                        <div>
-                            <h3 className="font-semibold mb-3">
-                                契約ドキュメント
-                            </h3>
-                            <div className="space-y-2">
-                                <div className="flex items-center">
-                                    <span className="text-lg mr-2">
-                                        {currentVersion?.terms_and_conditions
-                                            ? "✅"
-                                            : "⚠️"}
-                                    </span>
-                                    <span>契約条項</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="text-lg mr-2">
-                                        {currentVersion?.special_provisions
-                                            ? "✅"
-                                            : "⚠️"}
-                                    </span>
-                                    <span>特別条項</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="text-lg mr-2">
-                                        {currentVersion?.notes ? "✅" : "⚠️"}
-                                    </span>
-                                    <span>備考</span>
+                            {/* 契約条項の有無 */}
+                            <div>
+                                <h3 className="font-semibold mb-3">
+                                    契約ドキュメント
+                                </h3>
+                                <div className="space-y-2">
+                                    <div className="flex items-center">
+                                        <span className="text-lg mr-2">
+                                            {currentVersion?.terms_and_conditions
+                                                ? "✅"
+                                                : "⚠️"}
+                                        </span>
+                                        <span>契約条項</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <span className="text-lg mr-2">
+                                            {currentVersion?.special_provisions
+                                                ? "✅"
+                                                : "⚠️"}
+                                        </span>
+                                        <span>特別条項</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <span className="text-lg mr-2">
+                                            {currentVersion?.notes ? "✅" : "⚠️"}
+                                        </span>
+                                        <span>備考</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardBody>
-                </Card>
+                        </CardBody>
+                    </Card>
+                </div>
             </div>
         </AdminAuthenticatedLayout>
     );

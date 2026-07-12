@@ -4,34 +4,77 @@ namespace App\Repositories;
 
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
-class PageRepository
+class PageRepository extends SoftDeletableRepository
 {
     /**
-     * 基本的なクエリビルダーを取得
+     * モデルクラス名を返す
      */
-    public function query(): Builder
+    protected function getModelClass(): string
     {
-        return Page::query();
-    }
-
-  /**
-   * 検索条件を適用したクエリを取得
-   */
-    public function buildSearchQuery(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', '%' . $search . '%')
-              ->orWhere('description', 'like', '%' . $search . '%');
-        });
+        return Page::class;
     }
 
     /**
-     * すべてのページを取得
+     * 検索対象フィールドを返す
      */
-    public function getAll(): Builder
+    protected function getSearchableFields(): array
     {
-        return Page::with(['createdBy', 'updatedBy']);
+        return [
+            'title',
+            'slug',
+        ];
+    }
+
+    /**
+     * ソート可能フィールドを返す
+     */
+    protected function getSortableFields(): array
+    {
+        return [
+            'created_at',
+            'sort_order',
+            'is_published',
+        ];
+    }
+
+    /**
+     * デフォルトのリレーションを返す
+     */
+    protected function getDefaultRelations(): array
+    {
+        return [];
+    }
+
+    /**
+     * フィルタ条件でクエリビルダーを取得（オーバーライド）
+     * 
+     * @param array $filters
+     * @return Builder
+     */
+    public function findWithFilters(array $filters): Builder
+    {
+        // 親クラスの基本フィルタを適用
+        $query = parent::findWithFilters($filters);
+
+        // 公開ステータスフィルター
+        if (isset($filters['is_published'])) {
+            $query->where('is_published', filter_var($filters['is_published'], FILTER_VALIDATE_BOOLEAN));
+        }
+
+        return $query;
+    }
+
+    /**
+     * 統計情報を取得
+     */
+    public function getStats(): array
+    {
+        return [
+            'total' => Page::withTrashed()->count(),
+            'active' => Page::count(),
+            'trashed' => Page::onlyTrashed()->count(),
+            'published' => Page::where('is_published', true)->count(),
+        ];
     }
 }

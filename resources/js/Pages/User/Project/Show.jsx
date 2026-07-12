@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badge";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
+import GanttToolbar from "@/Components/GanttChart/GanttToolbar";
+import GanttTimeline from "@/Components/GanttChart/GanttTimeline";
+import GanttTaskList from "@/Components/GanttChart/GanttTaskList";
+import GanttCanvas from "@/Components/GanttChart/GanttCanvas";
 import {
     ArrowLeftIcon,
     CalendarIcon,
@@ -16,6 +20,40 @@ import {
 
 export default function Show({ project }) {
     const [activeTab, setActiveTab] = useState("overview");
+    const [viewMode, setViewMode] = useState("month");
+
+    const currentVersion = project.current_version;
+
+    const ganttTasks = useMemo(() => {
+        if (!currentVersion?.items?.length) return [];
+
+        return currentVersion.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            startDate: item.start_date,
+            endDate: item.end_date,
+            progress: item.progress ?? 0,
+            status: item.status,
+            priority: item.priority,
+            description: item.description,
+            resource:
+                item.assignee?.profile?.full_name ||
+                item.assignee?.email ||
+                "",
+            dependencies: [],
+            children: [],
+        }));
+    }, [currentVersion]);
+
+    const ganttDateRange = useMemo(() => {
+        const startDate = currentVersion?.start_date
+            ? new Date(currentVersion.start_date)
+            : new Date();
+        const endDate = currentVersion?.estimated_end_date
+            ? new Date(currentVersion.estimated_end_date)
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        return { startDate, endDate };
+    }, [currentVersion]);
 
     const statusConfig = {
         planning: { variant: "default", label: "計画中" },
@@ -51,6 +89,7 @@ export default function Show({ project }) {
         { id: "overview", label: "概要" },
         { id: "milestones", label: "マイルストーン" },
         { id: "updates", label: "進捗状況" },
+        { id: "gantt", label: "ガントチャート" },
     ];
 
     const statusBadge = getStatusBadge(project.status);
@@ -285,6 +324,64 @@ export default function Show({ project }) {
                                     <p className="text-center py-8 text-gray-500 dark:text-gray-400">
                                         進捗状況がまだ報告されていません
                                     </p>
+                                )}
+                            </CardBody>
+                        </Card>
+                    )}
+
+                    {/* ガントチャートタブ（閲覧のみ） */}
+                    {activeTab === "gantt" && (
+                        <Card>
+                            <CardBody className="p-0">
+                                {!currentVersion || ganttTasks.length === 0 ? (
+                                    <p className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                        表示できるタスクがまだありません
+                                    </p>
+                                ) : (
+                                    <div className="h-[600px] flex flex-col">
+                                        <GanttToolbar
+                                            viewMode={viewMode}
+                                            onViewModeChange={setViewMode}
+                                            readOnly
+                                        />
+                                        <div className="flex-1 flex overflow-hidden">
+                                            <div className="w-[500px] flex-shrink-0 overflow-y-auto">
+                                                <GanttTaskList
+                                                    tasks={ganttTasks}
+                                                    readOnly
+                                                />
+                                            </div>
+                                            <div className="flex-1 flex flex-col overflow-hidden">
+                                                <div className="flex-shrink-0">
+                                                    <GanttTimeline
+                                                        viewMode={viewMode}
+                                                        startDate={
+                                                            ganttDateRange.startDate
+                                                        }
+                                                        endDate={
+                                                            ganttDateRange.endDate
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex-1 overflow-auto">
+                                                    <GanttCanvas
+                                                        tasks={ganttTasks}
+                                                        milestones={
+                                                            project.milestones
+                                                        }
+                                                        viewMode={viewMode}
+                                                        startDate={
+                                                            ganttDateRange.startDate
+                                                        }
+                                                        endDate={
+                                                            ganttDateRange.endDate
+                                                        }
+                                                        readOnly
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </CardBody>
                         </Card>

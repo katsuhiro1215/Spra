@@ -3,82 +3,76 @@
 namespace App\Services;
 
 use App\Models\Page;
+use App\Repositories\PageRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Collection;
 
-class PageService
+class PageService extends BaseService
 {
-  /**
-   * 新しいページ作成
-   *
-   * @param array $data
-   * @return Page
-   */
-  public function createPage(array $data): Page
-  {
-    return DB::transaction(function () use ($data) {
-      // デフォルト値の設定
-      $data = $this->setDefaultValues($data);
+    /**
+     * コンストラクタ
+     */
+    public function __construct(PageRepository $repository)
+    {
+        parent::__construct($repository);
+    }
 
-      // 作成者情報の追加
-      $data['created_by'] = Auth::guard('admins')->id();
+    /**
+     * エンティティ名を返す
+     */
+    protected function getEntityName(): string
+    {
+        return 'Page';
+    }
 
-      return Page::create($data);
-    });
-  }
+    /**
+     * 新しいページ作成
+     *
+     * @param array $data
+     * @return Page
+     */
+    public function createPage(array $data): Page
+    {
+        return DB::transaction(function () use ($data) {
+            // 作成者情報の追加
+            $data['created_by'] = Auth::guard('admins')->id();
 
-  /**
-   * ページを更新
-   * 
-   * @param Page $page
-   * @param array $data
-   * @return Page
-   */
-  public function updatePage(Page $page, array $data): Page
-  {
-    return DB::transaction(function () use ($page, $data) {
-      // 更新者情報の追加
-      $data['updated_by'] = Auth::guard('admins')->id();
+            return $this->repository->create($data);
+        });
+    }
 
-      $page->update($data);
+    /**
+     * ページを更新
+     *
+     * @param Page $page
+     * @param array $data
+     * @return Page
+     */
+    public function updatePage(Page $page, array $data): Page
+    {
+        return DB::transaction(function () use ($page, $data) {
+            // 更新者情報の追加
+            $data['updated_by'] = Auth::guard('admins')->id();
 
-      return $page->fresh();
-    });
-  }
+            return $this->repository->update($page, $data);
+        });
+    }
 
-  /**
-   * ページを削除
-   */
-  public function deletePage(Page $page): bool
-  {
-    return DB::transaction(function () use ($page) {
+    /**
+     * ページを削除
+     */
+    public function deletePage(Page $page): bool
+    {
+        return DB::transaction(function () use ($page) {
+            return $this->repository->delete($page);
+        });
+    }
 
-      return $page->delete();
-    });
-  }
-
-  /**
-   * サービスタイプを複製
-   */
-  public function duplicatePage(Page $originalPage): Page
-  {
-    return DB::transaction(function () use ($originalPage) {
-      $data = $originalPage->toArray();
-
-      // 複製時に除外するフィールド
-      unset($data['id'], $data['created_at'], $data['updated_at']);
-
-      // タイトルとスラッグを調整
-      $data['title'] = $data['title'] . ' (コピー)';
-      $data['slug'] = $data['slug'] ? $data['slug'] . '-copy-' . time() : null;
-
-      // 作成者情報の設定
-      $data['created_by'] = Auth::guard('admins')->id();
-      $data['updated_by'] = null;
-
-      return Page::create($data);
-    });
-  }
+    /**
+     * ページを復元
+     */
+    public function restorePage(Page $page): bool
+    {
+        return $this->repository->restore($page);
+    }
 }
-

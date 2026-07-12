@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import { PrimaryButton, SecondaryButton, TextButton } from "@/Components/Buttons";
+import { TextButton } from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
-    TrashIcon,
     PaperAirplaneIcon,
     DocumentTextIcon,
     PlusIcon,
@@ -39,6 +38,10 @@ export default function Show({ quote, statuses }) {
     // Constants - Header Actions & Breadcrumbs
     // ========================================
     const hasItems = quote.current_version?.items?.length > 0;
+    const currentVersionStatus = quote.current_version?.status;
+    const canSend =
+        hasItems &&
+        ["draft", "revision_requested"].includes(currentVersionStatus);
 
     const headerActions = [
         {
@@ -92,58 +95,82 @@ export default function Show({ quote, statuses }) {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 pr-4">
-                            <Link
+                            <TextButton
                                 href={route("admin.quote.edit", quote.id)}
+                                variant="primary"
+                                size="sm"
                                 title="編集"
-                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                             >
-                                <PencilIcon className="w-5 h-5" />
-                            </Link>
-                            {["draft", "reviewed"].includes(quote.status) && (
-                                <Link
-                                    href={route(
-                                        "admin.quote.preview",
-                                        quote.id,
-                                    )}
-                                    title="送信"
-                                    className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
-                                >
-                                    <PaperAirplaneIcon className="w-5 h-5" />
-                                </Link>
-                            )}
-                            <Link
-                                href={route("admin.contract.create", {
-                                    quote_id: quote.id,
-                                })}
-                                title="契約書を作成"
-                                className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                            >
-                                <DocumentTextIcon className="w-5 h-5" />
-                            </Link>
+                                <PencilIcon className="w-4 h-4 mr-1" />
+                                編集
+                            </TextButton>
+
                             {hasItems ? (
-                                <Link
+                                <TextButton
                                     href={route(
                                         "admin.quote.item.edit",
                                         quote.id,
                                     )}
+                                    variant="primary"
+                                    size="sm"
                                     title="見積明細を編集"
-                                    className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                 >
-                                    <PencilIcon className="w-5 h-5 mr-2" />
+                                    <PencilIcon className="w-4 h-4 mr-1" />
                                     見積明細編集
-                                </Link>
+                                </TextButton>
                             ) : (
-                                <Link
+                                <TextButton
                                     href={route(
                                         "admin.quote.item.create",
                                         quote.id,
                                     )}
+                                    variant="success"
+                                    size="sm"
                                     title="見積明細を作成"
-                                    className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                 >
-                                    <PlusIcon className="w-5 h-5" />
-                                </Link>
+                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                    見積明細を作成
+                                </TextButton>
                             )}
+
+                            {canSend ? (
+                                <TextButton
+                                    href={route(
+                                        "admin.quote.preview",
+                                        quote.id,
+                                    )}
+                                    variant="skyblue"
+                                    size="sm"
+                                    title="送信"
+                                >
+                                    <PaperAirplaneIcon className="w-4 h-4 mr-1" />
+                                    送信
+                                </TextButton>
+                            ) : (
+                                ["draft", "revision_requested"].includes(
+                                    currentVersionStatus,
+                                ) && (
+                                    <span
+                                        title="見積明細を作成すると送信できます"
+                                        className="inline-flex items-center px-3 py-1.5 text-sm rounded-md text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                                    >
+                                        <PaperAirplaneIcon className="w-4 h-4 mr-1" />
+                                        送信
+                                    </span>
+                                )
+                            )}
+
+                            <TextButton
+                                href={route("admin.contract.create", {
+                                    quote_id: quote.id,
+                                })}
+                                variant="success"
+                                size="sm"
+                                title="契約書を作成"
+                            >
+                                <DocumentTextIcon className="w-4 h-4 mr-1" />
+                                契約書を作成
+                            </TextButton>
                         </div>
                     </div>
                 </Card>

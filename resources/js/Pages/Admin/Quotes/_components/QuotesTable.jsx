@@ -4,7 +4,6 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { ShowButton, EditButton, DeleteButton } from "@/Components/Buttons";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
-import { getStatusBadge } from "@/Constants/Badges";
 import {
     EyeIcon,
     PencilIcon,
@@ -17,11 +16,11 @@ const QuotesTable = ({ quotes, onDelete }) => {
     const getQuoteStatusColor = (status) => {
         const colors = {
             draft: "bg-gray-100 text-gray-800",
-            sent: "bg-blue-100 text-blue-800",
-            reviewed: "bg-yellow-100 text-yellow-800",
+            negotiating: "bg-blue-100 text-blue-800",
             approved: "bg-green-100 text-green-800",
             rejected: "bg-red-100 text-red-800",
-            expired: "bg-gray-400 text-gray-700",
+            contracted: "bg-emerald-100 text-emerald-800",
+            cancelled: "bg-gray-400 text-gray-700",
         };
         return colors[status] || "bg-gray-100 text-gray-800";
     };
@@ -30,11 +29,11 @@ const QuotesTable = ({ quotes, onDelete }) => {
     const getStatusLabel = (status) => {
         const labels = {
             draft: "下書き",
-            sent: "送信済み",
-            reviewed: "確認済み",
+            negotiating: "交渉中",
             approved: "承認済み",
             rejected: "却下",
-            expired: "期限切れ",
+            contracted: "契約済み",
+            cancelled: "キャンセル",
         };
         return labels[status] || status;
     };

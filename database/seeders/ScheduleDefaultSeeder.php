@@ -26,8 +26,8 @@ class ScheduleDefaultSeeder extends Seeder
             [
                 'day_of_week' => 1,
                 'is_open' => true,
-                'open_time' => '09:00',
-                'close_time' => '18:00',
+                'open_time' => '08:00',
+                'close_time' => '20:00',
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
@@ -35,8 +35,8 @@ class ScheduleDefaultSeeder extends Seeder
             [
                 'day_of_week' => 2,
                 'is_open' => true,
-                'open_time' => '09:00',
-                'close_time' => '18:00',
+                'open_time' => '08:00',
+                'close_time' => '20:00',
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
@@ -44,8 +44,8 @@ class ScheduleDefaultSeeder extends Seeder
             [
                 'day_of_week' => 3,
                 'is_open' => true,
-                'open_time' => '09:00',
-                'close_time' => '18:00',
+                'open_time' => '08:00',
+                'close_time' => '20:00',
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
@@ -53,8 +53,8 @@ class ScheduleDefaultSeeder extends Seeder
             [
                 'day_of_week' => 4,
                 'is_open' => true,
-                'open_time' => '09:00',
-                'close_time' => '18:00',
+                'open_time' => '08:00',
+                'close_time' => '20:00',
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
@@ -62,19 +62,19 @@ class ScheduleDefaultSeeder extends Seeder
             [
                 'day_of_week' => 5,
                 'is_open' => true,
-                'open_time' => '09:00',
-                'close_time' => '18:00',
+                'open_time' => '08:00',
+                'close_time' => '20:00',
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
             // 土曜日 - 定休日
             [
                 'day_of_week' => 6,
-                'is_open' => false,
-                'open_time' => null,
-                'close_time' => null,
-                'break_start' => null,
-                'break_end' => null,
+                'is_open' => true,
+                'open_time' => '08:00',
+                'close_time' => '20:00',
+                'break_start' => '12:00',
+                'break_end' => '13:00',
             ],
         ];
 

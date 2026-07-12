@@ -1,14 +1,17 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Link } from "@inertiajs/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { getAdminNavigationItems } from "@/Components/NavItems/AdminNavItems";
+
+const SUBMENU_MARGIN = 12;
 
 export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
     const [hoveredItem, setHoveredItem] = useState(null);
     const [hoverTimeout, setHoverTimeout] = useState(null);
-    const [submenuPosition, setSubmenuPosition] = useState({ top: 0, left: 0 });
+    const [submenuStyle, setSubmenuStyle] = useState({});
     const navItemRefs = useRef([]);
+    const submenuRef = useRef(null);
 
     const handleMouseEnter = (index) => {
         if (hoverTimeout) {
@@ -32,6 +35,33 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             }
         };
     }, [hoverTimeout]);
+
+    // サブメニューが画面下端で切れないように位置を再計算する
+    useLayoutEffect(() => {
+        if (hoveredItem === null) return;
+
+        const anchorEl = navItemRefs.current[hoveredItem];
+        const menuEl = submenuRef.current;
+        if (!anchorEl) return;
+
+        const anchorRect = anchorEl.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const menuHeight = menuEl
+            ? menuEl.getBoundingClientRect().height
+            : 0;
+        const availableHeight = viewportHeight - SUBMENU_MARGIN * 2;
+        const maxHeight = Math.min(menuHeight || availableHeight, availableHeight);
+
+        // アンカー位置から表示した場合に画面下端をはみ出す量を計算し、
+        // はみ出す分だけ上にずらす（それでも入り切らない場合は画面上端に揃える）
+        const overflow = anchorRect.top + menuHeight - (viewportHeight - SUBMENU_MARGIN);
+        const top =
+            overflow > 0
+                ? Math.max(SUBMENU_MARGIN, anchorRect.top - overflow)
+                : anchorRect.top;
+
+        setSubmenuStyle({ top: `${top}px`, maxHeight: `${maxHeight}px` });
+    }, [hoveredItem]);
 
     const navigationItems = getAdminNavigationItems();
 
@@ -214,28 +244,25 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                     hoveredItem === index &&
                                     createPortal(
                                         <div
-                                            className="fixed left-20 ml-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-2 z-[9999] transform transition-all duration-200 ease-out opacity-100 scale-100"
+                                            ref={submenuRef}
+                                            className="fixed left-20 ml-2 w-56 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 z-[9999] transform transition-all duration-200 ease-out opacity-100 scale-100 overflow-hidden"
                                             onMouseEnter={() =>
                                                 handleMouseEnter(index)
                                             }
                                             onMouseLeave={handleMouseLeave}
-                                            style={{
-                                                top: navItemRefs.current[index]
-                                                    ? navItemRefs.current[
-                                                          index
-                                                      ].getBoundingClientRect()
-                                                          .top + "px"
-                                                    : "0px",
-                                            }}
+                                            style={submenuStyle}
                                         >
-                                            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                                            <div className="flex-shrink-0 px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                                                 {item.name}
                                             </div>
-                                            <div className="py-1">
+                                            <div className="py-1 flex-1 min-h-0 overflow-y-auto">
                                                 {item.children.map((child) => (
                                                     <Link
                                                         key={child.name}
-                                                        href={route(child.href)}
+                                                        href={route(
+                                                            child.href,
+                                                            child.query,
+                                                        )}
                                                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l-2 border-transparent"
                                                         onMouseEnter={(e) => {
                                                             e.currentTarget.style.borderLeftColor =

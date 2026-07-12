@@ -587,6 +587,74 @@ export default function ContractForm({
                         </CardBody>
                     </Card>
 
+                    {/* 月額請求設定(新規作成時のみ。作成後は詳細画面の「請求設定」タブから変更) */}
+                    {!isEdit && data.type === "monthly" && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>月額請求設定</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FormField
+                                        label="毎月の請求日"
+                                        type="number"
+                                        min="1"
+                                        max="31"
+                                        name="billing_day"
+                                        value={data.billing_day}
+                                        onChange={(e) =>
+                                            setData(
+                                                "billing_day",
+                                                e.target.value,
+                                            )
+                                        }
+                                        error={errors.billing_day}
+                                        placeholder="例: 10（月末を超える場合は月末に自動調整）"
+                                    />
+
+                                    <FormField
+                                        label="支払期限（発行から何日後）"
+                                        type="number"
+                                        min="1"
+                                        name="payment_due_days"
+                                        value={data.payment_due_days}
+                                        onChange={(e) =>
+                                            setData(
+                                                "payment_due_days",
+                                                e.target.value,
+                                            )
+                                        }
+                                        error={errors.payment_due_days}
+                                    />
+
+                                    <div className="flex items-center md:col-span-2">
+                                        <input
+                                            type="checkbox"
+                                            id="auto_invoice_generation"
+                                            checked={
+                                                data.auto_invoice_generation ??
+                                                true
+                                            }
+                                            onChange={(e) =>
+                                                setData(
+                                                    "auto_invoice_generation",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <label
+                                            htmlFor="auto_invoice_generation"
+                                            className="ml-2 block text-sm text-gray-700"
+                                        >
+                                            毎日9時のバッチ処理で自動的に請求書を生成・送付する
+                                        </label>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    )}
+
                     {/* 詳細設定 */}
                     <Card>
                         <CardHeader>

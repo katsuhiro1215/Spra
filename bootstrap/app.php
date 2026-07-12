@@ -32,12 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\ActivityLogMiddleware::class,
         ]);
 
         // ミドルウェアエイリアスの設定
         $middleware->alias([
         'auth' => \App\Http\Middleware\Authenticate::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'contact.api_key' => \App\Http\Middleware\VerifyContactApiKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -20,6 +20,7 @@ export default function Show({
     quote = null,
     invoices = [],
     receipts = [],
+    project = null,
 }) {
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [signatureStatus, setSignatureStatus] = useState(
@@ -32,7 +33,7 @@ export default function Show({
     });
     const [activeTab, setActiveTab] = useState("contract");
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { post, processing, errors, transform } = useForm({
         signature: null,
         agreed_at: new Date().toISOString(),
     });
@@ -43,6 +44,7 @@ export default function Show({
         { id: "quote", label: "見積書", icon: "📑" },
         { id: "invoices", label: "請求書", icon: "💳" },
         { id: "receipts", label: "領収書", icon: "🧾" },
+        { id: "project", label: "プロジェクト", icon: "🗂️" },
     ];
 
     // ステータスラベル
@@ -112,9 +114,11 @@ export default function Show({
             return;
         }
 
-        setData("signature", stamp);
+        // stamp は直前に確定したローカル値。setData→postだとReactのstate更新が
+        // 非同期のため、post()がまだ古い(null)のdataを送信してしまい1回目は必ず
+        // 失敗する。transformで送信直前に確定値を注入することで回避する。
+        transform((data) => ({ ...data, signature: stamp }));
 
-        // 署名を送信
         post(route("user.contract.sign", contract.id), {
             onSuccess: () => {
                 setShowSignatureModal(false);
@@ -245,6 +249,7 @@ export default function Show({
                                     }}
                                 >
                                     <iframe
+                                        key={`${contract.user_signed_at ?? ""}-${contract.admin_signed_at ?? ""}`}
                                         src={route(
                                             "user.contract.pdf.preview",
                                             contract.id,
@@ -556,19 +561,28 @@ export default function Show({
                                                         key={invoice.id}
                                                         className="border-b border-gray-100 dark:border-gray-700"
                                                     >
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                                                            {
-                                                                invoice.invoice_number
-                                                            }
+                                                        <td className="px-4 py-3">
+                                                            <a
+                                                                href={route(
+                                                                    "user.invoice.show",
+                                                                    invoice.id,
+                                                                )}
+                                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                                            >
+                                                                {
+                                                                    invoice.invoice_number
+                                                                }
+                                                            </a>
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                                             {formatAmount(
-                                                                invoice.amount ||
+                                                                invoice.total_amount ||
                                                                     0,
                                                             )}
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                                                            {invoice.status}
+                                                            {invoice.status_name ||
+                                                                invoice.status}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -642,6 +656,47 @@ export default function Show({
                                     <div className="text-center py-8">
                                         <p className="text-gray-500 dark:text-gray-400">
                                             領収書はまだ発行されていません。
+                                        </p>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Project タブ */}
+                {activeTab === "project" && (
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>プロジェクト</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                {project ? (
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div>
+                                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                                {project.title}
+                                            </p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                {project.description ||
+                                                    "説明なし"}
+                                            </p>
+                                        </div>
+                                        <a
+                                            href={route(
+                                                "user.projects.show",
+                                                project.id,
+                                            )}
+                                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                                        >
+                                            進捗・ガントチャートを見る
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-gray-500 dark:text-gray-400">
+                                            この契約に関連するプロジェクトはまだありません。
                                         </p>
                                     </div>
                                 )}

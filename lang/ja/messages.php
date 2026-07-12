@@ -121,8 +121,8 @@ return [
 
   // ページ
   // ブログカテゴリ
-  'blog_category' => [
-    'has_blogs' => 'このカテゴリには関連するブログがあるため削除できません。',
+  'post_category' => [
+    'has_posts' => 'このカテゴリには関連する投稿があるため削除できません。',
   ],
   // ブログ
 
@@ -156,7 +156,7 @@ return [
 
     'attributes' => [
       'page' => 'ページ',
-      'blog_category' => 'ブログカテゴリ',
+      'post_category' => '投稿カテゴリ',
       'service_type' => 'サービスタイプ',
       'service_category' => 'サービスカテゴリ',
       'price_item' => '価格項目',

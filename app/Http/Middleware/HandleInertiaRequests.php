@@ -32,6 +32,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $admin = $request->user('admins');
+        $user = $request->user('users');
 
         // admin に profile リレーションを含める
         if ($admin) {
@@ -50,10 +51,23 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn() => $request->session()->get('error'),
                 'warning' => fn() => $request->session()->get('warning'),
                 'info' => fn() => $request->session()->get('info'),
+                'apiKeyReveal' => fn() => $request->session()->get('api_key_reveal'),
             ],
             'notifications' => [
                 'unreadContacts' => $admin ? app(ContactService::class)->getUnreadCount() : 0,
                 'pendingResponses' => $admin ? QuoteResponse::whereNull('responded_at')->count() : 0,
+            ],
+            'userNotifications' => [
+                'unreadCount' => fn() => $user ? $user->unreadNotifications()->count() : 0,
+                'items' => fn() => $user
+                    ? $user->notifications()->latest()->limit(10)->get(['id', 'data', 'read_at', 'created_at'])
+                    : [],
+            ],
+            'adminNotifications' => [
+                'unreadCount' => fn() => $admin ? $admin->unreadNotifications()->count() : 0,
+                'items' => fn() => $admin
+                    ? $admin->notifications()->latest()->limit(10)->get(['id', 'data', 'read_at', 'created_at'])
+                    : [],
             ],
         ];
     }

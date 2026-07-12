@@ -7,7 +7,10 @@ use App\Models\Appointment;
 use App\Models\AppointmentSlot;
 use App\Models\Company;
 use App\Models\Project;
+use App\Models\User;
 use App\Services\AppointmentNotificationService;
+use App\Services\AppointmentService;
+use App\Services\ContractBenefitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +25,26 @@ class AppointmentController extends Controller
   protected AppointmentNotificationService $notificationService;
 
   /**
+   * 予約サービス
+   */
+  protected AppointmentService $appointmentService;
+
+  /**
+   * 契約特典サービス
+   */
+  protected ContractBenefitService $benefitService;
+
+  /**
    * コンストラクタ
    */
-  public function __construct(AppointmentNotificationService $notificationService)
-  {
+  public function __construct(
+    AppointmentNotificationService $notificationService,
+    AppointmentService $appointmentService,
+    ContractBenefitService $benefitService,
+  ) {
     $this->notificationService = $notificationService;
+    $this->appointmentService = $appointmentService;
+    $this->benefitService = $benefitService;
   }
 
   /**
@@ -43,7 +61,7 @@ class AppointmentController extends Controller
     $query = Appointment::query()
       ->with([
         'appointmentSlot.assignedAdmin.profile',
-        'user',
+        'user.profile',
         'company',
         'project',
       ]);
@@ -54,6 +72,7 @@ class AppointmentController extends Controller
       $query->where(function ($q) use ($search) {
         $q->where('subject', 'like', "%{$search}%")
           ->orWhere('description', 'like', "%{$search}%")
+          ->orWhere('guest_name', 'like', "%{$search}%")
           ->orWhereHas('company', function ($q) use ($search) {
             $q->where('name', 'like', "%{$search}%");
           });
@@ -146,53 +165,12 @@ class AppointmentController extends Controller
       $appointmentSlot = AppointmentSlot::with('assignedAdmin.profile')->find($slotId);
     }
 
-    // 予約可能な予約枠を取得
-    $availableSlots = AppointmentSlot::where('status', 'available')
-      ->where('date', '>=', now()->format('Y-m-d'))
-      ->whereRaw('current_bookings < max_capacity')
-      ->with('assignedAdmin.profile')
-      ->orderBy('date')
-      ->orderBy('start_time')
-      ->get()
-      ->map(function ($slot) {
-        return [
-          'value' => $slot->id,
-          'label' => sprintf(
-            '%s %s-%s (%s) - 残り%d枠',
-            $slot->date,
-            substr($slot->start_time, 0, 5),
-            substr($slot->end_time, 0, 5),
-            AppointmentSlot::getSlotTypeLabel($slot->slot_type),
-            $slot->max_capacity - $slot->current_bookings
-          ),
-          'date' => $slot->date,
-          'start_time' => $slot->start_time,
-          'end_time' => $slot->end_time,
-          'slot_type' => $slot->slot_type,
-          'assigned_admin' => $slot->assignedAdmin ? [
-            'id' => $slot->assignedAdmin->id,
-            'name' => $slot->assignedAdmin->profile->full_name ?? $slot->assignedAdmin->email,
-          ] : null,
-        ];
-      });
-
-    $companies = Company::select('id', 'name')
-      ->orderBy('name')
-      ->get()
-      ->map(fn($company) => [
-        'value' => $company->id,
-        'label' => $company->name
-      ]);
-
-    $projects = Project::select('id', 'title', 'company_id')
-      ->orderBy('title')
-      ->get();
-
     return Inertia::render('Admin/Appointments/Create', [
       'appointmentSlot' => $appointmentSlot,
-      'availableSlots' => $availableSlots,
-      'companies' => $companies,
-      'projects' => $projects,
+      'availableSlots' => $this->appointmentService->availableSlotOptions(),
+      'users' => $this->userOptions(),
+      'companies' => $this->companyOptions(),
+      'projects' => Project::select('id', 'title', 'company_id')->orderBy('title')->get(),
     ]);
   }
 
@@ -203,39 +181,38 @@ class AppointmentController extends Controller
   {
     $validated = $request->validate([
       'appointment_slot_id' => 'required|exists:appointment_slots,id',
+      'user_id' => 'nullable|exists:users,id',
+      'guest_name' => 'nullable|required_without:user_id|string|max:255',
+      'guest_email' => 'nullable|email|max:255',
+      'guest_phone' => 'nullable|string|max:30',
       'company_id' => 'nullable|exists:companies,id',
       'project_id' => 'nullable|exists:projects,id',
       'subject' => 'required|string|max:255',
       'description' => 'nullable|string|max:2000',
+      'location_type' => 'required|in:in_person,online',
+      'meeting_tool' => 'nullable|required_if:location_type,online|in:zoom,teams,google_meet,other',
       'client_notes' => 'nullable|string|max:1000',
       'send_reminder' => 'nullable|boolean',
     ]);
 
     try {
-      // 予約枠の確認
-      $slot = AppointmentSlot::findOrFail($validated['appointment_slot_id']);
-
-      if (!$slot->isAvailable()) {
-        return redirect()->back()
-          ->withInput()
-          ->with('error', 'この予約枠は現在予約できません。');
-      }
-
-      $validated['status'] = 'pending';
+      $slotId = $validated['appointment_slot_id'];
+      unset($validated['appointment_slot_id']);
       $validated['send_reminder'] = $validated['send_reminder'] ?? false;
-      $validated['created_by'] = Auth::guard('admin')->id();
+      $validated['created_by'] = Auth::guard('admins')->id();
 
-      $appointment = Appointment::create($validated);
-
-      // 予約枠の予約数を更新
-      $slot->updateBookingCount();
+      $appointment = $this->appointmentService->book($slotId, $validated);
 
       // 通知を送信
-      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project']);
+      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project', 'user']);
       $this->notificationService->sendNewAppointmentNotifications($appointment);
 
       return redirect()->route('admin.appointments.index')
         ->with('success', '予約が作成されました。');
+    } catch (\RuntimeException $e) {
+      return redirect()->back()
+        ->withInput()
+        ->with('error', $e->getMessage());
     } catch (\Exception $e) {
       Log::error('Appointment store error: ' . $e->getMessage());
       return redirect()->back()
@@ -251,7 +228,7 @@ class AppointmentController extends Controller
   {
     $appointment->load([
       'appointmentSlot.assignedAdmin.profile',
-      'user',
+      'user.profile',
       'company',
       'project',
       'creator.profile',
@@ -268,43 +245,6 @@ class AppointmentController extends Controller
    */
   public function edit(Appointment $appointment): Response
   {
-    // 予約可能な予約枠を取得（現在の予約枠も含む）
-    $availableSlots = AppointmentSlot::where(function ($query) use ($appointment) {
-      $query->where('status', 'available')
-        ->whereRaw('current_bookings < max_capacity')
-        ->orWhere('id', $appointment->appointment_slot_id);
-    })
-      ->where('date', '>=', now()->format('Y-m-d'))
-      ->with('assignedAdmin.profile')
-      ->orderBy('date')
-      ->orderBy('start_time')
-      ->get()
-      ->map(function ($slot) {
-        return [
-          'value' => $slot->id,
-          'label' => sprintf(
-            '%s %s-%s (%s) - 残り%d枠',
-            $slot->date,
-            substr($slot->start_time, 0, 5),
-            substr($slot->end_time, 0, 5),
-            AppointmentSlot::getSlotTypeLabel($slot->slot_type),
-            $slot->max_capacity - $slot->current_bookings
-          ),
-        ];
-      });
-
-    $companies = Company::select('id', 'name')
-      ->orderBy('name')
-      ->get()
-      ->map(fn($company) => [
-        'value' => $company->id,
-        'label' => $company->name
-      ]);
-
-    $projects = Project::select('id', 'name', 'company_id')
-      ->orderBy('name')
-      ->get();
-
     $statuses = [
       ['value' => 'pending', 'label' => '保留中'],
       ['value' => 'confirmed', 'label' => '確定'],
@@ -314,10 +254,11 @@ class AppointmentController extends Controller
     ];
 
     return Inertia::render('Admin/Appointments/Edit', [
-      'appointment' => $appointment->load('appointmentSlot', 'company', 'project'),
-      'availableSlots' => $availableSlots,
-      'companies' => $companies,
-      'projects' => $projects,
+      'appointment' => $appointment->load('appointmentSlot', 'company', 'project', 'user'),
+      'availableSlots' => $this->appointmentService->availableSlotOptions($appointment->appointment_slot_id),
+      'users' => $this->userOptions(),
+      'companies' => $this->companyOptions(),
+      'projects' => Project::select('id', 'title', 'company_id')->orderBy('title')->get(),
       'statuses' => $statuses,
     ]);
   }
@@ -329,10 +270,17 @@ class AppointmentController extends Controller
   {
     $validated = $request->validate([
       'appointment_slot_id' => 'required|exists:appointment_slots,id',
+      'user_id' => 'nullable|exists:users,id',
+      'guest_name' => 'nullable|required_without:user_id|string|max:255',
+      'guest_email' => 'nullable|email|max:255',
+      'guest_phone' => 'nullable|string|max:30',
       'company_id' => 'nullable|exists:companies,id',
       'project_id' => 'nullable|exists:projects,id',
       'subject' => 'required|string|max:255',
       'description' => 'nullable|string|max:2000',
+      'location_type' => 'required|in:in_person,online',
+      'meeting_tool' => 'nullable|required_if:location_type,online|in:zoom,teams,google_meet,other',
+      'meeting_url' => 'nullable|string|max:500',
       'status' => 'required|in:pending,confirmed,completed,cancelled,no_show',
       'admin_notes' => 'nullable|string|max:1000',
       'client_notes' => 'nullable|string|max:1000',
@@ -340,28 +288,19 @@ class AppointmentController extends Controller
     ]);
 
     try {
-      $oldSlotId = $appointment->appointment_slot_id;
-
-      $validated['updated_by'] = Auth::guard('admin')->id();
+      $slotId = $validated['appointment_slot_id'];
+      unset($validated['appointment_slot_id']);
+      $validated['updated_by'] = Auth::guard('admins')->id();
       $validated['send_reminder'] = $validated['send_reminder'] ?? false;
 
-      $appointment->update($validated);
-
-      // 予約枠が変更された場合は両方の予約数を更新
-      if ($oldSlotId !== $validated['appointment_slot_id']) {
-        $oldSlot = AppointmentSlot::find($oldSlotId);
-        if ($oldSlot) {
-          $oldSlot->updateBookingCount();
-        }
-
-        $newSlot = AppointmentSlot::find($validated['appointment_slot_id']);
-        if ($newSlot) {
-          $newSlot->updateBookingCount();
-        }
-      }
+      $this->appointmentService->reschedule($appointment, $slotId, $validated);
 
       return redirect()->route('admin.appointments.index')
         ->with('success', '予約が更新されました。');
+    } catch (\RuntimeException $e) {
+      return redirect()->back()
+        ->withInput()
+        ->with('error', $e->getMessage());
     } catch (\Exception $e) {
       Log::error('Appointment update error: ' . $e->getMessage());
       return redirect()->back()
@@ -376,12 +315,15 @@ class AppointmentController extends Controller
   public function destroy(Appointment $appointment)
   {
     try {
-      $appointment->deleted_by = Auth::guard('admin')->id();
+      $appointment->deleted_by = Auth::guard('admins')->id();
       $appointment->save();
       $appointment->delete();
 
       // 予約枠の予約数を更新
       $appointment->appointmentSlot->updateBookingCount();
+
+      // チケットを返却（管理者操作のため締切時間に関わらず常に返却）
+      $this->benefitService->refund($appointment, ignoreCutoff: true);
 
       return redirect()->route('admin.appointments.index')
         ->with('success', '予約が削除されました。');
@@ -401,7 +343,7 @@ class AppointmentController extends Controller
       $appointment->confirm();
 
       // 通知を送信
-      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project']);
+      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project', 'user']);
       $this->notificationService->sendConfirmationNotification($appointment);
 
       return redirect()->back()
@@ -425,8 +367,11 @@ class AppointmentController extends Controller
     try {
       $appointment->cancel($validated['cancellation_reason'] ?? null);
 
+      // チケットを返却（管理者操作のため締切時間に関わらず常に返却）
+      $this->benefitService->refund($appointment, ignoreCutoff: true);
+
       // 通知を送信
-      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project']);
+      $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project', 'user']);
       $this->notificationService->sendCancellationNotification($appointment);
 
       return redirect()->back()
@@ -453,5 +398,33 @@ class AppointmentController extends Controller
       return redirect()->back()
         ->with('error', '予約の完了処理に失敗しました。');
     }
+  }
+
+  /**
+   * 登録済みユーザーの選択肢
+   */
+  private function userOptions()
+  {
+    return User::select('id', 'email')
+      ->with('profile')
+      ->get()
+      ->map(fn($user) => [
+        'value' => $user->id,
+        'label' => $user->profile?->full_name ? "{$user->profile->full_name} ({$user->email})" : $user->email,
+      ]);
+  }
+
+  /**
+   * 企業の選択肢
+   */
+  private function companyOptions()
+  {
+    return Company::select('id', 'name')
+      ->orderBy('name')
+      ->get()
+      ->map(fn($company) => [
+        'value' => $company->id,
+        'label' => $company->name
+      ]);
   }
 }

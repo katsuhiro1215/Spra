@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
 // Icons
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function Preview({ quote, statuses }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +35,8 @@ export default function Preview({ quote, statuses }) {
         if (quote.contact?.email) return quote.contact.email;
         return "未設定";
     };
+
+    const hasItems = (quote.current_version?.items?.length || 0) > 0;
 
     const getRecipientName = () => {
         if (quote.user?.profile?.full_name) return quote.user.profile.full_name;
@@ -308,10 +310,32 @@ export default function Preview({ quote, statuses }) {
                     </CardBody>
                 </Card>
 
+                {/* 明細未登録時の警告 */}
+                {!hasItems && (
+                    <Card className="border-2 border-amber-400 dark:border-amber-500">
+                        <CardBody>
+                            <p className="text-amber-700 dark:text-amber-400 font-medium mb-3">
+                                見積明細が登録されていないため送信できません。先に見積明細を作成してください。
+                            </p>
+                            <PrimaryButton
+                                onClick={() =>
+                                    (window.location.href = route(
+                                        "admin.quote.item.create",
+                                        quote.id,
+                                    ))
+                                }
+                            >
+                                <PlusIcon className="w-4 h-4 mr-1" />
+                                見積明細を作成する
+                            </PrimaryButton>
+                        </CardBody>
+                    </Card>
+                )}
+
                 {/* アクションボタン */}
                 <div className="flex gap-3">
                     <PrimaryButton
-                        disabled={processing || isSubmitting}
+                        disabled={!hasItems || processing || isSubmitting}
                         onClick={handleSendClick}
                     >
                         {processing || isSubmitting

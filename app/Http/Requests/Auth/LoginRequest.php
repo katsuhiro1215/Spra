@@ -47,7 +47,9 @@ class LoginRequest extends FormRequest
             $guard = 'users';
         }
 
-        if (! Auth::guard($guard)->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->only('email', 'password');
+
+        if (! Auth::guard($guard)->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -56,6 +58,23 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        $authenticatable = Auth::guard($guard)->getProvider()->retrieveByCredentials($credentials);
+
+        // 二段階認証が有効な場合は、ログインを確定せずコード入力を待つ
+        if ($authenticatable->two_factor_enabled) {
+            $this->session()->put('2fa_pending', [
+                'guard' => $guard,
+                'id' => $authenticatable->id,
+                'remember' => $this->boolean('remember'),
+            ]);
+
+            \App\Models\OneTimePassword::generateFor($authenticatable);
+
+            return;
+        }
+
+        Auth::guard($guard)->login($authenticatable, $this->boolean('remember'));
     }
 
     /**

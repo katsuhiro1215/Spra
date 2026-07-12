@@ -47,6 +47,10 @@ class AuthenticatedSessionController extends Controller
 
             $request->session()->regenerate();
 
+            if ($request->session()->has('2fa_pending')) {
+                return redirect()->route('admin.two-factor.challenge');
+            }
+
             return redirect_to_admin_home()->with('success', __('messages.auth.login_success'));
         } catch (ValidationException $e) {
             // 認証失敗時の処理

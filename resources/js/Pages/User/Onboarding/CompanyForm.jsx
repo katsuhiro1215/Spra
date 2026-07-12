@@ -7,7 +7,12 @@ import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import InputError from "@/Components/Forms/InputError";
 
-export default function CompanyForm({ company }) {
+export default function CompanyForm({
+    company,
+    submitRoute = route("user.onboarding.company.store"),
+    cancelRoute = route("user.dashboard"),
+    submitLabel = "次に進む",
+}) {
     const { data, setData, post, processing, errors } = useForm({
         legal_name: company?.legal_name || "",
         registration_number: company?.registration_number || "",
@@ -20,7 +25,7 @@ export default function CompanyForm({ company }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.onboarding.company.store"));
+        post(submitRoute);
     };
 
     return (
@@ -204,7 +209,7 @@ export default function CompanyForm({ company }) {
 
                         {/* ボタン */}
                         <div className="flex gap-4 pt-6">
-                            <Link href={route("user.dashboard")}>
+                            <Link href={cancelRoute}>
                                 <SecondaryButton type="button">
                                     戻る
                                 </SecondaryButton>
@@ -214,7 +219,7 @@ export default function CompanyForm({ company }) {
                                 disabled={processing}
                                 className="flex-1 justify-center"
                             >
-                                {processing ? "保存中..." : "次に進む"}
+                                {processing ? "保存中..." : submitLabel}
                             </PrimaryButton>
                         </div>
                     </form>

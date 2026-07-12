@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 // Components
 import ApplicationLogo from "@/Components/ApplicationLogo";
@@ -20,18 +19,11 @@ export default function Login({ status, canResetPassword }) {
         password: "",
         remember: false,
     });
-    // 2段階認証状態管理
-    const [showTwoFactor, setShowTwoFactor] = useState(false);
-    const [twoFactorCode, setTwoFactorCode] = useState("");
     // フォーム送信ハンドラー
+    // 二段階認証が有効なアカウントの場合、サーバー側で
+    // /admin/two-factor-challenge にリダイレクトされる
     const submit = (e) => {
         e.preventDefault();
-
-        if (showTwoFactor) {
-            // 2段階認証の処理（後で実装）
-            console.log("2段階認証コード:", twoFactorCode);
-            return;
-        }
 
         post(route("admin.login"), {
             onFinish: () => reset("password"),
@@ -101,8 +93,7 @@ export default function Login({ status, canResetPassword }) {
                             </div>
                         )}
 
-                        {!showTwoFactor ? (
-                            <form onSubmit={submit} className="space-y-6">
+                        <form onSubmit={submit} className="space-y-6">
                                 {/* Google認証ボタン */}
                                 <button
                                     type="button"
@@ -254,79 +245,18 @@ export default function Login({ status, canResetPassword }) {
                                     )}
                                 </PrimaryButton>
                             </form>
-                        ) : (
-                            /* 2段階認証フォーム */
-                            <div className="space-y-6">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <svg
-                                            className="w-8 h-8 text-blue-600"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                        2段階認証
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        認証アプリに表示された6桁のコードを入力してください
-                                    </p>
-                                </div>
 
-                                <form onSubmit={submit} className="space-y-4">
-                                    <div>
-                                        <TextInput
-                                            type="text"
-                                            value={twoFactorCode}
-                                            onChange={(e) =>
-                                                setTwoFactorCode(e.target.value)
-                                            }
-                                            className="w-full px-4 py-3 text-center text-2xl tracking-widest border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="000000"
-                                            maxLength="6"
-                                            autoComplete="one-time-code"
-                                        />
-                                    </div>
-
-                                    <div className="flex space-x-3">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setShowTwoFactor(false)
-                                            }
-                                            className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                                        >
-                                            戻る
-                                        </button>
-                                        <PrimaryButton className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                                            認証
-                                        </PrimaryButton>
-                                    </div>
-                                </form>
-                            </div>
-                        )}
-
-                        {!showTwoFactor && (
-                            <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    管理者アカウントをお持ちでない場合は{" "}
-                                    <Link
-                                        href={route("admin.register")}
-                                        className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                                    >
-                                        新規登録
-                                    </Link>
-                                </p>
-                            </div>
-                        )}
+                        <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                管理者アカウントをお持ちでない場合は{" "}
+                                <Link
+                                    href={route("admin.register")}
+                                    className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                >
+                                    新規登録
+                                </Link>
+                            </p>
+                        </div>
                     </CardBody>
                 </Card>
             </div>

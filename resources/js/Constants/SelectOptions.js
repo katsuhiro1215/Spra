@@ -179,11 +179,11 @@ export const CONTACT_CATEGORY_OPTIONS = [
  */
 export const QUOTE_STATUS_OPTIONS = [
     { value: "draft", label: "下書き" },
-    { value: "sent", label: "送信済み" },
-    { value: "reviewed", label: "確認済み" },
+    { value: "negotiating", label: "交渉中" },
     { value: "approved", label: "承認済み" },
     { value: "rejected", label: "却下" },
-    { value: "expired", label: "期限切れ" },
+    { value: "contracted", label: "契約済み" },
+    { value: "cancelled", label: "キャンセル" },
 ];
 
 /**
@@ -249,6 +249,15 @@ export const INVOICE_STATUS_OPTIONS = [
     { value: "paid", label: "支払済み" },
     { value: "overdue", label: "期限超過" },
     { value: "cancelled", label: "キャンセル" },
+];
+
+export const INVOICE_TYPE_OPTIONS = [
+    { value: "deposit", label: "着手金" },
+    { value: "interim", label: "中間金" },
+    { value: "final", label: "完了金" },
+    { value: "full", label: "一括" },
+    { value: "monthly", label: "月額" },
+    { value: "other", label: "その他" },
 ];
 
 /**

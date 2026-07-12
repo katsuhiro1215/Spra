@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\UserInvitation;
 use App\Models\Company;
 use App\Models\Profile;
+use App\Models\Document;
+use App\Models\UserAcceptance;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,7 @@ class RegisteredUserController extends Controller
     {
         return Inertia::render('User/Auth/Register', [
             'invitation' => null,
+            'requiredDocuments' => $this->requiredDocumentsForRegistration(),
         ]);
     }
 
@@ -62,7 +65,25 @@ class RegisteredUserController extends Controller
                     'company' => $invitation->contact->company,
                 ],
             ],
+            'requiredDocuments' => $this->requiredDocumentsForRegistration(),
         ]);
+    }
+
+    /**
+     * アカウント作成時に同意が必要な文書（同意必須かつ有効なバージョンがあるもの）
+     */
+    private function requiredDocumentsForRegistration()
+    {
+        return Document::requiresAcceptance()
+            ->with('activeVersion:id,document_id,version')
+            ->get()
+            ->filter(fn (Document $document) => $document->activeVersion)
+            ->map(fn (Document $document) => [
+                'title' => $document->title,
+                'slug' => $document->slug,
+                'version_id' => $document->activeVersion->id,
+            ])
+            ->values();
     }
 
     /**
@@ -85,7 +106,19 @@ class RegisteredUserController extends Controller
             'company_registration_number' => 'nullable|string|max:50',
             'company_phone' => 'nullable|string|max:20',
             'company_address' => 'nullable|string|max:500',
+
+            'accepted_document_version_ids' => 'array',
+            'accepted_document_version_ids.*' => 'string',
         ]);
+
+        // 同意必須の文書に全て同意しているか確認
+        $requiredVersionIds = $this->requiredDocumentsForRegistration()
+            ->pluck('version_id');
+        $acceptedVersionIds = collect($request->input('accepted_document_version_ids', []));
+
+        if ($requiredVersionIds->diff($acceptedVersionIds)->isNotEmpty()) {
+            return back()->withErrors(['acceptance' => '必須文書への同意が必要です。'])->withInput();
+        }
 
         DB::beginTransaction();
         try {
@@ -117,6 +150,17 @@ class RegisteredUserController extends Controller
             $user->profile()->create([
                 'full_name' => $invitation ? $invitation->contact->name : $request->input('name', ''),
             ]);
+
+            // 同意必須文書への同意を記録
+            foreach ($requiredVersionIds as $versionId) {
+                UserAcceptance::create([
+                    'user_id' => $user->id,
+                    'document_version_id' => $versionId,
+                    'accepted_at' => now(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+            }
 
             // Company情報がある場合は作成して紐付け
             if ($request->boolean('has_company') && $request->filled('company_name')) {

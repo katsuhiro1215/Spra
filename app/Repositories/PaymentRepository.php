@@ -5,12 +5,22 @@ namespace App\Repositories;
 use App\Models\Payment;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PaymentRepository implements PaymentRepositoryInterface
 {
   public function query(): Builder
   {
     return Payment::query();
+  }
+
+  public function paginate(int $perPage = 20, array $filters = []): LengthAwarePaginator
+  {
+    return $this->findWithFilters($filters)
+      ->with(['invoice.user.profile'])
+      ->latest('payment_date')
+      ->paginate($perPage)
+      ->withQueryString();
   }
 
   public function findById(string $id): ?Payment
@@ -51,7 +61,7 @@ class PaymentRepository implements PaymentRepositoryInterface
   public function confirm(Payment $payment, string $confirmedByAdminId): Payment
   {
     $payment->update([
-      'status' => Payment::STATUS_CONFIRMED,
+      'status' => 'completed',
       'confirmed_by' => $confirmedByAdminId,
       'confirmed_at' => now(),
     ]);

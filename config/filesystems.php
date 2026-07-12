@@ -38,6 +38,17 @@ return [
             'report' => false,
         ],
 
+        // 契約書PDF・請求書PDF・領収書PDF等、非公開ファイルの保存先
+        // (localディスクと同じ場所を指す別名。コード全体でStorage::disk('private')という
+        // 慣習で参照されているため、明示的にディスクとして登録する)
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

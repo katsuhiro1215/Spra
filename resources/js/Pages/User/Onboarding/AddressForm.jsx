@@ -7,7 +7,14 @@ import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 // Constants
 import { PREFECTURE_OPTIONS } from "@/Constants/SelectOptions";
 
-export default function AddressForm({ address }) {
+export default function AddressForm({
+    address,
+    submitRoute = route("user.onboarding.address.store"),
+    cancelRoute = route("user.dashboard"),
+    submitLabel = "登録完了",
+    heading = "会社住所",
+    description = "会社の住所を入力してください",
+}) {
     const { data, setData, post, processing, errors } = useForm({
         postal_code: address?.postal_code || "",
         prefecture: address?.prefecture || "",
@@ -19,17 +26,17 @@ export default function AddressForm({ address }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.onboarding.address.store"));
+        post(submitRoute);
     };
 
     return (
-        <AuthenticatedLayout header="会社住所">
-            <Head title="会社住所 | Smart Sprouts" />
+        <AuthenticatedLayout header={heading}>
+            <Head title={`${heading} | Smart Sprouts`} />
 
             <div className="max-w-2xl mx-auto">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        会社の住所を入力してください
+                        {description}
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -173,7 +180,7 @@ export default function AddressForm({ address }) {
 
                         {/* ボタン */}
                         <div className="flex gap-4 pt-6">
-                            <Link href={route("user.dashboard")}>
+                            <Link href={cancelRoute}>
                                 <SecondaryButton type="button">
                                     戻る
                                 </SecondaryButton>
@@ -183,7 +190,7 @@ export default function AddressForm({ address }) {
                                 disabled={processing}
                                 className="flex-1 justify-center"
                             >
-                                {processing ? "保存中..." : "登録完了"}
+                                {processing ? "保存中..." : submitLabel}
                             </PrimaryButton>
                         </div>
                     </form>

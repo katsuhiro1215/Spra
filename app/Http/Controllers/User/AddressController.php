@@ -19,12 +19,38 @@ class AddressController extends Controller
      */
     public function create(): Response
     {
+        return $this->form(
+            route('user.onboarding.address.store'),
+            route('user.dashboard'),
+            '登録完了',
+        );
+    }
+
+    /**
+     * Show address form for editing from Settings
+     */
+    public function edit(): Response
+    {
+        return $this->form(
+            route('user.settings.company-address.update'),
+            route('user.settings.index'),
+            '保存する',
+        );
+    }
+
+    private function form(string $submitRoute, string $cancelRoute, string $submitLabel): Response
+    {
         $user = auth('users')->user();
         $company = $user->companies()->first();
         $address = $company?->addresses()->where('type', 'office')->first();
 
         return Inertia::render('User/Onboarding/AddressForm', [
             'user' => $user,
+            'submitRoute' => $submitRoute,
+            'cancelRoute' => $cancelRoute,
+            'submitLabel' => $submitLabel,
+            'heading' => '会社住所',
+            'description' => '会社の住所を入力してください',
             'address' => $address ? [
                 'postal_code' => $address->postal_code,
                 'prefecture' => $address->prefecture,
@@ -37,9 +63,28 @@ class AddressController extends Controller
     }
 
     /**
-     * Store address information
+     * Store address information (onboarding)
      */
     public function store(Request $request): RedirectResponse
+    {
+        $this->save($request);
+
+        return redirect()->route('user.dashboard')
+            ->with('success', '登録完了！管理者の確認後、契約書をお送りします。');
+    }
+
+    /**
+     * Update address information (Settings)
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $this->save($request);
+
+        return redirect()->route('user.settings.index')
+            ->with('success', '会社住所を更新しました');
+    }
+
+    private function save(Request $request): void
     {
         $user = auth('users')->user();
 
@@ -60,9 +105,9 @@ class AddressController extends Controller
             'postal_code' => $validated['postal_code'],
             'prefecture' => $validated['prefecture'],
             'city' => $validated['city'],
-            'district' => $validated['district'],
+            'district' => $validated['district'] ?? null,
             'address_other' => $validated['address_other'],
-            'phone' => $validated['phone'],
+            'phone' => $validated['phone'] ?? null,
         ]);
 
         if (!$address->exists) {
@@ -71,8 +116,5 @@ class AddressController extends Controller
         }
 
         $address->save();
-
-        return redirect()->route('user.dashboard')
-            ->with('success', '登録完了！管理者の確認後、契約書をお送りします。');
     }
 }

@@ -393,6 +393,7 @@ class QuoteController extends Controller
 
             // A4サイズ、縦向き
             $pdf->setPaper('A4', 'portrait');
+            \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
             // ファイル名を生成
             $filename = sprintf('見積書_%s_%s.pdf', $quote->quote_number, date('Ymd'));
@@ -426,6 +427,7 @@ class QuoteController extends Controller
 
             // A4サイズ、縦向き
             $pdf->setPaper('A4', 'portrait');
+            \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
             // ブラウザでプレビュー表示
             return $pdf->stream(sprintf('見積書_%s.pdf', $quote->quote_number));

@@ -9,11 +9,22 @@ import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import { Badge } from "@/Components/Badges";
-import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { PrimaryButton, SecondaryButton, TextButton } from "@/Components/Buttons";
+import { ConfirmAlert } from "@/Components/Alerts";
 import { XMarkIcon, FunnelIcon } from "@heroicons/react/24/outline";
 
 export default function Index({ quoteResponses, filters, responseTypes }) {
     const [showFilters, setShowFilters] = useState(false);
+    const [declineTarget, setDeclineTarget] = useState(null);
+
+    const handleConfirmDecline = () => {
+        if (!declineTarget) return;
+        router.post(
+            route("admin.quote-response.mark-declined", declineTarget.id),
+            {},
+            { preserveScroll: true, onFinish: () => setDeclineTarget(null) },
+        );
+    };
     const { data, setData, get, processing } = useForm({
         search: filters.search || "",
         status: filters.status || "",
@@ -71,9 +82,14 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
 
     const getStatusBadge = (response) => {
         if (!response.responded_at) {
-            return <Badge variant="yellow">未返信</Badge>;
+            return <Badge variant="warning">未返信</Badge>;
         }
-        return <Badge variant="green">返信済み</Badge>;
+        return <Badge variant="success">返信済み</Badge>;
+    };
+
+    const getElapsedDays = (response) => {
+        const diffMs = Date.now() - new Date(response.created_at).getTime();
+        return Math.floor(diffMs / (1000 * 60 * 60 * 24));
     };
 
     const getResponseTypeBadge = (responseType) => {
@@ -185,6 +201,9 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                         返信日時
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                        経過日数
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         操作
                                     </th>
                                 </tr>
@@ -217,17 +236,37 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                                   ).toLocaleString("ja-JP")
                                                 : "-"}
                                         </td>
+                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                                            {!response.responded_at
+                                                ? `${getElapsedDays(response)}日`
+                                                : "-"}
+                                        </td>
                                         <td className="px-4 py-3">
-                                            <Link
-                                                href={route(
-                                                    "admin.quote-response.show",
-                                                    response.id,
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    href={route(
+                                                        "admin.quote-response.show",
+                                                        response.id,
+                                                    )}
+                                                >
+                                                    <SecondaryButton>
+                                                        詳細
+                                                    </SecondaryButton>
+                                                </Link>
+                                                {!response.responded_at && (
+                                                    <TextButton
+                                                        variant="danger"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            setDeclineTarget(
+                                                                response,
+                                                            )
+                                                        }
+                                                    >
+                                                        NG判定
+                                                    </TextButton>
                                                 )}
-                                            >
-                                                <SecondaryButton>
-                                                    詳細
-                                                </SecondaryButton>
-                                            </Link>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -244,6 +283,18 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
 
                 <Pagination links={quoteResponses.links} />
             </div>
+
+            <ConfirmAlert
+                isOpen={!!declineTarget}
+                onClose={() => setDeclineTarget(null)}
+                onCancel={() => setDeclineTarget(null)}
+                onConfirm={handleConfirmDecline}
+                title="未回答をNGとして処理しますか？"
+                message={`「${declineTarget?.email}」への見積は送信から${declineTarget ? getElapsedDays(declineTarget) : 0}日間返答がありません。見送り(NG)として記録します。この操作はクライアントからの回答ではなく、管理者による手動判定として記録されます。`}
+                confirmText="NGとして処理"
+                cancelText="キャンセル"
+                type="warning"
+            />
         </AdminAuthenticatedLayout>
     );
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\User\Auth\NewPasswordController;
 use App\Http\Controllers\User\Auth\PasswordController;
 use App\Http\Controllers\User\Auth\PasswordResetLinkController;
 use App\Http\Controllers\User\Auth\RegisteredUserController;
+use App\Http\Controllers\User\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\User\Auth\VerifyEmailController;
 
 Route::middleware('guest:users')->group(function () {
@@ -34,6 +35,12 @@ Route::middleware('guest:users')->group(function () {
     Route::controller(NewPasswordController::class)->group(function () {
         Route::get('reset-password/{token}', 'create')->name('user.password.reset');
         Route::post('reset-password', 'store')->name('user.password.store');
+    });
+    // 二段階認証
+    Route::controller(TwoFactorChallengeController::class)->group(function () {
+        Route::get('two-factor-challenge', 'create')->name('user.two-factor.challenge');
+        Route::post('two-factor-challenge', 'store')->name('user.two-factor.store');
+        Route::post('two-factor-challenge/resend', 'resend')->name('user.two-factor.resend');
     });
 });
 

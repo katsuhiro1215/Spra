@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Project;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,14 +31,18 @@ class GanttChartController extends Controller
             ->with([
                 'milestones' => fn($q) => $q->orderBy('sort_order'),
                 'items' => fn($q) => $q->orderBy('sort_order'),
+                'items.assignee.profile',
             ])
             ->first();
+
+        $admins = Admin::select('id', 'email')->with('profile')->get();
 
         return Inertia::render('Admin/Project/GanttChart/Show', [
             'project' => $project,
             'currentVersion' => $currentVersion,
             'milestones' => $currentVersion?->milestones ?? [],
             'items' => $currentVersion?->items ?? [],
+            'admins' => $admins,
         ]);
     }
 }

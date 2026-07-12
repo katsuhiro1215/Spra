@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CompanyRequest;
 use App\Models\Address;
 use App\Models\Company;
+use App\Models\Media;
 use App\Services\CompanyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -83,7 +84,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company): Response
     {
-        $company->load(['addresses', 'users.profile']);
+        $company->load(['addresses', 'users.profile', 'media']);
         // 見積もりを取得
         $quotes = $company->quotes()
             ->with(['user.profile', 'contact'])
@@ -109,6 +110,19 @@ class CompanyController extends Controller
             'totalPaid' => $invoices->where('status', 'paid')->sum('total_amount'),
         ];
 
+        // 画像選択用のメディア一覧を取得
+        $mediaList = Media::where('type', 'image')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($media) => [
+                'id' => $media->id,
+                'title' => $media->title,
+                'file_name' => $media->original_filename,
+                'alt_text' => $media->alt_text,
+                'url' => $media->url,
+                'file_size' => $media->original_file_size,
+            ]);
+
         return Inertia::render('Admin/Company/Show', [
             'company'      => $company,
             'addressTypes' => Address::TYPES,
@@ -117,6 +131,7 @@ class CompanyController extends Controller
             'receipts'     => $receipts,
             'payments'     => $payments,
             'stats'        => $stats,
+            'mediaList'    => $mediaList,
         ]);
     }
 
@@ -238,7 +253,7 @@ class CompanyController extends Controller
             'notes'          => 'nullable|string|max:1000',
         ]);
 
-        $address = $this->service->addAddress($company, $validated);
+        $address = $this->companyService->addAddress($company, $validated);
 
         return response()->json($address, 201);
     }
@@ -263,7 +278,7 @@ class CompanyController extends Controller
             'notes'          => 'nullable|string|max:1000',
         ]);
 
-        $address = $this->service->updateAddress($company, $address, $validated);
+        $address = $this->companyService->updateAddress($company, $address, $validated);
 
         return response()->json($address);
     }
@@ -273,8 +288,55 @@ class CompanyController extends Controller
      */
     public function destroyAddress(Company $company, Address $address)
     {
-        $this->service->deleteAddress($company, $address);
+        $this->companyService->deleteAddress($company, $address);
 
         return response()->json(['message' => '住所を削除しました']);
+    }
+
+    // -------------------------
+    // 会社画像（ロゴ）
+    // -------------------------
+
+    /**
+     * 会社画像を設定
+     */
+    public function attachMedia(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'media_id' => ['required', 'exists:media,id'],
+        ]);
+
+        try {
+            $company->update(['media_id' => $validated['media_id']]);
+
+            return back()->with('success', '会社画像を設定しました。');
+        } catch (\Exception $e) {
+            Log::error('会社画像設定エラー', [
+                'message' => $e->getMessage(),
+                'company_id' => $company->id,
+                'media_id' => $validated['media_id'],
+            ]);
+
+            return back()->with('error', '画像の設定に失敗しました。');
+        }
+    }
+
+    /**
+     * 会社画像を削除
+     */
+    public function detachMedia(Company $company): RedirectResponse
+    {
+        try {
+            $company->update(['media_id' => null]);
+
+            return back()->with('success', '会社画像を削除しました。');
+        } catch (\Exception $e) {
+            Log::error('会社画像削除エラー', [
+                'message' => $e->getMessage(),
+                'company_id' => $company->id,
+            ]);
+
+            return back()->with('error', '画像の削除に失敗しました。');
+        }
     }
 }

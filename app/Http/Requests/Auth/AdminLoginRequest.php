@@ -55,7 +55,9 @@ class AdminLoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::guard('admins')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->only('email', 'password');
+
+        if (! Auth::guard('admins')->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -64,6 +66,23 @@ class AdminLoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        $admin = Auth::guard('admins')->getProvider()->retrieveByCredentials($credentials);
+
+        // 二段階認証が有効な場合は、ログインを確定せずコード入力を待つ
+        if ($admin->two_factor_enabled) {
+            $this->session()->put('2fa_pending', [
+                'guard' => 'admins',
+                'id' => $admin->id,
+                'remember' => $this->boolean('remember'),
+            ]);
+
+            \App\Models\OneTimePassword::generateFor($admin);
+
+            return;
+        }
+
+        Auth::guard('admins')->login($admin, $this->boolean('remember'));
     }
 
     /**

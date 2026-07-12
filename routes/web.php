@@ -15,7 +15,9 @@ use App\Http\Controllers\User\ReceiptController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
+use App\Http\Controllers\User\UserAddressController;
 use App\Http\Controllers\User\QuoteController;
+use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -34,6 +36,20 @@ Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::get('/privacy-policy', fn() => Inertia::render('Public/PrivacyPolicy'))->name('privacy.policy');
+Route::get('/documents/{slug}', function (string $slug) {
+    $document = \App\Models\Document::where('slug', $slug)->firstOrFail();
+    abort_unless($document->activeVersion, 404);
+
+    return Inertia::render('Public/Document', [
+        'document' => [
+            'title' => $document->title,
+            'description' => $document->description,
+            'content' => $document->activeVersion->content,
+            'version' => $document->activeVersion->version,
+            'effective_date' => $document->activeVersion->effective_date,
+        ],
+    ]);
+})->name('documents.show');
 
 // Contact 送信
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -78,9 +94,12 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
     Route::post('/invoice/{invoice}/payment-notification', [InvoiceController::class, 'storePaymentNotification'])->name('invoice.payment-notification.store');
     Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
+    Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoice.pdf');
+    Route::get('/invoice/{invoice}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('invoice.pdf.preview');
 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
+    Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
 
     // 見積書（クライアント向け）
     Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');
@@ -90,14 +109,38 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::post('/quotes/{id}/reject', [QuoteController::class, 'reject'])->name('quote.reject');
 
     // 進捗状況（クライアント向け）
-    Route::get('/progress', function () {
-        return Inertia::render('User/Progress/Index');
-    })->name('progress.index');
+    Route::get('/progress', [UserProjectController::class, 'progress'])->name('progress.index');
+
+    // 通知（クライアント向け）
+    Route::get('/notifications/{id}/read', [\App\Http\Controllers\User\NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\User\NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     // 設定（クライアント向け）
     Route::get('/settings', function () {
         return Inertia::render('User/Settings/Index');
     })->name('settings.index');
+
+    Route::prefix('settings')->name('settings.')->group(function () {
+        // 個人情報（Profile）
+        Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+
+        // 会社情報（Company）
+        Route::get('/company', [CompanyController::class, 'edit'])->name('company.edit');
+        Route::put('/company', [CompanyController::class, 'update'])->name('company.update');
+
+        // 会社住所（Company Address）
+        Route::get('/company-address', [AddressController::class, 'edit'])->name('company-address.edit');
+        Route::put('/company-address', [AddressController::class, 'update'])->name('company-address.update');
+
+        // ご自身の住所（Personal Address）
+        Route::get('/address', [UserAddressController::class, 'edit'])->name('address.edit');
+        Route::put('/address', [UserAddressController::class, 'update'])->name('address.update');
+
+        // セキュリティ（二段階認証）
+        Route::get('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'edit'])->name('security.edit');
+        Route::put('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'update'])->name('security.update');
+    });
 
     Route::get('/reservation-settings', function () {
         return Inertia::render('User/ReservationSettings');
@@ -105,6 +148,16 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::post('/reservation-settings', function () {
         return redirect()->back()->with('success', '予約設定を保存しました。');
     })->name('reservation.settings.store');
+
+    // 予約（Adminとの面談予約）
+    Route::prefix('appointments')->name('appointments.')->group(function () {
+        Route::get('/', [UserAppointmentController::class, 'index'])->name('index');
+        Route::get('/create', [UserAppointmentController::class, 'create'])->name('create');
+        Route::post('/', [UserAppointmentController::class, 'store'])->name('store');
+        Route::get('/{appointment}/edit', [UserAppointmentController::class, 'edit'])->name('edit');
+        Route::put('/{appointment}', [UserAppointmentController::class, 'update'])->name('update');
+        Route::post('/{appointment}/cancel', [UserAppointmentController::class, 'cancel'])->name('cancel');
+    });
 });
 
 // Public routes

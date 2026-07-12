@@ -90,9 +90,18 @@ class ContractGroupController extends Controller
 
     $stats = $this->service->getGroupStats($group);
 
+    // 同じユーザーの、まだどのグループにも属していない下書き契約（追加候補）
+    $availableContracts = Contract::where('user_id', $group->user_id)
+      ->where('status', 'draft')
+      ->whereNull('contract_group_id')
+      ->with('currentVersion')
+      ->orderBy('created_at', 'desc')
+      ->get();
+
     return Inertia::render('Admin/ContractGroups/Show', [
       'group' => $group,
       'stats' => $stats,
+      'availableContracts' => $availableContracts,
     ]);
   }
 

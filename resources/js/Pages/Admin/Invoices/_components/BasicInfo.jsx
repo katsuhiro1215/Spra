@@ -26,10 +26,10 @@ export default function BasicInfo({ invoice }) {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                            件名
+                            請求区分
                         </label>
                         <p className="mt-2 text-base text-gray-900 dark:text-white">
-                            {invoice.title || "-"}
+                            {invoice.invoice_type_name || "-"}
                         </p>
                     </div>
                     <div>
@@ -38,7 +38,7 @@ export default function BasicInfo({ invoice }) {
                         </label>
                         <p className="mt-2 text-base text-gray-900 dark:text-white">
                             {formatDate(
-                                invoice.issued_at || invoice.created_at,
+                                invoice.issue_date || invoice.created_at,
                             )}
                         </p>
                     </div>

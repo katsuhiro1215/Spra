@@ -37,7 +37,7 @@ class MediaController extends Controller
             'direction' => $request->query('sort_direction', 'desc'),
         ];
 
-        $mediaList = $this->mediaService->getPaginated(
+        $mediaList = $this->mediaService->getPaginatedMedia(
             $filters,
             $sort,
             20

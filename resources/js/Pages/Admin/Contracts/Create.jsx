@@ -52,7 +52,7 @@ export default function Create({
         }
     };
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         title: "",
         status: "draft",
         type: "one_time",
@@ -68,6 +68,9 @@ export default function Create({
         start_date: new Date().toISOString().split("T")[0],
         end_date: "",
         auto_renewal: false,
+        billing_day: 10,
+        payment_due_days: 15,
+        auto_invoice_generation: true,
         terms_and_conditions: "",
         special_provisions: "",
         notes: "",
@@ -167,17 +170,11 @@ export default function Create({
     };
 
     const handleDraftSave = () => {
-        // ドラフト保存時は status を 'draft' に設定してから submit
-        console.log("handleDraftSave called, current data:", data);
-        setData("status", "draft");
-        // React の batch state update で setData と post() が一緒に処理される
-        // ただし、useForm の setData は非同期的に動作するため、
-        // 即座に post() を呼び出すと古い data が送信される可能性がある
-        // そのため、onBefore callback で data を再度確認する
-        setTimeout(() => {
-            console.log("After setData, current data:", data);
-            submit();
-        }, 0);
+        // setData の直後に post すると React の state 更新が非同期のため
+        // 古い data が送信されてしまう。transform で送信直前に status を
+        // 上書きすることで確実に 'draft' として送信する。
+        transform((currentData) => ({ ...currentData, status: "draft" }));
+        submit();
     };
 
     // ========================================

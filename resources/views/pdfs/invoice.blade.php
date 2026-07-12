@@ -254,8 +254,39 @@
                     <td>請求状態</td>
                     <td>{{ $status_label ?? $invoice->status }}</td>
                 </tr>
+                @if ($invoice->invoice_type)
+                    <tr>
+                        <td>請求区分</td>
+                        <td>{{ $invoice->invoice_type_name }}</td>
+                    </tr>
+                @endif
             </table>
         </div>
+
+        <!-- 明細 -->
+        @if ($invoice->items && $invoice->items->count() > 0)
+            <h3 style="margin: 30px 0 15px 0; color: #2563eb;">明細</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <td style="padding:5px; border:1px solid #ddd; background-color:#f0f0f0; font-weight:bold;">項目</td>
+                        <td style="padding:5px; border:1px solid #ddd; background-color:#f0f0f0; font-weight:bold; width:15%; text-align:right;">数量</td>
+                        <td style="padding:5px; border:1px solid #ddd; background-color:#f0f0f0; font-weight:bold; width:20%; text-align:right;">単価</td>
+                        <td style="padding:5px; border:1px solid #ddd; background-color:#f0f0f0; font-weight:bold; width:20%; text-align:right;">金額</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($invoice->items as $item)
+                        <tr>
+                            <td style="padding:5px; border:1px solid #ddd;">{{ $item->description }}</td>
+                            <td style="padding:5px; border:1px solid #ddd; text-align:right;">{{ number_format((float) $item->quantity, 2) }}</td>
+                            <td style="padding:5px; border:1px solid #ddd; text-align:right;">¥{{ number_format($item->unit_price) }}</td>
+                            <td style="padding:5px; border:1px solid #ddd; text-align:right;">¥{{ number_format($item->amount) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
 
         <!-- 請求内容 -->
         <h3 style="margin: 30px 0 15px 0; color: #2563eb;">ご請求内容</h3>
@@ -279,7 +310,7 @@
                     <td>¥{{ number_format($invoice->subtotal) }}</td>
                 </tr>
                 <tr>
-                    <td>消費税（{{ number_format($invoice->tax_rate * 100, 1) }}%）</td>
+                    <td>消費税（{{ number_format((float) $invoice->tax_rate, 1) }}%）</td>
                     <td>¥{{ number_format($invoice->tax_amount) }}</td>
                 </tr>
                 <tr class="total-row">
@@ -290,7 +321,7 @@
         </div>
 
         <!-- 支払い情報 -->
-        @if ($invoice->contract && $invoice->contract->current_version)
+        @if ($invoice->contract && $invoice->contract->currentVersion)
             <div class="payment-info">
                 <h3>契約情報</h3>
                 <table>
@@ -303,9 +334,15 @@
                         <td>{{ $invoice->contract->title }}</td>
                     </tr>
                     <tr>
-                        <td>契約金額</td>
-                        <td>¥{{ number_format($invoice->contract->current_version->total_amount) }}</td>
+                        <td>契約金額（総額）</td>
+                        <td>¥{{ number_format($invoice->contract->currentVersion->total_amount) }}</td>
                     </tr>
+                    @if ($invoice->invoice_type && $invoice->invoice_type !== 'full')
+                        <tr>
+                            <td>今回のご請求</td>
+                            <td>{{ $invoice->invoice_type_name }} ¥{{ number_format($invoice->total_amount) }}</td>
+                        </tr>
+                    @endif
                 </table>
             </div>
         @endif

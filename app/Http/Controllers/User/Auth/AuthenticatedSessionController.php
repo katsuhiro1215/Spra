@@ -33,6 +33,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if ($request->session()->has('2fa_pending')) {
+            return redirect()->route('user.two-factor.challenge');
+        }
+
         return redirect_to_user_home();
     }
 

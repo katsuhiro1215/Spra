@@ -1,13 +1,15 @@
 import { useState, useMemo } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader } from "@/Components/Card";
+import { FlashMessage } from "@/Components/Notifications";
 import DailyCalendar from "./_components/DailyCalendar";
 import WeeklyCalendar from "./_components/WeeklyCalendar";
 import MonthlyCalendar from "./_components/MonthlyCalendar";
 import YearlyCalendar from "./_components/YearlyCalendar";
+import AppointmentSlotQuickCreateModal from "@/Components/Schedules/AppointmentSlotQuickCreateModal";
 // Icons
 import {
     PlusIcon,
@@ -26,14 +28,87 @@ export default function ScheduleIndex({
     auth,
     calendar,
     holidays,
+    appointments = {},
+    appointmentSlots = {},
+    admins = [],
     currentYear,
     currentMonth,
     viewMode: initialViewMode = "month",
+    selectedDate: initialSelectedDate,
 }) {
     const [viewMode, setViewMode] = useState(initialViewMode); // 'year', 'month', 'week', 'day'
     const [selectedDate, setSelectedDate] = useState(
-        new Date(currentYear, currentMonth - 1, 1),
+        initialSelectedDate
+            ? new Date(`${initialSelectedDate}T00:00:00`)
+            : new Date(currentYear, currentMonth - 1, 1),
     );
+
+    // カレンダーからの予約枠クイック作成
+    const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+    const {
+        data: slotData,
+        setData: setSlotData,
+        post: postSlot,
+        processing: slotProcessing,
+        errors: slotErrors,
+        reset: resetSlotForm,
+        clearErrors: clearSlotErrors,
+    } = useForm({
+        date: "",
+        start_time: "",
+        end_time: "",
+        slot_type: "meeting",
+        max_capacity: 1,
+        assigned_admin_id: "",
+        status: "available",
+        notes: "",
+    });
+
+    const openQuickCreate = (date, startTime, endTime) => {
+        clearSlotErrors();
+        setSlotData({
+            date,
+            start_time: startTime,
+            end_time: endTime,
+            slot_type: "meeting",
+            max_capacity: 1,
+            assigned_admin_id: "",
+            status: "available",
+            notes: "",
+        });
+        setQuickCreateOpen(true);
+    };
+
+    const closeQuickCreate = () => {
+        setQuickCreateOpen(false);
+        resetSlotForm();
+    };
+
+    const submitQuickCreate = (e) => {
+        e.preventDefault();
+        postSlot(route("admin.appointment-slots.quick-store"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setQuickCreateOpen(false);
+                resetSlotForm();
+            },
+        });
+    };
+
+    // 表示中のビュー・日付をURLへ反映（再読み込み後も同じ画面に戻れるようにする）
+    // 週・日ビューで月をまたいだ場合もカレンダーデータの月がズレないよう、年月はdateから導出する
+    const syncViewState = (mode, date) => {
+        router.get(
+            route("admin.schedules.index"),
+            {
+                year: date.getFullYear(),
+                month: date.getMonth() + 1,
+                view: mode,
+                date: date.toISOString().split("T")[0],
+            },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
+    };
 
     // カレンダーデータを配列に変換
     const calendarArray = useMemo(() => {
@@ -65,6 +140,7 @@ export default function ScheduleIndex({
         const newDate = new Date(selectedDate);
         newDate.setDate(selectedDate.getDate() + offset * 7);
         setSelectedDate(newDate);
+        syncViewState(viewMode, newDate);
     };
 
     // 日を変更
@@ -72,11 +148,13 @@ export default function ScheduleIndex({
         const newDate = new Date(selectedDate);
         newDate.setDate(selectedDate.getDate() + offset);
         setSelectedDate(newDate);
+        syncViewState(viewMode, newDate);
     };
 
     // ビューモードを変更
     const handleViewModeChange = (mode) => {
         setViewMode(mode);
+        syncViewState(mode, selectedDate);
     };
 
     // ナビゲーション情報を取得
@@ -153,6 +231,7 @@ export default function ScheduleIndex({
             }
         >
             <Head title="スケジュールカレンダー" />
+            <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
                 <div className="flex gap-6">
@@ -239,6 +318,18 @@ export default function ScheduleIndex({
                                                     祝日・休業日
                                                 </span>
                                             </div>
+                                            <div className="flex items-center">
+                                                <div className="w-4 h-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mr-2 rounded"></div>
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    例外日（理由つき）
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <div className="w-4 h-4 bg-amber-400 mr-2 rounded-full"></div>
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    今日
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     {/* ビューモード切り替えボタン */}
@@ -302,6 +393,7 @@ export default function ScheduleIndex({
                                     <YearlyCalendar
                                         year={currentYear}
                                         calendar={calendar}
+                                        appointments={appointments}
                                     />
                                 )}
                                 {viewMode === "month" && (
@@ -309,18 +401,23 @@ export default function ScheduleIndex({
                                         year={currentYear}
                                         month={currentMonth}
                                         calendar={calendar}
+                                        appointments={appointments}
                                     />
                                 )}
                                 {viewMode === "week" && (
                                     <WeeklyCalendar
                                         selectedDate={selectedDate}
                                         calendar={calendar}
+                                        appointments={appointments}
                                     />
                                 )}
                                 {viewMode === "day" && (
                                     <DailyCalendar
                                         selectedDate={selectedDate}
                                         calendar={calendar}
+                                        appointments={appointments}
+                                        appointmentSlots={appointmentSlots}
+                                        onCellClick={openQuickCreate}
                                     />
                                 )}
                             </div>
@@ -328,6 +425,17 @@ export default function ScheduleIndex({
                     </div>
                 </div>
             </div>
+
+            <AppointmentSlotQuickCreateModal
+                show={quickCreateOpen}
+                data={slotData}
+                setData={setSlotData}
+                errors={slotErrors}
+                processing={slotProcessing}
+                onSubmit={submitQuickCreate}
+                onClose={closeQuickCreate}
+                admins={admins}
+            />
         </AdminAuthenticatedLayout>
     );
 }

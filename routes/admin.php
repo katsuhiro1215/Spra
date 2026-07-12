@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\User\UserAddressController;
 use App\Http\Controllers\Admin\Company\CompanyController;
 use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\AnalyticsController;
 
 use App\Http\Controllers\Admin\Service\ServiceCategoryController;
 use App\Http\Controllers\Admin\Service\ServiceController;
@@ -22,13 +23,13 @@ use App\Http\Controllers\Admin\Service\ServiceItemController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
 use App\Http\Controllers\Admin\Contact\ContactCategoryController;
+use App\Http\Controllers\Admin\Contact\ContactApiClientController;
 use App\Http\Controllers\Admin\Contact\ResponseController;
 use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
 
 use App\Http\Controllers\Admin\UserInvitationController;
 use App\Http\Controllers\Admin\OnboardingController;
 
-use App\Models\Project;
 use App\Http\Controllers\Admin\Project\ProjectTemplateController;
 use App\Http\Controllers\Admin\Project\ProjectTemplateMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectController;
@@ -53,16 +54,21 @@ use App\Http\Controllers\Admin\Invoice\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReceiptController;
 
-use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\Document\DocumentController;
+use App\Http\Controllers\Admin\Document\DocumentCategoryController;
+use App\Http\Controllers\Admin\Document\UserAcceptanceController;
 
-use App\Http\Controllers\Admin\Term\TermController;
-use App\Http\Controllers\Admin\Term\TermVersionController;
-use App\Http\Controllers\Admin\Term\TermItemController;
-
-use App\Http\Controllers\Admin\Homepage\PageController;
-use App\Http\Controllers\Admin\Homepage\BlogCategoryController;
-use App\Http\Controllers\Admin\Homepage\BlogController;
-use App\Http\Controllers\Admin\Homepage\SiteSettingController;
+use App\Http\Controllers\Admin\Website\DashboardController;
+use App\Http\Controllers\Admin\Website\PageTypeController;
+use App\Http\Controllers\Admin\Website\PageController;
+use App\Http\Controllers\Admin\Website\SectionController;
+use App\Http\Controllers\Admin\Website\PostCategoryController;
+use App\Http\Controllers\Admin\Website\PostController;
+use App\Http\Controllers\Admin\Website\MenuController;
+use App\Http\Controllers\Admin\Website\MenuItemController;
+use App\Http\Controllers\Admin\Website\FaqCategoryController;
+use App\Http\Controllers\Admin\Website\FaqController;
+use App\Http\Controllers\Admin\Website\SiteSettingController;
 
 use App\Http\Controllers\Admin\Schedule\HolidayController;
 use App\Http\Controllers\Admin\Schedule\ScheduleDefaultController;
@@ -72,35 +78,23 @@ use App\Http\Controllers\Admin\AppointmentSlotController;
 use App\Http\Controllers\Admin\AppointmentController;
 
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SystemSettingController;
 
 use Inertia\Inertia;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
     // 管理者ダッシュボード
-    Route::get('/dashboard', function () {
-        $pendingResponses = \App\Models\QuoteResponse::whereNull('responded_at')->count();
-        $respondedResponses = \App\Models\QuoteResponse::whereNotNull('responded_at')->count();
-        // $unreadContacts = \App\Models\Contact::whereNull('read_at')->count();
-
-        return Inertia::render('AdminDashboard', [
-            'laravelVersion' => Application::VERSION,
-            'phpVersion' => PHP_VERSION,
-            'stats' => [
-                'pendingResponses' => $pendingResponses,
-                'respondedResponses' => $respondedResponses,
-            ],
-            'notifications' => [
-                // 'unreadContacts' => $unreadContacts,
-                'pendingResponses' => $pendingResponses,
-            ],
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // 自身のプロフィール
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // セキュリティ（二段階認証）
+    Route::get('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'edit'])->name('security.edit');
+    Route::put('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'update'])->name('security.update');
 
     /**************************************
      * 管理者
@@ -155,6 +149,8 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::resource('company', CompanyController::class);
     Route::post('/company/bulk-destroy', [CompanyController::class, 'bulkDestroy'])->name('company.bulk-destroy');
     Route::patch('/company/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('company.toggle-status');
+    Route::post('/company/{company}/attach-media', [CompanyController::class, 'attachMedia'])->name('company.attach-media');
+    Route::delete('/company/{company}/detach-media', [CompanyController::class, 'detachMedia'])->name('company.detach-media');
     // 会社住所管理
     Route::controller(CompanyAddressController::class)->prefix('company/{company}/address')->name('company.address.')->group(function () {
         Route::get('/create', 'create')->name('create');
@@ -163,6 +159,11 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::put('/{address}', 'update')->name('update');
         Route::delete('/{address}', 'destroy')->name('destroy');
     });
+
+    /**************************************
+     * 分析
+     **************************************/
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
 
     /**************************************
      * メディア
@@ -198,9 +199,12 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     /**************************************
      * お問い合わせ
      **************************************/
-    // お問い合わせカテゴリ管理
+    // お問い合わせカテゴリ管理 / 外部API連携クライアント管理
     Route::prefix('contact')->name('contact.')->group(function () {
         Route::resource('category', ContactCategoryController::class)->except(['show']);
+        Route::resource('api-client', ContactApiClientController::class)->except(['show']);
+        Route::patch('api-client/{apiClient}/toggle-active', [ContactApiClientController::class, 'toggleActive'])->name('api-client.toggle-active');
+        Route::post('api-client/{apiClient}/regenerate', [ContactApiClientController::class, 'regenerate'])->name('api-client.regenerate');
     });
     // お問い合わせ管理
     Route::resource('contact', ContactController::class)->only(['index', 'show', 'update', 'destroy']);
@@ -345,6 +349,7 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/', [QuoteResponseController::class, 'index'])->name('index');
         Route::get('/{quoteResponse}', [QuoteResponseController::class, 'show'])->name('show');
         Route::post('/{quoteResponse}/send-invitation', [QuoteResponseController::class, 'sendInvitation'])->name('send-invitation');
+        Route::post('/{quoteResponse}/mark-declined', [QuoteResponseController::class, 'markDeclined'])->name('mark-declined');
     });
 
     // オンボーディング管理
@@ -387,11 +392,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::delete('/faqs/bulk-destroy', [FaqController::class, 'bulkDestroy'])->name('faq.bulk-destroy');
     Route::patch('/faqs/bulk-status', [FaqController::class, 'bulkUpdateStatus'])->name('faq.bulk-status');
 
-    // Terms (規約) 管理
-    Route::resource('terms', TermController::class);
-    Route::post('/terms/{term}/activate', [TermController::class, 'activate'])->name('terms.activate');
-    Route::post('/terms/{term}/revert-to-draft', [TermController::class, 'revertToDraft'])->name('terms.revertToDraft');
-    Route::post('/terms/{term}/create-version', [TermController::class, 'createVersion'])->name('terms.createVersion');
+    // Documents (規約・ヘルプ・APIドキュメント等) 管理
+    Route::resource('documents', DocumentController::class)->except(['show']);
+    Route::post('/documents/{document}/versions', [DocumentController::class, 'createVersion'])->name('documents.versions.store');
+    Route::put('/documents/{document}/versions/{version}', [DocumentController::class, 'updateVersion'])->name('documents.versions.update');
+    Route::post('/documents/{document}/versions/{version}/activate', [DocumentController::class, 'activateVersion'])->name('documents.versions.activate');
+    Route::post('/documents/{document}/versions/{version}/revert-to-draft', [DocumentController::class, 'revertVersionToDraft'])->name('documents.versions.revertToDraft');
+
+    Route::post('/document-categories', [DocumentCategoryController::class, 'store'])->name('documentCategories.store');
+    Route::put('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'update'])->name('documentCategories.update');
+    Route::delete('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'destroy'])->name('documentCategories.destroy');
+
+    Route::get('/document-acceptances', [UserAcceptanceController::class, 'index'])->name('documentAcceptances.index');
 
     // スケジュール管理
     Route::prefix('schedules')->name('schedules.')->group(function () {
@@ -412,6 +424,11 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     });
 
     // 予約枠管理
+    Route::prefix('appointment-slots')->name('appointment-slots.')->group(function () {
+        Route::get('/bulk-create', [AppointmentSlotController::class, 'bulkCreate'])->name('bulk-create');
+        Route::post('/bulk-store', [AppointmentSlotController::class, 'bulkStore'])->name('bulk-store');
+        Route::post('/quick-store', [AppointmentSlotController::class, 'quickStore'])->name('quick-store');
+    });
     Route::resource('appointment-slots', AppointmentSlotController::class);
 
     // 予約管理
@@ -421,26 +438,75 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
 
     // ホームページ管理
-    Route::prefix('homepage')->name('homepage.')->group(function () {
-        Route::resource('pages', PageController::class);
-
-        // TODO: サービス管理との競合を避けるため一旦コメントアウト
-        // 後で 'homepage-services' など別名に変更する必要あり
-        // Route::resource('services', ServicesController::class);
-
-        Route::resource('blogCategories', BlogCategoryController::class);
-        Route::post('/blogCategories/bulk-action', [BlogCategoryController::class, 'bulkAction'])->name('blogCategories.bulk-action');
-        Route::post('/blogCategories/update-order', [BlogCategoryController::class, 'updateOrder'])->name('blogCategories.update-order');
-        Route::resource('blogs', BlogController::class);
-        Route::post('/blogs/bulk-action', [BlogController::class, 'bulkAction'])->name('blogs.bulk-action');
-        Route::patch('/blogs/{blog}/status', [BlogController::class, 'changeStatus'])->name('blogs.change-status');
-        Route::post('/blogs/upload-editor-image', [BlogController::class, 'uploadEditorImage'])->name('blogs.upload-editor-image');
-
-        Route::resource('site-settings', SiteSettingController::class);
+    Route::prefix('website')->name('website.')->group(function () {
+        // ダッシュボード
+        Route::controller(DashboardController::class)->group(function () {
+            Route::get('/', 'index')->name('dashboard');
+        });
+        // ページ管理
+        Route::prefix('page')->name('page.')->group(function () {
+            Route::resource('type', PageTypeController::class)->names('type');
+            Route::resource('', PageController::class)->parameters(['' => 'page']);
+            Route::post('/{page}/restore', [PageController::class, 'restore'])->name('restore')->withTrashed();
+        });
+        // セクション管理
+        Route::resource('section', SectionController::class);
+        // ポスト管理
+        Route::prefix('post')->name('post.')->group(function () {
+            // カテゴリ関連ルートは post/{post} などの動的ルートに
+            // 食われないよう、Postリソースルートより先に登録する
+            Route::resource('category', PostCategoryController::class);
+            Route::controller(PostCategoryController::class)->name('category.')->group(function () {
+                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::post('/category/update-order', 'updateOrder')->name('update-order');
+            });
+            Route::resource('', PostController::class)->parameters(['' => 'post']);
+            Route::controller(PostController::class)->group(function () {
+                Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::patch('/{post}/status', 'changeStatus')->name('change-status');
+                Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
+            });
+        });
+        // FAQ管理
+        Route::prefix('faq')->name('faq.')->group(function () {
+            Route::resource('', FaqController::class)->parameters(['' => 'faq']);
+            Route::controller(FaqController::class)->group(function () {
+                Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::patch('/{faq}/status', 'changeStatus')->name('change-status');
+                Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
+            });
+            Route::resource('category', FaqCategoryController::class);
+            Route::controller(FaqCategoryController::class)->name('category.')->group(function () {
+                Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+                Route::post('/category/update-order', 'updateOrder')->name('update-order');
+            });
+        });
+        // メニュー管理
+        Route::resource('menu', MenuController::class);
+        Route::prefix('menu')->name('menu.')->group(function () {
+            Route::resource('{menu}/item', MenuItemController::class)->parameters(['item' => 'menuItem']);
+        });
+        // サイト設定管理
+        Route::prefix('siteSetting')->name('siteSetting.')->group(function () {
+            // グループ別設定画面（表示・保存を同一ルートで受ける）
+            Route::controller(SiteSettingController::class)->group(function () {
+                Route::match(['get', 'post'], '/general', 'general')->name('general');
+                Route::match(['get', 'post'], '/navigation', 'navigation')->name('navigation');
+                Route::match(['get', 'post'], '/footer', 'footer')->name('footer');
+                Route::match(['get', 'post'], '/seo', 'seo')->name('seo');
+                Route::match(['get', 'post'], '/ogp', 'ogp')->name('ogp');
+            });
+            // 個別設定項目の汎用CRUD（プリセットにない項目向け）
+            Route::resource('', SiteSettingController::class)->parameters(['' => 'siteSetting']);
+        });
     });
 
     // ログ管理
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
+    // 通知
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     // コンテンツ管理（一時的にダミー）
     Route::get('/content', function () {

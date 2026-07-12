@@ -5,12 +5,14 @@ const ROW_HEIGHT = 36;
 
 export default function GanttCanvas({
     tasks = [],
+    milestones = [],
     viewMode = "month",
     startDate,
     endDate,
     onTaskBarClick,
     onTaskUpdate,
     onTaskProgressUpdate,
+    readOnly = false,
 }) {
     const [dragState, setDragState] = useState({
         isDragging: false,
@@ -62,6 +64,25 @@ export default function GanttCanvas({
         return (daysFromStart / totalDays) * 100;
     }, [startDate, totalDays]);
 
+    // マイルストーンの位置を計算
+    const milestonePositions = useMemo(() => {
+        const start = new Date(startDate);
+        return (milestones || [])
+            .filter((m) => m.due_date)
+            .map((m) => {
+                const dueDate = new Date(m.due_date);
+                const daysFromStart = Math.ceil(
+                    (dueDate - start) / (1000 * 60 * 60 * 24),
+                );
+                return {
+                    id: m.id,
+                    title: m.title,
+                    position: (daysFromStart / totalDays) * 100,
+                };
+            })
+            .filter((m) => m.position >= 0 && m.position <= 100);
+    }, [milestones, startDate, totalDays]);
+
     // 週末の日付を計算
     const weekendColumns = useMemo(() => {
         const weekends = [];
@@ -111,13 +132,13 @@ export default function GanttCanvas({
     const getTaskColor = (task) => {
         switch (task.status) {
             case "completed":
-                return "bg-green-500";
+                return "bg-green-500 dark:bg-green-600";
             case "in_progress":
-                return "bg-blue-500";
+                return "bg-blue-500 dark:bg-blue-600";
             case "not_started":
-                return "bg-gray-400";
+                return "bg-gray-400 dark:bg-slate-600";
             default:
-                return "bg-gray-400";
+                return "bg-gray-400 dark:bg-slate-600";
         }
     };
 
@@ -273,7 +294,7 @@ export default function GanttCanvas({
                 <div key={task.id}>
                     {/* タスクバー行 */}
                     <div
-                        className="relative border-b border-gray-200 hover:bg-gray-50"
+                        className="relative border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
                         style={{ height: `${ROW_HEIGHT}px` }}
                     >
                         {/* タスクバー */}
@@ -284,11 +305,14 @@ export default function GanttCanvas({
                                 width: `${width}%`,
                                 minWidth: "30px",
                                 height: "24px",
-                                cursor: dragState.isDragging
-                                    ? "grabbing"
-                                    : "grab",
+                                cursor: readOnly
+                                    ? "pointer"
+                                    : dragState.isDragging
+                                      ? "grabbing"
+                                      : "grab",
                             }}
                             onMouseDown={(e) =>
+                                !readOnly &&
                                 handleTaskBarMouseDown(e, task, "move")
                             }
                             onClick={() =>
@@ -297,30 +321,34 @@ export default function GanttCanvas({
                             onContextMenu={(e) => handleContextMenu(e, task)}
                         >
                             {/* 左端リサイズハンドル */}
-                            <div
-                                className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white hover:bg-opacity-30"
-                                onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                    handleTaskBarMouseDown(
-                                        e,
-                                        task,
-                                        "resize-left",
-                                    );
-                                }}
-                            />
+                            {!readOnly && (
+                                <div
+                                    className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white hover:bg-opacity-30"
+                                    onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        handleTaskBarMouseDown(
+                                            e,
+                                            task,
+                                            "resize-left",
+                                        );
+                                    }}
+                                />
+                            )}
 
                             {/* 右端リサイズハンドル */}
-                            <div
-                                className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white hover:bg-opacity-30"
-                                onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                    handleTaskBarMouseDown(
-                                        e,
-                                        task,
-                                        "resize-right",
-                                    );
-                                }}
-                            />
+                            {!readOnly && (
+                                <div
+                                    className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white hover:bg-opacity-30"
+                                    onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        handleTaskBarMouseDown(
+                                            e,
+                                            task,
+                                            "resize-right",
+                                        );
+                                    }}
+                                />
+                            )}
                             {/* 進捗バー */}
                             {task.progress !== undefined &&
                                 task.progress > 0 && (
@@ -384,7 +412,7 @@ export default function GanttCanvas({
     return (
         <div
             ref={canvasRef}
-            className="relative bg-white overflow-x-auto overflow-y-auto"
+            className="relative bg-white dark:bg-slate-900 overflow-x-auto overflow-y-auto"
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
@@ -395,7 +423,7 @@ export default function GanttCanvas({
                 {gridColumns.map((col) => (
                     <div
                         key={col}
-                        className="border-r border-gray-200"
+                        className="border-r border-gray-200 dark:border-slate-700"
                         style={{ width: `${cellWidth}px` }}
                     />
                 ))}
@@ -406,7 +434,7 @@ export default function GanttCanvas({
                 {weekendColumns.map((position, idx) => (
                     <div
                         key={`weekend-${idx}`}
-                        className="absolute top-0 bottom-0 bg-gray-100 opacity-50"
+                        className="absolute top-0 bottom-0 bg-gray-100 dark:bg-slate-800 opacity-50"
                         style={{
                             left: `${position}%`,
                             width: `${(1 / totalDays) * 100}%`,
@@ -415,9 +443,25 @@ export default function GanttCanvas({
                 ))}
             </div>
 
+            {/* マイルストーンライン */}
+            {milestonePositions.map((milestone) => (
+                <div
+                    key={milestone.id}
+                    className="absolute top-0 bottom-0 w-0 border-l-2 border-dashed border-purple-400 z-10 pointer-events-none"
+                    style={{ left: `${milestone.position}%` }}
+                >
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-1">
+                        <div className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded whitespace-nowrap">
+                            🚩 {milestone.title}
+                        </div>
+                    </div>
+                </div>
+            ))}
+
             {/* 今日の日付ライン */}
             {todayPosition >= 0 && todayPosition <= 100 && (
                 <div
+                    id="gantt-today-marker"
                     className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20 pointer-events-none"
                     style={{ left: `${todayPosition}%` }}
                 >
@@ -434,7 +478,7 @@ export default function GanttCanvas({
                 {tasks.length > 0 ? (
                     renderTaskBars(tasks)
                 ) : (
-                    <div className="p-8 text-center text-gray-500 text-sm">
+                    <div className="p-8 text-center text-gray-500 dark:text-slate-400 text-sm">
                         タスクがありません
                     </div>
                 )}
@@ -443,40 +487,45 @@ export default function GanttCanvas({
             {/* コンテキストメニュー */}
             {contextMenu.show && contextMenu.task && (
                 <div
-                    className="fixed bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                    className="fixed bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50"
                     style={{
                         left: `${contextMenu.x}px`,
                         top: `${contextMenu.y}px`,
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <button
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
-                        onClick={() => {
-                            if (onTaskProgressUpdate) {
-                                const newProgress = prompt(
-                                    `${contextMenu.task.name}の進捗率を入力してください (0-100):`,
-                                    contextMenu.task.progress || 0,
-                                );
-                                if (newProgress !== null) {
-                                    const progress = Math.min(
-                                        100,
-                                        Math.max(0, parseInt(newProgress) || 0),
+                    {!readOnly && (
+                        <button
+                            className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center space-x-2"
+                            onClick={() => {
+                                if (onTaskProgressUpdate) {
+                                    const newProgress = prompt(
+                                        `${contextMenu.task.name}の進捗率を入力してください (0-100):`,
+                                        contextMenu.task.progress || 0,
                                     );
-                                    onTaskProgressUpdate(
-                                        contextMenu.task.id,
-                                        progress,
-                                    );
+                                    if (newProgress !== null) {
+                                        const progress = Math.min(
+                                            100,
+                                            Math.max(
+                                                0,
+                                                parseInt(newProgress) || 0,
+                                            ),
+                                        );
+                                        onTaskProgressUpdate(
+                                            contextMenu.task.id,
+                                            progress,
+                                        );
+                                    }
                                 }
-                            }
-                            closeContextMenu();
-                        }}
-                    >
-                        <span>📊</span>
-                        <span>進捗率を変更</span>
-                    </button>
+                                closeContextMenu();
+                            }}
+                        >
+                            <span>📊</span>
+                            <span>進捗率を変更</span>
+                        </button>
+                    )}
                     <button
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center space-x-2"
                         onClick={() => {
                             onTaskBarClick && onTaskBarClick(contextMenu.task);
                             closeContextMenu();
@@ -485,23 +534,30 @@ export default function GanttCanvas({
                         <span>✏️</span>
                         <span>詳細を表示</span>
                     </button>
-                    <div className="border-t border-gray-200 my-1"></div>
-                    <button
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                        onClick={() => {
-                            if (
-                                confirm(
-                                    `「${contextMenu.task.name}」を削除してもよろしいですか？`,
-                                )
-                            ) {
-                                console.log("Delete task:", contextMenu.task);
-                            }
-                            closeContextMenu();
-                        }}
-                    >
-                        <span>🗑️</span>
-                        <span>削除</span>
-                    </button>
+                    {!readOnly && (
+                        <>
+                            <div className="border-t border-gray-200 dark:border-slate-700 my-1"></div>
+                            <button
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center space-x-2"
+                                onClick={() => {
+                                    if (
+                                        confirm(
+                                            `「${contextMenu.task.name}」を削除してもよろしいですか？`,
+                                        )
+                                    ) {
+                                        console.log(
+                                            "Delete task:",
+                                            contextMenu.task,
+                                        );
+                                    }
+                                    closeContextMenu();
+                                }}
+                            >
+                                <span>🗑️</span>
+                                <span>削除</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
         </div>

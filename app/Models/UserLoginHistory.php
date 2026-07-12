@@ -73,12 +73,12 @@ class UserLoginHistory extends Model
 
     public function scopeSuccessful($query)
     {
-        return $query->where('is_successful', true);
+        return $query->where('is_success', true);
     }
 
     public function scopeFailed($query)
     {
-        return $query->where('is_successful', false);
+        return $query->where('is_success', false);
     }
 
     public function scopeByDateRange($query, $startDate, $endDate)
@@ -130,7 +130,7 @@ class UserLoginHistory extends Model
 
     public function getStatusColorAttribute(): string
     {
-        if (!$this->is_successful) {
+        if (!$this->is_success) {
             return 'red';
         }
 
@@ -141,33 +141,6 @@ class UserLoginHistory extends Model
             self::TYPE_SESSION_EXPIRED => 'yellow',
             default => 'gray'
         };
-    }
-
-    public function getLocationAttribute(): ?string
-    {
-        if ($this->city && $this->country) {
-            return "{$this->city}, {$this->country}";
-        }
-
-        return $this->country;
-    }
-
-    public function getBrowserInfoAttribute(): ?string
-    {
-        if ($this->browser && $this->browser_version) {
-            return "{$this->browser} {$this->browser_version}";
-        }
-
-        return $this->browser;
-    }
-
-    public function getPlatformInfoAttribute(): ?string
-    {
-        if ($this->platform && $this->platform_version) {
-            return "{$this->platform} {$this->platform_version}";
-        }
-
-        return $this->platform;
     }
 
     public function getFormattedDurationAttribute(): ?string
@@ -201,7 +174,7 @@ class UserLoginHistory extends Model
             'user_agent' => $request->userAgent(),
             'session_id' => $request->session()?->getId(),
             'login_method' => self::METHOD_PASSWORD,
-            'is_successful' => true,
+            'is_success' => true,
             'logged_in_at' => now(),
         ], $additionalData);
 
@@ -233,7 +206,7 @@ class UserLoginHistory extends Model
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'session_id' => $sessionId,
-                'is_successful' => true,
+                'is_success' => true,
                 'logged_in_at' => $loggedOutAt,
                 'login_duration' => $duration,
             ]);
@@ -251,7 +224,7 @@ class UserLoginHistory extends Model
             'user_agent' => $request->userAgent(),
             'session_id' => $request->session()?->getId(),
             'login_method' => self::METHOD_PASSWORD,
-            'is_successful' => false,
+            'is_success' => false,
             'failure_reason' => $reason,
             'logged_in_at' => now(),
         ]);

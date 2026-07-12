@@ -30,7 +30,7 @@ export default function Create({
         start_date: new Date().toISOString().split("T")[0],
         estimated_end_date: "",
         actual_end_date: "",
-        is_client_visible: false,
+        is_client_visible: true,
         client_visible_notes: "",
         internal_notes: "",
     });

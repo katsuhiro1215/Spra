@@ -16,6 +16,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'invoice_type',
         'issue_date',
         'contract_id',
         'invoice_template_id',
@@ -24,6 +25,7 @@ class Invoice extends Model
         'billing_period_start',
         'billing_period_end',
         'subtotal',
+        'discount_amount',
         'tax_rate',
         'tax_amount',
         'total_amount',
@@ -56,7 +58,13 @@ class Invoice extends Model
         'tax_rate'             => 'decimal:2',
         'tax_amount'           => 'decimal:2',
         'total_amount'         => 'decimal:2',
-        'deposit_amount'       => 'decimal:2',
+    ];
+
+    protected $appends = [
+        'status_name',
+        'invoice_type_name',
+        'paid_amount',
+        'balance',
     ];
 
     public const STATUSES = [
@@ -66,6 +74,15 @@ class Invoice extends Model
         'paid'      => '支払済み',
         'overdue'   => '期限超過',
         'cancelled' => 'キャンセル',
+    ];
+
+    public const INVOICE_TYPES = [
+        'deposit' => '着手金',
+        'interim' => '中間金',
+        'final'   => '完了金',
+        'full'    => '一括',
+        'monthly' => '月額',
+        'other'   => 'その他',
     ];
 
     public function contract(): BelongsTo
@@ -93,6 +110,11 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
     }
 
     public function receipt(): HasOne
@@ -139,5 +161,26 @@ class Invoice extends Model
     public function getStatusNameAttribute(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    public function getInvoiceTypeNameAttribute(): string
+    {
+        return self::INVOICE_TYPES[$this->invoice_type] ?? (string) $this->invoice_type;
+    }
+
+    /**
+     * 完了済みPaymentの合計額
+     */
+    public function getPaidAmountAttribute(): float
+    {
+        return (float) $this->payments()->where('status', 'completed')->sum('amount');
+    }
+
+    /**
+     * 請求額に対する残額(請求額 - 入金額)
+     */
+    public function getBalanceAttribute(): float
+    {
+        return (float) $this->total_amount - $this->paid_amount;
     }
 }

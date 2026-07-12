@@ -19,6 +19,7 @@ class QuoteResponse extends Model
         'response_text',
         'responded_at',
         'admin_notified_at',
+        'decided_by_admin_id',
         'user_id',
         'company_id',
     ];
@@ -58,6 +59,14 @@ class QuoteResponse extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * この回答を手動でNG判定した管理者
+     */
+    public function decidedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'decided_by_admin_id');
     }
 
     /**

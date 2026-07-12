@@ -17,6 +17,9 @@ class ServiceItem extends Model
         'slug',
         'description',
         'item_type',
+        'benefit_type',
+        'benefit_ticket_count',
+        'benefit_unit_minutes',
         'standard_price',
         'internal_cost',
         'estimated_days',
@@ -32,6 +35,8 @@ class ServiceItem extends Model
         'internal_cost' => 'decimal:2',
         'estimated_days' => 'integer',
         'estimated_hours' => 'integer',
+        'benefit_ticket_count' => 'integer',
+        'benefit_unit_minutes' => 'integer',
         'sort_order' => 'integer',
         'status' => 'string',
         'item_type' => 'string',
@@ -132,5 +137,13 @@ class ServiceItem extends Model
     public function isPlanBase(): bool
     {
         return $this->item_type === 'plan_base';
+    }
+
+    /**
+     * この項目が契約特典（チケット）を付与するものかどうか
+     */
+    public function grantsBenefit(): bool
+    {
+        return !is_null($this->benefit_type) && $this->benefit_ticket_count > 0;
     }
 }

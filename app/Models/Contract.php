@@ -20,6 +20,7 @@ class Contract extends Model
         'contract_group_id',
         'parent_contract_id',
         'quote_id',
+        'service_plan_id',
         'user_id',
         'company_id',
         'title',
@@ -108,6 +109,22 @@ class Contract extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    /**
+     * この契約の元になったServicePlan（契約特典の算出に使用。未設定の場合は繰越なしとして扱う）
+     */
+    public function servicePlan(): BelongsTo
+    {
+        return $this->belongsTo(ServicePlan::class);
+    }
+
+    /**
+     * 契約特典（期間ごとのチケット付与バッチ）
+     */
+    public function benefits(): HasMany
+    {
+        return $this->hasMany(ContractBenefit::class);
     }
 
     /**

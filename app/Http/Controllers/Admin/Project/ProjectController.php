@@ -68,6 +68,10 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->create($request->validated());
 
+        if ($project->is_client_visible && $project->user) {
+            $project->user->notify(new \App\Notifications\ProjectCreatedForUser($project));
+        }
+
         return redirect()
             ->route('admin.project.show', $project->id)
             ->with('success', 'プロジェクトを作成しました。');
@@ -98,6 +102,7 @@ class ProjectController extends Controller
         return Inertia::render('Admin/Project/Show', [
             'project' => $project,
             'currentVersion' => $currentVersion,
+            'progress' => $project->calculateProgress($currentVersion),
         ]);
     }
 
@@ -123,16 +128,31 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Project $project): void
+    public function update(StoreProjectRequest $request, Project $project): RedirectResponse
     {
-        // TODO: Implement update logic
+        $wasClientVisible = $project->is_client_visible;
+
+        $project = $this->projectService->update($project, $request->validated());
+
+        // 非公開→公開に変わったタイミングでクライアントに通知
+        if (!$wasClientVisible && $project->is_client_visible && $project->user) {
+            $project->user->notify(new \App\Notifications\ProjectCreatedForUser($project));
+        }
+
+        return redirect()
+            ->route('admin.project.show', $project->id)
+            ->with('success', 'プロジェクトを更新しました。');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Project $project): void
+    public function destroy(Project $project): RedirectResponse
     {
-        // TODO: Implement destroy logic
+        $this->projectService->delete($project);
+
+        return redirect()
+            ->route('admin.project.index')
+            ->with('success', 'プロジェクトを削除しました。');
     }
 }

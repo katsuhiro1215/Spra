@@ -14,6 +14,7 @@ class PaymentNotification extends Model
 
   protected $fillable = [
     'invoice_id',
+    'payment_id',
     'user_id',
     'company_id',
     'payment_method',
@@ -31,6 +32,8 @@ class PaymentNotification extends Model
     'amount'        => 'decimal:2',
     'acknowledged_at' => 'datetime',
   ];
+
+  protected $appends = ['status_name', 'method_name'];
 
   public const STATUSES = [
     'pending'      => '待機中',
@@ -53,6 +56,11 @@ class PaymentNotification extends Model
   public function invoice(): BelongsTo
   {
     return $this->belongsTo(Invoice::class);
+  }
+
+  public function payment(): BelongsTo
+  {
+    return $this->belongsTo(Payment::class);
   }
 
   public function user(): BelongsTo
@@ -103,12 +111,13 @@ class PaymentNotification extends Model
     return $this->status === 'pending';
   }
 
-  public function acknowledge(string $adminId): void
+  public function acknowledge(string $adminId, ?string $paymentId = null): void
   {
     $this->update([
       'status'           => 'acknowledged',
       'acknowledged_at'  => now(),
       'acknowledged_by'  => $adminId,
+      'payment_id'       => $paymentId ?? $this->payment_id,
     ]);
   }
 }

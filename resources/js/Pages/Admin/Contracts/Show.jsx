@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Head, router, Link, usePage, useForm } from "@inertiajs/react";
+import { Head, router, usePage, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
@@ -7,6 +7,7 @@ import {
     PrimaryButton,
     SecondaryButton,
     DangerButton,
+    TextButton,
 } from "@/Components/Buttons";
 import { Card, CardBody } from "@/Components/Card";
 import {
@@ -26,9 +27,11 @@ import DigitalStamp from "@/Components/DigitalStamp";
 // Custom Components
 import ContractBasicInfo from "./_components/ContractBasicInfo";
 import ContractItems from "./_components/ContractItems";
+import ContractBenefits from "./_components/ContractBenefits";
 import ContractAmount from "./_components/ContractAmount";
 import ContractVersionHistory from "./_components/ContractVersionHistory";
 import ContractClientInfo from "./_components/ContractClientInfo";
+import BillingInfo from "./_components/BillingInfo";
 
 export default function Show({ contract }) {
     const { flash } = usePage().props;
@@ -43,9 +46,9 @@ export default function Show({ contract }) {
         isOpen: false,
     });
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { post, processing, errors, transform } = useForm({
         signature_image: null,
-        method: "canvas",
+        method: "typed",
     });
 
     // フラッシュメッセージの成功時に Alert を表示
@@ -59,8 +62,12 @@ export default function Show({ contract }) {
     const tabs = [
         { id: "basic", label: "基本情報", icon: "📋" },
         { id: "items", label: "契約明細", icon: "📝" },
+        { id: "benefits", label: "契約特典", icon: "🎫" },
         { id: "amount", label: "金額情報", icon: "💰" },
         { id: "terms", label: "契約条項", icon: "📄" },
+        ...(contract.type === "monthly"
+            ? [{ id: "billing", label: "請求設定", icon: "🗓️" }]
+            : []),
         { id: "versions", label: "バージョン履歴", icon: "📜" },
         { id: "client", label: "クライアント情報", icon: "👤" },
         { id: "quote", label: "見積書", icon: "📑" },
@@ -87,6 +94,7 @@ export default function Show({ contract }) {
         currentVersion?.terms_and_conditions ||
         currentVersion?.special_provisions;
     const canSend = hasItems && hasTerms && currentVersion?.status === "draft";
+    const readyForNextSteps = contract.signature_status === "fully_signed";
 
     // ========================================
     // アクションハンドラー
@@ -139,9 +147,11 @@ export default function Show({ contract }) {
             return;
         }
 
-        setData("signature_image", adminStamp);
+        // adminStamp は直前に確定したローカル値。setData→postだとReactのstate更新が
+        // 非同期のため、post()がまだ古い(null)のdataを送信してしまい1回目は必ず
+        // 失敗する。transformで送信直前に確定値を注入することで回避する。
+        transform((data) => ({ ...data, signature_image: adminStamp }));
 
-        // Admin署名を送信
         post(route("admin.contract.signature.admin.store", contract.id), {
             onSuccess: () => {
                 setShowAdminSignatureModal(false);
@@ -196,6 +206,21 @@ export default function Show({ contract }) {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
+            {contract.contract_group && (
+                <div className="mb-4">
+                    <TextButton
+                        href={route(
+                            "admin.contract-group.show",
+                            contract.contract_group.id,
+                        )}
+                        variant="primary"
+                        size="sm"
+                    >
+                        📎 グループ: {contract.contract_group.title}
+                    </TextButton>
+                </div>
+            )}
+
             {/* 成功アラート */}
             <SuccessAlert
                 isOpen={showSuccessAlert}
@@ -206,7 +231,7 @@ export default function Show({ contract }) {
                 autoCloseDelay={4000}
             />
 
-            <div className="max-w-7xl space-y-6">
+            <div className="w-full space-y-6">
                 {/* ワークフロー進捗 */}
                 {contract.status === "draft" && (
                     <Card>
@@ -374,8 +399,8 @@ export default function Show({ contract }) {
                                     </div>
                                 </div>
 
-                                {/* ユーザー署名後のプロジェクト・請求書作成ボタン */}
-                                {contract.user_signed_at && (
+                                {/* 完全署名後のプロジェクト・請求書作成ボタン */}
+                                {readyForNextSteps && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
                                         <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
                                             次のステップ
@@ -423,24 +448,14 @@ export default function Show({ contract }) {
                         !contract.admin_signed_at &&
                         (contract.signature_required_from === "admin" ||
                             contract.signature_required_from === "both") && (
-                            <>
-                                <SecondaryButton
-                                    onClick={() =>
-                                        setShowAdminSignatureModal(true)
-                                    }
-                                >
-                                    <PencilIcon className="h-4 w-4 mr-2" />
-                                    Admin署名
-                                </SecondaryButton>
-                                <SecondaryButton onClick={handleCreateInvoice}>
-                                    <DocumentTextIcon className="h-4 w-4 mr-2" />
-                                    請求書作成
-                                </SecondaryButton>
-                                <PrimaryButton onClick={handleCreateProject}>
-                                    <SparklesIcon className="h-4 w-4 mr-2" />
-                                    プロジェクト作成
-                                </PrimaryButton>
-                            </>
+                            <SecondaryButton
+                                onClick={() =>
+                                    setShowAdminSignatureModal(true)
+                                }
+                            >
+                                <PencilIcon className="h-4 w-4 mr-2" />
+                                Admin署名
+                            </SecondaryButton>
                         )}
                 </div>
 
@@ -464,48 +479,68 @@ export default function Show({ contract }) {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 pr-4">
-                            <Link
+                            <TextButton
                                 href={route("admin.contract.edit", contract.id)}
+                                variant="primary"
+                                size="sm"
                                 title="編集"
-                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                             >
-                                <PencilIcon className="w-5 h-5" />
-                            </Link>
-                            {canSend && (
-                                <Link
-                                    href={route(
-                                        "admin.contract.preview",
-                                        contract.id,
-                                    )}
-                                    title="プレビュー"
-                                    className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
-                                >
-                                    <PaperAirplaneIcon className="w-5 h-5" />
-                                </Link>
-                            )}
+                                <PencilIcon className="w-4 h-4 mr-1" />
+                                編集
+                            </TextButton>
+
                             {hasItems ? (
-                                <Link
+                                <TextButton
                                     href={route(
                                         "admin.contract.item.edit",
                                         contract.id,
                                     )}
+                                    variant="primary"
+                                    size="sm"
                                     title="契約明細を編集"
-                                    className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                 >
-                                    <PencilIcon className="w-5 h-5" />
-                                </Link>
+                                    <PencilIcon className="w-4 h-4 mr-1" />
+                                    契約明細編集
+                                </TextButton>
                             ) : (
-                                <Link
+                                <TextButton
                                     href={route(
                                         "admin.contract.item.create",
                                         contract.id,
                                     )}
+                                    variant="success"
+                                    size="sm"
                                     title="契約明細を作成"
-                                    className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                 >
-                                    <PlusIcon className="w-5 h-5" />
-                                </Link>
+                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                    契約明細を作成
+                                </TextButton>
                             )}
+
+                            {canSend && (
+                                <TextButton
+                                    href={route(
+                                        "admin.contract.preview",
+                                        contract.id,
+                                    )}
+                                    variant="skyblue"
+                                    size="sm"
+                                    title="プレビュー"
+                                >
+                                    <PaperAirplaneIcon className="w-4 h-4 mr-1" />
+                                    プレビュー
+                                </TextButton>
+                            )}
+
+                            <TextButton
+                                href={route("admin.contract.pdf", contract.id)}
+                                variant="default"
+                                size="sm"
+                                title="PDFダウンロード"
+                            >
+                                <DocumentTextIcon className="w-4 h-4 mr-1" />
+                                PDF
+                            </TextButton>
                         </div>
                     </div>
 
@@ -519,6 +554,9 @@ export default function Show({ contract }) {
                         )}
                         {activeTab === "items" && (
                             <ContractItems contract={contract} />
+                        )}
+                        {activeTab === "benefits" && (
+                            <ContractBenefits contract={contract} />
                         )}
                         {activeTab === "amount" && (
                             <ContractAmount contract={contract} />
@@ -553,6 +591,10 @@ export default function Show({ contract }) {
                                 </div>
                             </div>
                         )}
+                        {activeTab === "billing" &&
+                            contract.type === "monthly" && (
+                                <BillingInfo contract={contract} />
+                            )}
                         {activeTab === "versions" && (
                             <ContractVersionHistory contract={contract} />
                         )}

@@ -3,19 +3,35 @@ import {
     DocumentTextIcon,
     CheckCircleIcon,
     ExclamationTriangleIcon,
+    BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import { Card, CardHeader, CardBody, CardTitle } from "@/Components/Card";
 import Badge from "@/Components/Badge";
 
-export default function Dashboard({ pendingContracts = [] }) {
+const formatAmount = (amount) =>
+    new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+    }).format(amount || 0);
+
+export default function Dashboard({
+    pendingContracts = [],
+    unpaidInvoices = [],
+}) {
     const stats = [
         {
             label: "署名待ち契約",
             value: pendingContracts.length,
             icon: ExclamationTriangleIcon,
             color: "bg-yellow-50 text-yellow-600",
+        },
+        {
+            label: "未払い請求書",
+            value: unpaidInvoices.length,
+            icon: BanknotesIcon,
+            color: "bg-red-50 text-red-600",
         },
         {
             label: "完了契約",
@@ -40,7 +56,7 @@ export default function Dashboard({ pendingContracts = [] }) {
                 />
 
                 {/* 統計情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {stats.map((stat) => {
                         const Icon = stat.icon;
                         return (
@@ -67,6 +83,66 @@ export default function Dashboard({ pendingContracts = [] }) {
                         );
                     })}
                 </div>
+
+                {/* 未払いの請求書 */}
+                {unpaidInvoices && unpaidInvoices.length > 0 && (
+                    <Card className="border-red-200 bg-red-50">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <BanknotesIcon className="h-6 w-6 text-red-600" />
+                                <CardTitle>未払いの請求書</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-3">
+                                {unpaidInvoices.map((invoice) => (
+                                    <Link
+                                        key={invoice.id}
+                                        href={route(
+                                            "user.invoice.show",
+                                            invoice.id,
+                                        )}
+                                        className="block"
+                                    >
+                                        <div className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition">
+                                            <div className="flex-1">
+                                                <h4 className="font-medium text-gray-900">
+                                                    {invoice.invoice_number}
+                                                </h4>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    支払期限:{" "}
+                                                    {invoice.due_date
+                                                        ? new Date(
+                                                              invoice.due_date,
+                                                          ).toLocaleDateString(
+                                                              "ja-JP",
+                                                          )
+                                                        : "-"}
+                                                </p>
+                                            </div>
+                                            <span className="font-semibold text-gray-900 mr-3">
+                                                {formatAmount(
+                                                    invoice.total_amount,
+                                                )}
+                                            </span>
+                                            <Badge className="bg-red-100 text-red-800">
+                                                {invoice.status === "overdue"
+                                                    ? "期限超過"
+                                                    : "未払い"}
+                                            </Badge>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                            <Link
+                                href={route("user.invoice.index")}
+                                className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-900 font-medium"
+                            >
+                                すべての請求書を見る →
+                            </Link>
+                        </CardBody>
+                    </Card>
+                )}
 
                 {/* 署名待ちの契約 */}
                 {pendingContracts && pendingContracts.length > 0 && (

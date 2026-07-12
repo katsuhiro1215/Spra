@@ -312,6 +312,10 @@ class QuoteService extends BaseService
             throw new \Exception('ドラフト或いは修正要求済み状態の見積もりのみ送信できます。');
         }
 
+        if ($currentVersion->items()->count() === 0) {
+            throw new \Exception('見積明細が登録されていないため送信できません。先に見積明細を作成してください。');
+        }
+
         return DB::transaction(function () use ($quote, $currentVersion, $token, $responseFormUrl) {
             // Load relationships for email
             $quote->load(['user.profile', 'contact', 'currentVersion.items.serviceItem']);

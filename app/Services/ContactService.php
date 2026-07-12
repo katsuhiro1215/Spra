@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\ContactNotificationMail;
+use App\Mail\ContactReceivedMail;
 use App\Models\Contact;
 use App\Repositories\ContactRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ContactService extends BaseService
@@ -179,5 +183,33 @@ class ContactService extends BaseService
     public function getUnreadCount(): int
     {
         return $this->repository->getUnreadCount();
+    }
+
+    /**
+     * お問い合わせ受付時の通知メール（お客様への自動返信・管理者への通知）を送信
+     * Web公開フォーム・外部API連携の両方から共通で利用する
+     *
+     * @param Contact $contact
+     * @return void
+     */
+    public function sendNotificationEmails(Contact $contact): void
+    {
+        try {
+            Mail::to($contact->email)->send(new ContactReceivedMail($contact));
+        } catch (\Exception $e) {
+            Log::warning('自動返信メール送信失敗: ' . $e->getMessage(), [
+                'contact_id' => $contact->id,
+                'email' => $contact->email,
+            ]);
+        }
+
+        try {
+            $adminEmail = config('mail.admin_address', 'admin@example.com');
+            Mail::to($adminEmail)->send(new ContactNotificationMail($contact));
+        } catch (\Exception $e) {
+            Log::warning('管理者通知メール送信失敗: ' . $e->getMessage(), [
+                'contact_id' => $contact->id,
+            ]);
+        }
     }
 }

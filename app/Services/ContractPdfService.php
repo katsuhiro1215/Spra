@@ -4,11 +4,34 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\ContractSignature;
+use App\Support\PdfFontRegistrar;
 use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Log;
 
 class ContractPdfService
 {
+    /**
+     * mPDFインスタンスを生成する共通ヘルパー（日本語フォント登録込み）
+     *
+     * @param array<string, mixed> $overrides
+     */
+    private function newMpdf(array $overrides = []): Mpdf
+    {
+        $baseOptions = [
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'tempDir' => storage_path('app/temp'),
+            'setAutoTopMargin' => 'pad',
+            'setAutoBottomMargin' => 'pad',
+        ];
+
+        return new Mpdf(array_merge($baseOptions, PdfFontRegistrar::mpdfConfig(), $overrides));
+    }
+
     /**
      * 契約書をPDFで生成
      */
@@ -49,19 +72,7 @@ class ContractPdfService
         ])->render();
 
         // mPDF インスタンスを生成（日本語対応）
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => storage_path('app/temp'),
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'setAutoTopMargin' => 'pad',
-            'setAutoBottomMargin' => 'pad',
-        ]);
+        $mpdf = $this->newMpdf();
 
         // HTML を PDF に変換
         $mpdf->WriteHTML($html);
@@ -142,18 +153,7 @@ class ContractPdfService
         }
 
         // mPDF インスタンスを生成（画像サポート強化）
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => storage_path('app/temp'),
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'setAutoTopMargin' => 'pad',
-            'setAutoBottomMargin' => 'pad',
+        $mpdf = $this->newMpdf([
             'ignore_invalid_utf8' => true,
             'protect' => false,
         ]);
@@ -219,19 +219,7 @@ class ContractPdfService
             'terms' => $contract->currentVersion?->terms_and_conditions ?? '未記入',
         ])->render();
 
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => storage_path('app/temp'),
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'setAutoTopMargin' => 'pad',
-            'setAutoBottomMargin' => 'pad',
-        ]);
+        $mpdf = $this->newMpdf();
 
         $mpdf->WriteHTML($html);
         return $mpdf;
@@ -247,19 +235,7 @@ class ContractPdfService
             'provisions' => $contract->currentVersion?->special_provisions ?? '未記入',
         ])->render();
 
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => storage_path('app/temp'),
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'setAutoTopMargin' => 'pad',
-            'setAutoBottomMargin' => 'pad',
-        ]);
+        $mpdf = $this->newMpdf();
 
         $mpdf->WriteHTML($html);
         return $mpdf;
@@ -276,19 +252,7 @@ class ContractPdfService
             'signatureBase64' => null,
         ])->render();
 
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => storage_path('app/temp'),
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'setAutoTopMargin' => 'pad',
-            'setAutoBottomMargin' => 'pad',
-        ]);
+        $mpdf = $this->newMpdf();
 
         $mpdf->WriteHTML($html);
         return $mpdf;
