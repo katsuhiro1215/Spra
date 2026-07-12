@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
@@ -54,9 +54,9 @@ use App\Http\Controllers\Admin\Invoice\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReceiptController;
 
-use App\Http\Controllers\Admin\Term\TermController;
-use App\Http\Controllers\Admin\Term\TermVersionController;
-use App\Http\Controllers\Admin\Term\TermItemController;
+use App\Http\Controllers\Admin\Document\DocumentController;
+use App\Http\Controllers\Admin\Document\DocumentCategoryController;
+use App\Http\Controllers\Admin\Document\UserAcceptanceController;
 
 use App\Http\Controllers\Admin\Website\DashboardController;
 use App\Http\Controllers\Admin\Website\PageTypeController;
@@ -78,35 +78,23 @@ use App\Http\Controllers\Admin\AppointmentSlotController;
 use App\Http\Controllers\Admin\AppointmentController;
 
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SystemSettingController;
 
 use Inertia\Inertia;
 
 Route::middleware(['auth:admins', 'verified'])->group(function () {
     // 管理者ダッシュボード
-    Route::get('/dashboard', function () {
-        $pendingResponses = \App\Models\QuoteResponse::whereNull('responded_at')->count();
-        $respondedResponses = \App\Models\QuoteResponse::whereNotNull('responded_at')->count();
-        // $unreadContacts = \App\Models\Contact::whereNull('read_at')->count();
-
-        return Inertia::render('AdminDashboard', [
-            'laravelVersion' => Application::VERSION,
-            'phpVersion' => PHP_VERSION,
-            'stats' => [
-                'pendingResponses' => $pendingResponses,
-                'respondedResponses' => $respondedResponses,
-            ],
-            'notifications' => [
-                // 'unreadContacts' => $unreadContacts,
-                'pendingResponses' => $pendingResponses,
-            ],
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // 自身のプロフィール
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // セキュリティ（二段階認証）
+    Route::get('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'edit'])->name('security.edit');
+    Route::put('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'update'])->name('security.update');
 
     /**************************************
      * 管理者
@@ -404,11 +392,18 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
     Route::delete('/faqs/bulk-destroy', [FaqController::class, 'bulkDestroy'])->name('faq.bulk-destroy');
     Route::patch('/faqs/bulk-status', [FaqController::class, 'bulkUpdateStatus'])->name('faq.bulk-status');
 
-    // Terms (規約) 管理
-    Route::resource('terms', TermController::class);
-    Route::post('/terms/{term}/activate', [TermController::class, 'activate'])->name('terms.activate');
-    Route::post('/terms/{term}/revert-to-draft', [TermController::class, 'revertToDraft'])->name('terms.revertToDraft');
-    Route::post('/terms/{term}/create-version', [TermController::class, 'createVersion'])->name('terms.createVersion');
+    // Documents (規約・ヘルプ・APIドキュメント等) 管理
+    Route::resource('documents', DocumentController::class)->except(['show']);
+    Route::post('/documents/{document}/versions', [DocumentController::class, 'createVersion'])->name('documents.versions.store');
+    Route::put('/documents/{document}/versions/{version}', [DocumentController::class, 'updateVersion'])->name('documents.versions.update');
+    Route::post('/documents/{document}/versions/{version}/activate', [DocumentController::class, 'activateVersion'])->name('documents.versions.activate');
+    Route::post('/documents/{document}/versions/{version}/revert-to-draft', [DocumentController::class, 'revertVersionToDraft'])->name('documents.versions.revertToDraft');
+
+    Route::post('/document-categories', [DocumentCategoryController::class, 'store'])->name('documentCategories.store');
+    Route::put('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'update'])->name('documentCategories.update');
+    Route::delete('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'destroy'])->name('documentCategories.destroy');
+
+    Route::get('/document-acceptances', [UserAcceptanceController::class, 'index'])->name('documentAcceptances.index');
 
     // スケジュール管理
     Route::prefix('schedules')->name('schedules.')->group(function () {
@@ -508,6 +503,10 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
 
     // ログ管理
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
+    // 通知
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     // コンテンツ管理（一時的にダミー）
     Route::get('/content', function () {

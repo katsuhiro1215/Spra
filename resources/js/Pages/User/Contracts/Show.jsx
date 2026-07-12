@@ -20,6 +20,7 @@ export default function Show({
     quote = null,
     invoices = [],
     receipts = [],
+    project = null,
 }) {
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [signatureStatus, setSignatureStatus] = useState(
@@ -43,6 +44,7 @@ export default function Show({
         { id: "quote", label: "見積書", icon: "📑" },
         { id: "invoices", label: "請求書", icon: "💳" },
         { id: "receipts", label: "領収書", icon: "🧾" },
+        { id: "project", label: "プロジェクト", icon: "🗂️" },
     ];
 
     // ステータスラベル
@@ -654,6 +656,47 @@ export default function Show({
                                     <div className="text-center py-8">
                                         <p className="text-gray-500 dark:text-gray-400">
                                             領収書はまだ発行されていません。
+                                        </p>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Project タブ */}
+                {activeTab === "project" && (
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>プロジェクト</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                {project ? (
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div>
+                                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                                {project.title}
+                                            </p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                {project.description ||
+                                                    "説明なし"}
+                                            </p>
+                                        </div>
+                                        <a
+                                            href={route(
+                                                "user.projects.show",
+                                                project.id,
+                                            )}
+                                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                                        >
+                                            進捗・ガントチャートを見る
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-gray-500 dark:text-gray-400">
+                                            この契約に関連するプロジェクトはまだありません。
                                         </p>
                                     </div>
                                 )}

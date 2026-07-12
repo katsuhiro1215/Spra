@@ -131,6 +131,26 @@ class ContractSignature extends Model
                 'admin_signed_at' => now(),
             ]);
         }
+
+        $this->contract->refresh();
+
+        if ($this->contract->signature_status === 'fully_signed') {
+            $this->activateContractAndNotifyUser();
+        }
+    }
+
+    /**
+     * 完全署名が完了した契約を有効化し、クライアントに通知する
+     */
+    private function activateContractAndNotifyUser(): void
+    {
+        $contract = $this->contract;
+
+        if (in_array($contract->status, ['draft', 'pending_signature'], true)) {
+            $contract->update(['status' => 'active']);
+        }
+
+        $contract->user?->notify(new \App\Notifications\ContractFullySigned($contract));
     }
 
     /**

@@ -133,6 +133,11 @@ class User extends Authenticatable
         return $this->hasMany(QuoteResponse::class);
     }
 
+    public function documentAcceptances(): HasMany
+    {
+        return $this->hasMany(UserAcceptance::class);
+    }
+
     // -------------------------
     // Scopes
     // -------------------------

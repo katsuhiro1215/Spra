@@ -34,6 +34,12 @@ export default function Index() {
             href: route("user.settings.address.edit"),
             icon: "🏠",
         },
+        {
+            title: "セキュリティ",
+            description: "二段階認証（メール認証）の設定",
+            href: route("user.settings.security.edit"),
+            icon: "🔒",
+        },
     ];
 
     return (

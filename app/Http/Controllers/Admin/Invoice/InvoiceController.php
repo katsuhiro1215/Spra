@@ -193,10 +193,18 @@ class InvoiceController extends Controller
             return back()->with('error', '下書き状態の請求書のみ送付できます。');
         }
 
-        // メール送信ジョブをディスパッチ
+        // ステータスは即時更新（メール送信の成否に依存させない）
+        $invoice->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        $invoice->user?->notify(new \App\Notifications\InvoiceSent($invoice));
+
+        // メール送信ジョブをディスパッチ（失敗してもステータスには影響しない）
         \App\Jobs\SendInvoiceJob::dispatch($invoice);
 
-        return back()->with('success', '請求書を送付しています。');
+        return back()->with('success', '請求書を送付しました。');
     }
 
     public function recordPayment(Request $request, string $id): RedirectResponse

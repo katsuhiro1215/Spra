@@ -48,14 +48,23 @@ class ContractController extends Controller
 
         $invoices = $contract->invoices()->orderBy('issue_date', 'desc')->get();
 
-        // TODO: Receipt機能の実装後に接続する（Invoice経由で発行される想定）
-        $receipts = [];
+        $receipts = \App\Models\Receipt::where('user_id', $userId)
+            ->whereIn('invoice_id', $invoices->pluck('id'))
+            ->issued()
+            ->orderBy('issued_at', 'desc')
+            ->get();
+
+        // クライアントに公開設定されている場合のみプロジェクトを表示
+        $project = $contract->project && $contract->project->is_client_visible
+            ? $contract->project
+            : null;
 
         return Inertia::render('User/Contracts/Show', [
             'contract' => $contract,
             'quote' => $quote,
             'invoices' => $invoices,
             'receipts' => $receipts,
+            'project' => $project,
         ]);
     }
 

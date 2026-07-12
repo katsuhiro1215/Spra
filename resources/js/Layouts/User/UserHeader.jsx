@@ -1,15 +1,33 @@
-import { usePage, Link } from "@inertiajs/react";
+import { usePage, Link, router } from "@inertiajs/react";
 import { useState } from "react";
 import {
     MagnifyingGlassIcon,
     BellIcon,
     QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
+import Dropdown from "@/Components/Layout/Dropdown";
+
+const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+    if (diffMinutes < 1) return "たった今";
+    if (diffMinutes < 60) return `${diffMinutes}分前`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}時間前`;
+    return date.toLocaleDateString("ja-JP");
+};
 
 export default function UserHeader({ sidebarOpen, setSidebarOpen }) {
     const { props } = usePage();
     const user = props.auth?.user;
+    const unreadCount = props.userNotifications?.unreadCount || 0;
+    const notificationItems = props.userNotifications?.items || [];
     const [searchQuery, setSearchQuery] = useState("");
+
+    const handleReadAll = (e) => {
+        e.preventDefault();
+        router.post(route("user.notifications.read-all"));
+    };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -68,10 +86,84 @@ export default function UserHeader({ sidebarOpen, setSidebarOpen }) {
                         {/* 右: 通知、ヘルプ */}
                         <div className="flex items-center gap-4">
                             {/* 通知 */}
-                            <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors relative">
-                                <BellIcon className="h-6 w-6" />
-                                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-                            </button>
+                            <Dropdown>
+                                <Dropdown.Trigger>
+                                    <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors relative">
+                                        <BellIcon className="h-6 w-6" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white text-xs font-bold ring-2 ring-white">
+                                                {unreadCount > 9
+                                                    ? "9+"
+                                                    : unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </Dropdown.Trigger>
+                                <Dropdown.Content align="right" width="80">
+                                    <div className="px-4 py-3 border-b flex items-center justify-between">
+                                        <p className="text-sm font-medium text-gray-900">
+                                            通知
+                                        </p>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={handleReadAll}
+                                                className="text-xs text-indigo-600 hover:underline"
+                                            >
+                                                すべて既読にする
+                                            </button>
+                                        )}
+                                    </div>
+                                    {notificationItems.length > 0 ? (
+                                        <div className="max-h-96 overflow-y-auto">
+                                            {notificationItems.map((item) => (
+                                                <Link
+                                                    key={item.id}
+                                                    href={route(
+                                                        "user.notifications.read",
+                                                        item.id,
+                                                    )}
+                                                    className={`block px-4 py-3 hover:bg-gray-100 transition-colors border-b last:border-none ${
+                                                        item.read_at
+                                                            ? ""
+                                                            : "bg-sky-50"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-2">
+                                                        {!item.read_at && (
+                                                            <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 flex-shrink-0" />
+                                                        )}
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900">
+                                                                {
+                                                                    item.data
+                                                                        .title
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {
+                                                                    item.data
+                                                                        .message
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-gray-400 mt-1">
+                                                                {formatRelativeTime(
+                                                                    item.created_at,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-3">
+                                            <p className="text-sm text-gray-500 text-center py-4">
+                                                通知はありません
+                                            </p>
+                                        </div>
+                                    )}
+                                </Dropdown.Content>
+                            </Dropdown>
 
                             {/* ヘルプ */}
                             {/* <Link

@@ -64,6 +64,15 @@ class QuoteResponseController extends Controller
         $admins = \App\Models\Admin::all();
         Notification::send($admins, new QuoteResponseReceived($quoteResponse));
 
+        // ログに記録
+        \App\Models\UserActivityLog::logActivity([
+            'action' => \App\Models\UserActivityLog::ACTION_QUOTE_RESPONSE_RECEIVED,
+            'description' => "見積番号 {$quoteResponse->quote->quote_number} にお客様から返信がありました（{$quoteResponse->getResponseTypeLabel()}）",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'status' => \App\Models\UserActivityLog::STATUS_SUCCESS,
+        ]);
+
         return redirect()->back();
     }
 

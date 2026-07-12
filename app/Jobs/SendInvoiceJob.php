@@ -40,11 +40,7 @@ class SendInvoiceJob implements ShouldQueue
           ->subject("【請求書】{$this->invoice->invoice_number} - {$this->invoice->contract->title}");
       });
 
-      // ステータスを sent に更新
-      $this->invoice->update([
-        'status' => 'sent',
-        'sent_at' => now(),
-      ]);
+      // ステータス（sent）は既に Controller 側で更新済み
 
       // 契約履歴記録
       $this->invoice->contract->histories()->create([

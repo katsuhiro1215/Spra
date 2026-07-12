@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Mail\ContractEmail;
 use App\Models\Contract;
 use App\Models\ContractHistory;
-use App\Models\Term;
+use App\Models\Document;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable as FoundationQueueable;
@@ -40,10 +40,11 @@ class ContractMailJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            // 有効な規約を取得
-            $terms = Term::where('status', 'active')
-                ->latest('version')
-                ->first();
+            // 有効な利用規約を取得
+            $terms = Document::where('slug', 'terms-of-service')
+                ->first()
+                ?->activeVersion
+                ?->load('document');
 
             // メールを送信
             Mail::to($this->recipientEmail)->send(

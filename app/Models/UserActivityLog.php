@@ -51,6 +51,8 @@ class UserActivityLog extends Model
     const ACTION_FILE_DOWNLOAD = 'file_download';
     const ACTION_SETTINGS_UPDATE = 'settings_update';
     const ACTION_DATA_EXPORT = 'data_export';
+    const ACTION_CONTACT_RECEIVED = 'contact_received';
+    const ACTION_QUOTE_RESPONSE_RECEIVED = 'quote_response_received';
 
     // ステータスの定数
     const STATUS_SUCCESS = 'success';
@@ -114,6 +116,8 @@ class UserActivityLog extends Model
             self::ACTION_FILE_DOWNLOAD => 'ファイルダウンロード',
             self::ACTION_SETTINGS_UPDATE => '設定更新',
             self::ACTION_DATA_EXPORT => 'データエクスポート',
+            self::ACTION_CONTACT_RECEIVED => 'お問い合わせ受信',
+            self::ACTION_QUOTE_RESPONSE_RECEIVED => '見積返信受信',
         ];
 
         return $actions[$this->action] ?? $this->action;

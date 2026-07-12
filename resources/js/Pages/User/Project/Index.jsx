@@ -9,6 +9,7 @@ import {
     CheckCircleIcon,
     ClockIcon,
     CalendarIcon,
+    ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Index({ projects, filters }) {
@@ -22,12 +23,12 @@ export default function Index({ projects, filters }) {
         on_hold: {
             variant: "secondary",
             label: "保留中",
-            icon: ExclamationIcon,
+            icon: ExclamationCircleIcon,
         },
         cancelled: {
             variant: "secondary",
             label: "キャンセル",
-            icon: ExclamationIcon,
+            icon: ExclamationCircleIcon,
         },
     };
 

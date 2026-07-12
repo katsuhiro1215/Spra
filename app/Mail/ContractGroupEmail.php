@@ -3,7 +3,7 @@
 namespace App\Mail;
 
 use App\Models\ContractGroup;
-use App\Models\Term;
+use App\Models\DocumentVersion;
 use App\Services\ContractPdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +18,7 @@ class ContractGroupEmail extends Mailable
   use Queueable, SerializesModels;
 
   public ContractGroup $contractGroup;
-  public ?Term $terms = null;
+  public ?DocumentVersion $terms = null;
   public string $recipientEmail;
 
   /**
@@ -27,7 +27,7 @@ class ContractGroupEmail extends Mailable
   public function __construct(
     ContractGroup $contractGroup,
     string $recipientEmail,
-    ?Term $terms = null
+    ?DocumentVersion $terms = null
   ) {
     $this->contractGroup = $contractGroup;
     $this->recipientEmail = $recipientEmail;
@@ -115,8 +115,10 @@ class ContractGroupEmail extends Mailable
   /**
    * 規約をPDFとして生成
    */
-  private function generateTermsPdf(Term $term): string
+  private function generateTermsPdf(DocumentVersion $version): string
   {
+    $title = $version->document->title;
+
     $html = <<<HTML
         <html>
             <head>
@@ -129,12 +131,12 @@ class ContractGroupEmail extends Mailable
                 </style>
             </head>
             <body>
-                <h1>{$term->title}</h1>
-                <p>発効日: {$term->effective_date}</p>
+                <h1>{$title}</h1>
+                <p>発効日: {$version->effective_date}</p>
                 <hr>
-                {$term->content}
+                {$version->content}
                 <div class="footer">
-                    <p>このドキュメントは {$term->title} v{$term->version} です。</p>
+                    <p>このドキュメントは {$title} v{$version->version} です。</p>
                 </div>
             </body>
         </html>

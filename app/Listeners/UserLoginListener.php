@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Failed;
 use App\Models\UserLoginHistory;
 use App\Models\UserActivityLog;
+use App\Models\LoginLog;
 use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\Request;
 
@@ -22,10 +23,20 @@ class UserLoginListener
 
     /**
      * Handle login event.
+     *
+     * users/admins 両ガードのログインを LoginLog に記録する。
+     * UserLoginHistory/UserActivityLog は users テーブルにしか紐付けられないため users ガードのみ記録する。
      */
     public function handleLogin(Login $event): void
     {
-        if ($event->guard === 'users' && $event->user) {
+        if (!$event->user) {
+            return;
+        }
+
+        $userType = $event->guard === 'admins' ? LoginLog::USER_TYPE_ADMIN : LoginLog::USER_TYPE_USER;
+        LoginLog::recordSuccess($event->guard, $userType, $event->user->id, $event->user->email);
+
+        if ($event->guard === 'users') {
             $this->recordLoginHistory($event->user->id, UserLoginHistory::TYPE_LOGIN);
             $this->recordActivityLog($event->user->id, UserActivityLog::ACTION_LOGIN, 'ユーザーがログインしました');
         }
@@ -36,7 +47,14 @@ class UserLoginListener
      */
     public function handleLogout(Logout $event): void
     {
-        if ($event->guard === 'users' && $event->user) {
+        if (!$event->user) {
+            return;
+        }
+
+        $userType = $event->guard === 'admins' ? LoginLog::USER_TYPE_ADMIN : LoginLog::USER_TYPE_USER;
+        LoginLog::recordLogout($event->guard, $userType, $event->user->id, $event->user->email);
+
+        if ($event->guard === 'users') {
             UserLoginHistory::recordLogout($event->user->id, session()->getId());
             $this->recordActivityLog($event->user->id, UserActivityLog::ACTION_LOGOUT, 'ユーザーがログアウトしました');
         }
@@ -47,10 +65,17 @@ class UserLoginListener
      */
     public function handleFailed(Failed $event): void
     {
-        if ($event->guard === 'users') {
-            $userId = $event->user?->id;
-            $email = request('email');
+        if (!in_array($event->guard, ['users', 'admins'], true)) {
+            return;
+        }
 
+        $userType = $event->guard === 'admins' ? LoginLog::USER_TYPE_ADMIN : LoginLog::USER_TYPE_USER;
+        $userId = $event->user?->id;
+        $email = $event->credentials['email'] ?? null;
+
+        LoginLog::recordFailed($event->guard, $userType, $email, 'invalid_credentials');
+
+        if ($event->guard === 'users') {
             UserLoginHistory::recordFailedLogin($userId, 'Invalid credentials');
 
             $description = $userId ? 'ログインに失敗しました' : "メールアドレス「{$email}」でのログインに失敗しました";

@@ -3,14 +3,10 @@
 namespace App\Notifications;
 
 use App\Models\QuoteResponse;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class QuoteResponseReceived extends Notification implements ShouldQueue
+class QuoteResponseReceived extends Notification
 {
-  use Queueable;
-
   /**
    * Create a new notification instance.
    */
@@ -32,6 +28,7 @@ class QuoteResponseReceived extends Notification implements ShouldQueue
     return [
       'title' => 'お客様から返信がありました',
       'message' => "見積番号 {$this->quoteResponse->quote->quote_number} に対してお客様から返信がありました。",
+      'color' => 'sky',
       'quote_response_id' => $this->quoteResponse->id,
       'quote_id' => $this->quoteResponse->quote_id,
       'response_type' => $this->quoteResponse->response_type,

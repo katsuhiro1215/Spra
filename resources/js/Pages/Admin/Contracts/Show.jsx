@@ -231,7 +231,7 @@ export default function Show({ contract }) {
                 autoCloseDelay={4000}
             />
 
-            <div className="max-w-7xl space-y-6">
+            <div className="w-full space-y-6">
                 {/* ワークフロー進捗 */}
                 {contract.status === "draft" && (
                     <Card>

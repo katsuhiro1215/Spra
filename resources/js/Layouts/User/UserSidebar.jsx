@@ -150,31 +150,27 @@ export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
                             </svg>
                             プロフィール
                         </Link>
-                        <form
-                            method="POST"
-                            action={route("user.logout")}
-                            className="block"
+                        <Link
+                            href={route("user.logout")}
+                            method="post"
+                            as="button"
+                            className="w-full flex items-center px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
                         >
-                            <button
-                                type="submit"
-                                className="w-full flex items-center px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
+                            <svg
+                                className="h-5 w-5 mr-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                                <svg
-                                    className="h-5 w-5 mr-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                    />
-                                </svg>
-                                ログアウト
-                            </button>
-                        </form>
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                />
+                            </svg>
+                            ログアウト
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -270,32 +266,28 @@ export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
                                 </svg>
                                 プロフィール
                             </Link>
-                            <form
-                                method="POST"
-                                action={route("user.logout")}
-                                className="block"
+                            <Link
+                                href={route("user.logout")}
+                                method="post"
+                                as="button"
+                                className="w-full flex items-center px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
+                                onClick={() => setSidebarOpen(false)}
                             >
-                                <button
-                                    type="submit"
-                                    className="w-full flex items-center px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
-                                    onClick={() => setSidebarOpen(false)}
+                                <svg
+                                    className="h-5 w-5 mr-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                 >
-                                    <svg
-                                        className="h-5 w-5 mr-3"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                        />
-                                    </svg>
-                                    ログアウト
-                                </button>
-                            </form>
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    />
+                                </svg>
+                                ログアウト
+                            </Link>
                         </div>
                     </div>
                 </>

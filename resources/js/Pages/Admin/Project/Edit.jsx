@@ -42,7 +42,7 @@ export default function Edit({
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("admin.projects.update", project.id));
+        put(route("admin.project.update", project.id));
     };
 
     const headerActions = [
@@ -50,28 +50,31 @@ export default function Edit({
             label: "戻る",
             icon: ArrowLeftIcon,
             variant: "secondary",
-            route: route("admin.projects.show", project.id),
+            route: route("admin.project.show", project.id),
         },
     ];
 
     const breadcrumbs = [
-        { label: "プロジェクト", href: route("admin.projects.index") },
+        { label: "プロジェクト", href: route("admin.project.index") },
         {
             label: project.title,
-            href: route("admin.projects.show", project.id),
+            href: route("admin.project.show", project.id),
         },
         { label: "編集" },
     ];
 
     return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="プロジェクト"
+                    description={`${project.title}を編集`}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title={`${project.title} - 編集`} />
-
-            <PageHeader
-                title="プロジェクト"
-                description={`${project.title}を編集`}
-                actions={headerActions}
-            />
 
             <FlashMessage />
 
@@ -97,7 +100,7 @@ export default function Edit({
                     <div className="flex items-center justify-end gap-4">
                         <SecondaryButton
                             type="button"
-                            href={route("admin.projects.show", project.id)}
+                            href={route("admin.project.show", project.id)}
                         >
                             キャンセル
                         </SecondaryButton>

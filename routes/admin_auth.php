@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\Auth\RegisteredUserController;
+use App\Http\Controllers\Admin\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\VerifyEmailController;
 
 Route::middleware('guest:admins')->group(function () {
@@ -29,6 +30,12 @@ Route::middleware('guest:admins')->group(function () {
     ->name('password.reset');
   Route::post('reset-password', [NewPasswordController::class, 'store'])
     ->name('password.store');
+  // 二段階認証
+  Route::controller(TwoFactorChallengeController::class)->group(function () {
+    Route::get('two-factor-challenge', 'create')->name('two-factor.challenge');
+    Route::post('two-factor-challenge', 'store')->name('two-factor.store');
+    Route::post('two-factor-challenge/resend', 'resend')->name('two-factor.resend');
+  });
 });
 
 Route::middleware('auth:admins')->group(function () {

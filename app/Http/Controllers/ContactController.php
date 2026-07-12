@@ -61,6 +61,21 @@ class ContactController extends Controller
             // メール送信
             $this->contactService->sendNotificationEmails($contact);
 
+            // 管理者への通知（ベルアイコン）
+            \Illuminate\Support\Facades\Notification::send(
+                \App\Models\Admin::all(),
+                new \App\Notifications\ContactReceived($contact)
+            );
+
+            // ログに記録
+            \App\Models\UserActivityLog::logActivity([
+                'action' => \App\Models\UserActivityLog::ACTION_CONTACT_RECEIVED,
+                'description' => "{$contact->name}様よりお問い合わせを受信しました（{$contact->subject}）",
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'status' => \App\Models\UserActivityLog::STATUS_SUCCESS,
+            ]);
+
             Log::info('お問い合わせを受信しました', [
                 'contact_id' => $contact->id,
                 'name' => $contact->name,

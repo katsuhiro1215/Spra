@@ -13,7 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import UserAuthLayout from "@/Layouts/UserAuthLayout";
 
-export default function Register({ invitation = null }) {
+export default function Register({ invitation = null, requiredDocuments = [] }) {
     const { flash } = usePage().props;
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -28,7 +28,18 @@ export default function Register({ invitation = null }) {
         company_registration_number: "",
         company_phone: "",
         company_address: "",
+        accepted_document_version_ids: [],
     });
+
+    const [agreedToDocuments, setAgreedToDocuments] = useState(false);
+
+    const handleAgreeChange = (checked) => {
+        setAgreedToDocuments(checked);
+        setData(
+            "accepted_document_version_ids",
+            checked ? requiredDocuments.map((doc) => doc.version_id) : [],
+        );
+    };
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -488,32 +499,54 @@ export default function Register({ invitation = null }) {
                 </div>
 
                 {/* Terms Agreement */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                        アカウントを作成することで、Smart Sproutsの
-                        <Link
-                            href="/terms"
-                            className="text-blue-600 hover:text-blue-700 underline"
-                        >
-                            利用規約
-                        </Link>
-                        および
-                        <Link
-                            href="/privacy"
-                            className="text-blue-600 hover:text-blue-700 underline"
-                        >
-                            プライバシーポリシー
-                        </Link>
-                        に同意したものとみなします。
-                    </p>
-                </div>
+                {requiredDocuments.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={agreedToDocuments}
+                                onChange={(e) =>
+                                    handleAgreeChange(e.target.checked)
+                                }
+                                className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="text-xs text-gray-600 leading-relaxed">
+                                以下の内容を確認し、同意します。
+                                {requiredDocuments.map((doc, index) => (
+                                    <span key={doc.slug}>
+                                        {index > 0 && "、"}
+                                        <Link
+                                            href={route(
+                                                "documents.show",
+                                                doc.slug,
+                                            )}
+                                            target="_blank"
+                                            className="text-blue-600 hover:text-blue-700 underline"
+                                        >
+                                            {doc.title}
+                                        </Link>
+                                    </span>
+                                ))}
+                            </span>
+                        </label>
+                        {errors.acceptance && (
+                            <p className="mt-2 text-xs text-red-600">
+                                {errors.acceptance}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Register Button */}
                 <button
                     type="submit"
-                    disabled={processing}
+                    disabled={
+                        processing ||
+                        (requiredDocuments.length > 0 && !agreedToDocuments)
+                    }
                     className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                        processing
+                        processing ||
+                        (requiredDocuments.length > 0 && !agreedToDocuments)
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 active:transform active:scale-[0.98]"
                     } text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}

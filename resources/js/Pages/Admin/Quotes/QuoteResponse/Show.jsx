@@ -437,16 +437,6 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                         契約書を作成する
                                     </PrimaryButton>
                                 </Link>
-                                <Link
-                                    href={route(
-                                        "admin.onboarding.detail",
-                                        quoteResponse.user_id,
-                                    )}
-                                >
-                                    <SecondaryButton>
-                                        詳細を確認
-                                    </SecondaryButton>
-                                </Link>
                             </div>
                         </div>
                     </Card>

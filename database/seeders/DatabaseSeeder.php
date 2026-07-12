@@ -51,8 +51,9 @@ class DatabaseSeeder extends Seeder
             ScheduleExceptionSeeder::class,
             HolidaySeeder::class,
 
-            // 規約（Terms）
-            // TermSeeder::class,
+            // 文書（規約・ヘルプ・APIドキュメント等）
+            DocumentCategorySeeder::class,
+            DocumentSeeder::class,
 
             // 見積（Quote）
             // QuoteSeeder::class,

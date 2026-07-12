@@ -64,9 +64,7 @@ class ContractSignedNotificationJob implements ShouldQueue
      */
     private function notifyAdminOfUserSignature(): void
     {
-        $admins = \App\Models\Admin::whereHas('roles', function ($q) {
-            $q->where('name', 'admin');
-        })->get();
+        $admins = \App\Models\Admin::whereIn('role', ['owner', 'super_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
             Mail::send('emails.admin-user-signed', [

@@ -36,6 +36,20 @@ Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::get('/privacy-policy', fn() => Inertia::render('Public/PrivacyPolicy'))->name('privacy.policy');
+Route::get('/documents/{slug}', function (string $slug) {
+    $document = \App\Models\Document::where('slug', $slug)->firstOrFail();
+    abort_unless($document->activeVersion, 404);
+
+    return Inertia::render('Public/Document', [
+        'document' => [
+            'title' => $document->title,
+            'description' => $document->description,
+            'content' => $document->activeVersion->content,
+            'version' => $document->activeVersion->version,
+            'effective_date' => $document->activeVersion->effective_date,
+        ],
+    ]);
+})->name('documents.show');
 
 // Contact 送信
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -97,6 +111,10 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     // 進捗状況（クライアント向け）
     Route::get('/progress', [UserProjectController::class, 'progress'])->name('progress.index');
 
+    // 通知（クライアント向け）
+    Route::get('/notifications/{id}/read', [\App\Http\Controllers\User\NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\User\NotificationController::class, 'readAll'])->name('notifications.read-all');
+
     // 設定（クライアント向け）
     Route::get('/settings', function () {
         return Inertia::render('User/Settings/Index');
@@ -118,6 +136,10 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         // ご自身の住所（Personal Address）
         Route::get('/address', [UserAddressController::class, 'edit'])->name('address.edit');
         Route::put('/address', [UserAddressController::class, 'update'])->name('address.update');
+
+        // セキュリティ（二段階認証）
+        Route::get('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'edit'])->name('security.edit');
+        Route::put('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'update'])->name('security.update');
     });
 
     Route::get('/reservation-settings', function () {
