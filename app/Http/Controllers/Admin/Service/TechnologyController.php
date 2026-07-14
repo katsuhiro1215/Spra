@@ -18,7 +18,7 @@ class TechnologyController extends Controller
 
     public function index(): Response
     {
-        return Inertia::render('Admin/Service/Technology/Index', [
+        return Inertia::render('Admin/Technologies/Index', [
             'technologies' => Technology::query()
                 ->orderBy('sort_order')
                 ->orderBy('name')
@@ -28,7 +28,7 @@ class TechnologyController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Service/Technology/Create');
+        return Inertia::render('Admin/Technologies/Create');
     }
 
     public function store(TechnologyRequest $request): RedirectResponse
@@ -42,7 +42,7 @@ class TechnologyController extends Controller
 
     public function edit(Technology $technology): Response
     {
-        return Inertia::render('Admin/Service/Technology/Edit', [
+        return Inertia::render('Admin/Technologies/Edit', [
             'technology' => $technology,
         ]);
     }

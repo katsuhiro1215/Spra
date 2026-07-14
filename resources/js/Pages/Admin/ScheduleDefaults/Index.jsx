@@ -9,7 +9,12 @@ import { FlashMessage } from "@/Components/Notifications";
 import DayScheduleCard from "./_components/DayScheduleCard";
 import ErrorMessage from "./_components/ErrorMessage";
 // Icons
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+    PlusIcon,
+    ArrowLeftIcon,
+    FunnelIcon,
+    XMarkIcon,
+} from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
@@ -42,6 +47,18 @@ export default function DefaultSchedule({ auth, schedules }) {
     };
 
     // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.defaults.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.schedules.index"),
+        },
+    ];
+
+    // ========================================
     // Constants - Header Actions & Breadcrumbs
     // ========================================
     const breadcrumbs = [
@@ -55,6 +72,7 @@ export default function DefaultSchedule({ auth, schedules }) {
                 <PageHeader
                     title={PageConfig.defaults.title}
                     description={PageConfig.defaults.description}
+                    actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }

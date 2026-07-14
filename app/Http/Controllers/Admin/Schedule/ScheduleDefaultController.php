@@ -32,7 +32,7 @@ class ScheduleDefaultController extends Controller
         // 表示期間を取得（デフォルトは今月）
         $year = $request->input('year', now()->year);
         $month = $request->input('month', now()->month);
-        
+
         $startDate = Carbon::create($year, $month, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
@@ -153,7 +153,7 @@ class ScheduleDefaultController extends Controller
             }
         }
 
-        return Inertia::render('Admin/Schedules/Defaults/Index', [
+        return Inertia::render('Admin/ScheduleDefaults/Index', [
             'schedules' => $weekSchedules,
         ]);
     }

@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-// Components
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
@@ -77,7 +76,7 @@ const PageTypesTable = ({ pageTypes, onDelete }) => {
                                     <div className="flex items-center justify-end space-x-2">
                                         <Link
                                             href={route(
-                                                "admin.website.page-type.show",
+                                                "admin.website.page.type.show",
                                                 pageType.id,
                                             )}
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
@@ -87,7 +86,7 @@ const PageTypesTable = ({ pageTypes, onDelete }) => {
                                         </Link>
                                         <Link
                                             href={route(
-                                                "admin.website.page-type.edit",
+                                                "admin.website.page.type.edit",
                                                 pageType.id,
                                             )}
                                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"

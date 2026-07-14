@@ -54,7 +54,7 @@ class ServiceItemController extends Controller
             $services = $this->serviceService->getActiveForSelect();
             $servicePlans = $this->servicePlanService->getActiveForSelect();
 
-            return Inertia::render('Admin/Service/ServiceItems/Index', [
+            return Inertia::render('Admin/ServiceItems/Index', [
                 'serviceItems' => $serviceItems,
                 'statuses' => $statuses,
                 'itemTypes' => $itemTypes,
@@ -64,7 +64,7 @@ class ServiceItemController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServiceItem index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/ServiceItems/Index', [
+            return Inertia::render('Admin/ServiceItems/Index', [
                 'serviceItems' => ['data' => []],
                 'statuses' => [],
                 'itemTypes' => [],
@@ -85,7 +85,7 @@ class ServiceItemController extends Controller
         $itemTypes = $this->serviceItemService->getItemTypes();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServiceItems/Create', [
+        return Inertia::render('Admin/ServiceItems/Create', [
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,
             'services' => $services,
@@ -116,7 +116,7 @@ class ServiceItemController extends Controller
      */
     public function show(ServiceItem $serviceItem): Response
     {
-        return Inertia::render('Admin/Service/ServiceItems/Show', [
+        return Inertia::render('Admin/ServiceItems/Show', [
             'serviceItem' => $serviceItem->load(['service.serviceCategory', 'servicePlans', 'creator', 'updater']),
         ]);
     }
@@ -130,7 +130,7 @@ class ServiceItemController extends Controller
         $itemTypes = $this->serviceItemService->getItemTypes();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServiceItems/Edit', [
+        return Inertia::render('Admin/ServiceItems/Edit', [
             'serviceItem' => $serviceItem,
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,

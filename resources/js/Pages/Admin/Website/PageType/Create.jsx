@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// PageType Components
 import PageTypeForm from "./_components/PageTypeForm";
-// Validation
 import * as validation from "./_components/validation";
 
 export default function Create() {

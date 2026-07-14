@@ -13,14 +13,9 @@ import {
     XCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const ContactCategoryTable = ({ categories }) => {
+const ContactCategoryTable = ({ categories, onDelete }) => {
     const [isDeleting, setIsDeleting] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-
-    const handleDeleteClick = (category) => {
-        setDeleteTarget(category);
-        setIsDeleting(category.id);
-    };
 
     const handleCancelDelete = () => {
         setDeleteTarget(null);
@@ -116,18 +111,19 @@ const ContactCategoryTable = ({ categories }) => {
                                             >
                                                 <PencilIcon className="h-5 w-5" />
                                             </TextButton>
-                                            <DeleteButton
+                                            <TextButton
                                                 onClick={() =>
-                                                    handleDeleteClick(category)
+                                                    onDelete(category)
                                                 }
                                                 disabled={
                                                     isDeleting === category.id
                                                 }
+                                                variant="danger"
                                                 title="削除"
                                                 size="sm"
                                             >
                                                 <TrashIcon className="h-5 w-5" />
-                                            </DeleteButton>
+                                            </TextButton>
                                         </div>
                                     </Td>
                                 </Tr>

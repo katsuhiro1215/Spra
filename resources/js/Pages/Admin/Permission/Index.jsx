@@ -6,6 +6,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { TextInput, Checkbox } from "@/Components/Forms";
+import { Table, THead, TBody, Tr, Td, Th } from "@/Components/Tables";
 import { PrimaryButton } from "@/Components/Buttons";
 // Icons
 import { CheckIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
@@ -78,9 +79,7 @@ export default function Index({ permissionGroups, roles }) {
                                 <MagnifyingGlassIcon className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <TextInput
                                     value={search}
-                                    onChange={(e) =>
-                                        setSearch(e.target.value)
-                                    }
+                                    onChange={(e) => setSearch(e.target.value)}
                                     placeholder="画面名・権限名で検索..."
                                     className="pl-9 w-full"
                                 />
@@ -92,48 +91,45 @@ export default function Index({ permissionGroups, roles }) {
                             オーナー・スーパー管理者は常に全権限を保持します（変更不可）。管理者・編集者の権限のみここで調整できます。
                         </p>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-500 dark:text-gray-400">
-                                        <th className="py-2 pr-4">画面 / 操作</th>
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        <Th>画面 / 操作</Th>
                                         {roleOrder.map((role) => (
-                                            <th
-                                                key={role}
-                                                className="py-2 px-3 text-center whitespace-nowrap"
-                                            >
+                                            <Th key={role}>
                                                 {roles[role]?.label}
-                                            </th>
+                                            </Th>
                                         ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
+                                    </Tr>
+                                </THead>
+                                <TBody>
                                     {filteredGroups.map((group) => (
                                         <React.Fragment key={group.group}>
-                                            <tr className="bg-gray-50 dark:bg-gray-800/60">
-                                                <td
+                                            <Tr className="bg-gray-50 dark:bg-gray-800/60">
+                                                <Td
                                                     colSpan={
                                                         roleOrder.length + 1
                                                     }
                                                     className="py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-200"
                                                 >
                                                     {group.group}
-                                                </td>
-                                            </tr>
+                                                </Td>
+                                            </Tr>
                                             {group.permissions.map((perm) => (
-                                                <tr
+                                                <Tr
                                                     key={perm.id}
                                                     className="border-b border-gray-100 dark:border-gray-800"
                                                 >
-                                                    <td className="py-2 pr-4">
+                                                    <Td className="py-2 pr-4">
                                                         <div className="text-gray-800 dark:text-gray-100">
                                                             {perm.actionLabel}
                                                         </div>
                                                         <div className="text-xs text-gray-400">
                                                             {perm.name}
                                                         </div>
-                                                    </td>
+                                                    </Td>
                                                     {roleOrder.map((role) => (
-                                                        <td
+                                                        <Td
                                                             key={role}
                                                             className="py-2 px-3 text-center"
                                                         >
@@ -162,24 +158,21 @@ export default function Index({ permissionGroups, roles }) {
                                                                     disabled
                                                                 />
                                                             )}
-                                                        </td>
+                                                        </Td>
                                                     ))}
-                                                </tr>
+                                                </Tr>
                                             ))}
                                         </React.Fragment>
                                     ))}
                                     {filteredGroups.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={roleOrder.length + 1}
-                                                className="py-6 text-center text-gray-400"
-                                            >
+                                        <Tr>
+                                            <Td colSpan={roleOrder.length + 1}>
                                                 該当する権限が見つかりませんでした。
-                                            </td>
-                                        </tr>
+                                            </Td>
+                                        </Tr>
                                     )}
-                                </tbody>
-                            </table>
+                                </TBody>
+                            </Table>
                         </div>
                     </CardBody>
                 </Card>

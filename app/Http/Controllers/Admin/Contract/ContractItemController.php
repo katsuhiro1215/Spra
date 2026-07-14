@@ -104,7 +104,7 @@ class ContractItemController extends Controller
             })->toArray();
         }
 
-        return Inertia::render('Admin/Contracts/ContractItems/Create', [
+        return Inertia::render('Admin/ContractItems/Create', [
             'contract' => $contract,
             'serviceCategories' => $serviceCategories,
             'services' => $services,
@@ -282,7 +282,7 @@ class ContractItemController extends Controller
             })->toArray();
         }
 
-        return Inertia::render('Admin/Contracts/ContractItems/Edit', [
+        return Inertia::render('Admin/ContractItems/Edit', [
             'contract' => $contract,
             'items' => $items,
             'serviceCategories' => $serviceCategories,

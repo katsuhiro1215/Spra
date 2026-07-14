@@ -4,6 +4,8 @@ import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
 import { Badge } from "@/Components/Badges";
 import { IconButton } from "@/Components/Buttons";
+// Constants
+import { getRoleBadge } from "@/Constants/Badges";
 // Icons
 import {
     ArrowLeftIcon,
@@ -39,6 +41,41 @@ export default function AdminBasicInfo({ admin }) {
     return (
         <div className="space-y-6">
             {/* 基本情報 */}
+            <Card>
+                <CardHeader className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <UserCircleIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            基本情報
+                        </span>
+                    </div>
+                    <IconButton
+                        icon={PencilIcon}
+                        variant="warning"
+                        href={route("admin.admin.edit", admin.id)}
+                    />
+                </CardHeader>
+                <CardBody>
+                    <Dl variant="striped">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+                            <Dt className="font-medium">メールアドレス</Dt>
+                            <Dd className="sm:col-span-2">{admin.email}</Dd>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+                            <Dt className="font-medium">ロール</Dt>
+                            <Dd className="sm:col-span-2">
+                                <Badge
+                                    variant={getRoleBadge(admin.role).variant}
+                                    size="sm"
+                                >
+                                    {getRoleBadge(admin.role).text}
+                                </Badge>
+                            </Dd>
+                        </div>
+                    </Dl>
+                </CardBody>
+            </Card>
+
             {/* プロフィールセクション */}
             <Card>
                 <CardHeader className="flex justify-between items-center">
@@ -167,13 +204,11 @@ export default function AdminBasicInfo({ admin }) {
                             住所情報
                         </span>
                     </div>
-                    <Link
+                    <IconButton
+                        icon={PlusIcon}
+                        variant="indigo"
                         href={route("admin.admin.address.create", admin.id)}
-                        className="p-1.5 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
-                        title="追加"
-                    >
-                        <PlusIcon className="h-5 w-5" />
-                    </Link>
+                    />
                 </CardHeader>
                 <CardBody>
                     {admin.addresses && admin.addresses.length > 0 ? (

@@ -356,6 +356,7 @@ export const PageConfig = {
         documentTitle: "デフォルトスケジュール設定",
         breadcrumbs: ["ホーム", "デフォルトスケジュール管理"],
         actions: {
+            ...CommonUIConstants.actions,
             save: "保存",
         },
         labels: {
@@ -826,12 +827,27 @@ export const PageConfig = {
         ui: createIndexPageUITemplates("カテゴリ", "カテゴリ名で検索..."),
     },
 
+    // 返信テンプレート管理
+    responseTemplates: {
+        title: "📄 返信テンプレート管理",
+        description: "お問い合わせの返信テンプレートを管理します",
+        documentTitle: "返信テンプレート管理",
+        breadcrumbs: ["ホーム", "お問い合わせ", "返信テンプレート"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("返信テンプレート"),
+        search: createSearchTemplate("返信テンプレート"),
+        ui: createIndexPageUITemplates("返信テンプレート", "返信テンプレート名で検索..."),
+    },
+
     /**
      * お問い合わせAPI連携クライアント管理
      */
     contactApiClients: {
         title: "🔌 API連携設定",
-        description: "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
+        description:
+            "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
         documentTitle: "API連携設定",
         breadcrumbs: ["ホーム", "お問い合わせ", "API連携設定"],
         actions: {

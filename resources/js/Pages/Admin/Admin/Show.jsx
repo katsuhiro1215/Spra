@@ -142,12 +142,6 @@ export default function Show({
             variant: "ghost",
             route: route("admin.admin.index"),
         },
-        {
-            label: PageConfig.admins.actions.edit,
-            icon: PencilIcon,
-            variant: "warning",
-            route: route("admin.admin.edit", admin.id),
-        },
     ];
 
     // ========================================
@@ -295,15 +289,14 @@ export default function Show({
                 </Card>
                 {/* 右カラム: プロフィールと住所 */}
                 <div className="sm:col-span-2 lg:col-span-3 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow">
-                        <TabNavigation
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onChange={setActiveTab}
-                        />
-                        {/* タブコンテンツ */}
-                        <div className="p-6">{renderTabContent()}</div>
-                    </div>
+                    <TabNavigation
+                        tabs={tabs}
+                        activeTab={activeTab}
+                        onChange={setActiveTab}
+                    />
+                    {/* タブコンテンツ */}
+
+                    <div className="flex flex-col">{renderTabContent()}</div>
                 </div>
             </div>
             {/* メディア選択モーダル */}

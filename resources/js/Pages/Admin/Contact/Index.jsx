@@ -226,95 +226,91 @@ export default function Index({
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* 検索バー + フィルタートグル + エクスポート */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder="名前、メール、会社名、件名で検索..."
-                                    disabled={processing}
-                                />
-                            </div>
+                {/* 検索バー + フィルタートグル + エクスポート */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* 検索バー */}
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) =>
+                                setData("search", value)
+                            }
+                            onSearch={handleSearch}
+                            placeholder="名前、メール、会社名、件名で検索..."
+                            disabled={processing}
+                        />
+                    </div>
 
-                            {/* フィルター・エクスポートボタン */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium transition-colors ${
-                                        hasActiveFilters
-                                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-400"
-                                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
-                                    }`}
+                    {/* フィルター・エクスポートボタン */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium transition-colors ${
+                                hasActiveFilters
+                                    ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-400"
+                                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                            }`}
+                        >
+                            <FunnelIcon className="h-4 w-4 mr-2" />
+                            フィルター
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </button>
+
+                        <SecondaryButton onClick={handleExport}>
+                            <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                            エクスポート
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* フィルター展開エリア */}
+                {showFilters && (
+                    <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FilterSelect
+                                label="ステータス"
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={statusOptions}
+                            />
+                            <FilterSelect
+                                label="カテゴリ"
+                                value={data.category}
+                                onChange={(value) =>
+                                    setData("category", value)
+                                }
+                                options={categoryOptions}
+                            />
+                            <FilterSelect
+                                label="流入元"
+                                value={data.source}
+                                onChange={(value) =>
+                                    setData("source", value)
+                                }
+                                options={sourceOptions}
+                            />
+                            {/* フィルタークリアボタン */}
+                            <div className="flex items-end">
+                                <SecondaryButton
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    className="w-full"
                                 >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    フィルター
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </button>
-
-                                <SecondaryButton onClick={handleExport}>
-                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                                    エクスポート
+                                    <XMarkIcon className="h-4 w-4 mr-1" />
+                                    フィルターをクリア
                                 </SecondaryButton>
                             </div>
                         </div>
-
-                        {/* フィルター展開エリア */}
-                        {showFilters && (
-                            <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    <FilterSelect
-                                        label="ステータス"
-                                        value={data.status}
-                                        onChange={(value) =>
-                                            setData("status", value)
-                                        }
-                                        options={statusOptions}
-                                    />
-                                    <FilterSelect
-                                        label="カテゴリ"
-                                        value={data.category}
-                                        onChange={(value) =>
-                                            setData("category", value)
-                                        }
-                                        options={categoryOptions}
-                                    />
-                                    <FilterSelect
-                                        label="流入元"
-                                        value={data.source}
-                                        onChange={(value) =>
-                                            setData("source", value)
-                                        }
-                                        options={sourceOptions}
-                                    />
-                                    {/* フィルタークリアボタン */}
-                                    <div className="flex items-end">
-                                        <SecondaryButton
-                                            onClick={handleClearFilters}
-                                            disabled={!hasActiveFilters}
-                                            size="md"
-                                            className="w-full"
-                                        >
-                                            <XMarkIcon className="h-4 w-4 mr-1" />
-                                            フィルターをクリア
-                                        </SecondaryButton>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </Card>
+                )}
 
                 {/* 統計情報 */}
                 <div className="grid grid-cols-5 gap-4">

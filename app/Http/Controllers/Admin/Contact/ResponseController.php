@@ -38,7 +38,7 @@ class ResponseController extends Controller
             $request->get('per_page', 20)
         );
 
-        return Inertia::render('Admin/Contact/Response/Index', [
+        return Inertia::render('Admin/Responses/Index', [
             'responses' => $responses,
             'filters' => $filters,
         ]);
@@ -51,7 +51,7 @@ class ResponseController extends Controller
     {
         $templates = $this->responseTemplateService->getActive();
 
-        return Inertia::render('Admin/Contact/Response/Create', [
+        return Inertia::render('Admin/Responses/Create', [
             'contact' => $contact,
             'templates' => $templates,
             'categories' => $this->responseTemplateService->getCategories(),
@@ -108,7 +108,7 @@ class ResponseController extends Controller
 
         $templates = $this->responseTemplateService->getActive();
 
-        return Inertia::render('Admin/Contact/Response/Edit', [
+        return Inertia::render('Admin/Responses/Edit', [
             'contact' => $contact,
             'response' => $response,
             'templates' => $templates,

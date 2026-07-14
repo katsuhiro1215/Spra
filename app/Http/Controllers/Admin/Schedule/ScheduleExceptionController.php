@@ -60,7 +60,7 @@ class ScheduleExceptionController extends Controller
             $availableYears = [(int)date('Y')];
         }
 
-        return Inertia::render('Admin/Schedules/Exceptions/Index', [
+        return Inertia::render('Admin/ScheduleExceptions/Index', [
             'exceptions' => $exceptions,
             'filters' => $filters,
             'availableYears' => $availableYears,
@@ -72,7 +72,7 @@ class ScheduleExceptionController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Schedules/Exceptions/Create');
+        return Inertia::render('Admin/ScheduleExceptions/Create');
     }
 
     /**
@@ -97,7 +97,7 @@ class ScheduleExceptionController extends Controller
      */
     public function show(ScheduleException $exception): Response
     {
-        return Inertia::render('Admin/Schedules/Exceptions/Show', [
+        return Inertia::render('Admin/ScheduleExceptions/Show', [
             'exception' => $exception,
         ]);
     }
@@ -107,7 +107,7 @@ class ScheduleExceptionController extends Controller
      */
     public function edit(ScheduleException $exception): Response
     {
-        return Inertia::render('Admin/Schedules/Exceptions/Edit', [
+        return Inertia::render('Admin/ScheduleExceptions/Edit', [
             'exception' => $exception,
         ]);
     }

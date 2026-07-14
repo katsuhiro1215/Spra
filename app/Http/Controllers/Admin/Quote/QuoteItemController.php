@@ -82,7 +82,7 @@ class QuoteItemController extends Controller
                 ];
             });
 
-        return Inertia::render('Admin/Quotes/QuoteItems/Create', [
+        return Inertia::render('Admin/QuoteItems/Create', [
             'quote' => $quote,
             'serviceCategories' => $serviceCategories,
             'services' => $services,
@@ -229,7 +229,7 @@ class QuoteItemController extends Controller
                 ];
             })->toArray() : [];
 
-        return Inertia::render('Admin/Quotes/QuoteItems/Edit', [
+        return Inertia::render('Admin/QuoteItems/Edit', [
             'quote' => $quote,
             'items' => $items,
             'serviceCategories' => $serviceCategories,

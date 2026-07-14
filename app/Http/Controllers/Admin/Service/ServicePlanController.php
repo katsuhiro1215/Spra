@@ -36,7 +36,7 @@ class ServicePlanController extends Controller
             $billingCycles = $this->servicePlanService->getBillingCycles();
             $services = $this->serviceService->getActiveForSelect();
 
-            return Inertia::render('Admin/Service/ServicePlans/Index', [
+            return Inertia::render('Admin/ServicePlans/Index', [
                 'servicePlans' => $servicePlans,
                 'statuses' => $statuses,
                 'billingCycles' => $billingCycles,
@@ -46,7 +46,7 @@ class ServicePlanController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServicePlan index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/ServicePlans/Index', [
+            return Inertia::render('Admin/ServicePlans/Index', [
                 'servicePlans' => [],
                 'statuses' => [],
                 'billingCycles' => [],
@@ -67,7 +67,7 @@ class ServicePlanController extends Controller
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServicePlans/Create', [
+        return Inertia::render('Admin/ServicePlans/Create', [
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
             'services' => $services,
@@ -100,7 +100,7 @@ class ServicePlanController extends Controller
      */
     public function show(ServicePlan $servicePlan): Response
     {
-        return Inertia::render('Admin/Service/ServicePlans/Show', [
+        return Inertia::render('Admin/ServicePlans/Show', [
             'servicePlan' => $servicePlan->load([
                 'service.serviceCategory',
                 'servicePlanItems.serviceItem',
@@ -119,7 +119,7 @@ class ServicePlanController extends Controller
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServicePlans/Edit', [
+        return Inertia::render('Admin/ServicePlans/Edit', [
             'servicePlan' => $servicePlan,
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,

@@ -44,12 +44,10 @@ use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 use App\Http\Controllers\Admin\Project\GanttChartController;
 
 use App\Http\Controllers\Admin\Quote\QuoteController;
-use App\Http\Controllers\Admin\Quote\QuoteVersionController;
 use App\Http\Controllers\Admin\Quote\QuoteItemController;
 use App\Http\Controllers\Admin\Quote\QuoteResponseController;
 
 use App\Http\Controllers\Admin\Contract\ContractController;
-use App\Http\Controllers\Admin\Contract\ContractVersionController;
 use App\Http\Controllers\Admin\Contract\ContractItemController;
 use App\Http\Controllers\Admin\Contract\ContractSignatureController;
 use App\Http\Controllers\Admin\Contract\ContractGroupController;

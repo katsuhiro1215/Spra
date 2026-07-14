@@ -77,7 +77,7 @@ export default function Index({ quotes, filters, stats, statuses }) {
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
@@ -88,11 +88,6 @@ export default function Index({ quotes, filters, stats, statuses }) {
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: null },
-    ];
-
     return (
         <AdminAuthenticatedLayout
             header={
@@ -100,7 +95,7 @@ export default function Index({ quotes, filters, stats, statuses }) {
                     title={PageConfig.quotes.title}
                     description={PageConfig.quotes.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.quotes.breadcrumbs}
                 />
             }
         >

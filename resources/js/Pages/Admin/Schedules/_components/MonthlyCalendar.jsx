@@ -162,7 +162,7 @@ export default function MonthlyCalendar({
                                 )}
                                 {day.hours && day.hours.open_time && (
                                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                                        {day.hours.open_time} -{" "}
+                                        営業: {day.hours.open_time} -{" "}
                                         {day.hours.close_time}
                                     </div>
                                 )}

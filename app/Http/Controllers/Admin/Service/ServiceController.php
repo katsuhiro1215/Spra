@@ -41,7 +41,7 @@ class ServiceController extends Controller
 
         $stats = $this->serviceService->getStats();
 
-        return Inertia::render('Admin/Service/Index', [
+        return Inertia::render('Admin/Services/Index', [
             'services' => $services,
             'statuses' => $statuses,
             'categories' => $categories,
@@ -59,7 +59,7 @@ class ServiceController extends Controller
         $statuses = $this->serviceService->getStatuses();
         $categories = $this->serviceCategoryService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/Create', [
+        return Inertia::render('Admin/Services/Create', [
             'statuses' => $statuses,
             'categories' => $categories,
             'technologies' => $this->technologyService->getActiveForSelect(),
@@ -100,7 +100,7 @@ class ServiceController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return Inertia::render('Admin/Service/Show', [
+        return Inertia::render('Admin/Services/Show', [
             'service' => $service->load([
                 'serviceCategory',
                 'creator',
@@ -123,7 +123,7 @@ class ServiceController extends Controller
         $categories = $this->serviceCategoryService->getActiveForSelect();
         $service->load(['media', 'technologies']);
 
-        return Inertia::render('Admin/Service/Edit', [
+        return Inertia::render('Admin/Services/Edit', [
             'service' => $service,
             'statuses' => $statuses,
             'categories' => $categories,

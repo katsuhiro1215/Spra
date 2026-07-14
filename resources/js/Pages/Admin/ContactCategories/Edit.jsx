@@ -2,19 +2,14 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
-import { PlusIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
-import Form from "./_components/Form";
+import CategoryForm from "./_components/Form";
 
-export default function Create() {
-    const breadcrumbs = [
-        ...PageConfig.contactCategories.breadcrumbs,
-        {
-            label: "新規作成",
-            route: route("admin.contact.category.create"),
-        },
-    ];
-
+export default function Edit({ category }) {
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
     const headerActions = [
         {
             label: PageConfig.contactCategories.actions.back,
@@ -24,21 +19,29 @@ export default function Create() {
         },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.contactCategories.breadcrumbs,
+        PageConfig.contactCategories.pages.edit.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="新しいカテゴリを作成"
+                    title={`カテゴリを編集: ${category.name}`}
                     description={PageConfig.contactCategories.description}
                     breadcrumbs={breadcrumbs}
                     actions={headerActions}
                 />
             }
         >
-            <Head title="カテゴリを作成 - お問い合わせ管理" />
+            <Head title={`カテゴリを編集 - ${category.name}`} />
 
-            <div className="max-w-2xl">
-                <Form />
+            <div className="max-w-4xl">
+                <CategoryForm category={category} isEditing={true} />
             </div>
         </AdminAuthenticatedLayout>
     );

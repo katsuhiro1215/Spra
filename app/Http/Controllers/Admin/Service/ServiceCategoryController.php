@@ -33,7 +33,7 @@ class ServiceCategoryController extends Controller
             $statuses = $this->serviceCategoryService->getStatuses();
             $stats = $this->serviceCategoryService->getServiceCategoryStats();
 
-            return Inertia::render('Admin/Service/Category/Index', [
+            return Inertia::render('Admin/ServiceCategories/Index', [
                 'serviceCategories' => $serviceCategories,
                 'statuses' => $statuses,
                 'filters' => $filters,
@@ -42,7 +42,7 @@ class ServiceCategoryController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServiceCategory index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/Category/Index', [
+            return Inertia::render('Admin/ServiceCategories/Index', [
                 'serviceCategories' => [],
                 'statuses' => [],
                 'filters' => [],
@@ -87,7 +87,7 @@ class ServiceCategoryController extends Controller
      */
     public function show(ServiceCategory $serviceCategory): Response
     {
-        return Inertia::render('Admin/Service/Category/Show', [
+        return Inertia::render('Admin/ServiceCategories/Show', [
             'serviceCategory' => $serviceCategory->load(['creator', 'updater']),
             'servicesCount' => $serviceCategory->services()->count(),
         ]);
@@ -100,7 +100,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Category/Edit', [
+        return Inertia::render('Admin/ServiceCategories/Edit', [
             'serviceCategory' => $serviceCategory,
             'statuses' => $statuses,
         ]);

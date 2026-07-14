@@ -35,7 +35,7 @@ class QuoteResponseController extends Controller
 
         $quoteResponses = $this->quoteResponseService->getPaginated($filters, $sort, $request->get('per_page', 20));
 
-        return Inertia::render('Admin/Quotes/QuoteResponse/Index', [
+        return Inertia::render('Admin/QuoteResponses/Index', [
             'quoteResponses' => $quoteResponses,
             'filters' => $filters,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,
@@ -65,7 +65,7 @@ class QuoteResponseController extends Controller
             $quoteResponse->load(['user.profile', 'user.companies', 'company.addresses']);
         }
 
-        return Inertia::render('Admin/Quotes/QuoteResponse/Show', [
+        return Inertia::render('Admin/QuoteResponses/Show', [
             'quoteResponse' => $quoteResponse,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,
         ]);

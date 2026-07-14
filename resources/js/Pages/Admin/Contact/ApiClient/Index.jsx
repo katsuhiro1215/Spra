@@ -1,19 +1,15 @@
 import React from "react";
 import { Head, usePage, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-import SearchBar from "@/Components/SearchBar";
-// Icons
-import { PlusIcon } from "@heroicons/react/24/outline";
-// Constants
-import { PageConfig } from "@/Constants/PageConfig";
-// Components
-import ApiClientTable from "./_components/ApiClientTable";
 import SnippetBox from "./_components/SnippetBox";
+import SearchBar from "@/Components/SearchBar";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
+import ApiClientTable from "./_components/ApiClientTable";
 
 export default function Index({ clients = {}, filters = {}, stats = {} }) {
     const { flash } = usePage().props;
@@ -28,6 +24,9 @@ export default function Index({ clients = {}, filters = {}, stats = {} }) {
         });
     };
 
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
     const headerActions = [
         {
             label: PageConfig.contactApiClients.actions.create,
@@ -56,28 +55,22 @@ export default function Index({ clients = {}, filters = {}, stats = {} }) {
                 {flash?.apiKeyReveal && (
                     <SnippetBox
                         reveal={flash.apiKeyReveal}
-                        onClose={() =>
-                            router.reload({ only: ["clients"] })
-                        }
+                        onClose={() => router.reload({ only: ["clients"] })}
                     />
                 )}
 
-                <Card>
-                    <div className="p-4">
-                        <div className="max-w-md">
-                            <SearchBar
-                                value={data.search}
-                                onChange={(value) => setData("search", value)}
-                                onSearch={handleSearch}
-                                placeholder={
-                                    PageConfig.contactApiClients.search
-                                        .placeholder
-                                }
-                                disabled={processing}
-                            />
-                        </div>
-                    </div>
-                </Card>
+                <div className="max-w-md">
+                    <SearchBar
+                        value={data.search}
+                        onChange={(value) => setData("search", value)}
+                        onSearch={handleSearch}
+                        placeholder={
+                            PageConfig.contactApiClients.search
+                                .placeholder
+                        }
+                        disabled={processing}
+                    />
+                </div>
 
                 <div className="grid grid-cols-3 gap-4">
                     <Card>

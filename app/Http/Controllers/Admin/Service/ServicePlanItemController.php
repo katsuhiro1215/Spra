@@ -27,7 +27,7 @@ class ServicePlanItemController extends Controller
             ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
             ->toArray();
 
-        return Inertia::render('Admin/Service/ServicePlanItem/Create', [
+        return Inertia::render('Admin/ServicePlanItem/Create', [
             'servicePlan' => $servicePlan->load(['service'])->toArray(),
             'available_items' => $available_items,
         ]);
@@ -106,7 +106,7 @@ class ServicePlanItemController extends Controller
         // servicePlanを配列化して必要なフィールドを明示的に含める
         $servicePlan->load(['service']);
 
-        return Inertia::render('Admin/Service/ServicePlanItem/Edit', [
+        return Inertia::render('Admin/ServicePlanItem/Edit', [
             'servicePlan' => $servicePlan->toArray(),
             'servicePlanItems' => $servicePlanItems,
             'available_items' => $available_items,

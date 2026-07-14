@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { DeleteAlert } from "@/Components/Alerts";
@@ -209,77 +208,73 @@ export default function ExceptionsIndex({
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder="理由で検索..."
-                                    disabled={processing}
-                                />
-                            </div>
+                {/* 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* 検索バー */}
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) =>
+                                setData("search", value)
+                            }
+                            onSearch={handleSearch}
+                            placeholder="理由で検索..."
+                            disabled={processing}
+                        />
+                    </div>
 
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
-                                <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    icon={FunnelIcon}
-                                >
-                                    フィルター
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </SecondaryButton>
+                    {/* フィルタートグルボタン */}
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            icon={FunnelIcon}
+                        >
+                            フィルター
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* 詳細フィルター（折りたたみ可能） */}
+                {showFilters && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <FilterSelect
+                                label="年"
+                                value={data.year}
+                                onChange={(value) =>
+                                    setData("year", value)
+                                }
+                                options={yearOptions}
+                                placeholder="すべての年"
+                            />
+                            <FilterSelect
+                                label="営業状態"
+                                value={data.is_open}
+                                onChange={(value) =>
+                                    setData("is_open", value)
+                                }
+                                options={isOpenOptions}
+                                placeholder="すべて"
+                            />
+                            <div className="flex items-end">
+                                {hasActiveFilters && (
+                                    <SecondaryButton
+                                        onClick={handleClearFilters}
+                                        icon={XMarkIcon}
+                                        className="w-full"
+                                    >
+                                        フィルタークリア
+                                    </SecondaryButton>
+                                )}
                             </div>
                         </div>
-
-                        {/* 詳細フィルター（折りたたみ可能） */}
-                        {showFilters && (
-                            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <FilterSelect
-                                        label="年"
-                                        value={data.year}
-                                        onChange={(value) =>
-                                            setData("year", value)
-                                        }
-                                        options={yearOptions}
-                                        placeholder="すべての年"
-                                    />
-                                    <FilterSelect
-                                        label="営業状態"
-                                        value={data.is_open}
-                                        onChange={(value) =>
-                                            setData("is_open", value)
-                                        }
-                                        options={isOpenOptions}
-                                        placeholder="すべて"
-                                    />
-                                    <div className="flex items-end">
-                                        {hasActiveFilters && (
-                                            <SecondaryButton
-                                                onClick={handleClearFilters}
-                                                icon={XMarkIcon}
-                                                className="w-full"
-                                            >
-                                                フィルタークリア
-                                            </SecondaryButton>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </Card>
+                )}
 
                 {/* 例外日一覧テーブル */}
                 {exceptions.length > 0 ? (

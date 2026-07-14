@@ -51,7 +51,7 @@ class HolidayController extends Controller
             $availableYears = [(int)date('Y')];
         }
 
-        return Inertia::render('Admin/Schedules/Holidays/Index', [
+        return Inertia::render('Admin/Holidays/Index', [
             'holidays' => $holidays,
             'filters' => $filters,
             'sort' => $sort,
@@ -64,7 +64,7 @@ class HolidayController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Schedules/Holidays/Create');
+        return Inertia::render('Admin/Holidays/Create');
     }
 
     /**
@@ -120,7 +120,7 @@ class HolidayController extends Controller
             }
 
             if (!empty($result['errors'])) {
-                return redirect()->route('owner.holidays.index')
+                return redirect()->route('admin.holidays.index')
                     ->with('warning', $message)
                     ->with('import_errors', $result['errors']);
             }
@@ -138,7 +138,7 @@ class HolidayController extends Controller
      */
     public function edit(Holiday $holiday): Response
     {
-        return Inertia::render('Admin/Schedules/Holidays/Edit', [
+        return Inertia::render('Admin/Holidays/Edit', [
             'holiday' => $holiday,
         ]);
     }

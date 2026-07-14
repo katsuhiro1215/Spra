@@ -38,7 +38,7 @@ class ResponseTemplateController extends Controller
             $request->input('per_page', 20)
         );
 
-        return Inertia::render('Admin/Contact/Template/Index', [
+        return Inertia::render('Admin/Responses/Template/Index', [
             'templates' => $templates,
             'filters' => $filters,
             'sort' => $sort,
@@ -52,7 +52,7 @@ class ResponseTemplateController extends Controller
      */
     public function create(): InertiaResponse
     {
-        return Inertia::render('Admin/Contact/Template/Create', [
+        return Inertia::render('Admin/Responses/Template/Create', [
             'categories' => $this->responseTemplateService->getCategories(),
             'statuses' => $this->responseTemplateService->getStatuses(),
             'placeholders' => $this->responseTemplateService->getAvailablePlaceholders(),
@@ -86,7 +86,7 @@ class ResponseTemplateController extends Controller
     {
         $responseTemplate->load(['creator', 'updater']);
 
-        return Inertia::render('Admin/Contact/Template/Show', [
+        return Inertia::render('Admin/Responses/Template/Show', [
             'template' => $responseTemplate,
             'placeholders' => $this->responseTemplateService->getAvailablePlaceholders(),
         ]);
@@ -97,7 +97,7 @@ class ResponseTemplateController extends Controller
      */
     public function edit(ResponseTemplate $responseTemplate): InertiaResponse
     {
-        return Inertia::render('Admin/Contact/Template/Edit', [
+        return Inertia::render('Admin/Responses/Template/Edit', [
             'template' => $responseTemplate,
             'categories' => $this->responseTemplateService->getCategories(),
             'statuses' => $this->responseTemplateService->getStatuses(),
