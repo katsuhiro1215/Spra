@@ -12,7 +12,7 @@ import { CommonUIConstants } from "@/Constants/CommonUIConstants";
 // Service Components
 import ServiceForm from "./_components/Form";
 
-export default function Edit({ service, categories }) {
+export default function Edit({ service, categories, technologies, mediaList }) {
     const { data, setData, put, processing, errors } = useForm({
         name: service.name || "",
         slug: service.slug || "",
@@ -22,7 +22,15 @@ export default function Edit({ service, categories }) {
         icon: service.icon || "",
         sort_order: service.sort_order || 0,
         status: service.status || "active",
+        is_displayed: service.is_displayed ?? true,
         is_featured: service.is_featured || false,
+        media_ids: (service.media || [])
+            .slice()
+            .sort((a, b) => (a.pivot?.sort_order ?? 0) - (b.pivot?.sort_order ?? 0))
+            .map((media) => media.id),
+        technology_ids: (service.technologies || []).map(
+            (technology) => technology.id,
+        ),
     });
 
     const submit = () => {
@@ -71,6 +79,16 @@ export default function Edit({ service, categories }) {
                     onSubmit={submit}
                     cancelRoute={route("admin.service.show", service.id)}
                     categories={categories}
+                    technologies={technologies}
+                    mediaList={[
+                        ...(service.media || []),
+                        ...mediaList.filter(
+                            (media) =>
+                                !(service.media || []).some(
+                                    (attached) => attached.id === media.id,
+                                ),
+                        ),
+                    ]}
                     isEdit={true}
                 />
             </div>

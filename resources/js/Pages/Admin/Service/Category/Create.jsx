@@ -21,6 +21,7 @@ export default function Create() {
         icon: "",
         sort_order: CommonUIConstants.serviceCategory.defaults.sortOrder,
         status: CommonUIConstants.serviceCategory.defaults.status,
+        is_displayed: true,
     });
 
     const submit = () => {

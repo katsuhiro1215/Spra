@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'admin' => $admin,
+                'adminPermissions' => fn() => $admin ? $admin->getEffectivePermissionNames() : [],
             ],
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),

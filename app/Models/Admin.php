@@ -11,10 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Traits\HasRoles;
+use Spatie\Permission\Models\Permission;
 
 class Admin extends Authenticatable
 {
-    use HasUuid, HasFactory, Notifiable, SoftDeletes;
+    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * idの型を指定(UUID対応)
@@ -64,10 +67,16 @@ class Admin extends Authenticatable
     }
 
     public const ROLES = [
+        'owner'       => 'オーナー',
         'super_admin' => 'スーパー管理者',
         'admin'       => '管理者',
         'editor'      => '編集者',
     ];
+
+    /**
+     * 個別制限をかけられるロール（owner/super_adminは常にフルアクセスのため対象外）
+     */
+    public const RESTRICTABLE_ROLES = ['admin', 'editor'];
 
     public const STATUSES = [
         'active'    => '有効',
@@ -75,9 +84,29 @@ class Admin extends Authenticatable
         'suspended' => '停止中',
     ];
 
+    /**
+     * role カラムの値を常に Spatie の Role 割当と同期する
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (self $admin) {
+            if ($admin->wasRecentlyCreated || $admin->wasChanged('role')) {
+                $admin->syncRoles([$admin->role]);
+            }
+        });
+    }
+
     // -------------------------
     // Relationships
     // -------------------------
+
+    /**
+     * このAdmin個人に対して追加で剥奪されている権限（ロールが本来許可していても無効化される）
+     */
+    public function restrictedPermissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'admin_permission_restrictions');
+    }
 
     public function profile(): MorphOne
     {
@@ -154,6 +183,50 @@ class Admin extends Authenticatable
     public function getRoleNameAttribute(): string
     {
         return self::ROLES[$this->role] ?? $this->role;
+    }
+
+    /**
+     * 個別制限の対象になり得るロールか（admin/editorのみ）
+     */
+    public function isRestrictable(): bool
+    {
+        return in_array($this->role, self::RESTRICTABLE_ROLES, true);
+    }
+
+    /**
+     * ロール権限 + 個別制限を踏まえた実効的な権限判定
+     */
+    public function hasEffectivePermission(string $permission): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->restrictedPermissions()->where('name', $permission)->exists()) {
+            return false;
+        }
+
+        return $this->hasPermissionTo($permission, 'admins');
+    }
+
+    /**
+     * フロントエンドへ共有する実効的な権限名の一覧
+     *
+     * @return array<int, string>
+     */
+    public function getEffectivePermissionNames(): array
+    {
+        if ($this->isSuperAdmin()) {
+            return Permission::where('guard_name', 'admins')->pluck('name')->all();
+        }
+
+        $restricted = $this->restrictedPermissions()->pluck('name')->all();
+
+        return $this->getAllPermissions()
+            ->pluck('name')
+            ->reject(fn(string $name) => in_array($name, $restricted, true))
+            ->values()
+            ->all();
     }
 
     public function updateLastLogin(): bool

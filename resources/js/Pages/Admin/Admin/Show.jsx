@@ -30,7 +30,11 @@ import AdminProjects from "./_components/AdminProjects";
 import AdminLoginHistory from "./_components/AdminLoginHistory";
 import AdminSettings from "./_components/AdminSettings";
 
-export default function Show({ admin, mediaList = [] }) {
+export default function Show({
+    admin,
+    mediaList = [],
+    permissionOverride = null,
+}) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
     const [activeTab, setActiveTab] = useState("basic");
@@ -76,7 +80,12 @@ export default function Show({ admin, mediaList = [] }) {
                     />
                 );
             case "settings":
-                return <AdminSettings admin={admin} />;
+                return (
+                    <AdminSettings
+                        admin={admin}
+                        permissionOverride={permissionOverride}
+                    />
+                );
             default:
                 return null;
         }
@@ -123,19 +132,8 @@ export default function Show({ admin, mediaList = [] }) {
         }
     };
 
-    const getAddressTypeLabel = (type) => {
-        const labels = {
-            home: "自宅",
-            office: "オフィス",
-            billing: "請求先",
-            shipping: "配送先",
-            other: "その他",
-        };
-        return labels[type] || type;
-    };
-
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
@@ -152,6 +150,9 @@ export default function Show({ admin, mediaList = [] }) {
         },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
     const breadcrumbs = [
         ...PageConfig.admins.breadcrumbs,
         PageConfig.admins.pages.show.breadcrumb,

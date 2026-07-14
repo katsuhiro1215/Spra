@@ -6,7 +6,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { BaseAlert } from "@/Components/Alerts";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import { StoreButton, SecondaryButton } from "@/Components/Buttons";
+import { Button, CrudButton } from "@/Components/Buttons";
 import {
     FormGroup,
     TextInput,
@@ -92,6 +92,7 @@ export default function Create({ roles }) {
                                         htmlFor="email"
                                         required
                                         help="ログインIDとして使用されます。パスワードは自動生成され、メールで通知されます。"
+                                        error={errors.email}
                                     >
                                         <TextInput
                                             id="email"
@@ -103,7 +104,6 @@ export default function Create({ roles }) {
                                             }
                                             placeholder="example@example.com"
                                         />
-                                        <InputError className="mt-2" message={errors.email} />
                                     </FormGroup>
 
                                     <FormGroup
@@ -111,6 +111,7 @@ export default function Create({ roles }) {
                                         htmlFor="role"
                                         required
                                         help="owner: オーナー / super_admin: スーパー管理者 / admin: 管理者 / editor: 編集者"
+                                        error={errors.role}
                                     >
                                         <SelectInput
                                             id="role"
@@ -121,27 +122,26 @@ export default function Create({ roles }) {
                                             }
                                             options={roles}
                                         />
-                                        <InputError className="mt-2" message={errors.role} />
                                     </FormGroup>
                                 </div>
                             </CardBody>
                         </Card>
 
                         <div className="flex items-center justify-end gap-4">
-                            <SecondaryButton
+                            <Button
+                                variant="secondary"
                                 href={route("admin.admin.index")}
                                 size="md"
                             >
                                 キャンセル
-                            </SecondaryButton>
-                            <StoreButton
+                            </Button>
+                            <CrudButton
                                 type="submit"
-                                disabled={processing}
+                                action="store"
                                 loading={processing}
-                                size="md"
                             >
                                 {processing ? "作成中..." : "作成"}
-                            </StoreButton>
+                            </CrudButton>
                         </div>
                     </div>
                 </form>

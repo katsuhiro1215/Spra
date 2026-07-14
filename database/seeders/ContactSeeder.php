@@ -50,7 +50,7 @@ class ContactSeeder extends Seeder
                 'source' => 'phone',
                 'ip' => '203.0.113.25',
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'replied_at' => now()->subDays(1),
+                'responded_at' => now()->subDays(1),
                 'admin_notes' => '電話で初回ヒアリング完了。次回：詳細ヒアリングのMTG設定予定',
             ],
 
@@ -68,7 +68,7 @@ class ContactSeeder extends Seeder
                 'ip' => '198.51.100.45',
                 'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
                 'referrer' => 'https://www.instagram.com/',
-                'replied_at' => now()->subDays(2),
+                'responded_at' => now()->subDays(2),
                 'admin_notes' => '実績資料を送付済み。見積もり作成中',
             ],
 
@@ -85,7 +85,7 @@ class ContactSeeder extends Seeder
                 'source' => 'referral',
                 'ip' => '192.0.2.150',
                 'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-                'replied_at' => now()->subDays(5),
+                'responded_at' => now()->subDays(5),
                 'admin_notes' => '契約締結。保守契約（ベーシックプラン）で合意',
             ],
 

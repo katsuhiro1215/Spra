@@ -988,6 +988,16 @@ export const PageConfig = {
     },
 
     /**
+     * 権限管理
+     */
+    permissions: {
+        title: "🔐 権限管理",
+        description: "ロールごとのデフォルト権限を管理します",
+        documentTitle: "権限管理",
+        breadcrumbs: ["ホーム", "権限管理"],
+    },
+
+    /**
      * システム設定管理
      */
     systemSettings: {

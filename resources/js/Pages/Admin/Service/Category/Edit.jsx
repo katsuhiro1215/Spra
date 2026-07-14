@@ -27,10 +27,11 @@ export default function Edit({ serviceCategory }) {
         status:
             serviceCategory.status ||
             CommonUIConstants.serviceCategory.defaults.status,
+        is_displayed: serviceCategory.is_displayed ?? true,
     });
 
     const submit = () => {
-        put(route("admin.service.categories.update", serviceCategory.id));
+        put(route("admin.service.category.update", serviceCategory.id));
     };
 
     const headerActions = [

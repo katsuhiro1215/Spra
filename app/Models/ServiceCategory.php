@@ -21,6 +21,7 @@ class ServiceCategory extends Model
         'color',
         'icon',
         'status',
+        'is_displayed',
         'sort_order',
         'created_by',
         'updated_by',
@@ -28,6 +29,7 @@ class ServiceCategory extends Model
 
     protected $casts = [
         'status' => 'string',
+        'is_displayed' => 'boolean',
     ];
 
     /**
@@ -44,6 +46,14 @@ class ServiceCategory extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope a query to only include categories displayed on the public website/simulator.
+     */
+    public function scopeDisplayed($query)
+    {
+        return $query->where('is_displayed', true);
     }
 
     /**
@@ -84,6 +94,14 @@ class ServiceCategory extends Model
     public function isSuspended(): bool
     {
         return $this->status === 'suspended';
+    }
+
+    /**
+     * Check if category is displayed on the public website/simulator.
+     */
+    public function isDisplayed(): bool
+    {
+        return $this->is_displayed;
     }
 
     /**

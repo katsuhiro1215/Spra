@@ -152,8 +152,11 @@ export const getAdminNavigationItems = () => {
                     name: "カテゴリ管理",
                     href: "admin.service.category.index",
                 },
-                { name: "オプション", href: "admin.service.index" },
-                { name: "価格設定", href: "admin.service.index" },
+                {
+                    name: "使用技術管理",
+                    href: "admin.service.technology.index",
+                },
+                { name: "実績・ポートフォリオ管理", href: "admin.portfolio.index" },
             ],
         },
         // Webサイト管理
@@ -259,8 +262,11 @@ export const getAdminNavigationItems = () => {
             children: [
                 { name: "管理者一覧", href: "admin.admin.index" },
                 { name: "新規作成", href: "admin.admin.create" },
-                { name: "権限", href: "admin.admin.create" },
-                { name: "ロール", href: "admin.admin.create" },
+                {
+                    name: "権限管理",
+                    href: "admin.permissions.index",
+                    ownerOnly: true,
+                },
                 { name: "ログ", href: "admin.admin.create" },
             ],
         },

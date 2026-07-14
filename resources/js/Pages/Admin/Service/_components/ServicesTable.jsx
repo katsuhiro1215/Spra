@@ -55,12 +55,21 @@ const ServicesTable = ({ services, onDelete, isDeleting }) => {
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                 {service.service_category?.name || "未分類"}
                             </span>
-                            <Badge
-                                variant={getStatusBadge(service.status).variant}
-                                size="sm"
-                            >
-                                {getStatusBadge(service.status).text}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                                <Badge
+                                    variant={
+                                        getStatusBadge(service.status).variant
+                                    }
+                                    size="sm"
+                                >
+                                    {getStatusBadge(service.status).text}
+                                </Badge>
+                                {!service.is_displayed && (
+                                    <Badge variant="secondary" size="sm">
+                                        非公開
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
 

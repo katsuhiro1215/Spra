@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password')->comment('パスワード');
             $table->enum('role', ['owner', 'super_admin', 'admin', 'editor'])->default('admin')->comment('役割');
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active')->comment('ステータス');
+            $table->boolean('two_factor_enabled')->default(false)->comment('二段階認証（メール認証）の有効化フラグ');
             $table->timestamp('last_login_at')->nullable()->comment('最終ログイン日時');
             $table->rememberToken();
             $table->timestamps();

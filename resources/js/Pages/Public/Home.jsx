@@ -19,7 +19,7 @@ export default function Home({ services, blogs, auth }) {
             <Head title="Home" />
             <HeroSection />
             <AboutSection />
-            <ServiceSection />
+            <ServiceSection services={services} />
             <BannerSection />
             <BlogSection blogs={blogs} />
             <ContactSection />

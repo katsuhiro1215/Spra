@@ -17,6 +17,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable()->comment('メールアドレス確認日時');
             $table->string('password')->comment('パスワード');
             $table->enum('status', ['active', 'inactive', 'suspended', 'pending'])->default('active')->comment('ステータス');
+            $table->boolean('two_factor_enabled')->default(false)->comment('二段階認証（メール認証）の有効化フラグ');
             $table->timestamp('last_login_at')->nullable()->comment('最終ログイン日時');
             $table->rememberToken();
             $table->timestamps();

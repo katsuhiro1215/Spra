@@ -7,6 +7,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Admin\AdminAddressController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\AdminPermissionOverrideController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\User\UserProfileController;
 use App\Http\Controllers\Admin\User\UserAddressController;
@@ -20,6 +22,8 @@ use App\Http\Controllers\Admin\Service\ServiceController;
 use App\Http\Controllers\Admin\Service\ServicePlanController;
 use App\Http\Controllers\Admin\Service\ServicePlanItemController;
 use App\Http\Controllers\Admin\Service\ServiceItemController;
+use App\Http\Controllers\Admin\Service\TechnologyController;
+use App\Http\Controllers\Admin\PortfolioController;
 
 use App\Http\Controllers\Admin\Contact\ContactController;
 use App\Http\Controllers\Admin\Contact\ContactCategoryController;
@@ -83,7 +87,7 @@ use App\Http\Controllers\Admin\SystemSettingController;
 
 use Inertia\Inertia;
 
-Route::middleware(['auth:admins', 'verified'])->group(function () {
+Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(function () {
     // 管理者ダッシュボード
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -117,6 +121,19 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         Route::get('/{address}/edit', 'edit')->name('edit');
         Route::put('/{address}', 'update')->name('update');
         Route::delete('/{address}', 'destroy')->name('destroy');
+    });
+    // 個別Admin向けの追加権限制限（owner/super_adminのみ操作可、対象はadmin/editorロールに限る）
+    // 表示データは管理者詳細画面（AdminController@show）側で合わせて渡す
+    Route::put('/admin/{admin}/permission-overrides', [AdminPermissionOverrideController::class, 'update'])
+        ->name('permissionOverrides.update');
+
+    /**************************************
+     * 権限管理
+     **************************************/
+    // ロール別のデフォルト権限マトリクス（owner/super_adminのみ操作可）
+    Route::controller(PermissionController::class)->prefix('permissions')->name('permissions.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/', 'update')->name('update');
     });
 
     /**************************************
@@ -191,10 +208,14 @@ Route::middleware(['auth:admins', 'verified'])->group(function () {
         });
 
         Route::resource('item', ServiceItemController::class)->parameters(['item' => 'serviceItem']);
+        Route::resource('technology', TechnologyController::class)->parameters(['technology' => 'technology'])->except(['show']);
     });
 
     // サービス一覧
     Route::resource('service', ServiceController::class);
+
+    // 実績・ポートフォリオ管理
+    Route::resource('portfolio', PortfolioController::class)->except(['show']);
 
     /**************************************
      * お問い合わせ

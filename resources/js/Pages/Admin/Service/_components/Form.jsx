@@ -10,6 +10,8 @@ import {
     InputError,
 } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
+import MediaSelectModal from "@/Components/Media/MediaSelectModal";
+import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import * as validation from "./validation";
 
 const ServiceForm = ({
@@ -20,10 +22,35 @@ const ServiceForm = ({
     onSubmit,
     cancelRoute,
     categories,
+    technologies = [],
+    mediaList = [],
     isEdit = false,
 }) => {
     const [autoSlug, setAutoSlug] = useState(!isEdit);
     const [localErrors, setLocalErrors] = useState({});
+    const [showMediaModal, setShowMediaModal] = useState(false);
+    const [mediaListState, setMediaListState] = useState(mediaList);
+
+    const selectedMedia = (data.media_ids || [])
+        .map((id) => mediaListState.find((m) => m.id === id))
+        .filter(Boolean);
+
+    const toggleTechnology = (technologyId) => {
+        const current = data.technology_ids || [];
+        setData(
+            "technology_ids",
+            current.includes(technologyId)
+                ? current.filter((id) => id !== technologyId)
+                : [...current, technologyId],
+        );
+    };
+
+    const removeMedia = (mediaId) => {
+        setData(
+            "media_ids",
+            (data.media_ids || []).filter((id) => id !== mediaId),
+        );
+    };
 
     const generateSlug = (name) => {
         return name
@@ -347,7 +374,114 @@ const ServiceForm = ({
                                 }
                             />
                         </div>
+
+                        {/* Web公開 */}
+                        <div className="md:col-span-3">
+                            <label className="flex items-center">
+                                <Checkbox
+                                    checked={data.is_displayed ?? true}
+                                    onChange={(e) =>
+                                        setData(
+                                            "is_displayed",
+                                            e.target.checked,
+                                        )
+                                    }
+                                    onBlur={() => handleBlur("is_displayed")}
+                                />
+                                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Webサイト・見積もりシミュレーターに表示する
+                                </span>
+                            </label>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                チェックを外すと、このサービスと配下のプランは公開サイトやシミュレーターに表示されなくなります（管理画面では引き続き操作できます）
+                            </p>
+                            <InputError
+                                message={
+                                    errors.is_displayed ||
+                                    localErrors.is_displayed
+                                }
+                            />
+                        </div>
                     </div>
+                </CardBody>
+            </Card>
+
+            {/* ギャラリー画像 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>ギャラリー画像</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <p className="text-xs text-gray-500 mb-4">
+                        公開サイトのサービス一覧・詳細ページに表示する画像です。先頭の画像が代表画像として使われます。
+                    </p>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                        {selectedMedia.map((media, index) => (
+                            <div key={media.id} className="relative">
+                                <img
+                                    src={media.url}
+                                    alt={media.alt_text || media.title}
+                                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                                />
+                                {index === 0 && (
+                                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium bg-blue-600 text-white rounded">
+                                        代表画像
+                                    </span>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => removeMedia(media.id)}
+                                    className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-red-600 text-white rounded-full"
+                                >
+                                    <XMarkIcon className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setShowMediaModal(true)}
+                            className="w-24 h-24 flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400"
+                        >
+                            <PhotoIcon className="w-8 h-8" />
+                        </button>
+                    </div>
+                    <InputError message={errors.media_ids} />
+                </CardBody>
+            </Card>
+
+            {/* 使用技術 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>使用技術</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    {technologies.length === 0 ? (
+                        <p className="text-sm text-gray-500">
+                            使用技術が登録されていません。先に「使用技術マスタ」から登録してください。
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {technologies.map((technology) => (
+                                <label
+                                    key={technology.id}
+                                    className="flex items-center"
+                                >
+                                    <Checkbox
+                                        checked={(
+                                            data.technology_ids || []
+                                        ).includes(technology.id)}
+                                        onChange={() =>
+                                            toggleTechnology(technology.id)
+                                        }
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                        {technology.name}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                    <InputError message={errors.technology_ids} />
                 </CardBody>
             </Card>
 
@@ -371,6 +505,27 @@ const ServiceForm = ({
                           : "作成"}
                 </StoreButton>
             </div>
+
+            <MediaSelectModal
+                show={showMediaModal}
+                mediaList={mediaListState}
+                multiple={true}
+                uploadRoute={route("admin.media.store")}
+                onClose={() => setShowMediaModal(false)}
+                onSelect={(mediaIds) => {
+                    const merged = [
+                        ...(data.media_ids || []),
+                        ...mediaIds.filter(
+                            (id) => !(data.media_ids || []).includes(id),
+                        ),
+                    ];
+                    setData("media_ids", merged);
+                    setShowMediaModal(false);
+                }}
+                onMediaUploaded={(media) =>
+                    setMediaListState((prev) => [media, ...prev])
+                }
+            />
         </form>
     );
 };

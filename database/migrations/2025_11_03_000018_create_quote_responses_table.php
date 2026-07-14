@@ -25,6 +25,8 @@ return new class extends Migration
             $table->text('response_text')->nullable(); // for "その他" response
             $table->timestamp('responded_at')->nullable();
             $table->timestamp('admin_notified_at')->nullable();
+            $table->uuid('decided_by_admin_id')->nullable()->comment('長期未回答を管理者が手動で見送りにした場合の担当者');
+            $table->foreign('decided_by_admin_id')->references('id')->on('admins')->onDelete('set null');
             $table->timestamps();
 
             // Indexes

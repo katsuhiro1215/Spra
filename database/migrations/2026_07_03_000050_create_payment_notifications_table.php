@@ -14,6 +14,8 @@ return new class extends Migration
       // 関連
       $table->ulid('invoice_id');
       $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');
+      $table->ulid('payment_id')->nullable()->comment('Adminが確認した際に作成される実際のPaymentレコードとの紐付け');
+      $table->foreign('payment_id')->references('id')->on('payments')->onDelete('set null');
       $table->uuid('user_id');
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
       $table->ulid('company_id')->nullable();

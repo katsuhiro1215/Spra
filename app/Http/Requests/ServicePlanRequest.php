@@ -36,6 +36,7 @@ class ServicePlanRequest extends FormRequest
             'max_revisions' => ['nullable', 'integer', 'min:0'],
             'estimated_delivery_days' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'in:active,inactive,suspended'],
+            'is_displayed' => ['boolean'],
             'is_featured' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],

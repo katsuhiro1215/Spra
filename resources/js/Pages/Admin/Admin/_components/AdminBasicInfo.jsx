@@ -3,6 +3,7 @@ import { Link, router } from "@inertiajs/react";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
@@ -14,7 +15,27 @@ import {
     CameraIcon,
 } from "@heroicons/react/24/outline";
 
+const getAddressTypeLabel = (type) => {
+    const labels = {
+        home: "自宅",
+        office: "オフィス",
+        billing: "請求先",
+        shipping: "配送先",
+        other: "その他",
+    };
+    return labels[type] || type;
+};
+
 export default function AdminBasicInfo({ admin }) {
+    const handleDeleteAddress = (addressId) => {
+        if (confirm("この住所を削除してもよろしいですか?")) {
+            router.delete(
+                route("admin.admin.address.destroy", [admin.id, addressId]),
+                { preserveScroll: true },
+            );
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* 基本情報 */}
@@ -28,21 +49,17 @@ export default function AdminBasicInfo({ admin }) {
                         </span>
                     </div>
                     {admin.profile ? (
-                        <Link
+                        <IconButton
+                            icon={PencilIcon}
+                            variant="warning"
                             href={route("admin.admin.profile.edit", admin.id)}
-                            className="p-1.5 text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded transition-colors"
-                            title="編集"
-                        >
-                            <PencilIcon className="h-5 w-5" />
-                        </Link>
+                        />
                     ) : (
-                        <Link
+                        <IconButton
+                            icon={PlusIcon}
+                            variant="indigo"
                             href={route("admin.admin.profile.create", admin.id)}
-                            className="p-1.5 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
-                            title="作成"
-                        >
-                            <PlusIcon className="h-5 w-5" />
-                        </Link>
+                        />
                     )}
                 </CardHeader>
                 <CardBody>

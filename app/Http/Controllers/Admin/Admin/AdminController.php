@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Media;
 use App\Services\AdminService;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,7 +17,8 @@ use Inertia\Response;
 class AdminController extends Controller
 {
     public function __construct(
-        private AdminService $adminService
+        private AdminService $adminService,
+        private PermissionService $permissionService
     ) {}
 
     /**
@@ -37,7 +39,7 @@ class AdminController extends Controller
             'direction' => $request->input('sort_direction', 'desc'),
         ];
         // 管理者のページネーション取得
-        $admins = $this->adminService->getPaginated($filters, $sort, 5);
+        $admins = $this->adminService->getPaginated($filters, $sort, 20);
         // 統計情報の取得
         $stats = $this->adminService->getStats();
 
@@ -75,7 +77,7 @@ class AdminController extends Controller
     /**
      * 管理者詳細画面
      */
-    public function show(Admin $admin): Response
+    public function show(Request $request, Admin $admin): Response
     {
         $admin->load(['profile.media', 'addresses']);
         // プロフィール画像URLを明示的に追加
@@ -95,9 +97,16 @@ class AdminController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
+        // 権限制限編集データ（owner/super_adminが対象admin/editorを閲覧している場合のみ）
+        $permissionOverride = null;
+        if ($request->user('admins')?->isSuperAdmin() && $admin->isRestrictable()) {
+            $permissionOverride = $this->permissionService->getOverridesFor($admin);
+        }
+
         return Inertia::render('Admin/Admin/Show', [
             'admin' => $admin,
             'mediaList' => $mediaList,
+            'permissionOverride' => $permissionOverride,
         ]);
     }
 

@@ -16,6 +16,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "mpdf/mpdf": "^8.3",
+        "spatie/laravel-permission": "^8.3",
         "tecnickcom/tcpdf": "^7.0",
         "tightenco/ziggy": "^2.0"
     },

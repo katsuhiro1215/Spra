@@ -10,7 +10,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import ServiceForm from "./_components/Form";
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Create({ categories }) {
+export default function Create({ categories, technologies, mediaList }) {
     const { data, setData, post, processing, errors } = useForm({
         name: "",
         slug: "",
@@ -20,7 +20,10 @@ export default function Create({ categories }) {
         icon: "",
         sort_order: 0,
         status: "active",
+        is_displayed: true,
         is_featured: false,
+        media_ids: [],
+        technology_ids: [],
     });
 
     const submit = () => {
@@ -69,6 +72,8 @@ export default function Create({ categories }) {
                     onSubmit={submit}
                     cancelRoute={route("admin.service.index")}
                     categories={categories}
+                    technologies={technologies}
+                    mediaList={mediaList}
                     isEdit={false}
                 />
             </div>

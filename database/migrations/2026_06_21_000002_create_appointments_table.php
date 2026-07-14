@@ -18,8 +18,18 @@ return new class extends Migration
       $table->foreignUuid('company_id')->nullable()->constrained('companies')->cascadeOnDelete()->comment('予約者（企業）');
       $table->foreignUuid('project_id')->nullable()->constrained('projects')->nullOnDelete()->comment('関連プロジェクト');
 
+      // 一般クライアント（アカウントなし）の連絡先
+      $table->string('guest_name')->nullable()->comment('ゲスト氏名（アカウントなしの一般クライアント用）');
+      $table->string('guest_email')->nullable()->comment('ゲストメールアドレス');
+      $table->string('guest_phone')->nullable()->comment('ゲスト電話番号');
+
       $table->string('subject')->comment('件名');
       $table->text('description')->nullable()->comment('詳細');
+
+      // 会議形式
+      $table->enum('location_type', ['in_person', 'online'])->default('online')->comment('会議形式: in_person=対面, online=オンライン');
+      $table->enum('meeting_tool', ['zoom', 'teams', 'google_meet', 'other'])->nullable()->comment('Web会議ツール');
+      $table->string('meeting_url')->nullable()->comment('会議URL（確定後に管理者が設定）');
 
       $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'])
         ->default('pending')

@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUuid('media_id')->nullable()->constrained('media')->nullOnDelete()->comment('サービス画像のメディアID(UUID)');
             $table->string('name');
             $table->string('slug')->unique();
             $table->ulid('service_category_id');
@@ -24,6 +23,7 @@ return new class extends Migration
             $table->longText('details')->nullable();
             $table->string('icon')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->boolean('is_displayed')->default(true)->comment('Webサイト・シミュレーターへの表示フラグ');
             $table->integer('sort_order')->default(0);
             $table->boolean('is_featured')->default(false);
             $table->unsignedTinyInteger('deposit_rate')->default(50)->comment('Deposit rate as percentage');

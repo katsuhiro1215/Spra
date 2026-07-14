@@ -147,12 +147,10 @@ class AdminService extends BaseService
      */
     public function getRoles(): array
     {
-        return [
-            ['value' => 'owner', 'label' => 'オーナー'],
-            ['value' => 'super_admin', 'label' => 'スーパー管理者'],
-            ['value' => 'admin', 'label' => '管理者'],
-            ['value' => 'editor', 'label' => '編集者'],
-        ];
+        return collect(\App\Models\Admin::ROLES)
+            ->map(fn(string $label, string $value) => ['value' => $value, 'label' => $label])
+            ->values()
+            ->all();
     }
 
     /**

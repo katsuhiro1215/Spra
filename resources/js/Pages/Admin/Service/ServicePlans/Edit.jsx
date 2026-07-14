@@ -27,6 +27,7 @@ export default function Edit({
         estimated_delivery_days: servicePlan.estimated_delivery_days || "",
         is_featured: servicePlan.is_featured || false,
         status: servicePlan.status || "active",
+        is_displayed: servicePlan.is_displayed ?? true,
         sort_order: servicePlan.sort_order || 0,
         color: servicePlan.color || "#3B82F6",
         badge_text: servicePlan.badge_text || "",

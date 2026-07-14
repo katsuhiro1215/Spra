@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import { gsap } from "gsap";
 import PublicLayout from "@/Layouts/PublicLayout";
+import { PublicFlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -17,9 +18,12 @@ export default function EstimateSimulator({
     services = {},
     servicePlans = {},
     serviceItems = {},
+    servicePlanItems = {},
     canLogin = null,
     canRegister = null,
 }) {
+    const { errors: pageErrors } = usePage().props;
+
     // ========================================
     // State管理
     // ========================================
@@ -29,6 +33,12 @@ export default function EstimateSimulator({
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedAddons, setSelectedAddons] = useState([]);
     const [showResult, setShowResult] = useState(false);
+    const [requesterName, setRequesterName] = useState("");
+    const [requesterEmail, setRequesterEmail] = useState("");
+    const [requesterPhone, setRequesterPhone] = useState("");
+    const [requesterCompany, setRequesterCompany] = useState("");
+    const [requestNotes, setRequestNotes] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
     // ========================================
     // 価格計算
@@ -39,12 +49,12 @@ export default function EstimateSimulator({
 
         // プラン基本価格
         if (selectedPlan) {
-            basePrice = parseFloat(selectedPlan.price) || 0;
+            basePrice = parseFloat(selectedPlan.base_price) || 0;
         }
 
         // 追加機能価格
         selectedAddons.forEach((addon) => {
-            addonPrice += parseFloat(addon.price) || 0;
+            addonPrice += parseFloat(addon.standard_price) || 0;
         });
 
         const subtotal = basePrice + addonPrice;
@@ -71,23 +81,13 @@ export default function EstimateSimulator({
 
     const getAvailableAddons = () => {
         if (!selectedService) return [];
-        // ServiceItemsをフィルタリングしてaddon typeのみ取得
-        const allItems = Object.values(serviceItems).flat();
-        return allItems.filter(
-            (item) =>
-                item.service_id === selectedService.id &&
-                item.item_type === "addon",
-        );
+        const items = serviceItems[selectedService.id] || [];
+        return items.filter((item) => item.item_type === "addon");
     };
 
-    // プランに含まれる項目を取得
+    // プランに含まれる項目を取得（service_plan_items 中間テーブル経由）
     const getPlanIncludedItems = (planId) => {
-        const allItems = Object.values(serviceItems).flat();
-        return allItems.filter(
-            (item) =>
-                item.service_plan_id === planId &&
-                item.item_type === "included",
-        );
+        return servicePlanItems[planId] || [];
     };
 
     // 納期を計算
@@ -174,35 +174,30 @@ export default function EstimateSimulator({
     };
 
     // ========================================
-    // ハンドラー - 見積もり依頼を保存
+    // ハンドラー - 見積もり依頼を送信
     // ========================================
     const handleSaveInquiry = () => {
         const inquiryData = {
-            service_category_id: selectedCategory?.id,
             service_id: selectedService?.id,
             service_plan_id: selectedPlan?.id,
-            simulator_data: {
-                selected_addons: selectedAddons.map((addon) => ({
-                    id: addon.id,
-                    name: addon.name,
-                    price: addon.price,
-                    estimated_days: addon.estimated_days,
-                })),
-            },
+            selected_addon_ids: selectedAddons.map((addon) => addon.id),
             estimated_price: total,
             estimated_days: estimatedDays,
             title: `${selectedService?.name} - ${selectedPlan?.name}`,
-            summary: `見積もりシミュレーターから作成された見積もり依頼です。`,
+            notes: requestNotes,
+            ...(auth?.user
+                ? {}
+                : {
+                      name: requesterName,
+                      email: requesterEmail,
+                      phone: requesterPhone,
+                      company: requesterCompany,
+                  }),
         };
 
+        setSubmitting(true);
         router.post(route("estimate.simulator.save"), inquiryData, {
-            onSuccess: () => {
-                alert("見積もり依頼を保存しました！");
-            },
-            onError: (errors) => {
-                console.error("保存エラー:", errors);
-                alert("保存に失敗しました。もう一度お試しください。");
-            },
+            onFinish: () => setSubmitting(false),
         });
     };
 
@@ -273,6 +268,7 @@ export default function EstimateSimulator({
         return (
             <PublicLayout>
                 <Head title="見積もり結果 - 見積もりシミュレーター" />
+                <PublicFlashMessage />
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
                     <div className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-12">
                         <div className="text-center mb-8">
@@ -457,25 +453,137 @@ export default function EstimateSimulator({
                             </div>
                         </div>
 
-                        {/* アクションボタン */}
-                        <div
-                            className={`grid ${auth?.user ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4 mb-4`}
-                        >
-                            {auth?.user && (
-                                <button
-                                    onClick={handleSaveInquiry}
-                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-                                >
-                                    <BookmarkIcon className="w-5 h-5" />
-                                    見積もり依頼を保存
-                                </button>
+                        {/* 見積依頼フォーム */}
+                        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                この内容で見積もりを依頼する
+                            </h3>
+
+                            {!auth?.user && (
+                                <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            お名前{" "}
+                                            <span className="text-red-600">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={requesterName}
+                                            onChange={(e) =>
+                                                setRequesterName(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="山田 太郎"
+                                        />
+                                        {pageErrors?.name && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {pageErrors.name}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            メールアドレス{" "}
+                                            <span className="text-red-600">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={requesterEmail}
+                                            onChange={(e) =>
+                                                setRequesterEmail(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="example@email.com"
+                                        />
+                                        {pageErrors?.email && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {pageErrors.email}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            電話番号
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={requesterPhone}
+                                            onChange={(e) =>
+                                                setRequesterPhone(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="090-1234-5678"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            会社名・団体名
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={requesterCompany}
+                                            onChange={(e) =>
+                                                setRequesterCompany(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="○○○ 株式会社"
+                                        />
+                                    </div>
+                                </div>
                             )}
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    ご質問・ご要望（どんなサイトにしたいか、予算の相談など）
+                                </label>
+                                <textarea
+                                    value={requestNotes}
+                                    onChange={(e) =>
+                                        setRequestNotes(e.target.value)
+                                    }
+                                    rows={4}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                    placeholder="例：どんなサイトなのか、もう少し詳しく相談したい／少し予算を抑えられないか、など"
+                                />
+                                {pageErrors?.notes && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                        {pageErrors.notes}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={handleSaveInquiry}
+                                disabled={submitting}
+                                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            >
+                                <BookmarkIcon className="w-5 h-5" />
+                                {submitting
+                                    ? "送信中..."
+                                    : "この内容で見積もりを依頼する"}
+                            </button>
+                        </div>
+
+                        {/* アクションボタン */}
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
                             <Link
                                 href="/contact"
-                                className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+                                className="flex items-center justify-center gap-2 px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:border-gray-400 hover:shadow-md transition-all"
                             >
                                 <EnvelopeIcon className="w-5 h-5" />
-                                お問い合わせ
+                                その他のお問い合わせ
                             </Link>
                             <button
                                 onClick={handleReset}
@@ -486,14 +594,14 @@ export default function EstimateSimulator({
                             </button>
                         </div>
 
-                        {/* ログイン/会員登録CTA（非認証ユーザーのみ） */}
+                        {/* 会員登録CTA（非認証ユーザーのみ・任意） */}
                         {!auth?.user && (canLogin || canRegister) && (
                             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white text-center mb-4">
                                 <h3 className="text-xl font-bold mb-2">
-                                    この内容で正式な見積もりを依頼しますか？
+                                    会員登録すると、やり取りがもっと便利になります
                                 </h3>
                                 <p className="text-indigo-100 mb-4 text-sm">
-                                    会員登録（無料）することで、正式な見積もりを依頼できます
+                                    会員登録（無料）すると、見積もりや契約の進捗をいつでもマイページで確認できます
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                     {canLogin && (
@@ -633,7 +741,7 @@ export default function EstimateSimulator({
                                         </p>
                                     )}
                                     <p className="text-2xl font-bold text-blue-600 mb-4">
-                                        {formatAmount(plan.price)}
+                                        {formatAmount(plan.base_price)}
                                     </p>
 
                                     {/* 含まれる項目を表示 */}
@@ -722,7 +830,7 @@ export default function EstimateSimulator({
                                             </p>
                                         )}
                                         <p className="text-lg font-bold text-blue-600">
-                                            +{formatAmount(addon.price)}
+                                            +{formatAmount(addon.standard_price)}
                                         </p>
                                     </button>
                                 );

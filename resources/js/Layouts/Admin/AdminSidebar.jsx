@@ -1,5 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { getAdminNavigationItems } from "@/Components/NavItems/AdminNavItems";
@@ -63,6 +63,10 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
         setSubmenuStyle({ top: `${top}px`, maxHeight: `${maxHeight}px` });
     }, [hoveredItem]);
 
+    const { auth } = usePage().props;
+    const isOwnerOrSuperAdmin =
+        auth?.admin?.role === "owner" || auth?.admin?.role === "super_admin";
+
     const navigationItems = getAdminNavigationItems();
 
     // ナビゲーションアイテムのcurrentを評価
@@ -78,6 +82,9 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
         return {
             ...item,
             current: isCurrent,
+            children: (item.children || []).filter(
+                (child) => !child.ownerOnly || isOwnerOrSuperAdmin,
+            ),
         };
     });
 

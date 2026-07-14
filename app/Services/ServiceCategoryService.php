@@ -116,14 +116,16 @@ class ServiceCategoryService extends BaseService
 
     /**
      * セレクトボックス用にアクティブなカテゴリのみを取得（id/nameのみ）
-     * 
+     *
+     * @param bool $onlyDisplayed Web公開（is_displayed）されているものだけに絞り込む
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getActiveForSelect()
+    public function getActiveForSelect(bool $onlyDisplayed = false)
     {
         return $this->repository->query()
             ->select('id', 'name', 'slug')
             ->where('status', 'active')
+            ->when($onlyDisplayed, fn ($query) => $query->where('is_displayed', true))
             ->orderBy('sort_order', 'asc')
             ->get();
     }

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Service;
 use App\Services\ServiceService;
 use App\Services\ServiceCategoryService;
+use App\Services\TechnologyService;
 use App\Http\Requests\ServiceRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +18,8 @@ class ServiceController extends Controller
 {
     public function __construct(
         private ServiceService $serviceService,
-        private ServiceCategoryService $serviceCategoryService
+        private ServiceCategoryService $serviceCategoryService,
+        private TechnologyService $technologyService
     ) {}
 
     /**
@@ -59,6 +62,8 @@ class ServiceController extends Controller
         return Inertia::render('Admin/Service/Create', [
             'statuses' => $statuses,
             'categories' => $categories,
+            'technologies' => $this->technologyService->getActiveForSelect(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -96,7 +101,14 @@ class ServiceController extends Controller
             ->get();
 
         return Inertia::render('Admin/Service/Show', [
-            'service' => $service->load(['serviceCategory', 'creator', 'updater']),
+            'service' => $service->load([
+                'serviceCategory',
+                'creator',
+                'updater',
+                'media',
+                'technologies',
+                'portfolios',
+            ]),
             'servicePlans' => $servicePlans,
             'serviceItems' => $serviceItems,
         ]);
@@ -109,11 +121,14 @@ class ServiceController extends Controller
     {
         $statuses = $this->serviceService->getStatuses();
         $categories = $this->serviceCategoryService->getActiveForSelect();
+        $service->load(['media', 'technologies']);
 
         return Inertia::render('Admin/Service/Edit', [
             'service' => $service,
             'statuses' => $statuses,
             'categories' => $categories,
+            'technologies' => $this->technologyService->getActiveForSelect(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 

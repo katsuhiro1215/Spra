@@ -28,11 +28,13 @@ return new class extends Migration
 
             // プラン設定
             $table->integer('max_revisions')->nullable();
+            $table->unsignedInteger('max_carryover_tickets')->nullable()->comment('翌期間へ繰り越せるチケット上限。nullは繰越不可');
             $table->integer('estimated_delivery_days')->nullable();
 
             // 表示設定
             $table->boolean('is_featured')->default(false);
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->boolean('is_displayed')->default(true)->comment('Webサイト・シミュレーターへの表示フラグ');
             $table->integer('sort_order')->default(0);
             $table->string('color', 7)->default('#3B82F6');
             $table->string('badge_text')->nullable();

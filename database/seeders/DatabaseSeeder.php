@@ -12,6 +12,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // ロール・権限（Adminのroleカラム同期のためAdminSeederより先に実行）
+            RolePermissionSeeder::class,
+
             // 管理者（認証確認用）
             AdminSeeder::class,
 
@@ -35,18 +38,23 @@ class DatabaseSeeder extends Seeder
 
             // お問い合わせ
             ContactCategorySeeder::class,
-            // ContactSeeder::class,
+            ContactSeeder::class,
             ResponseTemplateSeeder::class,
-            // ResponseSeeder::class,
+            ResponseSeeder::class,
 
             // サービス関連
             ServiceCategorySeeder::class,
             ServiceSeeder::class,
             ServiceItemSeeder::class,
             ServicePlanSeeder::class,
-            // ServicePlanItemSeeder::class,
+            ServicePlanItemSeeder::class,
 
-            // 祝日
+            // 使用技術・ギャラリー画像・実績（サービス表示強化）
+            TechnologySeeder::class,
+            ServiceMediaSeeder::class,
+            PortfolioSeeder::class,
+
+            // 祝日・面談枠
             ScheduleDefaultSeeder::class,
             ScheduleExceptionSeeder::class,
             HolidaySeeder::class,
@@ -56,13 +64,22 @@ class DatabaseSeeder extends Seeder
             DocumentSeeder::class,
 
             // 見積（Quote）
-            // QuoteSeeder::class,
+            QuoteSeeder::class,
 
             // 契約（Contract）
-            // ContractSeeder::class,
+            ContractSeeder::class,
 
             // プロジェクト関連
-            // ProjectTemplateSeeder::class,
+            ProjectTemplateSeeder::class,
+            ProjectSeeder::class,
+
+            // 請求・入金・領収書
+            InvoiceSeeder::class,
+            PaymentSeeder::class,
+            ReceiptSeeder::class,
+
+            // 予約（面談）
+            AppointmentSeeder::class,
         ]);
     }
 }

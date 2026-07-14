@@ -1,49 +1,47 @@
+import { useState } from "react";
 import { Link } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
-import { services } from "@/Data/services";
+import { resolveServiceIcon } from "@/Utils/serviceIcon";
 import {
     CheckCircleIcon,
     ArrowRightIcon,
-    EyeIcon,
     CpuChipIcon,
     DocumentTextIcon,
+    ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
-export default function ServiceDetail({ auth, slug }) {
-    // スラッグからサービスを検索
-    const service = services.find((s) => s.slug === slug);
+const BILLING_CYCLE_LABELS = {
+    one_time: "一回限り",
+    monthly: "月額",
+    quarterly: "四半期",
+    yearly: "年額",
+};
 
-    if (!service) {
-        return (
-            <PublicLayout auth={auth}>
-                <div className="min-h-screen flex items-center justify-center">
-                    <div className="text-center">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                            サービスが見つかりません
-                        </h1>
-                        <Link
-                            href="/service"
-                            className="text-blue-600 hover:underline"
-                        >
-                            サービス一覧に戻る
-                        </Link>
-                    </div>
-                </div>
-            </PublicLayout>
-        );
-    }
+const formatPrice = (value) => `¥${Number(value).toLocaleString()}`;
+
+export default function ServiceDetail({ auth, service, relatedServices = [] }) {
+    const Icon = resolveServiceIcon(
+        service.icon || service.service_category?.icon,
+    );
+    const color = service.service_category?.color || "#3B82F6";
+    const plans = service.service_plans || [];
+    const media = service.media || [];
+    const technologies = service.technologies || [];
+    const portfolios = service.portfolios || [];
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const activeImage = media[activeImageIndex];
 
     const breadcrumbs = [
         { label: "サービス", href: "/service" },
-        { label: service.title },
+        { label: service.name },
     ];
 
     return (
         <PublicLayout auth={auth}>
             <PageHero
-                title={service.title}
-                subtitle={service.shortDescription}
+                title={service.name}
+                subtitle={service.description}
                 breadcrumbs={breadcrumbs}
             />
 
@@ -56,122 +54,292 @@ export default function ServiceDetail({ auth, slug }) {
                             {/* サービス概要 */}
                             <div>
                                 <div className="flex items-center gap-4 mb-6">
-                                    <span className="text-6xl">
-                                        {service.icon}
-                                    </span>
+                                    <div
+                                        className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ backgroundColor: color }}
+                                    >
+                                        <Icon className="w-8 h-8 text-white" />
+                                    </div>
                                     <div>
+                                        <span
+                                            className="text-sm font-semibold"
+                                            style={{ color }}
+                                        >
+                                            {service.service_category?.name}
+                                        </span>
                                         <h2 className="text-3xl font-bold text-gray-900">
-                                            {service.title}
+                                            {service.name}
                                         </h2>
-                                        <p className="text-lg text-gray-600 mt-2">
-                                            {service.description}
-                                        </p>
                                     </div>
                                 </div>
+                                {service.details && (
+                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                        {service.details}
+                                    </p>
+                                )}
                             </div>
 
-                            {/* 画像 */}
-                            <div className="rounded-2xl overflow-hidden shadow-2xl">
-                                <img
-                                    src={service.image}
-                                    alt={service.title}
-                                    className="w-full h-auto"
-                                />
-                            </div>
+                            {/* 画像ギャラリー */}
+                            {media.length > 0 && (
+                                <div>
+                                    <div className="rounded-2xl overflow-hidden shadow-2xl">
+                                        <img
+                                            src={activeImage?.url}
+                                            alt={
+                                                activeImage?.alt_text ||
+                                                service.name
+                                            }
+                                            className="w-full h-auto"
+                                        />
+                                    </div>
+                                    {media.length > 1 && (
+                                        <div className="flex gap-3 mt-4 overflow-x-auto pb-1">
+                                            {media.map((image, index) => (
+                                                <button
+                                                    key={image.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setActiveImageIndex(
+                                                            index,
+                                                        )
+                                                    }
+                                                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                                        index ===
+                                                        activeImageIndex
+                                                            ? "border-blue-600"
+                                                            : "border-transparent opacity-70 hover:opacity-100"
+                                                    }`}
+                                                >
+                                                    <img
+                                                        src={image.url}
+                                                        alt={
+                                                            image.alt_text ||
+                                                            service.name
+                                                        }
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                            {/* 主な機能 */}
+                            {/* プラン */}
                             <div>
                                 <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                                    主な機能
+                                    プラン一覧
                                 </h3>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    {service.features.map((feature, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                                        >
-                                            <CheckCircleIcon className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                                            <span className="text-gray-700">
-                                                {feature}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
+                                {plans.length === 0 ? (
+                                    <p className="text-gray-500">
+                                        現在ご案内できるプランがありません。まずはお気軽にお問い合わせください。
+                                    </p>
+                                ) : (
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {plans.map((plan) => (
+                                            <div
+                                                key={plan.id}
+                                                className="rounded-xl border-2 p-6 hover:shadow-lg transition-shadow"
+                                                style={{
+                                                    borderColor:
+                                                        plan.color || "#E5E7EB",
+                                                }}
+                                            >
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <h4 className="text-lg font-bold text-gray-900">
+                                                        {plan.name}
+                                                    </h4>
+                                                    {plan.badge_text && (
+                                                        <span
+                                                            className="px-2 py-1 text-xs font-medium rounded text-white"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    plan.color ||
+                                                                    "#3B82F6",
+                                                            }}
+                                                        >
+                                                            {plan.badge_text}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-2xl font-bold text-gray-900 mb-1">
+                                                    {formatPrice(
+                                                        plan.base_price,
+                                                    )}
+                                                    <span className="text-sm font-normal text-gray-500 ml-1">
+                                                        /{" "}
+                                                        {BILLING_CYCLE_LABELS[
+                                                            plan.billing_cycle
+                                                        ] || plan.billing_cycle}
+                                                    </span>
+                                                </p>
+                                                {plan.description && (
+                                                    <p className="text-sm text-gray-600 mb-4">
+                                                        {plan.description}
+                                                    </p>
+                                                )}
+                                                {plan.estimated_delivery_days && (
+                                                    <p className="text-xs text-gray-500 mb-4">
+                                                        納期目安:{" "}
+                                                        {
+                                                            plan.estimated_delivery_days
+                                                        }
+                                                        日
+                                                    </p>
+                                                )}
+                                                {plan.service_items?.length >
+                                                    0 && (
+                                                    <div className="space-y-2 mb-4">
+                                                        {plan.service_items.map(
+                                                            (item) => (
+                                                                <div
+                                                                    key={
+                                                                        item.id
+                                                                    }
+                                                                    className="flex items-start gap-2 text-sm text-gray-700"
+                                                                >
+                                                                    <CheckCircleIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                                                    {item.name}
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                                <Link
+                                                    href={route(
+                                                        "estimate.simulator",
+                                                    )}
+                                                    className="inline-flex items-center text-sm font-semibold group"
+                                                    style={{ color }}
+                                                >
+                                                    このプランで見積もる
+                                                    <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* 使用技術 */}
-                            <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                    <CpuChipIcon className="w-8 h-8 text-blue-600" />
-                                    使用技術
-                                </h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {service.technologies.map((tech, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
-                                        >
-                                            {tech}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 納品物 */}
-                            <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                    <DocumentTextIcon className="w-8 h-8 text-purple-600" />
-                                    納品物
-                                </h3>
-                                <div className="space-y-3">
-                                    {service.deliverables.map(
-                                        (deliverable, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl"
+                            {technologies.length > 0 && (
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <CpuChipIcon className="w-8 h-8 text-blue-600" />
+                                        使用技術
+                                    </h3>
+                                    <div className="flex flex-wrap gap-3">
+                                        {technologies.map((technology) => (
+                                            <span
+                                                key={technology.id}
+                                                className="px-4 py-2 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all text-white"
+                                                style={{
+                                                    backgroundColor:
+                                                        technology.color ||
+                                                        "#3B82F6",
+                                                }}
                                             >
-                                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                    {index + 1}
-                                                </div>
-                                                <span className="text-gray-700 font-medium">
-                                                    {deliverable}
-                                                </span>
-                                            </div>
-                                        )
-                                    )}
+                                                {technology.name}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* 実績 */}
+                            {portfolios.length > 0 && (
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <DocumentTextIcon className="w-8 h-8 text-purple-600" />
+                                        実績
+                                    </h3>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        {portfolios.map((portfolio) => (
+                                            <div
+                                                key={portfolio.id}
+                                                className="flex gap-4 p-4 bg-purple-50 rounded-xl"
+                                            >
+                                                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-purple-100 flex items-center justify-center">
+                                                    {portfolio.media ? (
+                                                        <img
+                                                            src={
+                                                                portfolio.media
+                                                                    .url
+                                                            }
+                                                            alt={
+                                                                portfolio.title
+                                                            }
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <DocumentTextIcon className="w-8 h-8 text-purple-400" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-gray-900">
+                                                        {portfolio.title}
+                                                    </p>
+                                                    {portfolio.description && (
+                                                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                                                            {
+                                                                portfolio.description
+                                                            }
+                                                        </p>
+                                                    )}
+                                                    {portfolio.url && (
+                                                        <a
+                                                            href={portfolio.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 mt-2 hover:underline"
+                                                        >
+                                                            サイトを見る
+                                                            <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Right - サイドバー */}
                         <div className="space-y-6">
-                            {/* 料金カード */}
-                            <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl sticky top-24">
+                            {/* CTAカード */}
+                            <div
+                                className="rounded-2xl p-8 text-white shadow-xl sticky top-24"
+                                style={{
+                                    background: `linear-gradient(135deg, ${color}, #7C3AED)`,
+                                }}
+                            >
                                 <h4 className="text-sm font-semibold mb-2 opacity-90">
                                     料金目安
                                 </h4>
-                                <p className="text-4xl font-bold mb-6">
-                                    {service.price}
+                                <p className="text-3xl font-bold mb-6">
+                                    {plans.length > 0
+                                        ? formatPrice(
+                                              Math.min(
+                                                  ...plans.map((p) =>
+                                                      Number(p.base_price),
+                                                  ),
+                                              ),
+                                          ) + "〜"
+                                        : "お問い合わせください"}
                                 </p>
                                 <p className="text-sm mb-6 opacity-90">
                                     ※ プロジェクトの規模や要件により変動します。
                                     まずはお気軽にご相談ください。
                                 </p>
 
-                                {/* デモボタン */}
-                                {service.hasDemo && (
-                                    <Link
-                                        href={service.demoUrl}
-                                        className="block w-full mb-4 px-6 py-4 bg-white text-purple-600 font-bold rounded-xl text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-                                    >
-                                        <div className="flex items-center justify-center gap-2">
-                                            <EyeIcon className="w-5 h-5" />
-                                            デモを見る
-                                        </div>
-                                    </Link>
-                                )}
+                                <Link
+                                    href={route("estimate.simulator")}
+                                    className="block w-full mb-4 px-6 py-4 bg-white text-purple-600 font-bold rounded-xl text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+                                >
+                                    料金シミュレーター
+                                </Link>
 
-                                {/* お問い合わせボタン */}
                                 <Link
                                     href="/contact"
                                     className="block w-full px-6 py-4 bg-white/10 backdrop-blur-sm text-white font-bold rounded-xl text-center border-2 border-white hover:bg-white/20 transition-all"
@@ -181,42 +349,71 @@ export default function ServiceDetail({ auth, slug }) {
                             </div>
 
                             {/* 関連サービス */}
-                            <div className="bg-gray-50 rounded-2xl p-6">
-                                <h4 className="text-lg font-bold text-gray-900 mb-4">
-                                    その他のサービス
-                                </h4>
-                                <div className="space-y-3">
-                                    {services
-                                        .filter((s) => s.id !== service.id)
-                                        .slice(0, 3)
-                                        .map((relatedService) => (
-                                            <Link
-                                                key={relatedService.id}
-                                                href={`/services/${relatedService.slug}`}
-                                                className="block p-4 bg-white rounded-xl hover:shadow-md transition-shadow group"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-2xl">
-                                                        {relatedService.icon}
-                                                    </span>
-                                                    <div className="flex-1">
-                                                        <h5 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                                            {
-                                                                relatedService.title
-                                                            }
-                                                        </h5>
-                                                        <p className="text-sm text-gray-600 line-clamp-1">
-                                                            {
-                                                                relatedService.shortDescription
-                                                            }
-                                                        </p>
-                                                    </div>
-                                                    <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                                                </div>
-                                            </Link>
-                                        ))}
+                            {relatedServices.length > 0 && (
+                                <div className="bg-gray-50 rounded-2xl p-6">
+                                    <h4 className="text-lg font-bold text-gray-900 mb-4">
+                                        その他のサービス
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {relatedServices.map(
+                                            (relatedService) => {
+                                                const RelatedIcon =
+                                                    resolveServiceIcon(
+                                                        relatedService.icon,
+                                                    );
+                                                const relatedCover =
+                                                    relatedService.media?.find(
+                                                        (m) =>
+                                                            m.pivot
+                                                                ?.is_primary,
+                                                    ) ||
+                                                    relatedService.media?.[0];
+                                                return (
+                                                    <Link
+                                                        key={
+                                                            relatedService.id
+                                                        }
+                                                        href={route(
+                                                            "service.detail",
+                                                            relatedService.slug,
+                                                        )}
+                                                        className="block p-4 bg-white rounded-xl hover:shadow-md transition-shadow group"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            {relatedCover ? (
+                                                                <img
+                                                                    src={
+                                                                        relatedCover.url
+                                                                    }
+                                                                    alt={
+                                                                        relatedService.name
+                                                                    }
+                                                                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <RelatedIcon className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <h5 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                                                    {
+                                                                        relatedService.name
+                                                                    }
+                                                                </h5>
+                                                                <p className="text-sm text-gray-600 line-clamp-1">
+                                                                    {
+                                                                        relatedService.description
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                                                        </div>
+                                                    </Link>
+                                                );
+                                            },
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

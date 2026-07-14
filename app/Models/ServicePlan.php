@@ -25,6 +25,7 @@ class ServicePlan extends Model
         'max_carryover_tickets',
         'estimated_delivery_days',
         'status',
+        'is_displayed',
         'is_featured',
         'sort_order',
         'color',
@@ -43,6 +44,7 @@ class ServicePlan extends Model
         'estimated_delivery_days' => 'integer',
         'sort_order' => 'integer',
         'is_featured' => 'boolean',
+        'is_displayed' => 'boolean',
         'status' => 'string',
     ];
 
@@ -115,6 +117,14 @@ class ServicePlan extends Model
         return $query->where('status', 'active');
     }
 
+    /**
+     * Scope a query to only include plans displayed on the public website/simulator.
+     */
+    public function scopeDisplayed($query)
+    {
+        return $query->where('is_displayed', true);
+    }
+
     public function scopeByService($query, $serviceId)
     {
         return $query->where('service_id', $serviceId);
@@ -129,5 +139,13 @@ class ServicePlan extends Model
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * Check if plan is displayed on the public website/simulator.
+     */
+    public function isDisplayed(): bool
+    {
+        return $this->is_displayed;
     }
 }

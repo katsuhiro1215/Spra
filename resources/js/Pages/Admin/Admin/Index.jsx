@@ -6,7 +6,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import { CreateButton, SecondaryButton } from "@/Components/Buttons";
+import { Button, CrudButton } from "@/Components/Buttons";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
@@ -178,118 +178,101 @@ export default function Index({ admins, filters, stats }) {
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* タブ + 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* タブナビゲーション */}
-                            <div className="flex-shrink-0">
-                                <TabNavigation
-                                    tabs={tabs}
-                                    activeTab={activeTab}
-                                    onChange={handleTabChange}
-                                />
-                            </div>
+                {/* タブ + 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* タブナビゲーション */}
+                    <div className="flex-shrink-0">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                        />
+                    </div>
 
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder={
-                                        PageConfig.admins.ui.search.placeholder
-                                    }
-                                    disabled={processing}
-                                />
-                            </div>
+                    {/* 検索バー */}
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder={
+                                PageConfig.admins.ui.search.placeholder
+                            }
+                            disabled={processing}
+                        />
+                    </div>
 
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
-                                <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    size="sm"
-                                    className="relative"
+                    {/* フィルタートグルボタン */}
+                    <div className="flex-shrink-0">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="md"
+                            icon={FunnelIcon}
+                            className="relative"
+                        >
+                            {PageConfig.admins.ui.filter.button}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* フィルターセクション（折りたたみ可能）*/}
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {/* 役割フィルター */}
+                            <FilterSelect
+                                label={PageConfig.admins.filters.role.label}
+                                value={data.role}
+                                onChange={(value) => setData("role", value)}
+                                options={ADMIN_ROLE_OPTIONS}
+                                placeholder={
+                                    PageConfig.admins.filters.role.placeholder
+                                }
+                            />
+
+                            {/* ステータスフィルター */}
+                            <FilterSelect
+                                label={PageConfig.admins.filters.status.label}
+                                value={data.status}
+                                onChange={(value) => setData("status", value)}
+                                options={ADMIN_STATUS_OPTIONS}
+                                placeholder={
+                                    PageConfig.admins.filters.status.placeholder
+                                }
+                            />
+
+                            {/* スペーサー */}
+                            <div className="hidden lg:block"></div>
+
+                            {/* フィルタークリアボタン */}
+                            <div className="flex items-end">
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    icon={XMarkIcon}
+                                    className="w-full"
                                 >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    {PageConfig.admins.ui.filter.button}
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </SecondaryButton>
+                                    {PageConfig.admins.ui.filter.clear}
+                                </Button>
                             </div>
                         </div>
-
-                        {/* フィルターセクション（折りたたみ可能）*/}
-                        {showFilters && (
-                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* 役割フィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.admins.filters.role.label
-                                        }
-                                        value={data.role}
-                                        onChange={(value) =>
-                                            setData("role", value)
-                                        }
-                                        options={ADMIN_ROLE_OPTIONS}
-                                        placeholder={
-                                            PageConfig.admins.filters.role
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* ステータスフィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.admins.filters.status
-                                                .label
-                                        }
-                                        value={data.status}
-                                        onChange={(value) =>
-                                            setData("status", value)
-                                        }
-                                        options={ADMIN_STATUS_OPTIONS}
-                                        placeholder={
-                                            PageConfig.admins.filters.status
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* スペーサー */}
-                                    <div className="hidden lg:block"></div>
-
-                                    {/* フィルタークリアボタン */}
-                                    <div className="flex items-end">
-                                        <SecondaryButton
-                                            onClick={handleClearFilters}
-                                            disabled={!hasActiveFilters}
-                                            size="md"
-                                            className="w-full"
-                                        >
-                                            <XMarkIcon className="h-4 w-4 mr-2" />
-                                            {PageConfig.admins.ui.filter.clear}
-                                        </SecondaryButton>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </Card>
+                )}
 
                 {/* テーブル */}
                 <AdminsTable admins={admins} onDelete={handleDelete} />
 
                 {/* ページネーション */}
                 {admins.data.length > 0 && (
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm">
-                        <Pagination paginationData={admins} />
-                    </div>
+                    <Pagination paginationData={admins} />
                 )}
 
                 {/* データがない場合 */}
@@ -306,13 +289,15 @@ export default function Index({ admins, filters, stats }) {
                                   : PageConfig.admins.ui.empty.noData}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
-                            <CreateButton
+                            <CrudButton
+                                action="create"
+                                useTheme
                                 href={route("admin.admin.create")}
                                 size="md"
+                                icon={PlusIcon}
                             >
-                                <PlusIcon className="h-4 w-4 mr-2" />
                                 {PageConfig.admins.ui.empty.createFirst}
-                            </CreateButton>
+                            </CrudButton>
                         )}
                     </Card>
                 )}

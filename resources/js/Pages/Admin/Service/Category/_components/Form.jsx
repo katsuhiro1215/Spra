@@ -311,6 +311,34 @@ const ServiceCategoryForm = ({
                                 message={errors.status || localErrors.status}
                             />
                         </div>
+                        {/* Web公開 */}
+                        <div className="md:col-span-3">
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={data.is_displayed ?? true}
+                                    onChange={(e) =>
+                                        setData(
+                                            "is_displayed",
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="ml-2 text-sm font-medium text-gray-700">
+                                    Webサイト・見積もりシミュレーターに表示する
+                                </span>
+                            </label>
+                            <p className="mt-1 text-xs text-gray-500">
+                                チェックを外すと、このカテゴリと配下のサービス・プランは公開サイトやシミュレーターに表示されなくなります（管理画面では引き続き操作できます）
+                            </p>
+                            <InputError
+                                message={
+                                    errors.is_displayed ||
+                                    localErrors.is_displayed
+                                }
+                            />
+                        </div>
                     </div>
                 </CardBody>
             </Card>

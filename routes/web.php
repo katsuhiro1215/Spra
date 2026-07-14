@@ -6,6 +6,8 @@ use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
+use App\Http\Controllers\PublicServiceController;
+use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
@@ -20,15 +22,16 @@ use App\Http\Controllers\User\QuoteController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+Route::get('/', function (ServiceService $serviceService) {
     return Inertia::render('Public/Home', [
         'canLogin' => Route::has('user.login'),
         'canRegister' => Route::has('user.register'),
+        'services' => $serviceService->getPublicList(),
     ]);
 });
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
-Route::get('/service', fn() => Inertia::render('Public/Service'))->name('service');
-Route::get('/services/{slug}', fn($slug) => Inertia::render('Public/ServiceDetail', ['slug' => $slug]))->name('service.detail');
+Route::get('/service', [PublicServiceController::class, 'index'])->name('service');
+Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
 Route::get('/blog', fn() => Inertia::render('Public/Blog'))->name('blog');
 Route::get('/blog/{slug}', fn($slug) => Inertia::render('Public/BlogDetail', ['slug' => $slug]))->name('blog.detail');
 Route::get('/faq', fn() => Inertia::render('Public/Faq'))->name('faq');
@@ -160,9 +163,10 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     });
 });
 
+Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->name('estimate.simulator.save');
+
 // Public routes
 // Route::group(['prefix' => '', 'name' => 'public.'], function () {
-//     Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->middleware('auth:users')->name('estimate.simulator.save');
 //     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
 //     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
 //     Route::get('/terms', fn() => inertiaPublic('Terms'))->name('terms');

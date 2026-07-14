@@ -28,6 +28,7 @@ export default function Create({
         estimated_delivery_days: "",
         is_featured: false,
         status: "active",
+        is_displayed: true,
         sort_order: 0,
         color: "#3B82F6",
         badge_text: "",

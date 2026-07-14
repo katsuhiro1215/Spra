@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('consumed_at')->nullable();
             $table->timestamps();
 
-            $table->index(['authenticatable_type', 'authenticatable_id', 'consumed_at']);
+            $table->index(['authenticatable_type', 'authenticatable_id', 'consumed_at'], 'otp_authenticatable_consumed_idx');
         });
     }
 

@@ -8,6 +8,7 @@ import {
     NumberInput,
     ColorInput,
     Checkbox,
+    InputError,
 } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
 
@@ -340,6 +341,30 @@ const ServicePlanForm = ({
                                             注目プラン
                                         </span>
                                     </label>
+                                </div>
+
+                                {/* Web公開 */}
+                                <div className="md:col-span-2">
+                                    <label className="flex items-center mt-6">
+                                        <Checkbox
+                                            checked={data.is_displayed ?? true}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "is_displayed",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                            Webサイト・見積もりシミュレーターに表示する
+                                        </span>
+                                    </label>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        チェックを外すと、このプランは公開サイトやシミュレーターに表示されなくなります（管理画面では引き続き操作できます）
+                                    </p>
+                                    <InputError
+                                        message={errors.is_displayed}
+                                    />
                                 </div>
 
                                 {/* カラー */}
