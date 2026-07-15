@@ -34,6 +34,11 @@ class ContractRequest extends FormRequest
             'payment_due_days' => 'nullable|integer|min:1',
             'auto_invoice_generation' => 'boolean',
             'auto_renewal' => 'boolean',
+            'renewal_notice_days' => 'nullable|integer|min:1',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'notes' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
         ];
     }
 

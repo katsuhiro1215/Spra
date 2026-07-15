@@ -198,8 +198,6 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
 
         // ServicePlanItemの管理ルート
         Route::prefix('plan/{servicePlan}')->name('plan.')->group(function () {
-            Route::get('items/create', [ServicePlanItemController::class, 'addItems'])->name('items.create');
-            Route::post('items', [ServicePlanItemController::class, 'storeItems'])->name('items.store');
             Route::get('items/edit', [ServicePlanItemController::class, 'editItems'])->name('items.edit');
             Route::put('items', [ServicePlanItemController::class, 'updateItems'])->name('items.update');
             Route::delete('items/{servicePlanItem}', [ServicePlanItemController::class, 'destroyItem'])->name('items.destroy');
@@ -211,6 +209,8 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
 
     // サービス一覧
     Route::resource('service', ServiceController::class);
+    Route::post('/service/{service}/attach-media', [ServiceController::class, 'attachMedia'])->name('service.attach-media');
+    Route::delete('/service/{service}/detach-media', [ServiceController::class, 'detachMedia'])->name('service.detach-media');
 
     // 実績・ポートフォリオ管理
     Route::resource('portfolio', PortfolioController::class)->except(['show']);

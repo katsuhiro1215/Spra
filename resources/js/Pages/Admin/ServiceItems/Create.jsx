@@ -8,6 +8,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import ServiceItemForm from "./_components/Form";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ statuses, itemTypes, services, service_id }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -30,24 +31,32 @@ export default function Create({ statuses, itemTypes, services, service_id }) {
 
     const headerActions = [
         {
-            label: "一覧に戻る",
-            href: route("admin.service.item.index"),
+            label: PageConfig.serviceItems.actions.back,
+            route: route("admin.service.item.index"),
             variant: "ghost",
             icon: ArrowLeftIcon,
         },
+    ];
+
+    const breadcrumbs = [
+        ...PageConfig.serviceItems.breadcrumbs,
+        PageConfig.serviceItems.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービス項目作成"
-                    description="新しいサービス項目を作成します"
+                    title={PageConfig.serviceItems.pages.create.title}
+                    description={
+                        PageConfig.serviceItems.pages.create.description
+                    }
                     actions={headerActions}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="サービス項目作成" />
+            <Head title={PageConfig.serviceItems.pages.create.title} />
 
             <FlashMessage />
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
@@ -11,22 +11,12 @@ import Avatar from "@/Components/Avatar";
 import MediaSelectModal from "@/Components/Media/MediaSelectModal";
 import TabNavigation from "@/Components/TabNavigation";
 // Icons
-import {
-    ArrowLeftIcon,
-    PencilIcon,
-    PlusIcon,
-    TrashIcon,
-    UserCircleIcon,
-    MapPinIcon,
-    CameraIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, CameraIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
 // タブコンポーネント
 import AdminBasicInfo from "./_components/AdminBasicInfo";
-import AdminCustomers from "./_components/AdminCustomers";
-import AdminProjects from "./_components/AdminProjects";
 import AdminLoginHistory from "./_components/AdminLoginHistory";
 import AdminSettings from "./_components/AdminSettings";
 
@@ -34,6 +24,7 @@ export default function Show({
     admin,
     mediaList = [],
     permissionOverride = null,
+    loginLogs = [],
 }) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
@@ -45,19 +36,9 @@ export default function Show({
             label: "基本情報",
         },
         {
-            key: "customers",
-            label: "担当顧客",
-            count: admin.users?.length || 0,
-        },
-        {
-            key: "projects",
-            label: "担当プロジェクト",
-            count: admin.projects?.length || 0,
-        },
-        {
             key: "login-history",
             label: "ログイン履歴",
-            count: admin.login_histories?.length || 0,
+            count: loginLogs.length,
         },
         {
             key: "settings",
@@ -69,16 +50,8 @@ export default function Show({
         switch (activeTab) {
             case "basic":
                 return <AdminBasicInfo admin={admin} />;
-            case "customers":
-                return <AdminCustomers users={admin.users || []} />;
-            case "projects":
-                return <AdminProjects projects={admin.projects || []} />;
             case "login-history":
-                return (
-                    <AdminLoginHistory
-                        loginHistories={admin.login_histories || []}
-                    />
-                );
+                return <AdminLoginHistory loginLogs={loginLogs} />;
             case "settings":
                 return (
                     <AdminSettings
@@ -91,20 +64,7 @@ export default function Show({
         }
     };
 
-    const handleDeleteAddress = (addressId) => {
-        if (confirm(PageConfig.admins.addresses.deleteConfirmation)) {
-            router.delete(
-                route("admin.admin.address.destroy", {
-                    admin: admin.id,
-                    address: addressId,
-                }),
-            );
-        }
-    };
-
     const handleMediaSelect = (mediaId) => {
-        console.log("handleMediaSelect called with mediaId:", mediaId);
-
         // プロフィールにメディアを設定
         router.post(
             route("admin.admin.profile.attachMedia", admin.id),
@@ -124,7 +84,7 @@ export default function Show({
     };
 
     const handleDetachMedia = () => {
-        if (confirm(PageConfig.admins.profile.detachMediaConfirmation)) {
+        if (confirm(PageConfig.adminProfiles.detachMediaConfirmation)) {
             router.delete(route("admin.admin.profile.detachMedia", admin.id), {
                 preserveState: true,
                 preserveScroll: true,
@@ -308,7 +268,7 @@ export default function Show({
                 onClose={() => setShowMediaModal(false)}
                 onSelect={handleMediaSelect}
                 onMediaUploaded={handleMediaUploaded}
-            />{" "}
+            />
         </AdminAuthenticatedLayout>
     );
 }

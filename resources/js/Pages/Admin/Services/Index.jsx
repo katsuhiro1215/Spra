@@ -360,7 +360,7 @@ export default function Index({
                 {services.data.length === 0 && (
                     <Card className="text-center py-12">
                         <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
-                            👤
+                            🧩
                         </div>
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search

@@ -164,7 +164,7 @@ const ServiceForm = ({
                             label={
                                 <>
                                     スラッグ
-                                    <span className="text-xs text-gray-500 ml-2">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                                         (空白の場合は自動生成)
                                     </span>
                                 </>
@@ -184,7 +184,7 @@ const ServiceForm = ({
                                     <button
                                         type="button"
                                         onClick={handleAutoGenerateSlug}
-                                        className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-md whitespace-nowrap h-10"
+                                        className="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md whitespace-nowrap h-10"
                                     >
                                         自動生成
                                     </button>
@@ -337,7 +337,7 @@ const ServiceForm = ({
                                                 )
                                             }
                                             onBlur={() => handleBlur("status")}
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                                         />
                                         <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                             {option.label}
@@ -412,7 +412,7 @@ const ServiceForm = ({
                     <CardTitle>ギャラリー画像</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <p className="text-xs text-gray-500 mb-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                         公開サイトのサービス一覧・詳細ページに表示する画像です。先頭の画像が代表画像として使われます。
                     </p>
                     <div className="flex flex-wrap gap-3 mb-4">
@@ -421,7 +421,7 @@ const ServiceForm = ({
                                 <img
                                     src={media.url}
                                     alt={media.alt_text || media.title}
-                                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                                    className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                                 />
                                 {index === 0 && (
                                     <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium bg-blue-600 text-white rounded">
@@ -440,7 +440,7 @@ const ServiceForm = ({
                         <button
                             type="button"
                             onClick={() => setShowMediaModal(true)}
-                            className="w-24 h-24 flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400"
+                            className="w-24 h-24 flex items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                         >
                             <PhotoIcon className="w-8 h-8" />
                         </button>
@@ -456,7 +456,7 @@ const ServiceForm = ({
                 </CardHeader>
                 <CardBody>
                     {technologies.length === 0 ? (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             使用技術が登録されていません。先に「使用技術マスタ」から登録してください。
                         </p>
                     ) : (

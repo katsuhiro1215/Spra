@@ -184,6 +184,11 @@ class ContractController extends Controller
                 'payment_due_days' => $validated['payment_due_days'] ?? 15,
                 'auto_invoice_generation' => $validated['auto_invoice_generation'] ?? true,
                 'auto_renewal' => $validated['auto_renewal'] ?? false,
+                'renewal_notice_days' => $validated['renewal_notice_days'] ?? 30,
+                'discount_amount' => $validated['discount_amount'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 10,
+                'notes' => $validated['notes'] ?? null,
+                'terms_and_conditions' => $validated['terms_and_conditions'] ?? null,
             ];
 
             // Contract作成（ContractVersion v1 も自動作成される）

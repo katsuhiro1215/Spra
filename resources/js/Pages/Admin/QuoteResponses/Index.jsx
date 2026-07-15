@@ -9,9 +9,10 @@ import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import { Badge } from "@/Components/Badges";
-import { PrimaryButton, SecondaryButton, TextButton } from "@/Components/Buttons";
+import { SecondaryButton, TextButton } from "@/Components/Buttons";
 import { ConfirmAlert } from "@/Components/Alerts";
 import { XMarkIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({ quoteResponses, filters, responseTypes }) {
     const [showFilters, setShowFilters] = useState(false);
@@ -92,7 +93,14 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
         return Math.floor(diffMs / (1000 * 60 * 60 * 24));
     };
 
-    const getResponseTypeBadge = (responseType) => {
+    const responseTypeVariants = {
+        request: "success",
+        decline: "danger",
+        revision_request: "warning",
+        other: "secondary",
+    };
+
+    const getResponseTypeLabel = (responseType) => {
         const labels = {
             request: "承認",
             decline: "拒否",
@@ -102,83 +110,77 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
         return labels[responseType] || responseType;
     };
 
-    const pageConfig = {
-        title: "見積返信管理",
-        description: "クライアントからの見積返信内容を管理します",
-        breadcrumbs: [
-            { label: "ダッシュボード", href: route("admin.dashboard") },
-            {
-                label: "見積返信管理",
-                href: route("admin.quote-response.index"),
-            },
-        ],
-    };
-
     return (
-        <AdminAuthenticatedLayout header={<PageHeader {...pageConfig} />}>
-            <Head title="見積返信管理" />
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={PageConfig.quoteResponses.title}
+                    description={PageConfig.quoteResponses.description}
+                    breadcrumbs={PageConfig.quoteResponses.breadcrumbs}
+                />
+            }
+        >
+            <Head title={PageConfig.quoteResponses.documentTitle} />
 
             <FlashMessage />
 
             <div className="space-y-4">
-                <Card>
-                    <div className="flex flex-col gap-4">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder="メールアドレスまたは見積番号で検索..."
-                            disabled={processing}
-                        />
+                <div className="flex flex-col gap-4">
+                    <SearchBar
+                        value={data.search}
+                        onChange={(value) => setData("search", value)}
+                        onSearch={handleSearch}
+                        placeholder="メールアドレスまたは見積番号で検索..."
+                        disabled={processing}
+                    />
 
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                            >
-                                <FunnelIcon className="w-4 h-4" />
-                                フィルター
-                                {activeFilterCount > 0 && (
-                                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-full">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </button>
-
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                        >
+                            <FunnelIcon className="w-4 h-4" />
+                            フィルター
                             {activeFilterCount > 0 && (
-                                <SecondaryButton
-                                    onClick={handleClearFilters}
-                                    disabled={processing}
-                                >
-                                    <XMarkIcon className="w-4 h-4" />
-                                    フィルターをクリア
-                                </SecondaryButton>
+                                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-full">
+                                    {activeFilterCount}
+                                </span>
                             )}
-                        </div>
+                        </button>
 
-                        {showFilters && (
-                            <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg space-y-3">
-                                <FilterSelect
-                                    label="返信状態"
-                                    value={data.status}
-                                    onChange={(value) =>
-                                        setData("status", value)
-                                    }
-                                    options={statusOptions}
-                                />
-
-                                <FilterSelect
-                                    label="返信タイプ"
-                                    value={data.response_type}
-                                    onChange={(value) =>
-                                        setData("response_type", value)
-                                    }
-                                    options={responseTypeOptions}
-                                />
-                            </div>
+                        {activeFilterCount > 0 && (
+                            <SecondaryButton
+                                onClick={handleClearFilters}
+                                disabled={processing}
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                                フィルターをクリア
+                            </SecondaryButton>
                         )}
                     </div>
-                </Card>
+
+                    {showFilters && (
+                        <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg space-y-3">
+                            <FilterSelect
+                                label="返信状態"
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={statusOptions}
+                            />
+
+                            <FilterSelect
+                                label="返信タイプ"
+                                value={data.response_type}
+                                onChange={(value) =>
+                                    setData("response_type", value)
+                                }
+                                options={responseTypeOptions}
+                            />
+                        </div>
+                    )}
+                </div>
 
                 <Card>
                     <div className="overflow-x-auto">
@@ -221,10 +223,19 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                             {response.quote?.quote_number ||
                                                 "-"}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                                            {getResponseTypeBadge(
-                                                response.response_type,
-                                            )}
+                                        <td className="px-4 py-3">
+                                            <Badge
+                                                variant={
+                                                    responseTypeVariants[
+                                                        response
+                                                            .response_type
+                                                    ] || "secondary"
+                                                }
+                                            >
+                                                {getResponseTypeLabel(
+                                                    response.response_type,
+                                                )}
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-3">
                                             {getStatusBadge(response)}
@@ -281,7 +292,9 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                     </div>
                 </Card>
 
-                <Pagination links={quoteResponses.links} />
+                {quoteResponses.data.length > 0 && (
+                    <Pagination paginationData={quoteResponses} />
+                )}
             </div>
 
             <ConfirmAlert

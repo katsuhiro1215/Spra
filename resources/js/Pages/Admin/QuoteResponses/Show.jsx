@@ -7,7 +7,9 @@ import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
+import { ConfirmAlert } from "@/Components/Alerts";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 const QUOTE_STATUS_BADGE_VARIANT = {
     draft: "secondary",
@@ -16,6 +18,15 @@ const QUOTE_STATUS_BADGE_VARIANT = {
     rejected: "danger",
     contracted: "success",
     cancelled: "secondary",
+};
+
+const QUOTE_STATUS_LABELS = {
+    draft: "下書き",
+    negotiating: "交渉中",
+    approved: "承認済み",
+    rejected: "却下",
+    contracted: "契約済み",
+    cancelled: "キャンセル",
 };
 
 export default function Detail({ quoteResponse, responseTypes }) {
@@ -59,24 +70,18 @@ export default function Detail({ quoteResponse, responseTypes }) {
         return responseTypes[responseType] || responseType;
     };
 
-    const pageConfig = {
-        title: "見積返信詳細",
-        description: "クライアントからの見積返信内容を確認します",
-        breadcrumbs: [
-            { label: "ダッシュボード", href: route("admin.dashboard") },
-            {
-                label: "見積返信管理",
-                href: route("admin.quote-response.index"),
-            },
-            {
-                label: "詳細",
-                href: route("admin.quote-response.show", quoteResponse.id),
-            },
-        ],
-    };
+    const breadcrumbs = [...PageConfig.quoteResponses.breadcrumbs, "詳細"];
 
     return (
-        <AdminAuthenticatedLayout header={<PageHeader {...pageConfig} />}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="見積返信詳細"
+                    description="クライアントからの見積返信内容を確認します"
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title="見積返信詳細" />
 
             <FlashMessage />
@@ -189,7 +194,9 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                                 ] || "secondary"
                                             }
                                         >
-                                            {quoteResponse.quote.status}
+                                            {QUOTE_STATUS_LABELS[
+                                                quoteResponse.quote.status
+                                            ] || quoteResponse.quote.status}
                                         </Badge>
                                     </p>
                                 </div>
@@ -444,68 +451,29 @@ export default function Detail({ quoteResponse, responseTypes }) {
             </div>
 
             {/* 招待メール送信確認ダイアログ */}
-            {showInvitationConfirm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <Card className="w-full max-w-sm mx-4">
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                確認
-                            </h3>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                                招待メールを送信してもよろしいですか？
-                            </p>
-                            <div className="flex justify-end gap-2">
-                                <SecondaryButton
-                                    onClick={() =>
-                                        setShowInvitationConfirm(false)
-                                    }
-                                    disabled={processing}
-                                >
-                                    キャンセル
-                                </SecondaryButton>
-                                <PrimaryButton
-                                    onClick={confirmSendInvitation}
-                                    disabled={processing}
-                                >
-                                    送信
-                                </PrimaryButton>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-            )}
+            <ConfirmAlert
+                isOpen={showInvitationConfirm}
+                onClose={() => setShowInvitationConfirm(false)}
+                onCancel={() => setShowInvitationConfirm(false)}
+                onConfirm={confirmSendInvitation}
+                title="確認"
+                message="招待メールを送信してもよろしいですか？"
+                confirmText="送信"
+                cancelText="キャンセル"
+            />
 
             {/* NG判定確認ダイアログ */}
-            {showDeclineConfirm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <Card className="w-full max-w-sm mx-4">
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                確認
-                            </h3>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                                この見積を見送り(NG)として記録します。よろしいですか？
-                            </p>
-                            <div className="flex justify-end gap-2">
-                                <SecondaryButton
-                                    onClick={() =>
-                                        setShowDeclineConfirm(false)
-                                    }
-                                    disabled={declineForm.processing}
-                                >
-                                    キャンセル
-                                </SecondaryButton>
-                                <PrimaryButton
-                                    onClick={confirmDecline}
-                                    disabled={declineForm.processing}
-                                >
-                                    NGとして処理
-                                </PrimaryButton>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-            )}
+            <ConfirmAlert
+                isOpen={showDeclineConfirm}
+                onClose={() => setShowDeclineConfirm(false)}
+                onCancel={() => setShowDeclineConfirm(false)}
+                onConfirm={confirmDecline}
+                title="確認"
+                message="この見積を見送り(NG)として記録します。よろしいですか？"
+                confirmText="NGとして処理"
+                cancelText="キャンセル"
+                type="warning"
+            />
         </AdminAuthenticatedLayout>
     );
 }

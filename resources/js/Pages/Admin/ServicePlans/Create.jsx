@@ -41,31 +41,37 @@ export default function Create({
             setData("sort_order", 0);
         }
 
-        console.log("Submitting form data:", data);
-
         post(route("admin.service.plan.store"));
     };
 
     const headerActions = [
         {
-            label: "一覧に戻る",
-            href: route("admin.service.plan.index"),
+            label: PageConfig.servicePlans.actions.back,
+            route: route("admin.service.plan.index"),
             variant: "ghost",
             icon: ArrowLeftIcon,
         },
+    ];
+
+    const breadcrumbs = [
+        ...PageConfig.servicePlans.breadcrumbs,
+        PageConfig.servicePlans.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービスプラン作成"
-                    description="新しいプランを作成します"
+                    title={PageConfig.servicePlans.pages.create.title}
+                    description={
+                        PageConfig.servicePlans.pages.create.description
+                    }
                     actions={headerActions}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="サービスプラン作成" />
+            <Head title={PageConfig.servicePlans.pages.create.title} />
 
             <FlashMessage />
 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link, router, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
-import { SecondaryButton, PrimaryButton } from "@/Components/Buttons";
-import { Card } from "@/Components/Card";
+import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import ResponseTemplateTable from "./_components/ResponseTemplateTable";
@@ -14,7 +14,15 @@ import { XMarkIcon, FunnelIcon, PlusIcon } from "@heroicons/react/24/outline";
 // Page Config
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Index({ templates = {}, filters = {} }) {
+const toOptions = (obj = {}) =>
+    Object.entries(obj).map(([value, label]) => ({ value, label }));
+
+export default function Index({
+    templates = {},
+    filters = {},
+    statuses = {},
+    categories = {},
+}) {
     // ========================================
     // State & Form
     // ========================================
@@ -23,6 +31,7 @@ export default function Index({ templates = {}, filters = {} }) {
     const { data, setData, get, processing } = useForm({
         search: filters.search || "",
         status: filters.status || "",
+        category: filters.category || "",
     });
 
     // ========================================
@@ -30,20 +39,23 @@ export default function Index({ templates = {}, filters = {} }) {
     // ========================================
     // フィルターがアクティブな場合は自動的に開く
     useEffect(() => {
-        if (data.status) {
+        if (data.status || data.category) {
             setShowFilters(true);
         }
-    }, [data.status]);
+    }, [data.status, data.category]);
 
     // フィルター変更時に自動検索
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (data.status !== filters.status) {
+            if (
+                data.status !== filters.status ||
+                data.category !== filters.category
+            ) {
                 handleSearch();
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [data.status]);
+    }, [data.status, data.category]);
 
     // ========================================
     // Handlers - Search & Filter
@@ -60,6 +72,7 @@ export default function Index({ templates = {}, filters = {} }) {
         setData({
             search: "",
             status: "",
+            category: "",
         });
         setShowFilters(false);
         get(route("admin.response.template.index"), {
@@ -83,13 +96,13 @@ export default function Index({ templates = {}, filters = {} }) {
     // ========================================
     // Constants - Options & Config
     // ========================================
-    const statusOptions = [
-        { value: "active", label: "アクティブ" },
-        { value: "inactive", label: "無効" },
-    ];
+    const statusOptions = toOptions(statuses);
+    const categoryOptions = toOptions(categories);
 
-    const hasActiveFilters = data.status;
-    const activeFilterCount = data.status ? 1 : 0;
+    const hasActiveFilters = data.status || data.category;
+    const activeFilterCount = [data.status, data.category].filter(
+        Boolean,
+    ).length;
 
     return (
         <AdminAuthenticatedLayout
@@ -102,7 +115,7 @@ export default function Index({ templates = {}, filters = {} }) {
                 />
             }
         >
-            <Head title={PageConfig.responseTemplates.title} />
+            <Head title={PageConfig.responseTemplates.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
@@ -115,11 +128,12 @@ export default function Index({ templates = {}, filters = {} }) {
                     <div className="flex-1 max-w-md">
                         <SearchBar
                             value={data.search}
-                            onChange={(value) =>
-                                setData("search", value)
-                            }
+                            onChange={(value) => setData("search", value)}
                             onSearch={handleSearch}
-                            placeholder="テンプレート名で検索..."
+                            placeholder={
+                                PageConfig.responseTemplates.ui.search
+                                    .placeholder
+                            }
                             disabled={processing}
                         />
                     </div>
@@ -158,9 +172,18 @@ export default function Index({ templates = {}, filters = {} }) {
                                 }
                                 options={statusOptions}
                             />
+                            <FilterSelect
+                                label="カテゴリ"
+                                value={data.category}
+                                onChange={(value) =>
+                                    setData("category", value)
+                                }
+                                options={categoryOptions}
+                            />
                             <div className="flex items-end">
                                 <SecondaryButton
                                     onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
                                     className="w-full"
                                 >
                                     <XMarkIcon className="h-4 w-4 mr-2" />
@@ -173,6 +196,11 @@ export default function Index({ templates = {}, filters = {} }) {
 
                 {/* 一覧テーブル */}
                 <ResponseTemplateTable templates={templates} />
+
+                {/* ページネーション */}
+                {templates.data && templates.data.length > 0 && (
+                    <Pagination paginationData={templates} />
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

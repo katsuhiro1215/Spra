@@ -1,15 +1,19 @@
 import React, { useState } from "react";
-import { Head, router, usePage } from "@inertiajs/react";
+import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
+import { Card } from "@/Components/Card";
+import { SecondaryButton } from "@/Components/Buttons";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
 // Icons
 import {
     PlusIcon,
-    MagnifyingGlassIcon,
     FunnelIcon,
+    XMarkIcon,
     RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 // Constants
@@ -21,42 +25,37 @@ import {
 // Contract Components
 import ContractsTable from "./_components/ContractsTable";
 
-export default function Index({ contracts, filters, stats }) {
+export default function Index({ contracts, filters = {}, stats = {} }) {
     // ========================================
     // State & Form
     // ========================================
-    const [showFilters, setShowFilters] = useState(false);
-    const [searchTerm, setSearchTerm] = useState(filters?.search || "");
-    const [statusFilter, setStatusFilter] = useState(filters?.status || "");
-    const [typeFilter, setTypeFilter] = useState(filters?.type || "");
+    const [showFilters, setShowFilters] = useState(
+        !!(filters?.status || filters?.type),
+    );
+
+    const { data, setData, get, processing } = useForm({
+        search: filters?.search || "",
+        status: filters?.status || "",
+        type: filters?.type || "",
+    });
 
     // ========================================
     // Handlers - Search & Filter
     // ========================================
     const handleSearch = () => {
-        const params = {};
-        if (searchTerm) params.search = searchTerm;
-        if (statusFilter) params.status = statusFilter;
-        if (typeFilter) params.type = typeFilter;
-
-        router.get(route("admin.contract.index"), params, {
+        get(route("admin.contract.index"), {
             preserveState: true,
-            replace: true,
+            preserveScroll: true,
         });
     };
 
     const handleClearFilters = () => {
-        setSearchTerm("");
-        setStatusFilter("");
-        setTypeFilter("");
-        router.get(
-            route("admin.contract.index"),
-            {},
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
+        setData({ search: "", status: "", type: "" });
+        setShowFilters(false);
+        get(route("admin.contract.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     // ========================================
@@ -108,7 +107,7 @@ export default function Index({ contracts, filters, stats }) {
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions & Filters
     // ========================================
     const headerActions = [
         {
@@ -118,209 +117,195 @@ export default function Index({ contracts, filters, stats }) {
             route: route("admin.contract-group.index"),
         },
         {
-            label: "新規作成",
+            label: PageConfig.contracts.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.contract.create"),
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: null },
-    ];
+    const hasActiveFilters = data.search || data.status || data.type;
+    const activeFilterCount = [data.status, data.type].filter(
+        Boolean,
+    ).length;
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="契約管理"
-                    description="契約情報を管理します"
+                    title={PageConfig.contracts.title}
+                    description={PageConfig.contracts.description}
                     actions={headerActions}
-                    breadcrumbs={breadcrumbs}
+                    breadcrumbs={PageConfig.contracts.breadcrumbs}
                 />
             }
         >
-            <Head title="契約管理" />
+            <Head title={PageConfig.contracts.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            {/* ヘッダー */}
             <div className="w-full flex flex-col gap-4">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex justify-between items-center">
-                        <div className="flex space-x-2">
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                            >
-                                <FunnelIcon className="h-4 w-4 mr-2" />
-                                フィルター
-                            </button>
-                        </div>
+                {/* 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder={
+                                PageConfig.contracts.ui.search.placeholder
+                            }
+                            disabled={processing}
+                        />
+                    </div>
+
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="md"
+                            icon={FunnelIcon}
+                            className="relative"
+                            aria-expanded={showFilters}
+                        >
+                            {PageConfig.contracts.ui.filter.button}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
                     </div>
                 </div>
+
+                {/* フィルターセクション */}
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FilterSelect
+                                label="ステータス"
+                                value={data.status}
+                                onChange={(value) => setData("status", value)}
+                                options={CONTRACT_STATUS_OPTIONS}
+                            />
+                            <FilterSelect
+                                label="契約タイプ"
+                                value={data.type}
+                                onChange={(value) => setData("type", value)}
+                                options={CONTRACT_TYPE_OPTIONS}
+                            />
+                            <div className="flex items-end">
+                                <SecondaryButton
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    icon={XMarkIcon}
+                                    className="w-full"
+                                >
+                                    {PageConfig.contracts.ui.filter.clear}
+                                </SecondaryButton>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 統計情報 */}
                 {stats && (
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div className="grid grid-cols-5 gap-4">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-gray-900">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                                     {stats.total || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     総件数
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600">
+                        </Card>
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                                     {stats.active || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     契約中
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-yellow-600">
+                        </Card>
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                                     {stats.pending || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     署名待ち
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600">
+                        </Card>
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                     {stats.completed || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     完了
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-gray-600">
+                        </Card>
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                    {stats.suspended || 0}
+                                </div>
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                    一時停止
+                                </div>
+                            </div>
+                        </Card>
+                        <Card>
+                            <div className="p-4 text-center">
+                                <div className="text-2xl font-bold text-slate-600 dark:text-slate-300">
                                     {stats.draft || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     下書き
                                 </div>
                             </div>
-                        </div>
-                        {stats.total_amount !== undefined && (
-                            <div className="mt-4 pt-4 border-t border-gray-200 text-center">
-                                <div className="text-lg font-semibold text-gray-700">
-                                    契約総額:{" "}
-                                    {new Intl.NumberFormat("ja-JP", {
-                                        style: "currency",
-                                        currency: "JPY",
-                                    }).format(stats.total_amount)}
-                                </div>
-                            </div>
-                        )}
+                        </Card>
                     </div>
                 )}
 
-                {/* フィルター */}
-                {showFilters && (
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    検索
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) =>
-                                            setSearchTerm(e.target.value)
-                                        }
-                                        placeholder="契約番号、タイトル、クライアント名で検索"
-                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-2.5" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    ステータス
-                                </label>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) =>
-                                        setStatusFilter(e.target.value)
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                >
-                                    <option value="">すべて</option>
-                                    {CONTRACT_STATUS_OPTIONS.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    契約タイプ
-                                </label>
-                                <select
-                                    value={typeFilter}
-                                    onChange={(e) =>
-                                        setTypeFilter(e.target.value)
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                >
-                                    <option value="">すべて</option>
-                                    {CONTRACT_TYPE_OPTIONS.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex items-end space-x-2">
-                                <button
-                                    onClick={handleSearch}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                >
-                                    検索
-                                </button>
-                                <button
-                                    onClick={handleClearFilters}
-                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                                >
-                                    クリア
-                                </button>
-                            </div>
+                {stats?.total_amount !== undefined && (
+                    <Card>
+                        <div className="p-4 text-center">
+                            <span className="text-sm text-slate-500 dark:text-slate-400 mr-2">
+                                契約総額:
+                            </span>
+                            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                {new Intl.NumberFormat("ja-JP", {
+                                    style: "currency",
+                                    currency: "JPY",
+                                }).format(stats.total_amount)}
+                            </span>
                         </div>
-                    </div>
+                    </Card>
+                )}
+
+                {/* テーブル */}
+                <ContractsTable
+                    contracts={contracts}
+                    onDelete={handleDelete}
+                    onActivate={handleActivate}
+                    onCancel={handleCancel}
+                    onApprove={handleApprove}
+                    onReminder={handleReminder}
+                />
+
+                {/* ページネーション */}
+                {contracts.data.length > 0 && (
+                    <Pagination paginationData={contracts} />
                 )}
             </div>
-
-            {/* テーブル */}
-            <ContractsTable
-                contracts={contracts}
-                onDelete={handleDelete}
-                onActivate={handleActivate}
-                onCancel={handleCancel}
-                onApprove={handleApprove}
-                onReminder={handleReminder}
-            />
-
-            {/* ページネーション */}
-            {contracts.data.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm">
-                    <Pagination paginationData={contracts} />
-                </div>
-            )}
         </AdminAuthenticatedLayout>
     );
 }

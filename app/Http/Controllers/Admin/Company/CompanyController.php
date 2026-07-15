@@ -29,6 +29,8 @@ class CompanyController extends Controller
         $filters = [
             'search' => $request->input('search'),
             'status' => $request->input('status'),
+            'company_type' => $request->input('company_type'),
+            'industry' => $request->input('industry'),
             'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
         ];
         // ソート

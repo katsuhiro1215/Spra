@@ -38,7 +38,7 @@ class QuoteItemController extends Controller
 
         // 既に見積明細がある場合は編集画面へリダイレクト
         if ($quote->currentVersion && $quote->currentVersion->items()->exists()) {
-            return redirect()->route('admin.quote.items.edit', $quote->id);
+            return redirect()->route('admin.quote.item.edit', $quote->id);
         }
 
         // サービスカテゴリ、Service、ServiceItemを取得

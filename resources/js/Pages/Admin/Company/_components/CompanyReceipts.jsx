@@ -87,11 +87,9 @@ export default function CompanyReceipts({ receipts = [], companyId }) {
                             <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
                                 領収書一覧
                             </h2>
-                            <Badge
-                                text={`${receipts.length}件`}
-                                variant="neutral"
-                                size="sm"
-                            />
+                            <Badge variant="secondary" size="sm">
+                                {receipts.length}件
+                            </Badge>
                         </div>
                         <Link
                             href={route("admin.receipts.create", {

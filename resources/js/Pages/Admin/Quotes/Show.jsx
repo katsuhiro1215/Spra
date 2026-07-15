@@ -45,7 +45,7 @@ export default function Show({ quote, statuses }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.quotes.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.quote.index"),
@@ -53,9 +53,8 @@ export default function Show({ quote, statuses }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        { label: quote.quote_number, href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        quote.quote_number,
     ];
 
     return (

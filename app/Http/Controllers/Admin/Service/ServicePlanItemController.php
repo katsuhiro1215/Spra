@@ -15,58 +15,6 @@ use Inertia\Response;
 class ServicePlanItemController extends Controller
 {
     /**
-     * ServicePlanItemを追加する画面を表示
-     */
-    public function addItems(ServicePlan $servicePlan): Response
-    {
-        // 利用可能なServiceItem（既に追加されているものは除外）
-        $existingItemIds = $servicePlan->serviceItems()->pluck('service_item_id')->toArray();
-        $available_items = ServiceItem::where('status', 'active')
-            ->whereNotIn('id', $existingItemIds)
-            ->orderBy('sort_order')
-            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
-            ->toArray();
-
-        return Inertia::render('Admin/ServicePlanItem/Create', [
-            'servicePlan' => $servicePlan->load(['service'])->toArray(),
-            'available_items' => $available_items,
-        ]);
-    }
-
-    /**
-     * ServicePlanItemを保存
-     */
-    public function storeItems(ServicePlanItemRequest $request, ServicePlan $servicePlan)
-    {
-        try {
-            $validated = $request->validated();
-
-            foreach ($validated['items'] as $index => $itemData) {
-                ServicePlanItem::create([
-                    'service_plan_id' => $servicePlan->id,
-                    'service_item_id' => $itemData['service_item_id'],
-                    'quantity' => $itemData['quantity'] ?? 1,
-                    'estimated_days' => $itemData['estimated_days'] ?? null,
-                    'sort_order' => $itemData['sort_order'] ?? $index,
-                ]);
-            }
-
-            // discount_amount をServicePlanに保存
-            if (isset($validated['discount_amount'])) {
-                $servicePlan->update(['discount_amount' => $validated['discount_amount']]);
-            }
-
-            return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスアイテムが追加されました。');
-        } catch (\Exception $e) {
-            Log::error('ServicePlanItem store error: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'アイテムの追加に失敗しました。');
-        }
-    }
-
-    /**
      * ServicePlanItemを編集する画面を表示
      */
     public function editItems(ServicePlan $servicePlan): Response
@@ -95,10 +43,12 @@ class ServicePlanItemController extends Controller
             ];
         })->toArray();
 
-        // 利用可能なServiceItem（既に追加されているものは除外）
-        $existingItemIds = $servicePlan->serviceItems()->pluck('service_item_id')->toArray();
+        // 利用可能なServiceItem（このサービスのアクティブな項目を全て渡し、
+        // 現在割り当て済みかどうかはフロント側でリアルタイムに判定する。
+        // ここで除外してしまうと、編集画面でアイテムを外した際に
+        // 「利用可能」側に戻せなくなってしまうため）
         $available_items = ServiceItem::where('status', 'active')
-            ->whereNotIn('id', $existingItemIds)
+            ->where('service_id', $servicePlan->service_id)
             ->orderBy('sort_order')
             ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
             ->toArray();

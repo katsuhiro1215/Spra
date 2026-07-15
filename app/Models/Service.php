@@ -18,6 +18,7 @@ class Service extends Model
         'name',
         'slug',
         'service_category_id',
+        'media_id',
         'description',
         'details',
         'icon',
@@ -67,6 +68,14 @@ class Service extends Model
         return $this->belongsToMany(Media::class, 'service_media')
             ->withPivot('sort_order', 'is_primary')
             ->orderBy('service_media.sort_order');
+    }
+
+    /**
+     * Get the thumbnail/cover image for this service (admin display).
+     */
+    public function thumbnail()
+    {
+        return $this->belongsTo(Media::class, 'media_id');
     }
 
     /**

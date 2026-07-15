@@ -117,7 +117,12 @@ class ServiceItemController extends Controller
     public function show(ServiceItem $serviceItem): Response
     {
         return Inertia::render('Admin/ServiceItems/Show', [
-            'serviceItem' => $serviceItem->load(['service.serviceCategory', 'servicePlans', 'creator', 'updater']),
+            'serviceItem' => $serviceItem->load([
+                'service.serviceCategory',
+                'servicePlans',
+                'creator.profile',
+                'updater.profile',
+            ]),
         ]);
     }
 

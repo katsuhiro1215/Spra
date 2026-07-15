@@ -1,20 +1,12 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import {
-    FormGroup,
-    TextInput,
-    SelectInput,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, SelectInput } from "@/Components/Forms";
 import { SecondaryButton, UpdateButton } from "@/Components/Buttons";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({ admin, roles, statuses }) {
@@ -44,18 +36,16 @@ export default function Edit({ admin, roles, statuses }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: admin.email, href: route("admin.admin.show", admin.id) },
-        { label: "編集", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="管理者編集"
-                    description="管理者情報を編集します"
+                    title={PageConfig.admins.pages.edit.title}
+                    description={PageConfig.admins.pages.edit.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
@@ -73,12 +63,13 @@ export default function Edit({ admin, roles, statuses }) {
                                 <CardTitle>認証情報</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <div className="p-6 space-y-6">
+                                <div className="space-y-6">
                                     <FormGroup
                                         label="メールアドレス"
                                         htmlFor="email"
                                         required
                                         help="ログインIDとして使用されます"
+                                        error={errors.email}
                                     >
                                         <TextInput
                                             id="email"
@@ -89,11 +80,6 @@ export default function Edit({ admin, roles, statuses }) {
                                                 setData("email", e.target.value)
                                             }
                                             placeholder="example@example.com"
-                                            error={errors.email}
-                                        />
-                                        <InputError
-                                            className="mt-2"
-                                            message={errors.email}
                                         />
                                     </FormGroup>
 
@@ -101,6 +87,7 @@ export default function Edit({ admin, roles, statuses }) {
                                         label="権限"
                                         htmlFor="role"
                                         required
+                                        error={errors.role}
                                     >
                                         <SelectInput
                                             id="role"
@@ -110,11 +97,6 @@ export default function Edit({ admin, roles, statuses }) {
                                                 setData("role", e.target.value)
                                             }
                                             options={roles}
-                                            error={errors.role}
-                                        />
-                                        <InputError
-                                            className="mt-2"
-                                            message={errors.role}
                                         />
                                     </FormGroup>
 
@@ -122,6 +104,7 @@ export default function Edit({ admin, roles, statuses }) {
                                         label="ステータス"
                                         htmlFor="status"
                                         required
+                                        error={errors.status}
                                     >
                                         <SelectInput
                                             id="status"
@@ -134,11 +117,6 @@ export default function Edit({ admin, roles, statuses }) {
                                                 )
                                             }
                                             options={statuses}
-                                            error={errors.status}
-                                        />
-                                        <InputError
-                                            className="mt-2"
-                                            message={errors.status}
                                         />
                                     </FormGroup>
 
@@ -153,6 +131,7 @@ export default function Edit({ admin, roles, statuses }) {
                                         <div className="space-y-6">
                                             <FormGroup
                                                 label="新しいパスワード"
+                                                htmlFor="password"
                                                 error={errors.password}
                                                 help="8文字以上で入力してください"
                                             >
@@ -169,10 +148,6 @@ export default function Edit({ admin, roles, statuses }) {
                                                     id="password"
                                                     name="password"
                                                 />
-                                                <InputError
-                                                    className="mt-2"
-                                                    message={errors.password}
-                                                />
                                             </FormGroup>
 
                                             <FormGroup
@@ -180,6 +155,9 @@ export default function Edit({ admin, roles, statuses }) {
                                                 htmlFor="password_confirmation"
                                                 required
                                                 help="確認のため、もう一度同じパスワードを入力してください"
+                                                error={
+                                                    errors.password_confirmation
+                                                }
                                             >
                                                 <TextInput
                                                     type="password"
@@ -195,12 +173,6 @@ export default function Edit({ admin, roles, statuses }) {
                                                     placeholder="••••••••"
                                                     id="password_confirmation"
                                                     name="password_confirmation"
-                                                />
-                                                <InputError
-                                                    className="mt-2"
-                                                    message={
-                                                        errors.password_confirmation
-                                                    }
                                                 />
                                             </FormGroup>
                                         </div>

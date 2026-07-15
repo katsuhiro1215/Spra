@@ -4,6 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 import QuoteItemForm from "./_components/Form";
 
 export default function Create({
@@ -35,7 +36,7 @@ export default function Create({
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.quotes.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.quote.show", quote.id),
@@ -43,13 +44,9 @@ export default function Create({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        {
-            label: quote.title,
-            href: route("admin.quote.show", quote.id),
-        },
-        { label: "見積明細追加", href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        quote.title,
+        "見積明細追加",
     ];
 
     return (

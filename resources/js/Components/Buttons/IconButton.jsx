@@ -4,7 +4,7 @@ import BaseButton from "./BaseButton";
  * IconButton - アイコン専用ボタン
  *
  * @param {React.ReactNode} icon - アイコン（必須）
- * @param {string} variant - カラーバリアント (primary, secondary, danger, success, warning, info, text)
+ * @param {string} variant - カラーバリアント (primary, secondary, danger, success, warning, info, text, info-text, warning-text, danger-text)
  * @param {boolean} useTheme - カラーテーマを使用（デフォルト: false）
  * @param {string} size - ボタンサイズ (xs, sm, md, lg, xl)
  * @param {boolean} loading - ローディング状態

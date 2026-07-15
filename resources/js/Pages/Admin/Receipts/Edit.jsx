@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import ReceiptForm from "./_components/Form";
 
 export default function Edit({
@@ -29,17 +30,13 @@ export default function Edit({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route("admin.receipts.update", receipt.id));
+        put(route("admin.receipt.update", receipt.id));
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "領収書一覧", href: route("admin.receipts.index") },
-        {
-            label: receipt.receipt_number,
-            href: route("admin.receipts.show", receipt.id),
-        },
-        { label: "編集", href: null },
+        ...PageConfig.receipts.breadcrumbs,
+        receipt.receipt_number,
+        PageConfig.receipts.pages.edit.breadcrumb,
     ];
 
     return (

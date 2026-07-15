@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-import {
-    FormGroup,
-    TextInput,
-    SelectInput,
-    TextArea,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, SelectInput, TextArea } from "@/Components/Forms";
 import {
     PlusIcon,
     TrashIcon,
@@ -287,6 +281,11 @@ export default function QuoteItemForm({
                                             label="品目名"
                                             htmlFor={`items[${index}].name`}
                                             required
+                                            error={
+                                                errors[
+                                                    `items.${index}.name`
+                                                ]
+                                            }
                                         >
                                             <TextInput
                                                 id={`items[${index}].name`}
@@ -298,22 +297,19 @@ export default function QuoteItemForm({
                                                         e.target.value,
                                                     )
                                                 }
-                                                required
                                                 placeholder="例: Webサイト制作"
-                                            />
-                                            <InputError
-                                                className="mt-2"
-                                                message={
-                                                    errors[
-                                                        `items.${index}.name`
-                                                    ]
-                                                }
+                                                required
                                             />
                                         </FormGroup>
 
                                         <FormGroup
                                             label="課金タイプ"
                                             htmlFor={`items[${index}].billing_type`}
+                                            error={
+                                                errors[
+                                                    `items.${index}.billing_type`
+                                                ]
+                                            }
                                         >
                                             <SelectInput
                                                 id={`items[${index}].billing_type`}
@@ -330,20 +326,17 @@ export default function QuoteItemForm({
                                                 }
                                                 required
                                             />
-                                            <InputError
-                                                className="mt-2"
-                                                message={
-                                                    errors[
-                                                        `items.${index}.billing_type`
-                                                    ]
-                                                }
-                                            />
                                         </FormGroup>
 
                                         <div className="md:col-span-2">
                                             <FormGroup
                                                 label="説明"
                                                 htmlFor={`items[${index}].description`}
+                                                error={
+                                                    errors[
+                                                        `items.${index}.description`
+                                                    ]
+                                                }
                                             >
                                                 <TextArea
                                                     id={`items[${index}].description`}
@@ -359,14 +352,6 @@ export default function QuoteItemForm({
                                                     }
                                                     rows={2}
                                                 />
-                                                <InputError
-                                                    className="mt-2"
-                                                    message={
-                                                        errors[
-                                                            `items.${index}.description`
-                                                        ]
-                                                    }
-                                                />
                                             </FormGroup>
                                         </div>
 
@@ -374,6 +359,11 @@ export default function QuoteItemForm({
                                             label="数量"
                                             htmlFor={`items[${index}].quantity`}
                                             required
+                                            error={
+                                                errors[
+                                                    `items.${index}.quantity`
+                                                ]
+                                            }
                                         >
                                             <TextInput
                                                 id={`items[${index}].quantity`}
@@ -390,20 +380,17 @@ export default function QuoteItemForm({
                                                 }
                                                 required
                                             />
-                                            <InputError
-                                                className="mt-2"
-                                                message={
-                                                    errors[
-                                                        `items.${index}.quantity`
-                                                    ]
-                                                }
-                                            />
                                         </FormGroup>
 
                                         <FormGroup
                                             label="単価"
                                             htmlFor={`items[${index}].unit_price`}
                                             required
+                                            error={
+                                                errors[
+                                                    `items.${index}.unit_price`
+                                                ]
+                                            }
                                         >
                                             <TextInput
                                                 id={`items[${index}].unit_price`}
@@ -419,14 +406,6 @@ export default function QuoteItemForm({
                                                     )
                                                 }
                                                 required
-                                            />
-                                            <InputError
-                                                className="mt-2"
-                                                message={
-                                                    errors[
-                                                        `items.${index}.unit_price`
-                                                    ]
-                                                }
                                             />
                                         </FormGroup>
 
@@ -463,7 +442,7 @@ export default function QuoteItemForm({
                                 </div>
                             ))}
 
-                            <div className="border-t pt-4 mt-4">
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                                 <div className="flex justify-between text-lg font-bold">
                                     <span className="dark:text-gray-200">
                                         合計:
@@ -489,6 +468,7 @@ export default function QuoteItemForm({
                             <FormGroup
                                 label="値引き額"
                                 htmlFor="discount_amount"
+                                error={errors.discount_amount}
                             >
                                 <TextInput
                                     id="discount_amount"
@@ -503,16 +483,13 @@ export default function QuoteItemForm({
                                         )
                                     }
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.discount_amount}
-                                />
                             </FormGroup>
 
                             <div className="col-span-2">
                                 <FormGroup
                                     label="消費税率 (%)"
                                     htmlFor="tax_rate"
+                                    error={errors.tax_rate}
                                 >
                                     <TextInput
                                         id="tax_rate"
@@ -524,10 +501,6 @@ export default function QuoteItemForm({
                                         onChange={(e) =>
                                             setData("tax_rate", e.target.value)
                                         }
-                                    />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.tax_rate}
                                     />
                                 </FormGroup>
                             </div>
@@ -582,6 +555,7 @@ export default function QuoteItemForm({
                     <FormGroup
                         label="カスタム仕様"
                         htmlFor="custom_specifications"
+                        error={errors.custom_specifications}
                     >
                         <TextArea
                             id="custom_specifications"
@@ -592,10 +566,6 @@ export default function QuoteItemForm({
                             rows={3}
                             placeholder="カスタム仕様やメモを入力してください"
                         />
-                        <InputError
-                            className="mt-2"
-                            message={errors.custom_specifications}
-                        />
                     </FormGroup>
                 </CardBody>
             </Card>
@@ -604,7 +574,7 @@ export default function QuoteItemForm({
             <div className="flex justify-end space-x-4">
                 <SecondaryButton
                     type="button"
-                    onClick={() => (window.location.href = cancelRoute)}
+                    href={cancelRoute}
                     disabled={processing}
                 >
                     キャンセル

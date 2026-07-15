@@ -41,13 +41,13 @@ export default function CompanyInvoices({ invoices = [], totalPaid = 0 }) {
 
     const getStatusBadge = (status) => {
         const badges = {
-            draft: { text: "下書き", variant: "neutral" },
+            draft: { text: "下書き", variant: "secondary" },
             sent: { text: "送信済み", variant: "info" },
             paid: { text: "支払済み", variant: "success" },
             overdue: { text: "延滞", variant: "danger" },
-            cancelled: { text: "キャンセル", variant: "neutral" },
+            cancelled: { text: "キャンセル", variant: "secondary" },
         };
-        return badges[status] || { text: status, variant: "neutral" };
+        return badges[status] || { text: status, variant: "secondary" };
     };
 
     const handleDownload = (invoiceId) => {
@@ -92,11 +92,9 @@ export default function CompanyInvoices({ invoices = [], totalPaid = 0 }) {
                             <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
                                 請求書一覧
                             </h2>
-                            <Badge
-                                text={`${invoices.length}件`}
-                                variant="neutral"
-                                size="sm"
-                            />
+                            <Badge variant="secondary" size="sm">
+                                {invoices.length}件
+                            </Badge>
                         </div>
                     </div>
                 </CardHeader>
@@ -173,10 +171,18 @@ export default function CompanyInvoices({ invoices = [], totalPaid = 0 }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Badge
-                                                    {...getStatusBadge(
-                                                        invoice.status,
-                                                    )}
-                                                />
+                                                    variant={
+                                                        getStatusBadge(
+                                                            invoice.status,
+                                                        ).variant
+                                                    }
+                                                >
+                                                    {
+                                                        getStatusBadge(
+                                                            invoice.status,
+                                                        ).text
+                                                    }
+                                                </Badge>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                                                 {invoice.client_downloaded_at ? (

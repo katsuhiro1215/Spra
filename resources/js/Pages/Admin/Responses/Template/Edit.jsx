@@ -2,45 +2,52 @@ import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
+import { FlashMessage } from "@/Components/Notifications";
 import Form from "./_components/Form";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+// Constants
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({ template }) {
-    // Page Config
-    const PageConfig = {
-        title: "🔖 テンプレートを編集",
-        description: `「${template.name}」を編集します`,
-        documentTitle: "テンプレートを編集",
-        breadcrumbs: [
-            { label: "ダッシュボード", href: route("admin.dashboard") },
-            {
-                label: "返答テンプレート",
-                href: route("admin.response.template.index"),
-            },
-            { label: template.name, href: "#" },
-        ],
-    };
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.responseTemplates.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.response.template.index"),
+        },
+    ];
+
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.responseTemplates.breadcrumbs,
+        template.name,
+        PageConfig.responseTemplates.pages.edit.breadcrumb,
+    ];
 
     return (
-        <AdminAuthenticatedLayout>
-            <Head title={PageConfig.documentTitle} />
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={`🔖 テンプレートを編集`}
+                    description={`「${template.name}」を編集します`}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
+            <Head title={`テンプレートを編集 - ${template.name}`} />
 
-            {/* ページヘッダー */}
-            <PageHeader
-                title={PageConfig.title}
-                description={PageConfig.description}
-                breadcrumbs={PageConfig.breadcrumbs}
-                action={{
-                    icon: ArrowLeftIcon,
-                    label: "戻る",
-                    href: route("admin.response.template.index"),
-                    variant: "secondary",
-                }}
-            />
+            <FlashMessage />
 
             {/* フォーム */}
-            <div className="mt-8">
+            <div className="max-w-7xl">
                 <Form template={template} isEditing={true} />
             </div>
         </AdminAuthenticatedLayout>

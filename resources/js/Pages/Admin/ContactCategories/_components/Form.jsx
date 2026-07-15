@@ -2,13 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "@inertiajs/react";
 // Components
 import { Card, CardHeader, CardBody } from "@/Components/Card";
-import {
-    FormGroup,
-    TextInput,
-    TextArea,
-    NumberInput,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, TextArea, NumberInput } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 // Validation
 import * as validation from "./validation";
@@ -19,8 +13,29 @@ const Form = ({ category = null, isEditing = false }) => {
         name: category?.name || "",
         description: category?.description || "",
         sort_order: category?.sort_order || 0,
-        is_active: category?.is_active || true,
+        is_active: category?.is_active ?? true,
     });
+
+    const handleBlur = (fieldName) => {
+        const tempData = { ...data, errors: {} };
+
+        switch (fieldName) {
+            case "name":
+                validation.validateName(tempData);
+                break;
+            case "description":
+                validation.validateDescription(tempData);
+                break;
+            case "sort_order":
+                validation.validateSortOrder(tempData);
+                break;
+        }
+
+        setLocalErrors((prev) => ({
+            ...prev,
+            [fieldName]: tempData.errors[fieldName],
+        }));
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -44,40 +59,49 @@ const Form = ({ category = null, isEditing = false }) => {
             <CardBody>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* カテゴリ名 */}
-                    <FormGroup>
+                    <FormGroup
+                        label="カテゴリ名"
+                        htmlFor="name"
+                        required
+                        error={errors.name || localErrors.name}
+                    >
                         <TextInput
-                            label="カテゴリ名"
+                            id="name"
                             placeholder="例: 見積もり"
                             value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
+                            onBlur={() => handleBlur("name")}
                             required
                         />
-                        <InputError message={errors.name || localErrors.name} />
                     </FormGroup>
 
                     {/* 説明 */}
-                    <FormGroup>
+                    <FormGroup
+                        label="説明"
+                        htmlFor="description"
+                        error={errors.description || localErrors.description}
+                    >
                         <TextArea
-                            label="説明"
+                            id="description"
                             placeholder="このカテゴリについての説明を入力してください"
                             value={data.description}
                             onChange={(e) =>
                                 setData("description", e.target.value)
                             }
+                            onBlur={() => handleBlur("description")}
                             rows={4}
                         />
                         <div className="text-sm text-gray-500 mt-1">
                             {data.description.length}/500
                         </div>
-                        <InputError
-                            message={
-                                errors.description || localErrors.description
-                            }
-                        />
                     </FormGroup>
 
                     {/* 並び順 */}
-                    <FormGroup label="表示順">
+                    <FormGroup
+                        label="表示順"
+                        htmlFor="sort_order"
+                        error={errors.sort_order || localErrors.sort_order}
+                    >
                         <NumberInput
                             id="sort_order"
                             min={0}
@@ -85,16 +109,10 @@ const Form = ({ category = null, isEditing = false }) => {
                             value={data.sort_order}
                             onChange={(val) => setData("sort_order", val || 0)}
                             onBlur={() => handleBlur("sort_order")}
-                            required
                         />
                         <div className="text-sm text-gray-500 mt-1">
                             数字が小さいほど上に表示されます
                         </div>
-                        <InputError
-                            message={
-                                errors.sort_order || localErrors.sort_order
-                            }
-                        />
                     </FormGroup>
 
                     {/* ステータス */}
@@ -102,12 +120,9 @@ const Form = ({ category = null, isEditing = false }) => {
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                checked={data.is_active ?? true}
+                                checked={data.is_active}
                                 onChange={(e) =>
-                                    setData({
-                                        ...data,
-                                        is_active: e.target.checked,
-                                    })
+                                    setData("is_active", e.target.checked)
                                 }
                                 className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 dark:bg-slate-700"
                             />
@@ -115,7 +130,6 @@ const Form = ({ category = null, isEditing = false }) => {
                                 アクティブ（有効化）
                             </span>
                         </label>
-                        <InputError message={errors.is_active} />
                     </FormGroup>
 
                     {/* ボタン */}

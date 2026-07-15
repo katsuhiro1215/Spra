@@ -11,6 +11,7 @@ import {
     ArrowDownTrayIcon,
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("ja-JP", {
@@ -49,9 +50,9 @@ export default function Show({ receipt }) {
                 `領収書「${receipt.receipt_number}」を削除してもよろしいですか？`,
             )
         ) {
-            router.delete(route("admin.receipts.destroy", receipt.id), {
+            router.delete(route("admin.receipt.destroy", receipt.id), {
                 onSuccess: () => {
-                    router.visit(route("admin.receipts.index"));
+                    router.visit(route("admin.receipt.index"));
                 },
             });
         }
@@ -76,11 +77,14 @@ export default function Show({ receipt }) {
     // ========================================
     const getStatusBadge = (status) => {
         const statusMap = {
-            draft: { label: "下書き", variant: "gray" },
-            issued: { label: "発行済み", variant: "blue" },
-            sent: { label: "送付済み", variant: "green" },
+            draft: { label: "下書き", variant: "secondary" },
+            issued: { label: "発行済み", variant: "info" },
+            sent: { label: "送付済み", variant: "success" },
         };
-        const config = statusMap[status] || { label: status, variant: "gray" };
+        const config = statusMap[status] || {
+            label: status,
+            variant: "secondary",
+        };
         return <Badge variant={config.variant}>{config.label}</Badge>;
     };
 
@@ -101,7 +105,7 @@ export default function Show({ receipt }) {
             label: "編集",
             icon: PencilIcon,
             variant: "secondary",
-            route: route("admin.receipts.edit", receipt.id),
+            route: route("admin.receipt.edit", receipt.id),
         });
         headerActions.push({
             label: "削除",
@@ -121,9 +125,8 @@ export default function Show({ receipt }) {
     }
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "領収書一覧", href: route("admin.receipts.index") },
-        { label: receipt.receipt_number, href: null },
+        ...PageConfig.receipts.breadcrumbs,
+        receipt.receipt_number,
     ];
 
     return (
@@ -146,23 +149,23 @@ export default function Show({ receipt }) {
                 <div className="lg:col-span-2 space-y-6">
                     {/* 基本情報 */}
                     <Card>
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 基本情報
                             </h3>
                         </div>
                         <div className="px-6 py-4 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         領収書番号
                                     </label>
-                                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                                    <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                         {receipt.receipt_number}
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         ステータス
                                     </label>
                                     <div className="mt-1">
@@ -173,10 +176,10 @@ export default function Show({ receipt }) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         発行日
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         {receipt.issued_at
                                             ? formatDate(receipt.issued_at)
                                             : "-"}
@@ -184,10 +187,10 @@ export default function Show({ receipt }) {
                                 </div>
                                 {receipt.sent_at && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500">
+                                        <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                             送付日時
                                         </label>
-                                        <p className="mt-1 text-sm text-gray-900">
+                                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                             {formatDateTime(receipt.sent_at)}
                                         </p>
                                     </div>
@@ -196,7 +199,7 @@ export default function Show({ receipt }) {
 
                             {receipt.invoice && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         関連請求書
                                     </label>
                                     <Link
@@ -204,7 +207,7 @@ export default function Show({ receipt }) {
                                             "admin.invoice.show",
                                             receipt.invoice.id,
                                         )}
-                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 font-medium"
+                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                                     >
                                         {receipt.invoice.invoice_number}
                                     </Link>
@@ -213,10 +216,10 @@ export default function Show({ receipt }) {
 
                             {receipt.payment && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         関連決済
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         決済ID: {receipt.payment.id}
                                     </p>
                                 </div>
@@ -226,39 +229,43 @@ export default function Show({ receipt }) {
 
                     {/* 金額情報 */}
                     <Card>
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 金額情報
                             </h3>
                         </div>
                         <div className="px-6 py-4 space-y-4">
-                            <div className="bg-emerald-50 rounded-lg p-6 text-center">
-                                <p className="text-sm text-emerald-600 mb-2">
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-6 text-center">
+                                <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-2">
                                     領収金額
                                 </p>
-                                <p className="text-3xl font-bold text-emerald-600">
+                                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {formatCurrency(receipt.total_amount)}
                                 </p>
                             </div>
 
-                            <div className="border-t pt-4 space-y-2">
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">小計</span>
-                                    <span className="font-medium text-gray-900">
+                                    <span className="text-gray-500 dark:text-gray-400">
+                                        小計
+                                    </span>
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
                                         {formatCurrency(receipt.amount)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                         消費税
                                     </span>
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
                                         {formatCurrency(receipt.tax_amount)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between text-base font-semibold border-t pt-2">
-                                    <span className="text-gray-900">合計</span>
-                                    <span className="text-gray-900">
+                                <div className="flex justify-between text-base font-semibold border-t border-gray-200 dark:border-gray-700 pt-2">
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                        合計
+                                    </span>
+                                    <span className="text-gray-900 dark:text-gray-100">
                                         {formatCurrency(receipt.total_amount)}
                                     </span>
                                 </div>
@@ -269,23 +276,23 @@ export default function Show({ receipt }) {
                     {/* クライアントダウンロード情報 */}
                     {receipt.client_downloaded_at && (
                         <Card>
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h3 className="text-lg font-medium text-gray-900">
+                            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                     ダウンロード履歴
                                 </h3>
                             </div>
                             <div className="px-6 py-4">
                                 <div className="flex items-center space-x-2 text-sm">
-                                    <span className="text-gray-500">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                         クライアントがダウンロード:
                                     </span>
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
                                         {formatDateTime(
                                             receipt.client_downloaded_at,
                                         )}
                                     </span>
                                     {receipt.client_downloaded_by && (
-                                        <span className="text-gray-500">
+                                        <span className="text-gray-500 dark:text-gray-400">
                                             (
                                             {receipt.client_downloaded_by
                                                 .name ||
@@ -302,13 +309,13 @@ export default function Show({ receipt }) {
                     {/* 備考 */}
                     {receipt.notes && (
                         <Card>
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h3 className="text-lg font-medium text-gray-900">
+                            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                     備考
                                 </h3>
                             </div>
                             <div className="px-6 py-4">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                                     {receipt.notes}
                                 </p>
                             </div>
@@ -320,15 +327,15 @@ export default function Show({ receipt }) {
                 <div className="space-y-6">
                     {/* 宛先情報 */}
                     <Card>
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 宛先情報
                             </h3>
                         </div>
                         <div className="px-6 py-4 space-y-4">
                             {receipt.user && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         ユーザー
                                     </label>
                                     <Link
@@ -336,13 +343,13 @@ export default function Show({ receipt }) {
                                             "admin.user.show",
                                             receipt.user.id,
                                         )}
-                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 font-medium"
+                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                                     >
                                         {receipt.user.name ||
                                             receipt.user.email}
                                     </Link>
                                     {receipt.user.email && (
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                             {receipt.user.email}
                                         </p>
                                     )}
@@ -351,7 +358,7 @@ export default function Show({ receipt }) {
 
                             {receipt.company && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         会社
                                     </label>
                                     <Link
@@ -359,14 +366,14 @@ export default function Show({ receipt }) {
                                             "admin.company.show",
                                             receipt.company.id,
                                         )}
-                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 font-medium"
+                                        className="mt-1 text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                                     >
                                         {receipt.company.name}
                                     </Link>
                                     {receipt.company.addresses &&
                                         receipt.company.addresses.length >
                                             0 && (
-                                            <div className="mt-2 text-xs text-gray-600">
+                                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                                                 <p>
                                                     〒
                                                     {
@@ -401,34 +408,34 @@ export default function Show({ receipt }) {
                     {/* 作成者情報 */}
                     {receipt.created_by && (
                         <Card>
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h3 className="text-lg font-medium text-gray-900">
+                            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                                     作成者情報
                                 </h3>
                             </div>
                             <div className="px-6 py-4 space-y-2">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         作成者
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         {receipt.created_by.name}
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500">
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                         作成日時
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         {formatDateTime(receipt.created_at)}
                                     </p>
                                 </div>
                                 {receipt.updated_at !== receipt.created_at && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500">
+                                        <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                             更新日時
                                         </label>
-                                        <p className="mt-1 text-sm text-gray-900">
+                                        <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                             {formatDateTime(receipt.updated_at)}
                                         </p>
                                     </div>

@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react";
  *
  * @param {string} href - リンク先URL（指定時はInertia Linkとして動作）
  * @param {string} type - button type (button, submit, reset)
- * @param {string} variant - カラーバリアント (primary, secondary, danger, success, warning, info, text)
+ * @param {string} variant - カラーバリアント (primary, secondary, danger, success, warning, info, text, info-text, warning-text, danger-text)
  * @param {string} size - ボタンサイズ (xs, sm, md, lg, xl)
  * @param {boolean} disabled - 無効化フラグ
  * @param {boolean} loading - ローディング状態
@@ -109,6 +109,30 @@ export default function BaseButton({
                 hover:bg-slate-100
                 focus:ring-slate-500
                 dark:text-slate-300 dark:hover:bg-slate-800
+            `,
+            "info-text": `
+                bg-transparent text-cyan-600
+                hover:text-cyan-900 hover:bg-cyan-50
+                focus:ring-cyan-500
+                dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-cyan-900/20
+            `,
+            "warning-text": `
+                bg-transparent text-yellow-600
+                hover:text-yellow-900 hover:bg-yellow-50
+                focus:ring-yellow-500
+                dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900/20
+            `,
+            "danger-text": `
+                bg-transparent text-red-600
+                hover:text-red-900 hover:bg-red-50
+                focus:ring-red-500
+                dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20
+            `,
+            "success-text": `
+                bg-transparent text-green-600
+                hover:text-green-900 hover:bg-green-50
+                focus:ring-green-500
+                dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20
             `,
         };
 

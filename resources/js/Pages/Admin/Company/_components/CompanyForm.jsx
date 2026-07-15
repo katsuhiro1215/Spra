@@ -1,80 +1,7 @@
 import React, { useState } from "react";
-import {
-    FormGroup,
-    TextInput,
-    TextArea,
-    SelectInput,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, TextArea, SelectInput } from "@/Components/Forms";
+import { INDUSTRY_OPTIONS } from "@/Constants/SelectOptions";
 import * as validation from "./validation";
-
-const PREFECTURES = [
-    "北海道",
-    "青森県",
-    "岩手県",
-    "宮城県",
-    "秋田県",
-    "山形県",
-    "福島県",
-    "茨城県",
-    "栃木県",
-    "群馬県",
-    "埼玉県",
-    "千葉県",
-    "東京都",
-    "神奈川県",
-    "新潟県",
-    "富山県",
-    "石川県",
-    "福井県",
-    "山梨県",
-    "長野県",
-    "岐阜県",
-    "静岡県",
-    "愛知県",
-    "三重県",
-    "滋賀県",
-    "京都府",
-    "大阪府",
-    "兵庫県",
-    "奈良県",
-    "和歌山県",
-    "鳥取県",
-    "島根県",
-    "岡山県",
-    "広島県",
-    "山口県",
-    "徳島県",
-    "香川県",
-    "愛媛県",
-    "高知県",
-    "福岡県",
-    "佐賀県",
-    "長崎県",
-    "熊本県",
-    "大分県",
-    "宮崎県",
-    "鹿児島県",
-    "沖縄県",
-];
-
-const INDUSTRIES = [
-    "製造業",
-    "IT・ソフトウェア",
-    "建設・不動産",
-    "小売・卸売",
-    "金融・保険",
-    "運輸・物流",
-    "医療・介護",
-    "教育",
-    "飲食・宿泊",
-    "コンサルティング",
-    "マーケティング・広告",
-    "エネルギー",
-    "農業・林業・漁業",
-    "公務",
-    "その他",
-];
 
 export default function CompanyForm({
     data,
@@ -176,7 +103,11 @@ export default function CompanyForm({
                     基本情報
                 </h3>
                 <div className="space-y-6">
-                    <FormGroup label="会社名" error={errors.name} required>
+                    <FormGroup
+                        label="会社名"
+                        error={errors.name || localErrors.name}
+                        required
+                    >
                         <TextInput
                             value={data.name}
                             onChange={(e) =>
@@ -184,17 +115,14 @@ export default function CompanyForm({
                             }
                             onBlur={() => handleBlur("name")}
                             placeholder="株式会社サンプル"
-                            error={errors.name}
-                        />
-                        <InputError
-                            message={errors.name || localErrors.name}
-                            className="mt-2"
                         />
                     </FormGroup>
 
                     <FormGroup
                         label="会社種別"
-                        error={errors.company_type}
+                        error={
+                            errors.company_type || localErrors.company_type
+                        }
                         required
                     >
                         <SelectInput
@@ -204,19 +132,12 @@ export default function CompanyForm({
                             }
                             onBlur={() => handleBlur("company_type")}
                             options={companyTypes}
-                            error={errors.company_type}
-                        />
-                        <InputError
-                            message={
-                                errors.company_type || localErrors.company_type
-                            }
-                            className="mt-2"
                         />
                     </FormGroup>
 
                     <FormGroup
                         label="正式名称"
-                        error={errors.legal_name}
+                        error={errors.legal_name || localErrors.legal_name}
                         help={
                             isIndividual
                                 ? "個人事業主の場合は本名を入力してください"
@@ -232,20 +153,16 @@ export default function CompanyForm({
                             placeholder={
                                 isIndividual ? "山田 太郎" : "株式会社サンプル"
                             }
-                            error={errors.legal_name}
-                        />
-                        <InputError
-                            message={
-                                errors.legal_name || localErrors.legal_name
-                            }
-                            className="mt-2"
                         />
                     </FormGroup>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormGroup
                             label={isIndividual ? "個人番号" : "法人番号"}
-                            error={errors.registration_number}
+                            error={
+                                errors.registration_number ||
+                                localErrors.registration_number
+                            }
                             help={
                                 isIndividual
                                     ? "マイナンバー等"
@@ -264,20 +181,14 @@ export default function CompanyForm({
                                 placeholder={
                                     isIndividual ? "" : "1234567890123"
                                 }
-                                error={errors.registration_number}
-                            />
-                            <InputError
-                                message={
-                                    errors.registration_number ||
-                                    localErrors.registration_number
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
 
                         <FormGroup
                             label="税番号"
-                            error={errors.tax_number}
+                            error={
+                                errors.tax_number || localErrors.tax_number
+                            }
                             help="インボイス登録番号等"
                         >
                             <TextInput
@@ -287,20 +198,13 @@ export default function CompanyForm({
                                 }
                                 onBlur={() => handleBlur("tax_number")}
                                 placeholder="T1234567890123"
-                                error={errors.tax_number}
-                            />
-                            <InputError
-                                message={
-                                    errors.tax_number || localErrors.tax_number
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
 
                     <FormGroup
                         label="ステータス"
-                        error={errors.status}
+                        error={errors.status || localErrors.status}
                         required
                     >
                         <SelectInput
@@ -310,11 +214,6 @@ export default function CompanyForm({
                             }
                             onBlur={() => handleBlur("status")}
                             options={statuses}
-                            error={errors.status}
-                        />
-                        <InputError
-                            message={errors.status || localErrors.status}
-                            className="mt-2"
                         />
                     </FormGroup>
                 </div>
@@ -327,7 +226,10 @@ export default function CompanyForm({
                 </h3>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormGroup label="電話番号" error={errors.phone}>
+                        <FormGroup
+                            label="電話番号"
+                            error={errors.phone || localErrors.phone}
+                        >
                             <TextInput
                                 type="tel"
                                 value={data.phone}
@@ -336,15 +238,13 @@ export default function CompanyForm({
                                 }
                                 onBlur={() => handleBlur("phone")}
                                 placeholder="03-1234-5678"
-                                error={errors.phone}
-                            />
-                            <InputError
-                                message={errors.phone || localErrors.phone}
-                                className="mt-2"
                             />
                         </FormGroup>
 
-                        <FormGroup label="FAX番号" error={errors.fax}>
+                        <FormGroup
+                            label="FAX番号"
+                            error={errors.fax || localErrors.fax}
+                        >
                             <TextInput
                                 type="tel"
                                 value={data.fax}
@@ -353,16 +253,14 @@ export default function CompanyForm({
                                 }
                                 onBlur={() => handleBlur("fax")}
                                 placeholder="03-1234-5679"
-                                error={errors.fax}
-                            />
-                            <InputError
-                                message={errors.fax || localErrors.fax}
-                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
 
-                    <FormGroup label="メールアドレス" error={errors.email}>
+                    <FormGroup
+                        label="メールアドレス"
+                        error={errors.email || localErrors.email}
+                    >
                         <TextInput
                             type="email"
                             value={data.email}
@@ -371,15 +269,13 @@ export default function CompanyForm({
                             }
                             onBlur={() => handleBlur("email")}
                             placeholder="info@example.com"
-                            error={errors.email}
-                        />
-                        <InputError
-                            message={errors.email || localErrors.email}
-                            className="mt-2"
                         />
                     </FormGroup>
 
-                    <FormGroup label="ウェブサイト" error={errors.website}>
+                    <FormGroup
+                        label="ウェブサイト"
+                        error={errors.website || localErrors.website}
+                    >
                         <TextInput
                             type="url"
                             value={data.website}
@@ -388,11 +284,6 @@ export default function CompanyForm({
                             }
                             onBlur={() => handleBlur("website")}
                             placeholder="https://example.com"
-                            error={errors.website}
-                        />
-                        <InputError
-                            message={errors.website || localErrors.website}
-                            className="mt-2"
                         />
                     </FormGroup>
                 </div>
@@ -407,7 +298,10 @@ export default function CompanyForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormGroup
                             label="代表者名"
-                            error={errors.representative_name}
+                            error={
+                                errors.representative_name ||
+                                localErrors.representative_name
+                            }
                         >
                             <TextInput
                                 value={data.representative_name}
@@ -419,20 +313,15 @@ export default function CompanyForm({
                                 }
                                 onBlur={() => handleBlur("representative_name")}
                                 placeholder="山田 太郎"
-                                error={errors.representative_name}
-                            />
-                            <InputError
-                                message={
-                                    errors.representative_name ||
-                                    localErrors.representative_name
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
 
                         <FormGroup
                             label="役職"
-                            error={errors.representative_title}
+                            error={
+                                errors.representative_title ||
+                                localErrors.representative_title
+                            }
                         >
                             <TextInput
                                 value={data.representative_title}
@@ -446,14 +335,6 @@ export default function CompanyForm({
                                     handleBlur("representative_title")
                                 }
                                 placeholder="代表取締役"
-                                error={errors.representative_title}
-                            />
-                            <InputError
-                                message={
-                                    errors.representative_title ||
-                                    localErrors.representative_title
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -461,7 +342,10 @@ export default function CompanyForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormGroup
                             label="代表者メールアドレス"
-                            error={errors.representative_email}
+                            error={
+                                errors.representative_email ||
+                                localErrors.representative_email
+                            }
                         >
                             <TextInput
                                 type="email"
@@ -476,20 +360,15 @@ export default function CompanyForm({
                                     handleBlur("representative_email")
                                 }
                                 placeholder="yamada@example.com"
-                                error={errors.representative_email}
-                            />
-                            <InputError
-                                message={
-                                    errors.representative_email ||
-                                    localErrors.representative_email
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
 
                         <FormGroup
                             label="代表者電話番号"
-                            error={errors.representative_phone}
+                            error={
+                                errors.representative_phone ||
+                                localErrors.representative_phone
+                            }
                         >
                             <TextInput
                                 type="tel"
@@ -504,14 +383,6 @@ export default function CompanyForm({
                                     handleBlur("representative_phone")
                                 }
                                 placeholder="090-1234-5678"
-                                error={errors.representative_phone}
-                            />
-                            <InputError
-                                message={
-                                    errors.representative_phone ||
-                                    localErrors.representative_phone
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -526,7 +397,10 @@ export default function CompanyForm({
                 <div className="space-y-6">
                     <FormGroup
                         label="事業内容"
-                        error={errors.business_description}
+                        error={
+                            errors.business_description ||
+                            localErrors.business_description
+                        }
                     >
                         <TextArea
                             value={data.business_description}
@@ -539,18 +413,13 @@ export default function CompanyForm({
                             onBlur={() => handleBlur("business_description")}
                             placeholder="事業内容を入力してください"
                             rows={4}
-                            error={errors.business_description}
-                        />
-                        <InputError
-                            message={
-                                errors.business_description ||
-                                localErrors.business_description
-                            }
-                            className="mt-2"
                         />
                     </FormGroup>
 
-                    <FormGroup label="業界" error={errors.industry}>
+                    <FormGroup
+                        label="業界"
+                        error={errors.industry || localErrors.industry}
+                    >
                         <SelectInput
                             value={data.industry}
                             onChange={(e) =>
@@ -559,23 +428,18 @@ export default function CompanyForm({
                             onBlur={() => handleBlur("industry")}
                             options={[
                                 { value: "", label: "選択してください" },
-                                ...INDUSTRIES.map((ind) => ({
-                                    value: ind,
-                                    label: ind,
-                                })),
+                                ...INDUSTRY_OPTIONS,
                             ]}
-                            error={errors.industry}
-                        />
-                        <InputError
-                            message={errors.industry || localErrors.industry}
-                            className="mt-2"
                         />
                     </FormGroup>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FormGroup
                             label="従業員数"
-                            error={errors.employee_count}
+                            error={
+                                errors.employee_count ||
+                                localErrors.employee_count
+                            }
                         >
                             <TextInput
                                 type="number"
@@ -590,18 +454,11 @@ export default function CompanyForm({
                                 placeholder="100"
                                 min="1"
                             />
-                            <InputError
-                                message={
-                                    errors.employee_count ||
-                                    localErrors.employee_count
-                                }
-                                className="mt-2"
-                            />
                         </FormGroup>
 
                         <FormGroup
                             label="資本金"
-                            error={errors.capital}
+                            error={errors.capital || localErrors.capital}
                             help="円単位で入力"
                         >
                             <TextInput
@@ -615,15 +472,14 @@ export default function CompanyForm({
                                 min="0"
                                 step="1000000"
                             />
-                            <InputError
-                                message={errors.capital || localErrors.capital}
-                                className="mt-2"
-                            />
                         </FormGroup>
 
                         <FormGroup
                             label="設立日"
-                            error={errors.established_date}
+                            error={
+                                errors.established_date ||
+                                localErrors.established_date
+                            }
                         >
                             <TextInput
                                 type="date"
@@ -635,14 +491,6 @@ export default function CompanyForm({
                                     )
                                 }
                                 onBlur={() => handleBlur("established_date")}
-                                error={errors.established_date}
-                            />
-                            <InputError
-                                message={
-                                    errors.established_date ||
-                                    localErrors.established_date
-                                }
-                                className="mt-2"
                             />
                         </FormGroup>
                     </div>
@@ -651,23 +499,19 @@ export default function CompanyForm({
 
             {/* 備考 */}
             <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <FormGroup label="備考" error={errors.notes}>
+                <FormGroup
+                    label="備考"
+                    error={errors.notes || localErrors.notes}
+                >
                     <TextArea
                         value={data.notes}
                         onChange={(e) => handleChange("notes", e.target.value)}
                         onBlur={() => handleBlur("notes")}
                         placeholder="その他のメモや備考"
                         rows={3}
-                        error={errors.notes}
-                    />
-                    <InputError
-                        message={errors.notes || localErrors.notes}
-                        className="mt-2"
                     />
                 </FormGroup>
             </div>
         </div>
     );
 }
-
-export { PREFECTURES };

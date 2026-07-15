@@ -4,6 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Contract Components
@@ -19,25 +20,19 @@ export default function Edit({
     statuses,
     quote = null,
 }) {
+    const currentVersion = contract.current_version;
+
     const { data, setData, put, processing, errors } = useForm({
         title: contract.title || "",
         status: contract.status || "draft",
-        type: contract.type || "one_time",
         description: contract.description || "",
-        user_id: contract.user_id || "",
-        company_id: contract.company_id || "",
-        project_id: contract.project_id || "",
-        quote_id: contract.quote_id || "",
         service_id: contract.service_id || "",
-        amount: contract.amount || "",
-        tax_rate: contract.tax_rate || "10",
+        discount_amount: currentVersion?.discount_amount ?? "",
+        tax_rate: currentVersion?.tax_rate ?? "10",
         start_date: contract.start_date || "",
         end_date: contract.end_date || "",
-        auto_renewal: contract.auto_renewal || false,
-        renewal_notice_days: contract.renewal_notice_days || "30",
-        payment_terms: contract.payment_terms || "",
-        terms_and_conditions: contract.terms_and_conditions || "",
-        notes: contract.notes || "",
+        terms_and_conditions: currentVersion?.terms_and_conditions || "",
+        notes: currentVersion?.notes || "",
     });
 
     const submit = () => {
@@ -49,7 +44,7 @@ export default function Edit({
     // ========================================
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.show", contract.id),
@@ -57,27 +52,23 @@ export default function Edit({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        {
-            label: contract.contract_number || contract.title,
-            href: route("admin.contract.show", contract.id),
-        },
-        { label: "編集", href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        contract.contract_number || contract.title,
+        PageConfig.contracts.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="契約編集"
+                    title={PageConfig.contracts.pages.edit.title}
                     description={`契約「${contract.title}」を編集します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title={`契約編集 - ${contract.title}`} />
+            <Head title={`${PageConfig.contracts.pages.edit.title} - ${contract.title}`} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />

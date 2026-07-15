@@ -23,6 +23,7 @@ import {
 import SuccessAlert from "@/Components/Alerts/SuccessAlert";
 import { ConfirmAlert } from "@/Components/Alerts";
 import DigitalStamp from "@/Components/DigitalStamp";
+import { PageConfig } from "@/Constants/PageConfig";
 
 // Custom Components
 import ContractBasicInfo from "./_components/ContractBasicInfo";
@@ -88,7 +89,9 @@ export default function Show({ contract }) {
         cancelled: "キャンセル",
     };
 
-    const currentVersion = contract.current_version || contract.versions?.[0];
+    const currentVersion =
+        contract.current_version ||
+        contract.versions?.[contract.versions.length - 1];
     const hasItems = currentVersion?.items?.length > 0;
     const hasTerms =
         currentVersion?.terms_and_conditions ||
@@ -177,7 +180,7 @@ export default function Show({ contract }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.index"),
@@ -185,9 +188,8 @@ export default function Show({ contract }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        { label: contract.contract_number || contract.title, href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        contract.contract_number || contract.title,
     ];
 
     return (
@@ -236,12 +238,12 @@ export default function Show({ contract }) {
                 {contract.status === "draft" && (
                     <Card>
                         <CardBody>
-                            <h3 className="text-lg font-semibold mb-4">
+                            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
                                 📌 契約書作成ワークフロー
                             </h3>
                             <div className="space-y-3">
                                 <div
-                                    className={`flex items-center gap-3 ${hasItems ? "text-green-600" : "text-gray-500"}`}
+                                    className={`flex items-center gap-3 ${hasItems ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
                                 >
                                     {hasItems ? (
                                         <CheckCircleIcon className="h-5 w-5" />
@@ -262,7 +264,7 @@ export default function Show({ contract }) {
                                     )}
                                 </div>
                                 <div
-                                    className={`flex items-center gap-3 ${hasTerms ? "text-green-600" : "text-gray-500"}`}
+                                    className={`flex items-center gap-3 ${hasTerms ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
                                 >
                                     {hasTerms ? (
                                         <CheckCircleIcon className="h-5 w-5" />
@@ -281,7 +283,7 @@ export default function Show({ contract }) {
                                     </SecondaryButton>
                                 </div>
                                 <div
-                                    className={`flex items-center gap-3 ${canSend ? "text-blue-600" : "text-gray-400"}`}
+                                    className={`flex items-center gap-3 ${canSend ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}
                                 >
                                     <PaperAirplaneIcon className="h-5 w-5" />
                                     <span className="font-medium">
@@ -297,7 +299,7 @@ export default function Show({ contract }) {
                                         </PrimaryButton>
                                     )}
                                     {!canSend && (
-                                        <span className="text-sm text-gray-500">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
                                             (明細と条項を入力後に送信可能)
                                         </span>
                                     )}
@@ -314,7 +316,7 @@ export default function Show({ contract }) {
                         <CardBody>
                             <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-lg font-semibold mb-4">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
                                         ✍️ 署名状況
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -325,22 +327,22 @@ export default function Show({ contract }) {
                                             <div className="flex items-center gap-2">
                                                 {contract.user_signed_at ? (
                                                     <>
-                                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                                                        <span className="text-green-600 font-semibold">
+                                                        <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                                        <span className="text-green-600 dark:text-green-400 font-semibold">
                                                             署名済み
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <XCircleIcon className="h-5 w-5 text-yellow-600" />
-                                                        <span className="text-yellow-600 font-semibold">
+                                                        <XCircleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                                        <span className="text-yellow-600 dark:text-yellow-400 font-semibold">
                                                             署名待ち
                                                         </span>
                                                     </>
                                                 )}
                                             </div>
                                             {contract.user_signed_at && (
-                                                <p className="text-xs text-gray-500 mt-2">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                                                     署名日時:{" "}
                                                     {new Date(
                                                         contract.user_signed_at,
@@ -358,22 +360,22 @@ export default function Show({ contract }) {
                                             <div className="flex items-center gap-2">
                                                 {contract.admin_signed_at ? (
                                                     <>
-                                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                                                        <span className="text-green-600 font-semibold">
+                                                        <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                                        <span className="text-green-600 dark:text-green-400 font-semibold">
                                                             署名済み
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <XCircleIcon className="h-5 w-5 text-yellow-600" />
-                                                        <span className="text-yellow-600 font-semibold">
+                                                        <XCircleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                                        <span className="text-yellow-600 dark:text-yellow-400 font-semibold">
                                                             署名待ち
                                                         </span>
                                                     </>
                                                 )}
                                             </div>
                                             {contract.admin_signed_at && (
-                                                <p className="text-xs text-gray-500 mt-2">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                                                     署名日時:{" "}
                                                     {new Date(
                                                         contract.admin_signed_at,
@@ -564,28 +566,28 @@ export default function Show({ contract }) {
                         {activeTab === "terms" && (
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-lg font-semibold mb-2">
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
                                         契約条項
                                     </h3>
-                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap text-gray-900 dark:text-gray-100">
                                         {currentVersion?.terms_and_conditions ||
                                             "未記入"}
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold mb-2">
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
                                         特別条項
                                     </h3>
-                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap text-gray-900 dark:text-gray-100">
                                         {currentVersion?.special_provisions ||
                                             "未記入"}
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold mb-2">
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
                                         備考
                                     </h3>
-                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap">
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg whitespace-pre-wrap text-gray-900 dark:text-gray-100">
                                         {currentVersion?.notes || "未記入"}
                                     </div>
                                 </div>
@@ -672,7 +674,7 @@ export default function Show({ contract }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <Card className="w-full max-w-md max-h-screen overflow-y-auto">
                         <div className="p-6">
-                            <h2 className="text-xl font-bold mb-4">
+                            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                                 Admin署名
                             </h2>
                             <form

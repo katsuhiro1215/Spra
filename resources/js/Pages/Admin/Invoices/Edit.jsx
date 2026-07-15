@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import InvoiceForm from "./_components/Form";
 
 export default function Edit({
@@ -33,9 +34,9 @@ export default function Edit({
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: "請求書編集", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        invoice.invoice_number || invoice.id.substring(0, 8),
+        PageConfig.invoices.pages.edit.breadcrumb,
     ];
 
     return (

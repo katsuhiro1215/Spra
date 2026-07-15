@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
+import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import { FlashMessage } from "@/Components/Notifications";
@@ -161,9 +162,9 @@ export default function Show({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "企業管理", href: route("admin.company.index") },
-        { label: "詳細", href: route("admin.company.show", company.id) },
+        ...PageConfig.companies.breadcrumbs,
+        company.name,
+        PageConfig.companies.pages.show.breadcrumb,
     ];
 
     return (
@@ -182,66 +183,112 @@ export default function Show({
             <FlashMessage />
 
             <div className="space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="relative group flex-shrink-0">
-                            {company.media ? (
-                                <div className="relative">
-                                    <img
-                                        src={company.media.url}
-                                        alt={company.name}
-                                        className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
-                                    />
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
-                                        <button
-                                            onClick={() =>
-                                                setShowMediaModal(true)
-                                            }
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white rounded-full"
-                                        >
-                                            <CameraIcon className="h-4 w-4 text-slate-700" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => setShowMediaModal(true)}
-                                    className="relative w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 group"
-                                >
-                                    <BuildingOffice2Icon className="h-7 w-7 text-slate-400" />
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
-                                        <CameraIcon className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    </div>
-                                </button>
-                            )}
-                            {company.media && (
-                                <button
-                                    onClick={handleDetachMedia}
-                                    className="mt-1 text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 block"
-                                >
-                                    画像を削除
-                                </button>
-                            )}
+                {/* ヘッダー（カバー画像） */}
+                <div className="relative w-full h-32 sm:h-44 rounded-lg overflow-hidden group bg-gradient-to-br from-slate-700 to-slate-900">
+                    {company.media ? (
+                        <img
+                            src={company.media.url}
+                            alt={company.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <BuildingOffice2Icon className="h-16 w-16 text-white/20" />
                         </div>
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                                {company.name}
-                            </h1>
-                            <Badge {...getStatusBadge(company.status)} />
-                            <Badge
-                                text={companyTypeLabels[company.company_type]}
-                                variant="info"
-                            />
-                        </div>
+                    )}
+                    {/* テキストを読みやすくするグラデーション */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                    {/* 画像変更・削除ボタン */}
+                    <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {company.media && (
+                            <button
+                                onClick={handleDetachMedia}
+                                className="px-2 py-1 text-xs text-white bg-black/40 hover:bg-black/60 rounded transition-colors"
+                            >
+                                画像を削除
+                            </button>
+                        )}
+                        <button
+                            onClick={() => setShowMediaModal(true)}
+                            className="p-2 bg-black/40 hover:bg-black/60 rounded-full transition-colors"
+                            title="画像を変更"
+                        >
+                            <CameraIcon className="h-4 w-4 text-white" />
+                        </button>
                     </div>
 
-                    <SecondaryButton
-                        href={route("admin.company.edit", company.id)}
-                        icon={PencilIcon}
-                    >
-                        編集
-                    </SecondaryButton>
+                    {/* 会社名・バッジ・編集ボタン */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 flex items-end justify-between gap-4">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
+                            <h1 className="text-lg sm:text-2xl font-bold text-white drop-shadow truncate">
+                                {company.name}
+                            </h1>
+                            <Badge
+                                variant={getStatusBadge(company.status).variant}
+                            >
+                                {getStatusBadge(company.status).text}
+                            </Badge>
+                            <Badge variant="info">
+                                {companyTypeLabels[company.company_type]}
+                            </Badge>
+                        </div>
+
+                        <SecondaryButton
+                            href={route("admin.company.edit", company.id)}
+                            icon={PencilIcon}
+                            className="flex-shrink-0"
+                        >
+                            編集
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* 統計情報 */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {company.users?.length || 0}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                従業員数
+                            </div>
+                        </div>
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {quotes.length}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                見積もり件数
+                            </div>
+                        </div>
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {invoices.length}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                請求書件数
+                            </div>
+                        </div>
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                {new Intl.NumberFormat("ja-JP", {
+                                    style: "currency",
+                                    currency: "JPY",
+                                }).format(stats.totalPaid || 0)}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                総支払額
+                            </div>
+                        </div>
+                    </Card>
                 </div>
 
                 {/* タブナビゲーション */}

@@ -60,11 +60,18 @@ export default function ContractClientInfo({ contract }) {
                                             <br />
                                             {
                                                 contract.company.addresses[0]
-                                                    .address1
+                                                    .prefecture
+                                            }
+                                            {
+                                                contract.company.addresses[0]
+                                                    .city
                                             }
                                             {contract.company.addresses[0]
-                                                .address2 &&
-                                                ` ${contract.company.addresses[0].address2}`}
+                                                .district &&
+                                                ` ${contract.company.addresses[0].district}`}
+                                            {contract.company.addresses[0]
+                                                .address_other &&
+                                                ` ${contract.company.addresses[0].address_other}`}
                                         </p>
                                     </div>
                                 )}

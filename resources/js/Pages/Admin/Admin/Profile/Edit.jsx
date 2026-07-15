@@ -7,6 +7,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 // Profile Component
 import ProfileForm from "./_components/Form";
 
@@ -45,7 +46,7 @@ export default function Edit({ admin, isOtherAdmin }) {
     // ========================================
     const headerActions = [
         {
-            label: "管理者詳細に戻る",
+            label: PageConfig.admins.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.admin.show", admin.id),
@@ -53,17 +54,16 @@ export default function Edit({ admin, isOtherAdmin }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: "管理者詳細", href: route("admin.admin.show", admin.id) },
-        { label: "プロフィール編集", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.show.breadcrumb,
+        PageConfig.adminProfiles.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="プロフィール編集"
+                    title={PageConfig.adminProfiles.pages.edit.title}
                     description={`${admin.email} のプロフィールを編集します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}

@@ -1,8 +1,8 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
-import {Badge} from "@/Components/Badges";
+import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import { getStatusBadge } from "@/Constants/Badges";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
@@ -129,34 +129,34 @@ const CompaniesTable = ({ companies, onDelete }) => {
                                     ).toLocaleDateString("ja-JP")}
                                 </Td>
                                 <Td>
-                                    <div className="flex justify-end items-center gap-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.company.show",
                                                 company.id,
                                             )}
-                                            className="p-1 text-cyan-600 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded transition-colors"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="h-5 w-5" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="warning-text"
+                                            icon={PencilIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.company.edit",
                                                 company.id,
                                             )}
-                                            className="p-1 text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded transition-colors"
                                             title="編集"
-                                        >
-                                            <PencilIcon className="h-5 w-5" />
-                                        </Link>
-                                        <button
+                                        />
+                                        <IconButton
+                                            variant="danger-text"
+                                            icon={TrashIcon}
+                                            size="lg"
                                             onClick={() => onDelete(company)}
-                                            className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                                             title="削除"
-                                        >
-                                            <TrashIcon className="h-5 w-5" />
-                                        </button>
+                                        />
                                     </div>
                                 </Td>
                             </Tr>

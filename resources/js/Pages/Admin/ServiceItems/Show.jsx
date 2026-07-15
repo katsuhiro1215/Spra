@@ -1,5 +1,5 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
@@ -11,10 +11,7 @@ import {
     DeleteButton,
 } from "@/Components/Buttons";
 // Icons
-import {
-    ArrowLeftIcon,
-    CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
@@ -55,6 +52,12 @@ export default function Show({ serviceItem }) {
                 {labels[status]}
             </span>
         );
+    };
+
+    const handleDelete = () => {
+        if (confirm(`「${serviceItem.name}」を削除しますか？`)) {
+            router.delete(route("admin.service.item.destroy", serviceItem.id));
+        }
     };
 
     const getItemTypeBadge = (type) => {
@@ -103,22 +106,15 @@ export default function Show({ serviceItem }) {
             <div className="space-y-6">
                 {/* 編集ボタンと削除ボタン */}
                 <div className="flex items-center justify-end gap-2">
-                    <Link
+                    <EditButton
                         href={route(
                             "admin.service.item.edit",
                             serviceItem.id,
                         )}
                     >
-                        <EditButton>編集</EditButton>
-                    </Link>
-                    <Link
-                        href={route(
-                            "admin.service.item.destroy",
-                            serviceItem.id,
-                        )}
-                    >
-                        <DeleteButton>削除</DeleteButton>
-                    </Link>
+                        編集
+                    </EditButton>
+                    <DeleteButton onClick={handleDelete}>削除</DeleteButton>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* メイン情報 */}
@@ -131,12 +127,7 @@ export default function Show({ serviceItem }) {
                                 <Dl>
                                     <div>
                                         <Dt>項目名</Dt>
-                                        <Dd>
-                                            {serviceItem.name}
-                                            {serviceItem.is_required && (
-                                                <CheckCircleIcon className="ml-2 h-5 w-5 text-green-500" />
-                                            )}
-                                        </Dd>
+                                        <Dd>{serviceItem.name}</Dd>
                                     </div>
 
                                     <div>
@@ -166,26 +157,37 @@ export default function Show({ serviceItem }) {
                                         </Dd>
                                     </div>
 
-                                    {serviceItem.service_plan && (
-                                        <div>
-                                            <Dt>サービスプラン</Dt>
-                                            <Dd>
-                                                <Link
-                                                    href={route(
-                                                        "admin.service.plan.show",
-                                                        serviceItem.service_plan
-                                                            .id,
-                                                    )}
-                                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                                >
-                                                    {
-                                                        serviceItem.service_plan
-                                                            .name
-                                                    }
-                                                </Link>
-                                            </Dd>
-                                        </div>
-                                    )}
+                                    {serviceItem.service_plans &&
+                                        serviceItem.service_plans.length >
+                                            0 && (
+                                            <div>
+                                                <Dt>
+                                                    含まれるサービスプラン
+                                                </Dt>
+                                                <Dd>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {serviceItem.service_plans.map(
+                                                            (plan) => (
+                                                                <Link
+                                                                    key={
+                                                                        plan.id
+                                                                    }
+                                                                    href={route(
+                                                                        "admin.service.plan.show",
+                                                                        plan.id,
+                                                                    )}
+                                                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                >
+                                                                    {
+                                                                        plan.name
+                                                                    }
+                                                                </Link>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </Dd>
+                                            </div>
+                                        )}
 
                                     <div>
                                         <Dt>項目タイプ</Dt>
@@ -260,15 +262,6 @@ export default function Show({ serviceItem }) {
                             <CardBody>
                                 <dl className="space-y-4">
                                     <div>
-                                        <Dt>必須項目</Dt>
-                                        <Dd>
-                                            {serviceItem.is_required
-                                                ? "はい"
-                                                : "いいえ"}
-                                        </Dd>
-                                    </div>
-
-                                    <div>
                                         <Dt>表示順</Dt>
                                         <Dd>{serviceItem.sort_order}</Dd>
                                     </div>
@@ -285,7 +278,10 @@ export default function Show({ serviceItem }) {
                                     <div>
                                         <Dt>作成者</Dt>
                                         <Dd>
-                                            {serviceItem.creator?.name || "---"}
+                                            {serviceItem.creator?.profile
+                                                ?.full_name ||
+                                                serviceItem.creator?.email ||
+                                                "---"}
                                         </Dd>
                                     </div>
                                     <div>
@@ -301,7 +297,11 @@ export default function Show({ serviceItem }) {
                                             <div>
                                                 <Dt>更新者</Dt>
                                                 <Dd>
-                                                    {serviceItem.updater.name}
+                                                    {serviceItem.updater
+                                                        ?.profile
+                                                        ?.full_name ||
+                                                        serviceItem.updater
+                                                            ?.email}
                                                 </Dd>
                                             </div>
                                             <div>

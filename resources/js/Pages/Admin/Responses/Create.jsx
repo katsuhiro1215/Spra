@@ -57,14 +57,8 @@ export default function Create() {
 
     const breadcrumbs = [
         ...PageConfig.contacts.breadcrumbs,
-        {
-            label: `お問い合わせ詳細: ${contact.name}`,
-            route: route("admin.contact.show", contact.id),
-        },
-        {
-            label: "返信作成",
-            route: route("admin.contact.response.create", contact.id),
-        },
+        contact.name,
+        PageConfig.responses.pages.create.breadcrumb,
     ];
 
     return (

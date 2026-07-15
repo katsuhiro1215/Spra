@@ -7,6 +7,7 @@ import { TextButton, DeleteButton } from "@/Components/Buttons";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 // Icons
 import {
+    EyeIcon,
     PencilIcon,
     TrashIcon,
     CheckCircleIcon,
@@ -127,10 +128,21 @@ const ResponseTemplateTable = ({ templates }) => {
                                         <div className="flex justify-end items-center gap-1">
                                             <TextButton
                                                 href={route(
-                                                    "admin.response.template.edit",
+                                                    "admin.response.template.show",
                                                     template.id,
                                                 )}
                                                 variant="info"
+                                                title="詳細"
+                                                size="sm"
+                                            >
+                                                <EyeIcon className="h-5 w-5" />
+                                            </TextButton>
+                                            <TextButton
+                                                href={route(
+                                                    "admin.response.template.edit",
+                                                    template.id,
+                                                )}
+                                                variant="warning"
                                                 title="編集"
                                                 size="sm"
                                             >

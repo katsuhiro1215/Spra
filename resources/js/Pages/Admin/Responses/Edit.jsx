@@ -53,17 +53,8 @@ export default function Edit() {
 
     const breadcrumbs = [
         ...PageConfig.contacts.breadcrumbs,
-        {
-            label: `お問い合わせ詳細: ${contact.name}`,
-            route: route("admin.contact.show", contact.id),
-        },
-        {
-            label: "返信編集",
-            route: route("admin.contact.response.edit", [
-                contact.id,
-                response.id,
-            ]),
-        },
+        contact.name,
+        PageConfig.responses.pages.edit.breadcrumb,
     ];
 
     return (

@@ -8,6 +8,7 @@ import {
     TextArea,
     SelectInput,
     NumberInput,
+    Checkbox,
     InputError,
 } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
@@ -120,7 +121,7 @@ const ServiceCategoryForm = ({
                             label={
                                 <>
                                     スラッグ
-                                    <span className="text-xs text-gray-500 ml-2">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                                         (空白の場合は自動生成)
                                     </span>
                                 </>
@@ -138,7 +139,7 @@ const ServiceCategoryForm = ({
                                     <button
                                         type="button"
                                         onClick={handleAutoGenerateSlug}
-                                        className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-md whitespace-nowrap h-10"
+                                        className="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md whitespace-nowrap h-10"
                                     >
                                         自動生成
                                     </button>
@@ -181,7 +182,7 @@ const ServiceCategoryForm = ({
                         <div>
                             <label
                                 htmlFor="color"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
                                 カラー <span className="text-red-500">*</span>
                             </label>
@@ -200,9 +201,9 @@ const ServiceCategoryForm = ({
                                                 }
                                                 className={`w-full h-10 rounded-md border-2 ${
                                                     data.color === option.value
-                                                        ? "border-gray-900"
-                                                        : "border-gray-300"
-                                                } hover:border-gray-600 transition-colors`}
+                                                        ? "border-gray-900 dark:border-white"
+                                                        : "border-gray-300 dark:border-gray-600"
+                                                } hover:border-gray-600 dark:hover:border-gray-400 transition-colors`}
                                                 style={{
                                                     backgroundColor:
                                                         option.color,
@@ -212,14 +213,14 @@ const ServiceCategoryForm = ({
                                         ),
                                     )}
                                 </div>
-                                <input
-                                    type="text"
+                                <TextInput
+                                    id="color"
                                     value={data.color}
                                     onChange={(e) =>
                                         setData("color", e.target.value)
                                     }
                                     onBlur={() => handleBlur("color")}
-                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                    className="text-sm"
                                     placeholder="#3B82F6"
                                 />
                             </div>
@@ -272,7 +273,7 @@ const ServiceCategoryForm = ({
                         </FormGroup>
                         {/* ステータス */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 ステータス{" "}
                                 <span className="text-red-500">*</span>
                             </label>
@@ -298,9 +299,9 @@ const ServiceCategoryForm = ({
                                                 onBlur={() =>
                                                     handleBlur("status")
                                                 }
-                                                className="border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                             />
-                                            <span className="ml-2 text-sm text-gray-700">
+                                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                                 {option.label}
                                             </span>
                                         </label>
@@ -314,8 +315,7 @@ const ServiceCategoryForm = ({
                         {/* Web公開 */}
                         <div className="md:col-span-3">
                             <label className="flex items-center">
-                                <input
-                                    type="checkbox"
+                                <Checkbox
                                     checked={data.is_displayed ?? true}
                                     onChange={(e) =>
                                         setData(
@@ -323,13 +323,12 @@ const ServiceCategoryForm = ({
                                             e.target.checked,
                                         )
                                     }
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                <span className="ml-2 text-sm font-medium text-gray-700">
+                                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Webサイト・見積もりシミュレーターに表示する
                                 </span>
                             </label>
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 チェックを外すと、このカテゴリと配下のサービス・プランは公開サイトやシミュレーターに表示されなくなります（管理画面では引き続き操作できます）
                             </p>
                             <InputError
@@ -345,8 +344,8 @@ const ServiceCategoryForm = ({
 
             {/* プレビュー */}
             {data.name && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         プレビュー
                     </h4>
                     <div

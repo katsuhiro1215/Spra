@@ -76,12 +76,10 @@ export default function Create({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        PageConfig.quotes.pages.create.breadcrumb,
     ];
 
-    // タイトルをコンテキストに応じて変更
     // タイトルをコンテキストに応じて変更
     const getTitle = () => {
         if (contact) return `${contact.name} 様への見積もり作成`;
@@ -102,7 +100,7 @@ export default function Create({
                 />
             }
         >
-            <Head title={PageConfig.quotes.create} />
+            <Head title={getTitle()} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />

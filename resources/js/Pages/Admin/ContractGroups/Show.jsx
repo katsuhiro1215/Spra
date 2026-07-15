@@ -14,6 +14,7 @@ import {
     XMarkIcon,
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 const STATUS_LABELS = {
     active: "すべて有効",
@@ -77,7 +78,7 @@ export default function Show({ group, stats, availableContracts = [] }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contractGroups.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract-group.index"),
@@ -85,10 +86,8 @@ export default function Show({ group, stats, availableContracts = [] }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        { label: "契約グループ", href: route("admin.contract-group.index") },
-        { label: group.group_number, href: null },
+        ...PageConfig.contractGroups.breadcrumbs,
+        group.group_number,
     ];
 
     return (

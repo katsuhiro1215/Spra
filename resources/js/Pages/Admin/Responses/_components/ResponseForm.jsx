@@ -2,13 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 // Components
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import {
-    FormGroup,
-    TextInput,
-    TextArea,
-    SelectInput,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, TextArea, SelectInput } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 // Icons
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
@@ -84,6 +78,7 @@ export default function ResponseForm({
                                         label="テンプレートを使用"
                                         htmlFor="response_template_id"
                                         help="返信内容のテンプレートを選択できます。選択すると件名と本文がテンプレートの内容で上書きされます。"
+                                        error={errors.response_template_id}
                                     >
                                         <SelectInput
                                             id="response_template_id"
@@ -97,7 +92,6 @@ export default function ResponseForm({
                                                     e.target.value,
                                                 )
                                             }
-                                            error={errors.response_template_id}
                                         >
                                             <option value="">
                                                 テンプレートなし
@@ -111,12 +105,6 @@ export default function ResponseForm({
                                                 </option>
                                             ))}
                                         </SelectInput>
-                                        <InputError
-                                            className="mt-2"
-                                            message={
-                                                errors.response_template_id
-                                            }
-                                        />
                                     </FormGroup>
                                 )}
 
@@ -126,6 +114,7 @@ export default function ResponseForm({
                                     htmlFor="subject"
                                     required
                                     help={`返信の件名を入力してください。通常は "Re: ${contact.subject}" の形式になります。`}
+                                    error={errors.subject}
                                 >
                                     <TextInput
                                         id="subject"
@@ -133,7 +122,6 @@ export default function ResponseForm({
                                         onChange={(e) =>
                                             setData("subject", e.target.value)
                                         }
-                                        error={errors.subject}
                                         required
                                         placeholder={
                                             !isEdit
@@ -141,18 +129,15 @@ export default function ResponseForm({
                                                 : undefined
                                         }
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.subject}
-                                    />
                                 </FormGroup>
 
                                 {/* 本文 */}
                                 <FormGroup
                                     label="本文"
-                                    htmlFor="body"
+                                    htmlFor="response-body"
                                     required
                                     help="返信内容を入力してください。プレースホルダーを使用して、受信者の名前やお問い合わせの内容などを動的に挿入できます。"
+                                    error={errors.body}
                                 >
                                     <TextArea
                                         id="response-body"
@@ -160,14 +145,9 @@ export default function ResponseForm({
                                         onChange={(e) =>
                                             setData("body", e.target.value)
                                         }
-                                        error={errors.body}
                                         required
                                         rows={12}
                                         placeholder="返信内容を入力してください..."
-                                    />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.body}
                                     />
 
                                     {/* プレースホルダー挿入ボタン */}

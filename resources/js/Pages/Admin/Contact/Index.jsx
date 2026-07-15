@@ -21,7 +21,6 @@ import { PageConfig } from "@/Constants/PageConfig";
 import {
     CONTACT_SOURCE_OPTIONS,
     CONTACT_STATUS_OPTIONS,
-    CONTACT_CATEGORY_OPTIONS,
 } from "@/Constants/SelectOptions";
 // Admin Components
 import ContactsTable from "./_components/ContactsTable";

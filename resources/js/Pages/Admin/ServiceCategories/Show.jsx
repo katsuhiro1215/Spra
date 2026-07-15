@@ -84,16 +84,16 @@ export default function Show({ serviceCategory, servicesCount }) {
                                             <div className="flex items-center space-x-1">
                                                 {serviceCategory.status ===
                                                 "active" ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                                         稼働中
                                                     </span>
                                                 ) : serviceCategory.status ===
                                                     "inactive" ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                                         停止中
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                                         一時停止
                                                     </span>
                                                 )}
@@ -149,12 +149,12 @@ export default function Show({ serviceCategory, servicesCount }) {
                                             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                 関連サービス数
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">
+                                            <p className="text-gray-900 dark:text-white flex items-center gap-2">
                                                 {servicesCount}件
                                                 {servicesCount > 0 && (
                                                     <TextButton
                                                         href={route(
-                                                            "admin.service.category.index",
+                                                            "admin.service.index",
                                                             {
                                                                 category:
                                                                     serviceCategory.id,
@@ -181,13 +181,13 @@ export default function Show({ serviceCategory, servicesCount }) {
                                             </label>
                                             <div className="flex items-center space-x-3">
                                                 <div
-                                                    className="w-8 h-8 rounded-md border border-gray-300"
+                                                    className="w-8 h-8 rounded-md border border-gray-300 dark:border-gray-600"
                                                     style={{
                                                         backgroundColor:
                                                             serviceCategory.color,
                                                     }}
                                                 ></div>
-                                                <span className="text-gray-900 font-mono text-sm">
+                                                <span className="text-gray-900 dark:text-white font-mono text-sm">
                                                     {serviceCategory.color}
                                                 </span>
                                             </div>
@@ -211,14 +211,14 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                                 className={`heroicon-${serviceCategory.icon} h-4 w-4`}
                                                             ></i>
                                                         </div>
-                                                        <span className="text-gray-900 font-mono text-sm">
+                                                        <span className="text-gray-900 dark:text-white font-mono text-sm">
                                                             {
                                                                 serviceCategory.icon
                                                             }
                                                         </span>
                                                     </>
                                                 ) : (
-                                                    <span className="text-gray-500">
+                                                    <span className="text-gray-500 dark:text-gray-400">
                                                         設定なし
                                                     </span>
                                                 )}
@@ -233,22 +233,22 @@ export default function Show({ serviceCategory, servicesCount }) {
                                                 {serviceCategory.status ===
                                                 "active" ? (
                                                     <>
-                                                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                                                        <span className="text-green-600 font-medium">
+                                                        <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
+                                                        <span className="text-green-600 dark:text-green-400 font-medium">
                                                             稼働中
                                                         </span>
                                                     </>
                                                 ) : serviceCategory.status ===
                                                     "inactive" ? (
                                                     <>
-                                                        <XCircleIcon className="h-5 w-5 text-gray-500" />
+                                                        <XCircleIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                                                         <span className="text-gray-600 dark:text-gray-400 font-medium">
                                                             停止中
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <XCircleIcon className="h-5 w-5 text-red-500" />
+                                                        <XCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
                                                         <span className="text-red-600 dark:text-red-400 font-medium">
                                                             一時停止
                                                         </span>

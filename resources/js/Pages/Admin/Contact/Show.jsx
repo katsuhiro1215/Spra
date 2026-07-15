@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link, usePage, router } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 // Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
@@ -8,10 +8,12 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
 import {
     DeleteButton,
+    PrimaryButton,
     SecondaryButton,
     TextButton,
 } from "@/Components/Buttons";
 import { Badge } from "@/Components/Badges";
+import { DeleteAlert } from "@/Components/Alerts";
 import InvitationModal from "./_components/InvitationModal";
 // Icons
 import {
@@ -45,6 +47,7 @@ export default function Show() {
     const { contact = {}, admins = [] } = usePage().props;
     const [isEditing, setIsEditing] = useState(false);
     const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false);
+    const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [formData, setFormData] = useState({
         status: contact.status,
         admin_notes: contact.admin_notes || "",
@@ -91,14 +94,16 @@ export default function Show() {
             console.error("Contact ID is missing");
             return;
         }
+        setShowDeleteAlert(true);
+    };
 
-        if (confirm("このお問い合わせを削除してもよろしいですか？")) {
-            router.delete(route("admin.contact.destroy", contact.id), {
-                onSuccess: () => {
-                    router.visit(route("admin.contact.index"));
-                },
-            });
-        }
+    const handleConfirmDelete = () => {
+        router.delete(route("admin.contact.destroy", contact.id), {
+            onSuccess: () => {
+                router.visit(route("admin.contact.index"));
+            },
+            onFinish: () => setShowDeleteAlert(false),
+        });
     };
 
     const handleResendInvitation = (invitationId) => {
@@ -188,11 +193,12 @@ export default function Show() {
 
     const breadcrumbs = [
         ...PageConfig.contacts.breadcrumbs,
-        {
-            label: `お問い合わせ詳細: ${contact.name}`,
-            route: route("admin.contact.show", contact.id),
-        },
+        contact.name,
     ];
+
+    // 見積もり・返信の重複作成を防ぐため、既存があればそちらへ誘導する
+    const latestQuote = contact.quotes?.[0] || null;
+    const latestResponse = contact.responses?.[0] || null;
 
     return (
         <AdminAuthenticatedLayout
@@ -210,28 +216,72 @@ export default function Show() {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
+            {/* 削除確認アラート */}
+            <DeleteAlert
+                show={showDeleteAlert}
+                onClose={() => setShowDeleteAlert(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={contact.name}
+            />
+
             {/* アクションボタン */}
             <div className="space-y-6">
                 <div className="flex justify-end gap-3">
-                    <Link
-                        href={route("admin.quote.create", {
-                            contact_id: contact.id,
-                        })}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                    >
-                        <DocumentTextIcon className="h-5 w-5" />
-                        見積もりを作成
-                    </Link>
-                    <Link
-                        href={route(
-                            "admin.contact.response.create",
-                            contact.id,
-                        )}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                    >
-                        <PaperAirplaneIcon className="h-5 w-5" />
-                        返信する
-                    </Link>
+                    {latestQuote ? (
+                        <PrimaryButton
+                            href={route("admin.quote.show", latestQuote.id)}
+                            icon={DocumentTextIcon}
+                        >
+                            見積もりを確認
+                        </PrimaryButton>
+                    ) : (
+                        <PrimaryButton
+                            href={route("admin.quote.create", {
+                                contact_id: contact.id,
+                            })}
+                            icon={DocumentTextIcon}
+                        >
+                            見積もりを作成
+                        </PrimaryButton>
+                    )}
+
+                    {latestResponse ? (
+                        latestResponse.status === "draft" ? (
+                            <SecondaryButton
+                                href={route("admin.contact.response.edit", [
+                                    contact.id,
+                                    latestResponse.id,
+                                ])}
+                                icon={PencilIcon}
+                            >
+                                下書きを編集
+                            </SecondaryButton>
+                        ) : (
+                            <SecondaryButton
+                                onClick={() =>
+                                    document
+                                        .getElementById("response-history")
+                                        ?.scrollIntoView({
+                                            behavior: "smooth",
+                                        })
+                                }
+                                icon={CheckCircleIcon}
+                            >
+                                返信済み（履歴を見る）
+                            </SecondaryButton>
+                        )
+                    ) : (
+                        <SecondaryButton
+                            href={route(
+                                "admin.contact.response.create",
+                                contact.id,
+                            )}
+                            icon={PaperAirplaneIcon}
+                        >
+                            返信する
+                        </SecondaryButton>
+                    )}
+
                     <DeleteButton onClick={handleDelete}>削除</DeleteButton>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -478,7 +528,7 @@ export default function Show() {
 
                         {/* 返信履歴 */}
                         {contact.responses && contact.responses.length > 0 && (
-                            <Card>
+                            <Card id="response-history">
                                 <CardHeader>
                                     <CardTitle>返信履歴</CardTitle>
                                 </CardHeader>

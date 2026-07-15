@@ -100,17 +100,22 @@ class ServiceController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        // サムネイル選択用のメディア一覧を取得
+        $mediaList = Media::query()->images()->latest()->limit(100)->get();
+
         return Inertia::render('Admin/Services/Show', [
             'service' => $service->load([
                 'serviceCategory',
                 'creator',
                 'updater',
                 'media',
+                'thumbnail',
                 'technologies',
                 'portfolios',
             ]),
             'servicePlans' => $servicePlans,
             'serviceItems' => $serviceItems,
+            'mediaList' => $mediaList,
         ]);
     }
 
@@ -164,6 +169,53 @@ class ServiceController extends Controller
             Log::error('Service destroy error: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', $e->getMessage());
+        }
+    }
+
+    // -------------------------
+    // サービスサムネイル画像
+    // -------------------------
+
+    /**
+     * サムネイル画像を設定
+     */
+    public function attachMedia(Request $request, Service $service)
+    {
+        $validated = $request->validate([
+            'media_id' => ['required', 'exists:media,id'],
+        ]);
+
+        try {
+            $service->update(['media_id' => $validated['media_id']]);
+
+            return back()->with('success', 'サムネイル画像を設定しました。');
+        } catch (\Exception $e) {
+            Log::error('サービスサムネイル設定エラー', [
+                'message' => $e->getMessage(),
+                'service_id' => $service->id,
+                'media_id' => $validated['media_id'],
+            ]);
+
+            return back()->with('error', '画像の設定に失敗しました。');
+        }
+    }
+
+    /**
+     * サムネイル画像を削除
+     */
+    public function detachMedia(Service $service)
+    {
+        try {
+            $service->update(['media_id' => null]);
+
+            return back()->with('success', 'サムネイル画像を削除しました。');
+        } catch (\Exception $e) {
+            Log::error('サービスサムネイル削除エラー', [
+                'message' => $e->getMessage(),
+                'service_id' => $service->id,
+            ]);
+
+            return back()->with('error', '画像の削除に失敗しました。');
         }
     }
 }

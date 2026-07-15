@@ -10,6 +10,7 @@ import { TextButton, DeleteButton, CreateButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { PlusIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 const STATUS_LABELS = {
     active: "すべて有効",
@@ -39,31 +40,27 @@ export default function Index({ groups }) {
 
     const headerActions = [
         {
-            label: "グループを作成",
+            label: PageConfig.contractGroups.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.contract-group.create"),
         },
     ];
 
-    const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        { label: "契約グループ", href: null },
-    ];
+    const breadcrumbs = PageConfig.contractGroups.breadcrumbs;
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="契約グループ一覧"
-                    description="複数の契約書をまとめて管理するグループの一覧です"
+                    title={PageConfig.contractGroups.title}
+                    description={PageConfig.contractGroups.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="契約グループ一覧" />
+            <Head title={PageConfig.contractGroups.documentTitle} />
             <FlashMessage />
 
             <DeleteAlert

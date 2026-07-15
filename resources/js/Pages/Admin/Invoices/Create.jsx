@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import InvoiceForm from "./_components/Form";
 
 export default function Create({
@@ -97,9 +98,8 @@ export default function Create({
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        PageConfig.invoices.pages.create.breadcrumb,
     ];
 
     return (

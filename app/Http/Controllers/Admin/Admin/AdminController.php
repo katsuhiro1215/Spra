@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreAdminRequest;
 use App\Http\Requests\Auth\UpdateAdminRequest;
 use App\Models\Admin;
+use App\Models\LoginLog;
 use App\Models\Media;
 use App\Services\AdminService;
 use App\Services\PermissionService;
@@ -103,10 +104,27 @@ class AdminController extends Controller
             $permissionOverride = $this->permissionService->getOverridesFor($admin);
         }
 
+        // ログイン履歴（LoginLogはadmin/user両ガード共通の監査ログテーブル）
+        $loginLogs = LoginLog::where('user_type', LoginLog::USER_TYPE_ADMIN)
+            ->where('user_id', $admin->id)
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn(LoginLog $log) => [
+                'id' => $log->id,
+                'created_at' => $log->created_at,
+                'action' => $log->action,
+                'action_name' => $log->action_name,
+                'ip_address' => $log->ip_address,
+                'browser' => $log->browser,
+                'os' => $log->os,
+            ]);
+
         return Inertia::render('Admin/Admin/Show', [
             'admin' => $admin,
             'mediaList' => $mediaList,
             'permissionOverride' => $permissionOverride,
+            'loginLogs' => $loginLogs,
         ]);
     }
 

@@ -130,6 +130,24 @@ export const PageConfig = {
         },
         pages: createPageTemplates("管理者プロフィール"),
         search: createSearchTemplate("管理者プロフィール"),
+        detachMediaConfirmation:
+            "プロフィール画像を削除してもよろしいですか？",
+    },
+
+    /**
+     * 管理者住所管理
+     */
+    adminAddresses: {
+        title: "📍 管理者住所管理",
+        description: "管理者の住所を管理します",
+        documentTitle: "管理者住所管理",
+        breadcrumbs: ["ホーム", "管理者住所管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("管理者住所"),
+        search: createSearchTemplate("管理者住所"),
+        deleteConfirmation: "この住所を削除してもよろしいですか？",
     },
 
     /**
@@ -482,6 +500,20 @@ export const PageConfig = {
         },
         pages: createPageTemplates("見積もり"),
         search: createSearchTemplate("見積もり"),
+        ui: createIndexPageUITemplates(
+            "見積もり",
+            "見積番号、タイトル、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 見積返信管理
+     */
+    quoteResponses: {
+        title: "💬 見積返信管理",
+        description: "クライアントからの見積返信内容を管理します",
+        documentTitle: "見積返信管理",
+        breadcrumbs: ["ホーム", "見積もり管理", "見積返信管理"],
     },
 
     /**
@@ -497,6 +529,10 @@ export const PageConfig = {
         },
         pages: createPageTemplates("請求書"),
         search: createSearchTemplate("請求書"),
+        ui: createIndexPageUITemplates(
+            "請求書",
+            "請求書番号、クライアント名で検索...",
+        ),
     },
 
     /**
@@ -512,6 +548,48 @@ export const PageConfig = {
         },
         pages: createPageTemplates("領収書"),
         search: createSearchTemplate("領収書"),
+        ui: createIndexPageUITemplates(
+            "領収書",
+            "領収書番号、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 契約管理
+     */
+    contracts: {
+        title: "📄 契約管理",
+        description: "契約情報を管理します",
+        documentTitle: "契約管理",
+        breadcrumbs: ["ホーム", "契約管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約"),
+        search: createSearchTemplate("契約"),
+        ui: createIndexPageUITemplates(
+            "契約",
+            "契約番号、タイトル、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 契約グループ管理
+     */
+    contractGroups: {
+        title: "🗂️ 契約グループ管理",
+        description: "契約グループを管理します",
+        documentTitle: "契約グループ管理",
+        breadcrumbs: ["ホーム", "契約管理", "契約グループ"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約グループ"),
+        search: createSearchTemplate("契約グループ"),
+        ui: createIndexPageUITemplates(
+            "契約グループ",
+            "グループ名で検索...",
+        ),
     },
 
     /**
@@ -810,6 +888,23 @@ export const PageConfig = {
         ui: createIndexPageUITemplates(
             "お問い合わせ",
             "お問い合わせ名で検索...",
+        ),
+    },
+
+    // 返信管理（Contact横断の一覧）
+    responses: {
+        title: "💬 返信管理",
+        description: "全お問い合わせからの返信を一元管理します",
+        documentTitle: "返信管理",
+        breadcrumbs: ["ホーム", "お問い合わせ", "返信管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("返信"),
+        search: createSearchTemplate("返信"),
+        ui: createIndexPageUITemplates(
+            "返信",
+            "お問い合わせ者名またはメールアドレスで検索...",
         ),
     },
 

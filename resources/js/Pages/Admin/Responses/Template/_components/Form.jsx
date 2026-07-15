@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "@inertiajs/react";
 // Components
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -8,14 +8,10 @@ import {
     TextArea,
     NumberInput,
     SelectInput,
-    InputError,
 } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Validation
-import * as validation from "./validation";
 
 const Form = ({ template = null, isEditing = false }) => {
-    const [localErrors, setLocalErrors] = useState({});
     const { data, setData, post, put, processing, errors } = useForm({
         name: template?.name || "",
         category: template?.category || "general",
@@ -57,21 +53,30 @@ const Form = ({ template = null, isEditing = false }) => {
             <CardBody>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* テンプレート名 */}
-                    <FormGroup>
+                    <FormGroup
+                        label="テンプレート名"
+                        htmlFor="name"
+                        required
+                        error={errors.name}
+                    >
                         <TextInput
-                            label="テンプレート名"
+                            id="name"
                             placeholder="例: 見積もり確認メール"
                             value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
                             required
                         />
-                        <InputError message={errors.name || localErrors.name} />
                     </FormGroup>
 
                     {/* カテゴリ */}
-                    <FormGroup>
+                    <FormGroup
+                        label="カテゴリ"
+                        htmlFor="category"
+                        required
+                        error={errors.category}
+                    >
                         <SelectInput
-                            label="カテゴリ"
+                            id="category"
                             value={data.category}
                             onChange={(e) =>
                                 setData("category", e.target.value)
@@ -79,15 +84,17 @@ const Form = ({ template = null, isEditing = false }) => {
                             options={categories}
                             required
                         />
-                        <InputError
-                            message={errors.category || localErrors.category}
-                        />
                     </FormGroup>
 
                     {/* 件名 */}
-                    <FormGroup>
+                    <FormGroup
+                        label="件名"
+                        htmlFor="subject"
+                        required
+                        error={errors.subject}
+                    >
                         <TextInput
-                            label="件名"
+                            id="subject"
                             placeholder="例: お見積もり送付のご案内"
                             value={data.subject}
                             onChange={(e) => setData("subject", e.target.value)}
@@ -96,15 +103,17 @@ const Form = ({ template = null, isEditing = false }) => {
                         <div className="text-sm text-gray-500 mt-1">
                             {data.subject.length}/255
                         </div>
-                        <InputError
-                            message={errors.subject || localErrors.subject}
-                        />
                     </FormGroup>
 
                     {/* テンプレート本文 */}
-                    <FormGroup>
+                    <FormGroup
+                        label="テンプレート本文"
+                        htmlFor="body"
+                        required
+                        error={errors.body}
+                    >
                         <TextArea
-                            label="テンプレート本文"
+                            id="body"
                             placeholder="メール本文を入力してください。プレースホルダー: {contact_name}, {admin_name}, {app_name} など"
                             value={data.body}
                             onChange={(e) => setData("body", e.target.value)}
@@ -127,13 +136,16 @@ const Form = ({ template = null, isEditing = false }) => {
                             <br />
                             {"{app_name}"} - アプリケーション名
                         </div>
-                        <InputError message={errors.body || localErrors.body} />
                     </FormGroup>
 
                     {/* プレースホルダー */}
-                    <FormGroup>
+                    <FormGroup
+                        label="プレースホルダー（カンマ区切り）"
+                        htmlFor="placeholders"
+                        error={errors.placeholders}
+                    >
                         <TextInput
-                            label="プレースホルダー（カンマ区切り）"
+                            id="placeholders"
                             placeholder="contact_name, admin_name, app_name"
                             value={data.placeholders}
                             onChange={(e) =>
@@ -146,23 +158,21 @@ const Form = ({ template = null, isEditing = false }) => {
                     </FormGroup>
 
                     {/* 並び順 */}
-                    <FormGroup label="表示順">
+                    <FormGroup
+                        label="表示順"
+                        htmlFor="sort_order"
+                        error={errors.sort_order}
+                    >
                         <NumberInput
                             id="sort_order"
                             min={0}
                             placeholder="0"
                             value={data.sort_order}
                             onChange={(val) => setData("sort_order", val || 0)}
-                            required
                         />
                         <div className="text-sm text-gray-500 mt-1">
                             数字が小さいほど上に表示されます
                         </div>
-                        <InputError
-                            message={
-                                errors.sort_order || localErrors.sort_order
-                            }
-                        />
                     </FormGroup>
 
                     {/* ステータス */}
@@ -185,7 +195,6 @@ const Form = ({ template = null, isEditing = false }) => {
                                 アクティブ（有効化）
                             </span>
                         </label>
-                        <InputError message={errors.status} />
                     </FormGroup>
 
                     {/* ボタン */}

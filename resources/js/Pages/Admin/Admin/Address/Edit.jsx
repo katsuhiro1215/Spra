@@ -4,10 +4,11 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import ConfirmAlert from "@/Components/Alerts/ConfirmAlert";
+import { ConfirmAlert } from "@/Components/Alerts";
 import AddressForm from "./_components/Form";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({ admin, address, types, isOtherAdmin }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -31,7 +32,7 @@ export default function Edit({ admin, address, types, isOtherAdmin }) {
 
     const handleSubmit = () => {
         put(
-            route("admin.admins.address.update", {
+            route("admin.admin.address.update", {
                 admin: admin.id,
                 address: address.id,
             }),
@@ -43,7 +44,7 @@ export default function Edit({ admin, address, types, isOtherAdmin }) {
     };
 
     const handleCancel = () => {
-        router.visit(route("admin.admins.show", admin.id));
+        router.visit(route("admin.admin.show", admin.id));
     };
 
     // ========================================
@@ -51,25 +52,24 @@ export default function Edit({ admin, address, types, isOtherAdmin }) {
     // ========================================
     const headerActions = [
         {
-            label: "管理者詳細に戻る",
+            label: PageConfig.admins.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
-            route: route("admin.admins.show", admin.id),
+            route: route("admin.admin.show", admin.id),
         },
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: "管理者詳細", href: route("admin.admin.show", admin.id) },
-        { label: "住所編集", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.show.breadcrumb,
+        PageConfig.adminAddresses.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="住所編集"
+                    title={PageConfig.adminAddresses.pages.edit.title}
                     description={`${admin.email} の住所を編集します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
@@ -100,7 +100,7 @@ export default function Edit({ admin, address, types, isOtherAdmin }) {
                     errors={errors}
                     processing={processing}
                     onSubmit={handleSubmit}
-                    cancelRoute={route("admin.admins.show", admin.id)}
+                    cancelRoute={route("admin.admin.show", admin.id)}
                     isEdit={true}
                 />
             </div>

@@ -29,10 +29,7 @@ export default function Create() {
     // ========================================
     const breadcrumbs = [
         ...PageConfig.contactCategories.breadcrumbs,
-        {
-            label: PageConfig.contactCategories.actions.create,
-            route: route("admin.contact.category.create"),
-        },
+        PageConfig.contactCategories.pages.create.breadcrumb,
     ];
 
     return (

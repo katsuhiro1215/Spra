@@ -5,6 +5,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import ContractItemForm from "./_components/Form";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({
     contract,
@@ -37,7 +38,7 @@ export default function Create({
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.show", contract.id),
@@ -45,13 +46,9 @@ export default function Create({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        {
-            label: contract.title,
-            href: route("admin.contract.show", contract.id),
-        },
-        { label: "契約明細追加", href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        contract.title,
+        "契約明細追加",
     ];
 
     return (

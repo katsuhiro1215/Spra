@@ -65,6 +65,7 @@ class ContactController extends Controller
             'assignedAdmin',
             'contactCategory',
             'responses.admin',
+            'quotes',
             'invitations.invitedBy',
             'invitations.user',
         ]);

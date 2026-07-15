@@ -65,13 +65,9 @@ export default function Edit({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        {
-            label: quote.quote_number,
-            href: route("admin.quote.show", quote.id),
-        },
-        { label: "編集", href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        quote.quote_number,
+        PageConfig.quotes.pages.edit.breadcrumb,
     ];
 
     return (

@@ -34,7 +34,18 @@ class UserLoginListener
         }
 
         $userType = $event->guard === 'admins' ? LoginLog::USER_TYPE_ADMIN : LoginLog::USER_TYPE_USER;
-        LoginLog::recordSuccess($event->guard, $userType, $event->user->id, $event->user->email);
+        $agent = new Agent();
+        $agent->setUserAgent(Request::instance()->userAgent());
+
+        LoginLog::recordSuccess($event->guard, $userType, $event->user->id, $event->user->email, [
+            'browser' => $agent->browser(),
+            'os' => $agent->platform(),
+            'device_type' => $this->getDeviceType($agent),
+        ]);
+
+        if (method_exists($event->user, 'updateLastLogin')) {
+            $event->user->updateLastLogin();
+        }
 
         if ($event->guard === 'users') {
             $this->recordLoginHistory($event->user->id, UserLoginHistory::TYPE_LOGIN);

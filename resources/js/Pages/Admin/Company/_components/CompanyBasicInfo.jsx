@@ -311,21 +311,18 @@ export default function CompanyBasicInfo({ company, addressTypes }) {
                                                         {address.label}
                                                     </span>
                                                 )}
-                                                <Badge
-                                                    text={
-                                                        addressTypeLabels[
-                                                            address.type
-                                                        ] || address.type
-                                                    }
-                                                    variant="neutral"
-                                                    size="sm"
-                                                />
+                                                <Badge variant="secondary" size="sm">
+                                                    {addressTypeLabels[
+                                                        address.type
+                                                    ] || address.type}
+                                                </Badge>
                                                 {address.is_default && (
                                                     <Badge
-                                                        text="デフォルト"
                                                         variant="info"
                                                         size="sm"
-                                                    />
+                                                    >
+                                                        デフォルト
+                                                    </Badge>
                                                 )}
                                             </div>
                                             <p className="text-sm text-slate-700 dark:text-slate-300">

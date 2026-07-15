@@ -8,6 +8,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import ServiceItemForm from "./_components/Form";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({ serviceItem, statuses, itemTypes, services }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -30,24 +31,33 @@ export default function Edit({ serviceItem, statuses, itemTypes, services }) {
 
     const headerActions = [
         {
-            label: "一覧に戻る",
-            href: route("admin.service.item.index"),
+            label: PageConfig.serviceItems.actions.back,
+            route: route("admin.service.item.show", serviceItem.id),
             variant: "ghost",
             icon: ArrowLeftIcon,
         },
+    ];
+
+    const breadcrumbs = [
+        ...PageConfig.serviceItems.breadcrumbs,
+        serviceItem.name,
+        PageConfig.serviceItems.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービス項目編集"
+                    title={PageConfig.serviceItems.pages.edit.title}
                     description={`"${serviceItem.name}" を編集します`}
                     actions={headerActions}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="サービス項目編集" />
+            <Head
+                title={`${PageConfig.serviceItems.pages.edit.title} - ${serviceItem.name}`}
+            />
 
             <FlashMessage />
 
@@ -58,7 +68,10 @@ export default function Edit({ serviceItem, statuses, itemTypes, services }) {
                     errors={errors}
                     processing={processing}
                     onSubmit={submit}
-                    cancelRoute={route("admin.service.item.index")}
+                    cancelRoute={route(
+                        "admin.service.item.show",
+                        serviceItem.id,
+                    )}
                     statuses={statuses}
                     itemTypes={itemTypes}
                     services={services}

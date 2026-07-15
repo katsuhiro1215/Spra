@@ -1,17 +1,21 @@
 import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import Badge from "@/Components/Badge";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
+import { Badge } from "@/Components/Badges";
+import { SecondaryButton, IconButton } from "@/Components/Buttons";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
 // Icons
 import {
     PlusIcon,
-    MagnifyingGlassIcon,
     FunnelIcon,
+    XMarkIcon,
     ArrowDownTrayIcon,
     PaperAirplaneIcon,
     EyeIcon,
@@ -20,42 +24,56 @@ import {
 } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Helpers
-// import { formatCurrency, formatDate, formatDateTime } from "@/Helpers/format";
 
-export default function Index({ receipts, filters, stats, statuses }) {
+const STATUS_BADGES = {
+    draft: { label: "下書き", variant: "secondary" },
+    issued: { label: "発行済み", variant: "info" },
+    sent: { label: "送付済み", variant: "success" },
+};
+
+const formatCurrency = (amount) =>
+    new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+    }).format(amount || 0);
+
+const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+};
+
+export default function Index({ receipts, filters = {}, stats = {}, statuses = {} }) {
     // ========================================
     // State & Form
     // ========================================
-    const [showFilters, setShowFilters] = useState(false);
-    const [searchTerm, setSearchTerm] = useState(filters?.search || "");
-    const [statusFilter, setStatusFilter] = useState(filters?.status || "");
+    const [showFilters, setShowFilters] = useState(!!filters?.status);
+
+    const { data, setData, get, processing } = useForm({
+        search: filters?.search || "",
+        status: filters?.status || "",
+    });
 
     // ========================================
     // Handlers - Search & Filter
     // ========================================
     const handleSearch = () => {
-        const params = {};
-        if (searchTerm) params.search = searchTerm;
-        if (statusFilter) params.status = statusFilter;
-
-        router.get(route("admin.receipt.index"), params, {
+        get(route("admin.receipt.index"), {
             preserveState: true,
-            replace: true,
+            preserveScroll: true,
         });
     };
 
     const handleClearFilters = () => {
-        setSearchTerm("");
-        setStatusFilter("");
-        router.get(
-            route("admin.receipt.index"),
-            {},
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
+        setData({ search: "", status: "" });
+        setShowFilters(false);
+        get(route("admin.receipt.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     // ========================================
@@ -75,16 +93,16 @@ export default function Index({ receipts, filters, stats, statuses }) {
             `領収書「${receipt.receipt_number}」をメールで送付しますか？`,
         );
         if (confirmed) {
-            router.post(route("admin.receipt.send", receipt.id));
+            router.post(route("admin.receipts.send", receipt.id));
         }
     };
 
     const handleDownload = (receipt) => {
-        window.location.href = route("admin.receipt.download", receipt.id);
+        window.location.href = route("admin.receipts.download", receipt.id);
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions & Filters
     // ========================================
     const headerActions = [
         {
@@ -95,18 +113,13 @@ export default function Index({ receipts, filters, stats, statuses }) {
         },
     ];
 
-    // ========================================
-    // Status Badge Helper
-    // ========================================
-    const getStatusBadge = (status) => {
-        const statusMap = {
-            draft: { label: "下書き", variant: "gray" },
-            issued: { label: "発行済み", variant: "blue" },
-            sent: { label: "送付済み", variant: "green" },
-        };
-        const config = statusMap[status] || { label: status, variant: "gray" };
-        return <Badge variant={config.variant}>{config.label}</Badge>;
-    };
+    const statusOptions = Object.entries(statuses).map(([value, label]) => ({
+        value,
+        label,
+    }));
+
+    const hasActiveFilters = data.search || data.status;
+    const activeFilterCount = data.status ? 1 : 0;
 
     return (
         <AdminAuthenticatedLayout
@@ -125,131 +138,112 @@ export default function Index({ receipts, filters, stats, statuses }) {
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                {/* フィルター */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                {/* 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder={
+                                PageConfig.receipts.ui.search.placeholder
+                            }
+                            disabled={processing}
+                        />
+                    </div>
+
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="md"
+                            icon={FunnelIcon}
+                            className="relative"
+                            aria-expanded={showFilters}
+                        >
+                            {PageConfig.receipts.ui.filter.button}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* フィルターセクション */}
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FilterSelect
+                                label="ステータス"
+                                value={data.status}
+                                onChange={(value) => setData("status", value)}
+                                options={statusOptions}
+                            />
+                            <div className="flex items-end">
+                                <SecondaryButton
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    icon={XMarkIcon}
+                                    className="w-full"
                                 >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    フィルター
-                                </button>
+                                    {PageConfig.receipts.ui.filter.clear}
+                                </SecondaryButton>
                             </div>
                         </div>
                     </div>
-
-                    {showFilters && (
-                        <div className="border-t pt-4">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        検索
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="領収書番号で検索"
-                                        value={searchTerm}
-                                        onChange={(e) =>
-                                            setSearchTerm(e.target.value)
-                                        }
-                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        ステータス
-                                    </label>
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) =>
-                                            setStatusFilter(e.target.value)
-                                        }
-                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                    >
-                                        <option value="">すべて</option>
-                                        {Object.entries(statuses).map(
-                                            ([value, label]) => (
-                                                <option
-                                                    key={value}
-                                                    value={value}
-                                                >
-                                                    {label}
-                                                </option>
-                                            ),
-                                        )}
-                                    </select>
-                                </div>
-                                <div className="flex items-end space-x-2">
-                                    <button
-                                        onClick={handleSearch}
-                                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                                    >
-                                        <MagnifyingGlassIcon className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        onClick={handleClearFilters}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-                                    >
-                                        クリア
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </Card>
+                )}
 
                 {/* 統計情報 */}
                 {stats && (
-                    <div className="grid grid-cols-5 gap-4 text-center">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <Card>
                             <div className="p-4 text-center">
-                                <div className="text-2xl font-bold text-gray-900">
+                                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                                     {stats.total || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     総件数
                                 </div>
                             </div>
                         </Card>
                         <Card>
                             <div className="p-4 text-center">
-                                <div className="text-2xl font-bold text-gray-600">
+                                <div className="text-2xl font-bold text-slate-600 dark:text-slate-300">
                                     {stats.draft || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     下書き
                                 </div>
                             </div>
                         </Card>
                         <Card>
                             <div className="p-4 text-center">
-                                <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                     {stats.issued || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     発行済み
                                 </div>
                             </div>
                         </Card>
                         <Card>
                             <div className="p-4 text-center">
-                                <div className="text-2xl font-bold text-green-600">
+                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {stats.sent || 0}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     送付済み
                                 </div>
                             </div>
                         </Card>
                         <Card>
                             <div className="p-4 text-center">
-                                <div className="text-xl font-bold text-emerald-600">
-                                    {/* {formatCurrency(stats.total_amount || 0)} */}
+                                <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                                    {formatCurrency(stats.total_amount || 0)}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                     総領収金額
                                 </div>
                             </div>
@@ -259,180 +253,171 @@ export default function Index({ receipts, filters, stats, statuses }) {
 
                 {/* テーブル */}
                 <Card>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        領収書番号
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        宛先
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        請求書
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        金額
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        ステータス
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        発行日
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        アクション
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {receipts.data && receipts.data.length > 0 ? (
-                                    receipts.data.map((receipt) => (
-                                        <tr
-                                            key={receipt.id}
-                                            className="hover:bg-gray-50"
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                    <Table>
+                        <THead>
+                            <Tr hover={false}>
+                                <Th>領収書番号</Th>
+                                <Th>宛先</Th>
+                                <Th>請求書</Th>
+                                <Th>金額</Th>
+                                <Th>ステータス</Th>
+                                <Th>発行日</Th>
+                                <Th className="text-right">アクション</Th>
+                            </Tr>
+                        </THead>
+                        <TBody>
+                            {receipts.data && receipts.data.length > 0 ? (
+                                receipts.data.map((receipt) => (
+                                    <Tr key={receipt.id}>
+                                        <Td>
+                                            <Link
+                                                href={route(
+                                                    "admin.receipt.show",
+                                                    receipt.id,
+                                                )}
+                                                className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium"
+                                            >
+                                                {receipt.receipt_number}
+                                            </Link>
+                                        </Td>
+                                        <Td>
+                                            <div className="text-sm text-slate-900 dark:text-slate-100">
+                                                {receipt.user?.name ||
+                                                    receipt.user?.email}
+                                            </div>
+                                            {receipt.company && (
+                                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                                    {receipt.company.name}
+                                                </div>
+                                            )}
+                                        </Td>
+                                        <Td>
+                                            {receipt.invoice && (
                                                 <Link
+                                                    href={route(
+                                                        "admin.invoice.show",
+                                                        receipt.invoice.id,
+                                                    )}
+                                                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+                                                >
+                                                    {
+                                                        receipt.invoice
+                                                            .invoice_number
+                                                    }
+                                                </Link>
+                                            )}
+                                        </Td>
+                                        <Td className="font-medium text-slate-900 dark:text-slate-100">
+                                            {formatCurrency(
+                                                receipt.total_amount,
+                                            )}
+                                        </Td>
+                                        <Td>
+                                            <Badge
+                                                variant={
+                                                    STATUS_BADGES[
+                                                        receipt.status
+                                                    ]?.variant || "secondary"
+                                                }
+                                            >
+                                                {STATUS_BADGES[
+                                                    receipt.status
+                                                ]?.label || receipt.status}
+                                            </Badge>
+                                        </Td>
+                                        <Td className="text-slate-500 dark:text-slate-400">
+                                            {receipt.issued_at
+                                                ? formatDate(
+                                                      receipt.issued_at,
+                                                  )
+                                                : "-"}
+                                        </Td>
+                                        <Td>
+                                            <div className="flex justify-end items-center gap-1">
+                                                <IconButton
+                                                    variant="info-text"
+                                                    icon={EyeIcon}
+                                                    size="lg"
                                                     href={route(
                                                         "admin.receipt.show",
                                                         receipt.id,
                                                     )}
-                                                    className="text-emerald-600 hover:text-emerald-900 font-medium"
-                                                >
-                                                    {receipt.receipt_number}
-                                                </Link>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {receipt.user?.name ||
-                                                        receipt.user?.email}
-                                                </div>
-                                                {receipt.company && (
-                                                    <div className="text-sm text-gray-500">
-                                                        {receipt.company.name}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {receipt.invoice && (
-                                                    <Link
-                                                        href={route(
-                                                            "admin.invoice.show",
-                                                            receipt.invoice.id,
-                                                        )}
-                                                        className="text-blue-600 hover:text-blue-900 text-sm"
-                                                    >
-                                                        {
-                                                            receipt.invoice
-                                                                .invoice_number
-                                                        }
-                                                    </Link>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                                {formatCurrency(
-                                                    receipt.total_amount,
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getStatusBadge(receipt.status)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {receipt.issued_at
-                                                    ? formatDate(
-                                                          receipt.issued_at,
-                                                      )
-                                                    : "-"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end space-x-2">
-                                                    <Link
-                                                        href={route(
-                                                            "admin.receipt.show",
-                                                            receipt.id,
-                                                        )}
-                                                        className="text-blue-600 hover:text-blue-900"
-                                                        title="詳細"
-                                                    >
-                                                        <EyeIcon className="h-5 w-5" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDownload(
-                                                                receipt,
-                                                            )
-                                                        }
-                                                        className="text-emerald-600 hover:text-emerald-900"
-                                                        title="ダウンロード"
-                                                    >
-                                                        <ArrowDownTrayIcon className="h-5 w-5" />
-                                                    </button>
-                                                    {receipt.status !==
-                                                        "sent" && (
-                                                        <>
-                                                            <Link
-                                                                href={route(
-                                                                    "admin.receipt.edit",
-                                                                    receipt.id,
-                                                                )}
-                                                                className="text-gray-600 hover:text-gray-900"
-                                                                title="編集"
-                                                            >
-                                                                <PencilIcon className="h-5 w-5" />
-                                                            </Link>
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleDelete(
-                                                                        receipt,
-                                                                    )
-                                                                }
-                                                                className="text-red-600 hover:text-red-900"
-                                                                title="削除"
-                                                            >
-                                                                <TrashIcon className="h-5 w-5" />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    {receipt.status ===
-                                                        "issued" && (
-                                                        <button
+                                                    title="詳細"
+                                                />
+                                                <IconButton
+                                                    variant="success-text"
+                                                    icon={ArrowDownTrayIcon}
+                                                    size="lg"
+                                                    onClick={() =>
+                                                        handleDownload(
+                                                            receipt,
+                                                        )
+                                                    }
+                                                    title="ダウンロード"
+                                                />
+                                                {receipt.status !==
+                                                    "sent" && (
+                                                    <>
+                                                        <IconButton
+                                                            variant="warning-text"
+                                                            icon={PencilIcon}
+                                                            size="lg"
+                                                            href={route(
+                                                                "admin.receipt.edit",
+                                                                receipt.id,
+                                                            )}
+                                                            title="編集"
+                                                        />
+                                                        <IconButton
+                                                            variant="danger-text"
+                                                            icon={TrashIcon}
+                                                            size="lg"
                                                             onClick={() =>
-                                                                handleSend(
+                                                                handleDelete(
                                                                     receipt,
                                                                 )
                                                             }
-                                                            className="text-blue-600 hover:text-blue-900"
-                                                            title="送付"
-                                                        >
-                                                            <PaperAirplaneIcon className="h-5 w-5" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan="7"
-                                            className="px-6 py-12 text-center text-gray-500"
-                                        >
-                                            領収書が見つかりませんでした
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                            title="削除"
+                                                        />
+                                                    </>
+                                                )}
+                                                {receipt.status ===
+                                                    "issued" && (
+                                                    <IconButton
+                                                        variant="info-text"
+                                                        icon={
+                                                            PaperAirplaneIcon
+                                                        }
+                                                        size="lg"
+                                                        onClick={() =>
+                                                            handleSend(
+                                                                receipt,
+                                                            )
+                                                        }
+                                                        title="送付"
+                                                    />
+                                                )}
+                                            </div>
+                                        </Td>
+                                    </Tr>
+                                ))
+                            ) : (
+                                <Tr>
+                                    <Td
+                                        colSpan={7}
+                                        className="text-center py-12 text-slate-500 dark:text-slate-400"
+                                    >
+                                        領収書が見つかりませんでした
+                                    </Td>
+                                </Tr>
+                            )}
+                        </TBody>
+                    </Table>
                 </Card>
-                
+
                 {/* ページネーション */}
                 {receipts.data && receipts.data.length > 0 && (
-                    <div className="border-t border-gray-200 px-6 py-4">
-                        <Pagination data={receipts} />
-                    </div>
+                    <Pagination paginationData={receipts} />
                 )}
             </div>
         </AdminAuthenticatedLayout>

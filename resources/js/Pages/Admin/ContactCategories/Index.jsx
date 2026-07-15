@@ -289,6 +289,7 @@ export default function Index({ categories = {}, filters = {}, stats = {} }) {
                         <ContactCategoryTable
                             categories={categories}
                             onDelete={handleDelete}
+                            isDeleting={isDeleting}
                         />
                         {categories.links && (
                             <Pagination paginationData={categories} />

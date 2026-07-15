@@ -499,7 +499,7 @@ export default function ContractItemForm({
                                 </div>
                             ))}
 
-                            <div className="border-t pt-4 mt-4">
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                                 <div className="flex justify-between text-lg font-bold">
                                     <span className="dark:text-gray-200">
                                         合計:
@@ -640,7 +640,7 @@ export default function ContractItemForm({
             <div className="flex justify-end space-x-4">
                 <SecondaryButton
                     type="button"
-                    onClick={() => (window.location.href = cancelRoute)}
+                    href={cancelRoute}
                     disabled={processing}
                 >
                     キャンセル

@@ -5,6 +5,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { Badge } from "@/Components/Badges";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
+import { PageConfig } from "@/Constants/PageConfig";
 import {
     PencilIcon,
     TrashIcon,
@@ -74,21 +75,16 @@ export default function Show({ invoice, payments }) {
         return labels[status] || status;
     };
 
-    const getStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-            sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-            viewed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-            paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
-            overdue:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-            cancelled:
-                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    const getStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            sent: "info",
+            viewed: "success",
+            paid: "success",
+            overdue: "danger",
+            cancelled: "secondary",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-        );
+        return variants[status] || "secondary";
     };
 
     const formatDate = (date) => {
@@ -186,9 +182,8 @@ export default function Show({ invoice, payments }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: invoice.invoice_number || "請求書詳細", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        invoice.invoice_number || "請求書詳細",
     ];
 
     const confirmMessage = getConfirmMessage();
@@ -327,7 +322,7 @@ export default function Show({ invoice, payments }) {
                                 </p>
                                 <div className="mt-2 inline-block">
                                     <Badge
-                                        className={getStatusColor(
+                                        variant={getStatusVariant(
                                             invoice.status,
                                         )}
                                     >

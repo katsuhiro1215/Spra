@@ -7,6 +7,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 // Address Component
 import AddressForm from "./_components/Form";
 
@@ -47,7 +48,7 @@ export default function Create({ admin, types, isOtherAdmin }) {
     // ========================================
     const headerActions = [
         {
-            label: "管理者詳細に戻る",
+            label: PageConfig.admins.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.admin.show", admin.id),
@@ -55,17 +56,16 @@ export default function Create({ admin, types, isOtherAdmin }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: "管理者詳細", href: route("admin.admin.show", admin.id) },
-        { label: "住所追加", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.show.breadcrumb,
+        PageConfig.adminAddresses.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="住所追加"
+                    title={PageConfig.adminAddresses.pages.create.title}
                     description={`${admin.email} の住所を追加します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}

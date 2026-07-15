@@ -22,9 +22,6 @@ export default function Edit({
         sort_order: item.sort_order || 0,
     }));
 
-    console.log("servicePlanItems:", servicePlanItems);
-    console.log("initialItems:", initialItems);
-
     const { data, setData, put, processing, errors } = useForm({
         items: initialItems,
         discount_amount: 0,
@@ -35,25 +32,16 @@ export default function Edit({
             label: "戻る",
             icon: ArrowLeftIcon,
             variant: "default",
-            href: route("admin.service.plan.show", servicePlan.id),
+            route: route("admin.service.plan.show", servicePlan.id),
         },
     ];
 
     const breadcrumbs = [
-        { label: "サービス管理", href: route("admin.service.index") },
-        { label: "プラン一覧", href: route("admin.service.plan.index") },
-        {
-            label: servicePlan.name,
-            href: route("admin.service.plan.show", servicePlan.id),
-        },
-        { label: "アイテムを編集" },
+        "サービス管理",
+        "プラン一覧",
+        servicePlan.name,
+        "アイテムを設定",
     ];
-
-    // 新規アイテムのみで利用可能
-    const getAvailableItemsForNew = () => {
-        const existingIds = servicePlanItems.map((i) => i.service_item_id);
-        return available_items.filter((item) => !existingIds.includes(item.id));
-    };
 
     const handleSubmit = () => {
         // 割引額を計算
@@ -82,21 +70,18 @@ export default function Edit({
         });
     };
 
-    // 新規アイテム用のavailable_itemsのみを使用
-    const filteredAvailableItems = getAvailableItemsForNew();
-
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービスプラン - アイテムを編集"
-                    description={`${servicePlan.name}のサービスアイテムを編集します`}
+                    title="サービスプラン - アイテムを設定"
+                    description={`${servicePlan.name}のサービスアイテムを設定します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title={`アイテムを編集 - ${servicePlan.name}`} />
+            <Head title={`アイテムを設定 - ${servicePlan.name}`} />
 
             <FlashMessage />
 
@@ -108,7 +93,7 @@ export default function Edit({
                 onSubmit={handleSubmit}
                 cancelRoute={route("admin.service.plan.show", servicePlan.id)}
                 servicePlan={servicePlan}
-                available_items={getAvailableItemsForNew()}
+                available_items={available_items}
                 mode="edit"
             />
         </AdminAuthenticatedLayout>

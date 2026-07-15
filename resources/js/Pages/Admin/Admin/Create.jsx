@@ -7,18 +7,11 @@ import { FlashMessage } from "@/Components/Notifications";
 import { BaseAlert } from "@/Components/Alerts";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Button, CrudButton } from "@/Components/Buttons";
-import {
-    FormGroup,
-    TextInput,
-    SelectInput,
-    InputError,
-} from "@/Components/Forms";
-// Icons
+import { FormGroup, TextInput, SelectInput } from "@/Components/Forms";
 import {
     ArrowLeftIcon,
     ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ roles }) {
@@ -45,23 +38,22 @@ export default function Create({ roles }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="管理者新規登録"
-                    description="新しい管理者アカウントを作成します"
+                    title={PageConfig.admins.pages.create.title}
+                    description={PageConfig.admins.pages.create.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="管理者新規登録" />
+            <Head title={PageConfig.admins.pages.create.documentTitle} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />

@@ -28,14 +28,14 @@ export default function CompanyQuotes({ quotes = [] }) {
 
     const getStatusBadge = (status) => {
         const badges = {
-            draft: { text: "下書き", variant: "neutral" },
+            draft: { text: "下書き", variant: "secondary" },
             sent: { text: "送信済み", variant: "info" },
             reviewed: { text: "確認済み", variant: "info" },
             approved: { text: "承認済み", variant: "success" },
             rejected: { text: "却下", variant: "danger" },
-            expired: { text: "期限切れ", variant: "neutral" },
+            expired: { text: "期限切れ", variant: "secondary" },
         };
-        return badges[status] || { text: status, variant: "neutral" };
+        return badges[status] || { text: status, variant: "secondary" };
     };
 
     const totalAmount = quotes.reduce(
@@ -97,11 +97,9 @@ export default function CompanyQuotes({ quotes = [] }) {
                             <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
                                 見積もり一覧
                             </h2>
-                            <Badge
-                                text={`${quotes.length}件`}
-                                variant="neutral"
-                                size="sm"
-                            />
+                            <Badge variant="secondary" size="sm">
+                                {quotes.length}件
+                            </Badge>
                         </div>
                     </div>
                 </CardHeader>
@@ -190,10 +188,18 @@ export default function CompanyQuotes({ quotes = [] }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Badge
-                                                    {...getStatusBadge(
-                                                        quote.status,
-                                                    )}
-                                                />
+                                                    variant={
+                                                        getStatusBadge(
+                                                            quote.status,
+                                                        ).variant
+                                                    }
+                                                >
+                                                    {
+                                                        getStatusBadge(
+                                                            quote.status,
+                                                        ).text
+                                                    }
+                                                </Badge>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex items-center justify-end gap-2">

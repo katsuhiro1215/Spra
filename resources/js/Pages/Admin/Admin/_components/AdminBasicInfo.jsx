@@ -6,15 +6,14 @@ import { Badge } from "@/Components/Badges";
 import { IconButton } from "@/Components/Buttons";
 // Constants
 import { getRoleBadge } from "@/Constants/Badges";
+import { PageConfig } from "@/Constants/PageConfig";
 // Icons
 import {
-    ArrowLeftIcon,
     PencilIcon,
     PlusIcon,
     TrashIcon,
     UserCircleIcon,
     MapPinIcon,
-    CameraIcon,
 } from "@heroicons/react/24/outline";
 
 const getAddressTypeLabel = (type) => {
@@ -30,7 +29,7 @@ const getAddressTypeLabel = (type) => {
 
 export default function AdminBasicInfo({ admin }) {
     const handleDeleteAddress = (addressId) => {
-        if (confirm("この住所を削除してもよろしいですか?")) {
+        if (confirm(PageConfig.adminAddresses.deleteConfirmation)) {
             router.delete(
                 route("admin.admin.address.destroy", [admin.id, addressId]),
                 { preserveScroll: true },

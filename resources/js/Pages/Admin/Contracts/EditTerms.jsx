@@ -10,9 +10,12 @@ import {
     DocumentTextIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function EditTerms({ contract, templates = [] }) {
-    const currentVersion = contract.currentVersion || contract.versions?.[0];
+    const currentVersion =
+        contract.current_version ||
+        contract.versions?.[contract.versions.length - 1];
 
     const { data, setData, post, processing, errors } = useForm({
         terms_and_conditions: currentVersion?.terms_and_conditions || "",
@@ -46,7 +49,7 @@ export default function EditTerms({ contract, templates = [] }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.show", contract.id),
@@ -54,13 +57,9 @@ export default function EditTerms({ contract, templates = [] }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        {
-            label: contract.contract_number,
-            href: route("admin.contract.show", contract.id),
-        },
-        { label: "契約条項編集", href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        contract.contract_number,
+        "契約条項編集",
     ];
 
     return (
@@ -147,7 +146,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                     placeholder={`第1条（目的）\n本契約は、甲と乙の間で行われる...\n\n第2条（契約期間）\n本契約の有効期間は...`}
                                 />
                                 {errors.terms_and_conditions && (
-                                    <div className="mt-1 text-red-600 text-sm">
+                                    <div className="mt-1 text-red-600 dark:text-red-400 text-sm">
                                         {errors.terms_and_conditions}
                                     </div>
                                 )}
@@ -171,7 +170,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                     placeholder="本契約に規定のない事項については..."
                                 />
                                 {errors.special_provisions && (
-                                    <div className="mt-1 text-red-600 text-sm">
+                                    <div className="mt-1 text-red-600 dark:text-red-400 text-sm">
                                         {errors.special_provisions}
                                     </div>
                                 )}
@@ -192,7 +191,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                     placeholder="内部用のメモや注意事項..."
                                 />
                                 {errors.notes && (
-                                    <div className="mt-1 text-red-600 text-sm">
+                                    <div className="mt-1 text-red-600 dark:text-red-400 text-sm">
                                         {errors.notes}
                                     </div>
                                 )}

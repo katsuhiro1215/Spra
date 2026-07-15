@@ -1,16 +1,19 @@
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
 import { FlashMessage } from "@/Components/Notifications";
-import { EditButton, DeleteButton } from "@/Components/Buttons";
+import {
+    EditButton,
+    DeleteButton,
+    SecondaryButton,
+} from "@/Components/Buttons";
 // Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
-    TrashIcon,
     CheckIcon,
     XMarkIcon,
     PlusIcon,
@@ -28,7 +31,7 @@ export default function Show({ servicePlan }) {
             label: PageConfig.servicePlans.actions.back,
             icon: ArrowLeftIcon,
             variant: "default",
-            href: route("admin.service.plan.index"),
+            route: route("admin.service.plan.index"),
         },
     ];
     // ========================================
@@ -111,11 +114,11 @@ export default function Show({ servicePlan }) {
             <div className="space-y-6">
                 {/* 操作ボタン */}
                 <div className="flex items-center justify-end space-x-3">
-                    <Link
+                    <EditButton
                         href={route("admin.service.plan.edit", servicePlan.id)}
                     >
-                        <EditButton>プラン情報を編集</EditButton>
-                    </Link>
+                        プラン情報を編集
+                    </EditButton>
                     <DeleteButton onClick={handleDelete}>削除</DeleteButton>
                 </div>
 
@@ -212,32 +215,15 @@ export default function Show({ servicePlan }) {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>含まれるサービスアイテム</CardTitle>
-                            <div className="flex items-center space-x-2">
-                                {hasItems && (
-                                    <Link
-                                        href={route(
-                                            "admin.service.plan.items.edit",
-                                            servicePlan.id,
-                                        )}
-                                    >
-                                        <button className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <PencilIcon className="h-4 w-4 mr-2" />
-                                            編集
-                                        </button>
-                                    </Link>
+                            <SecondaryButton
+                                href={route(
+                                    "admin.service.plan.items.edit",
+                                    servicePlan.id,
                                 )}
-                                <Link
-                                    href={route(
-                                        "admin.service.plan.items.create",
-                                        servicePlan.id,
-                                    )}
-                                >
-                                    <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
-                                        <PlusIcon className="h-4 w-4 mr-2" />
-                                        {hasItems ? "追加" : "アイテムを追加"}
-                                    </button>
-                                </Link>
-                            </div>
+                                icon={hasItems ? PencilIcon : PlusIcon}
+                            >
+                                {hasItems ? "アイテムを編集" : "アイテムを設定"}
+                            </SecondaryButton>
                         </div>
                     </CardHeader>
                     <CardBody>

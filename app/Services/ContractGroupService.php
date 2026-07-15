@@ -216,8 +216,8 @@ class ContractGroupService
       ->filter(fn($v) => $v->is_current)
       ->sum('total_amount');
 
-    $signedCount = $contracts->where('signature_status', 'signed')->count();
-    $pendingCount = $contracts->where('signature_status', 'pending')->count();
+    $signedCount = $contracts->where('signature_status', 'fully_signed')->count();
+    $pendingCount = $contracts->whereIn('signature_status', ['pending', 'user_signed'])->count();
 
     return [
       'total_contracts' => $contracts->count(),

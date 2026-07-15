@@ -1,55 +1,62 @@
 import React, { useState, useEffect } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import { Button, CrudButton } from "@/Components/Buttons";
-import TabNavigation from "@/Components/TabNavigation";
-import SearchBar from "@/Components/SearchBar";
-import FilterSelect from "@/Components/FilterSelect";
-// Icons
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
-import { PageConfig } from "@/Constants/PageConfig";
+import { CrudButton, IconButton } from "@/Components/Buttons";
 import {
-    ADMIN_ROLE_OPTIONS,
-    ADMIN_STATUS_OPTIONS,
-} from "@/Constants/SelectOptions";
-// Admin Components
+    PlusIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
+    UserGroupIcon,
+} from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
+import AdminsFilterBar from "./_components/AdminsFilterBar";
 import AdminsTable from "./_components/AdminsTable";
+import AdminsGrid from "./_components/AdminsGrid";
+
+const DEFAULT_TRASHED = "without_trashed";
+const VIEW_MODE_STORAGE_KEY = "admins-view-mode";
+
+// filters props からフォームの初期値/リセット値を組み立てる
+const buildFilterState = (filters) => ({
+    search: filters.search || "",
+    role: filters.role || "",
+    status: filters.status || "",
+    trashed: filters.trashed || DEFAULT_TRASHED,
+});
 
 export default function Index({ admins, filters, stats }) {
     // ========================================
     // State & Form
     // ========================================
     const [activeTab, setActiveTab] = useState(
-        filters.trashed || "without_trashed",
+        filters.trashed || DEFAULT_TRASHED,
     );
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "table",
+    );
 
-    const { data, setData, get, processing } = useForm({
-        search: filters.search || "",
-        role: filters.role || "",
-        status: filters.status || "",
-        trashed: filters.trashed || "without_trashed",
-    });
+    const { data, setData, get, processing } = useForm(
+        buildFilterState(filters),
+    );
 
     // ========================================
     // Effects
     // ========================================
     // propsが更新されたらstateも更新
     useEffect(() => {
-        setActiveTab(filters.trashed || "without_trashed");
-        setData({
-            search: filters.search || "",
-            role: filters.role || "",
-            status: filters.status || "",
-            trashed: filters.trashed || "without_trashed",
-        });
+        setActiveTab(filters.trashed || DEFAULT_TRASHED);
+        setData(buildFilterState(filters));
     }, [filters.trashed]);
+
+    // 表示モード（テーブル/グリッド）を記憶
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     // フィルターがアクティブな場合は自動的に開く
     useEffect(() => {
@@ -142,7 +149,7 @@ export default function Index({ admins, filters, stats }) {
         {
             key: "with_trashed",
             label: PageConfig.admins.ui.tabs.all,
-            count: stats?.all || admins.total,
+            count: stats?.total || admins.total,
         },
         {
             key: "without_trashed",
@@ -177,110 +184,117 @@ export default function Index({ admins, filters, stats }) {
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                {/* 検索・フィルターカード */}
-                {/* タブ + 検索 + フィルタートグル */}
-                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                    {/* タブナビゲーション */}
-                    <div className="flex-shrink-0">
-                        <TabNavigation
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onChange={handleTabChange}
-                        />
-                    </div>
+                {/* 検索・フィルターツールバー */}
+                <AdminsFilterBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    data={data}
+                    setData={setData}
+                    onSearch={handleSearch}
+                    searchDisabled={processing}
+                    showFilters={showFilters}
+                    onToggleFilters={() => setShowFilters(!showFilters)}
+                    activeFilterCount={activeFilterCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={handleClearFilters}
+                />
 
-                    {/* 検索バー */}
-                    <div className="flex-1 max-w-md">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder={
-                                PageConfig.admins.ui.search.placeholder
-                            }
-                            disabled={processing}
-                        />
-                    </div>
+                {admins.data.length > 0 ? (
+                    <>
+                        {/* 統計情報 */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                        {stats?.total ?? admins.total}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        総数
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {stats?.active ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        アクティブ
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-slate-500 dark:text-slate-400">
+                                        {stats?.inactive ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        非アクティブ
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                        {stats?.suspended ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        停止中
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
 
-                    {/* フィルタートグルボタン */}
-                    <div className="flex-shrink-0">
-                        <Button
-                            variant="secondary"
-                            onClick={() => setShowFilters(!showFilters)}
-                            size="md"
-                            icon={FunnelIcon}
-                            className="relative"
-                        >
-                            {PageConfig.admins.ui.filter.button}
-                            {activeFilterCount > 0 && (
-                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                    {activeFilterCount}
-                                </span>
-                            )}
-                        </Button>
-                    </div>
-                </div>
-
-                {/* フィルターセクション（折りたたみ可能）*/}
-                {showFilters && (
-                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                            {/* 役割フィルター */}
-                            <FilterSelect
-                                label={PageConfig.admins.filters.role.label}
-                                value={data.role}
-                                onChange={(value) => setData("role", value)}
-                                options={ADMIN_ROLE_OPTIONS}
-                                placeholder={
-                                    PageConfig.admins.filters.role.placeholder
-                                }
-                            />
-
-                            {/* ステータスフィルター */}
-                            <FilterSelect
-                                label={PageConfig.admins.filters.status.label}
-                                value={data.status}
-                                onChange={(value) => setData("status", value)}
-                                options={ADMIN_STATUS_OPTIONS}
-                                placeholder={
-                                    PageConfig.admins.filters.status.placeholder
-                                }
-                            />
-
-                            {/* スペーサー */}
-                            <div className="hidden lg:block"></div>
-
-                            {/* フィルタークリアボタン */}
-                            <div className="flex items-end">
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleClearFilters}
-                                    disabled={!hasActiveFilters}
-                                    size="md"
-                                    icon={XMarkIcon}
-                                    className="w-full"
-                                >
-                                    {PageConfig.admins.ui.filter.clear}
-                                </Button>
+                        {/* 一覧ヘッダー（件数 + 表示切替） */}
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                管理者一覧 ({admins.total}件)
+                            </h2>
+                            <div className="flex gap-1">
+                                <IconButton
+                                    variant={
+                                        viewMode === "table"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={ListBulletIcon}
+                                    onClick={() => setViewMode("table")}
+                                    title="テーブル表示"
+                                />
+                                <IconButton
+                                    variant={
+                                        viewMode === "grid"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={Squares2X2Icon}
+                                    onClick={() => setViewMode("grid")}
+                                    title="グリッド表示"
+                                />
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {/* テーブル */}
-                <AdminsTable admins={admins} onDelete={handleDelete} />
+                        {/* テーブル / グリッド */}
+                        {viewMode === "table" ? (
+                            <AdminsTable
+                                admins={admins}
+                                onDelete={handleDelete}
+                            />
+                        ) : (
+                            <AdminsGrid
+                                admins={admins}
+                                onDelete={handleDelete}
+                            />
+                        )}
 
-                {/* ページネーション */}
-                {admins.data.length > 0 && (
-                    <Pagination paginationData={admins} />
-                )}
-
-                {/* データがない場合 */}
-                {admins.data.length === 0 && (
+                        {/* ページネーション */}
+                        <Pagination paginationData={admins} />
+                    </>
+                ) : (
+                    /* データがない場合 */
                     <Card className="text-center py-12">
-                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
-                            👤
-                        </div>
+                        <UserGroupIcon className="h-10 w-10 mx-auto text-slate-400 dark:text-slate-500 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
                                 ? PageConfig.admins.ui.empty.noResults

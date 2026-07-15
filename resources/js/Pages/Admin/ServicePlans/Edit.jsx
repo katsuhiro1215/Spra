@@ -6,6 +6,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import ServicePlanForm from "./_components/Form";
 // Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Edit({
     servicePlan,
@@ -45,24 +46,33 @@ export default function Edit({
 
     const headerActions = [
         {
-            label: "一覧に戻る",
-            href: route("admin.service.plan.index"),
+            label: PageConfig.servicePlans.actions.back,
+            route: route("admin.service.plan.show", servicePlan.id),
             variant: "ghost",
             icon: ArrowLeftIcon,
         },
+    ];
+
+    const breadcrumbs = [
+        ...PageConfig.servicePlans.breadcrumbs,
+        servicePlan.name,
+        PageConfig.servicePlans.pages.edit.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="サービスプラン編集"
+                    title={PageConfig.servicePlans.pages.edit.title}
                     description={`"${servicePlan.name}" を編集します`}
                     actions={headerActions}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="サービスプラン編集" />
+            <Head
+                title={`${PageConfig.servicePlans.pages.edit.title} - ${servicePlan.name}`}
+            />
 
             <FlashMessage />
 
@@ -73,7 +83,10 @@ export default function Edit({
                     errors={errors}
                     processing={processing}
                     onSubmit={submit}
-                    cancelRoute={route("admin.service.plan.index")}
+                    cancelRoute={route(
+                        "admin.service.plan.show",
+                        servicePlan.id,
+                    )}
                     services={services}
                     billingCycles={billingCycles}
                     statuses={statuses}
