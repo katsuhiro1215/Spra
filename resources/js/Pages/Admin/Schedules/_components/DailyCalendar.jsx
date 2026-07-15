@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
+import { formatDateKey, todayDateKey } from "@/Utils/dateUtils";
 
 const statusChipClasses = {
     yellow: "bg-yellow-200 text-yellow-900 dark:bg-yellow-900/60 dark:text-yellow-200",
@@ -42,7 +43,7 @@ export default function DailyCalendar({
 }) {
     // 選択された日のデータを取得
     const dayData = useMemo(() => {
-        const dateStr = selectedDate.toISOString().split("T")[0];
+        const dateStr = formatDateKey(selectedDate);
         return (
             calendar[dateStr] || {
                 date: dateStr,
@@ -99,12 +100,10 @@ export default function DailyCalendar({
         return startMinutes < breakEndMinutes && endMinutes > breakStartMinutes;
     };
 
-    const isToday =
-        selectedDate.toISOString().split("T")[0] ===
-        new Date().toISOString().split("T")[0];
+    const isToday = formatDateKey(selectedDate) === todayDateKey();
 
     const getDayStatus = () => {
-        if (dayData.is_holiday) return "休業日";
+        if (dayData.is_holiday) return dayData.holiday_name || "休業日";
         if (dayData.is_exception) {
             return dayData.is_business_day ? "臨時営業" : "臨時休業";
         }

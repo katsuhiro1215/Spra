@@ -433,11 +433,13 @@ export const PageConfig = {
         documentTitle: "予約枠管理",
         breadcrumbs: ["ホーム", "スケジュール管理", "予約枠管理"],
         actions: {
+            ...CommonUIConstants.actions,
             create: "予約枠を作成",
             edit: "予約枠を編集",
             delete: "予約枠を削除",
             view: "予約枠を表示",
         },
+        pages: createPageTemplates("予約枠"),
         ui: createIndexPageUITemplates("予約枠", "日付、時間、タイプで検索..."),
         filters: {
             slotType: {
@@ -1132,5 +1134,15 @@ export const PageConfig = {
         actions: {
             ...CommonUIConstants.actions,
         },
+    },
+
+    /**
+     * バッチ実行管理（リマインダー実行状況）
+     */
+    batchReminders: {
+        title: "🔔 リマインダー実行状況",
+        description: "予約リマインダーの送信状況をクライアント・日付ごとに確認します",
+        documentTitle: "リマインダー実行状況",
+        breadcrumbs: ["ホーム", "バッチ実行管理", "リマインダー実行状況"],
     },
 };

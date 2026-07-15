@@ -38,6 +38,8 @@ class Appointment extends Model
     'client_notes',
     'send_reminder',
     'reminder_sent_at',
+    'reminder_status',
+    'reminder_error',
     'created_by',
     'updated_by',
     'deleted_by',
@@ -65,6 +67,26 @@ class Appointment extends Model
     'booker_name',
     'is_guest_booking',
   ];
+
+  /**
+   * リマインダー送信状況
+   */
+  const REMINDER_STATUS_PENDING = 'pending';
+  const REMINDER_STATUS_SENT = 'sent';
+  const REMINDER_STATUS_FAILED = 'failed';
+
+  /**
+   * リマインダー送信状況のラベル
+   */
+  public static function getReminderStatusLabel(string $status): string
+  {
+    return match ($status) {
+      self::REMINDER_STATUS_PENDING => '実行前',
+      self::REMINDER_STATUS_SENT => '正常終了',
+      self::REMINDER_STATUS_FAILED => '異常終了',
+      default => $status,
+    };
+  }
 
   /**
    * ステータスのラベル

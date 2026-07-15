@@ -177,13 +177,13 @@ export default function Index({
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "available":
-                return "bg-green-100 text-green-800";
+                return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
             case "blocked":
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
             case "full":
-                return "bg-red-100 text-red-800";
+                return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
         }
     };
 
@@ -194,6 +194,16 @@ export default function Index({
 
     const formatTime = (time) => {
         return time ? time.substring(0, 5) : "";
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "-";
+        return new Date(dateStr).toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "short",
+        });
     };
 
     return (
@@ -212,13 +222,14 @@ export default function Index({
             <FlashMessage />
             {/* Delete Confirmation Modal */}
             <DeleteAlert
-                isOpen={!!deleteTarget}
+                show={!!deleteTarget}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                title="予約枠を削除"
-                message={`${deleteTarget?.date} ${deleteTarget?.start_time ? deleteTarget.start_time.substring(0, 5) : ""} の予約枠を削除してもよろしいですか？`}
-                confirmText="削除"
-                cancelText="キャンセル"
+                itemName={
+                    deleteTarget
+                        ? `${formatDate(deleteTarget.date)} ${formatTime(deleteTarget.start_time)} の予約枠`
+                        : ""
+                }
             />
 
             <div className="w-full flex flex-col gap-4">
@@ -261,7 +272,7 @@ export default function Index({
                                     <button
                                         type="button"
                                         onClick={handleClearFilters}
-                                        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+                                        className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                                     >
                                         <XMarkIcon className="h-4 w-4 mr-1" />
                                         {
@@ -275,7 +286,7 @@ export default function Index({
 
                         {/* フィルターセクション */}
                         {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <FilterSelect
                                     label={
                                         PageConfig.appointmentSlots.filters
@@ -322,7 +333,7 @@ export default function Index({
                                     }
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         開始日
                                     </label>
                                     <input
@@ -331,11 +342,11 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_from", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         終了日
                                     </label>
                                     <input
@@ -344,7 +355,7 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_to", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -356,7 +367,7 @@ export default function Index({
                 <Card>
                     {appointmentSlots.data.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-gray-500">
+                            <p className="text-gray-500 dark:text-gray-400">
                                 {data.search || activeFilterCount > 0
                                     ? PageConfig.appointmentSlots.ui.empty
                                           .noResults
@@ -383,40 +394,40 @@ export default function Index({
                     ) : (
                         <>
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead className="bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 日時
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 タイプ
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 担当者
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 予約状況
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 ステータス
                                             </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 操作
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                         {appointmentSlots.data.map((slot) => (
                                             <tr
                                                 key={slot.id}
-                                                className="hover:bg-gray-50"
+                                                className="hover:bg-gray-50 dark:hover:bg-gray-700"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {slot.date}
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        {formatDate(slot.date)}
                                                     </div>
-                                                    <div className="text-sm text-gray-500">
+                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
                                                         {formatTime(
                                                             slot.start_time,
                                                         )}{" "}
@@ -427,14 +438,14 @@ export default function Index({
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900">
+                                                    <span className="text-sm text-gray-900 dark:text-gray-100">
                                                         {getSlotTypeLabel(
                                                             slot.slot_type,
                                                         )}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900">
+                                                    <span className="text-sm text-gray-900 dark:text-gray-100">
                                                         {slot.assigned_admin
                                                             ?.profile
                                                             ?.full_name ||
@@ -442,11 +453,11 @@ export default function Index({
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
+                                                    <div className="text-sm text-gray-900 dark:text-gray-100">
                                                         {slot.current_bookings}{" "}
                                                         / {slot.max_capacity}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
                                                         残り:{" "}
                                                         {slot.max_capacity -
                                                             slot.current_bookings}
@@ -464,10 +475,19 @@ export default function Index({
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                                     <Link
                                                         href={route(
+                                                            "admin.appointment-slots.show",
+                                                            slot.id,
+                                                        )}
+                                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                                                    >
+                                                        詳細
+                                                    </Link>
+                                                    <Link
+                                                        href={route(
                                                             "admin.appointment-slots.edit",
                                                             slot.id,
                                                         )}
-                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                                                     >
                                                         編集
                                                     </Link>
@@ -475,7 +495,7 @@ export default function Index({
                                                         onClick={() =>
                                                             handleDelete(slot)
                                                         }
-                                                        className="text-red-600 hover:text-red-900"
+                                                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                         disabled={
                                                             isDeleting ===
                                                             slot.id

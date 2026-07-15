@@ -7,6 +7,7 @@ use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\PublicServiceController;
+use App\Http\Controllers\PublicFaqController;
 use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
@@ -34,7 +35,7 @@ Route::get('/service', [PublicServiceController::class, 'index'])->name('service
 Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
 Route::get('/blog', fn() => Inertia::render('Public/Blog'))->name('blog');
 Route::get('/blog/{slug}', fn($slug) => Inertia::render('Public/BlogDetail', ['slug' => $slug]))->name('blog.detail');
-Route::get('/faq', fn() => Inertia::render('Public/Faq'))->name('faq');
+Route::get('/faq', [PublicFaqController::class, 'show'])->name('faq');
 Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');

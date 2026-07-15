@@ -176,27 +176,55 @@ class ScheduleService
   /**
    * 指定期間の営業日カレンダーを生成
    *
+   * 期間内の休日・例外日・デフォルトスケジュールを事前に一括取得し、
+   * 1日ごとにDBへ問い合わせるN+1を避ける。
+   *
    * @param Carbon $startDate
    * @param Carbon $endDate
-   * @return Collection<string, array{date: string, is_business_day: bool, is_holiday: bool, hours: array|null}>
+   * @return Collection<string, array{date: string, is_business_day: bool, is_holiday: bool, holiday_name: string|null, hours: array|null}>
    */
   public function getBusinessCalendar(Carbon $startDate, Carbon $endDate): Collection
   {
+    $holidays = Holiday::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+      ->get()
+      ->keyBy(fn (Holiday $holiday) => $holiday->date->format('Y-m-d'));
+
+    $exceptions = ScheduleException::whereBetween('exception_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+      ->get()
+      ->keyBy(fn (ScheduleException $exception) => $exception->exception_date->format('Y-m-d'));
+
+    $defaults = ScheduleDefault::all()->keyBy('day_of_week');
+
     $calendar = collect();
     $current = $startDate->copy();
 
     while ($current->lte($endDate)) {
-      $isHoliday = $this->isHoliday($current);
-      $exception = $this->getException($current);
+      $dateKey = $current->format('Y-m-d');
+      $holiday = $holidays->get($dateKey);
+      $exception = $exceptions->get($dateKey);
+      $default = $defaults->get($current->dayOfWeek);
+
+      $isHoliday = $holiday !== null;
       $isBusinessDay = $isHoliday
         ? false
-        : ($exception ? $exception->is_open : ($this->getDefaultSchedule($current->dayOfWeek)?->is_open ?? false));
-      $hours = $isBusinessDay ? $this->getBusinessHours($current) : null;
+        : ($exception ? $exception->is_open : ($default?->is_open ?? false));
 
-      $calendar->put($current->format('Y-m-d'), [
-        'date' => $current->format('Y-m-d'),
+      $hours = null;
+      if ($isBusinessDay) {
+        $source = $exception ?? $default;
+        $hours = [
+          'open_time' => $source->open_time,
+          'close_time' => $source->close_time,
+          'break_start' => $source->break_start,
+          'break_end' => $source->break_end,
+        ];
+      }
+
+      $calendar->put($dateKey, [
+        'date' => $dateKey,
         'is_business_day' => $isBusinessDay,
         'is_holiday' => $isHoliday,
+        'holiday_name' => $holiday?->name,
         'is_exception' => $exception !== null,
         'exception_reason' => $exception?->reason,
         'hours' => $hours,

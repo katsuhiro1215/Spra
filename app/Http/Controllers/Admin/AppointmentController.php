@@ -292,8 +292,15 @@ class AppointmentController extends Controller
       unset($validated['appointment_slot_id']);
       $validated['updated_by'] = Auth::guard('admins')->id();
       $validated['send_reminder'] = $validated['send_reminder'] ?? false;
+      $wasCancelled = $appointment->status === 'cancelled';
 
       $this->appointmentService->reschedule($appointment, $slotId, $validated);
+
+      // 編集画面からステータスを直接「キャンセル」に変更した場合も、
+      // 専用のキャンセル操作と同様にチケットを返却する
+      if ($validated['status'] === 'cancelled' && !$wasCancelled) {
+        $this->benefitService->refund($appointment, ignoreCutoff: true);
+      }
 
       return redirect()->route('admin.appointments.index')
         ->with('success', '予約が更新されました。');

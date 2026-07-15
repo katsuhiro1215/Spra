@@ -1,10 +1,9 @@
 import { useMemo } from "react";
 import { router } from "@inertiajs/react";
-
-const todayStr = () => new Date().toISOString().split("T")[0];
+import { todayDateKey } from "@/Utils/dateUtils";
 
 export default function YearlyCalendar({ year, calendar, appointments = {} }) {
-    const today = todayStr();
+    const today = todayDateKey();
     // 12ヶ月分のカレンダーを生成
     const months = useMemo(() => {
         const monthsData = [];

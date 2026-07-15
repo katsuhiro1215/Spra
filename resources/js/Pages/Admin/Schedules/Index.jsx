@@ -10,6 +10,7 @@ import WeeklyCalendar from "./_components/WeeklyCalendar";
 import MonthlyCalendar from "./_components/MonthlyCalendar";
 import YearlyCalendar from "./_components/YearlyCalendar";
 import AppointmentSlotQuickCreateModal from "@/Components/Schedules/AppointmentSlotQuickCreateModal";
+import { formatDateKey } from "@/Utils/dateUtils";
 // Icons
 import {
     PlusIcon,
@@ -104,7 +105,7 @@ export default function ScheduleIndex({
                 year: date.getFullYear(),
                 month: date.getMonth() + 1,
                 view: mode,
-                date: date.toISOString().split("T")[0],
+                date: formatDateKey(date),
             },
             { preserveState: true, preserveScroll: true, replace: true },
         );
@@ -191,6 +192,30 @@ export default function ScheduleIndex({
 
     const navigationInfo = getNavigationInfo();
 
+    // サイドバーメニューの色分け（営業時間=緑、例外=黄、祝日=赤、予約枠=青）
+    const sidebarColorClasses = {
+        green: {
+            iconWrap: "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
+            hover: "hover:bg-green-50 dark:hover:bg-green-900/20",
+            label: "group-hover:text-green-700 dark:group-hover:text-green-400",
+        },
+        yellow: {
+            iconWrap: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400",
+            hover: "hover:bg-yellow-50 dark:hover:bg-yellow-900/20",
+            label: "group-hover:text-yellow-700 dark:group-hover:text-yellow-400",
+        },
+        red: {
+            iconWrap: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400",
+            hover: "hover:bg-red-50 dark:hover:bg-red-900/20",
+            label: "group-hover:text-red-700 dark:group-hover:text-red-400",
+        },
+        blue: {
+            iconWrap: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
+            hover: "hover:bg-blue-50 dark:hover:bg-blue-900/20",
+            label: "group-hover:text-blue-700 dark:group-hover:text-blue-400",
+        },
+    };
+
     // サイドバーメニュー
     const sidebarLinks = [
         {
@@ -198,24 +223,28 @@ export default function ScheduleIndex({
             icon: ClockIcon,
             label: "営業時間設定",
             description: "曜日ごとのデフォルト営業時間",
+            color: "green",
         },
         {
             href: route("admin.schedules.exceptions.index"),
             icon: ExclamationTriangleIcon,
             label: "例外日設定",
             description: "特定日の営業時間",
+            color: "yellow",
         },
         {
             href: route("admin.schedules.holidays.index"),
             icon: CalendarIcon,
             label: "祝日管理",
             description: "祝日や特別休業日",
+            color: "red",
         },
         {
             href: route("admin.appointment-slots.index"),
             icon: UserGroupIcon,
             label: "予約枠管理",
             description: "クライアント面談・相談枠",
+            color: "blue",
         },
     ];
 
@@ -243,25 +272,35 @@ export default function ScheduleIndex({
                                 設定メニュー
                             </h3>
                             <nav className="space-y-2">
-                                {sidebarLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        className="block p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors group"
-                                    >
-                                        <div className="flex items-start">
-                                            <link.icon className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mt-0.5 mr-3" />
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                                    {link.label}
-                                                </div>
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                    {link.description}
+                                {sidebarLinks.map((link) => {
+                                    const colors =
+                                        sidebarColorClasses[link.color];
+                                    return (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={`block p-3 rounded-lg transition-colors group ${colors.hover}`}
+                                        >
+                                            <div className="flex items-start">
+                                                <span
+                                                    className={`flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-lg mr-3 ${colors.iconWrap}`}
+                                                >
+                                                    <link.icon className="h-5 w-5" />
+                                                </span>
+                                                <div>
+                                                    <div
+                                                        className={`text-sm font-medium text-gray-900 dark:text-gray-100 ${colors.label}`}
+                                                    >
+                                                        {link.label}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                        {link.description}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    );
+                                })}
                             </nav>
                         </div>
                     </div>

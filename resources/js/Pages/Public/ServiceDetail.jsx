@@ -9,6 +9,8 @@ import {
     CpuChipIcon,
     DocumentTextIcon,
     ArrowTopRightOnSquareIcon,
+    ChevronDownIcon,
+    QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 
 const BILLING_CYCLE_LABELS = {
@@ -29,8 +31,10 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
     const media = service.media || [];
     const technologies = service.technologies || [];
     const portfolios = service.portfolios || [];
+    const faqs = service.faqs || [];
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const activeImage = media[activeImageIndex];
+    const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
     const breadcrumbs = [
         { label: "サービス", href: "/service" },
@@ -243,6 +247,66 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
                                             </span>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* よくある質問 */}
+                            {faqs.length > 0 && (
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <QuestionMarkCircleIcon className="w-8 h-8 text-blue-600" />
+                                        よくある質問
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {faqs.map((faq, index) => {
+                                            const isOpen =
+                                                openFaqIndex === index;
+                                            return (
+                                                <div
+                                                    key={faq.id}
+                                                    className="bg-gray-50 rounded-xl overflow-hidden"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setOpenFaqIndex(
+                                                                isOpen
+                                                                    ? null
+                                                                    : index,
+                                                            )
+                                                        }
+                                                        className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
+                                                    >
+                                                        <span className="font-semibold text-gray-900 pr-4">
+                                                            {faq.question}
+                                                        </span>
+                                                        <ChevronDownIcon
+                                                            className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${
+                                                                isOpen
+                                                                    ? "transform rotate-180"
+                                                                    : ""
+                                                            }`}
+                                                        />
+                                                    </button>
+                                                    {isOpen && (
+                                                        <div className="px-5 pb-5">
+                                                            <p className="text-gray-600 leading-relaxed whitespace-pre-wrap border-t border-gray-200 pt-4">
+                                                                {faq.answer}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <Link
+                                        href={route("faq")}
+                                        className="inline-flex items-center mt-4 text-sm font-semibold group"
+                                        style={{ color }}
+                                    >
+                                        FAQ一覧を見る
+                                        <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
                                 </div>
                             )}
 

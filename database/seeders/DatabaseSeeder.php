@@ -80,6 +80,12 @@ class DatabaseSeeder extends Seeder
 
             // 予約（面談）
             AppointmentSeeder::class,
+
+            // Webサイト管理（ページタイプ・FAQ）
+            PageTypeSeeder::class,
+            FaqCategorySeeder::class,
+            FaqSeeder::class,
+            FaqPageSeeder::class,
         ]);
     }
 }

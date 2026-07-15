@@ -5,16 +5,16 @@ namespace App\Models;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Faq extends Model
 {
-    use HasUlid, HasFactory;
+    use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'faq_category_id',
         'question',
         'answer',
-        'category', // 一時的に残す（後で削除予定）
         'sort_order',
         'is_featured',
         'is_published',
@@ -31,6 +31,16 @@ class Faq extends Model
     public function faqCategory()
     {
         return $this->belongsTo(FaqCategory::class);
+    }
+
+    /**
+     * 紐付くサービスとの関係
+     */
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'faq_service')
+            ->withPivot('sort_order')
+            ->orderBy('faq_service.sort_order');
     }
 
     /**
@@ -61,33 +71,10 @@ class Faq extends Model
     }
 
     /**
-     * 旧カテゴリでフィルタするスコープ（後で削除予定）
-     */
-    public function scopeByOldCategory($query, $category)
-    {
-        return $query->where('category', $category);
-    }
-
-    /**
      * 表示順でソートするスコープ
      */
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('created_at');
-    }
-
-    /**
-     * 旧カテゴリ一覧を取得（後で削除予定）
-     */
-    public static function getOldCategories()
-    {
-        return [
-            'general' => '一般',
-            'pricing' => '料金',
-            'contract' => '契約',
-            'support' => 'サポート',
-            'process' => '開発プロセス',
-            'technical' => '技術'
-        ];
     }
 }

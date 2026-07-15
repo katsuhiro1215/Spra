@@ -1,5 +1,9 @@
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import PageHeader from "@/Components/Layout/PageHeader";
+import { FlashMessage } from "@/Components/Notifications";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function CreateHoliday({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -16,23 +20,48 @@ export default function CreateHoliday({ auth }) {
         post(route("admin.schedules.holidays.store"));
     };
 
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.holidays.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.schedules.holidays.index"),
+        },
+    ];
+
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.holidays.breadcrumbs,
+        PageConfig.holidays.pages.create.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
             user={auth.user}
             header={
-                <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    祝日の追加
-                </h2>
+                <PageHeader
+                    title={PageConfig.holidays.pages.create.title}
+                    description={PageConfig.holidays.pages.create.description}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
             }
         >
             <Head title="祝日の追加" />
 
-            <div className="py-12">
-                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
-                            <form onSubmit={handleSubmit}>
-                                <div className="space-y-6">
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+
+            <div className="max-w-4xl">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="p-6 text-gray-900 dark:text-gray-100">
+                        <form onSubmit={handleSubmit}>
+                            <div className="space-y-6">
                                     {/* 日付 */}
                                     <div>
                                         <label className="block text-sm font-medium mb-2">
@@ -192,8 +221,7 @@ export default function CreateHoliday({ auth }) {
                                         登録
                                     </button>
                                 </div>
-                            </form>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>

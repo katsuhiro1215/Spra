@@ -73,11 +73,13 @@ use App\Http\Controllers\Admin\Website\FaqController;
 use App\Http\Controllers\Admin\Website\SiteSettingController;
 
 use App\Http\Controllers\Admin\Schedule\HolidayController;
+use App\Http\Controllers\Admin\Schedule\ScheduleController;
 use App\Http\Controllers\Admin\Schedule\ScheduleDefaultController;
 use App\Http\Controllers\Admin\Schedule\ScheduleExceptionController;
 
 use App\Http\Controllers\Admin\AppointmentSlotController;
 use App\Http\Controllers\Admin\AppointmentController;
+use App\Http\Controllers\Admin\Batch\ReminderExecutionController;
 
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -406,11 +408,6 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
         Route::post('/{id}/send', [ReceiptController::class, 'send'])->name('send');
     });
 
-    // FAQs管理
-    Route::resource('faq', FaqController::class);
-    Route::delete('/faqs/bulk-destroy', [FaqController::class, 'bulkDestroy'])->name('faq.bulk-destroy');
-    Route::patch('/faqs/bulk-status', [FaqController::class, 'bulkUpdateStatus'])->name('faq.bulk-status');
-
     // Documents (規約・ヘルプ・APIドキュメント等) 管理
     Route::resource('documents', DocumentController::class)->except(['show']);
     Route::post('/documents/{document}/versions', [DocumentController::class, 'createVersion'])->name('documents.versions.store');
@@ -427,7 +424,7 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     // スケジュール管理
     Route::prefix('schedules')->name('schedules.')->group(function () {
         // スケジュールカレンダー統合画面
-        Route::get('/', [ScheduleDefaultController::class, 'calendar'])->name('index');
+        Route::get('/', [ScheduleController::class, 'calendar'])->name('index');
 
         // 祝日・休業日管理
         Route::resource('holidays', HolidayController::class);
@@ -455,6 +452,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     Route::post('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::post('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
+
+    // バッチ実行管理
+    Route::prefix('batch')->name('batch.')->group(function () {
+        Route::get('/reminders', [ReminderExecutionController::class, 'index'])->name('reminders.index');
+    });
 
     // ホームページ管理
     Route::prefix('website')->name('website.')->group(function () {

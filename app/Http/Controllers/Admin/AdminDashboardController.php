@@ -140,14 +140,14 @@ class AdminDashboardController extends Controller
      */
     private function getRecentLogs(): array
     {
-        $activity = UserActivityLog::with('user.profile')
+        $activity = UserActivityLog::with(['user.profile', 'admin.profile'])
             ->where('status', UserActivityLog::STATUS_SUCCESS)
             ->latest('performed_at')
             ->limit(10)
             ->get()
             ->map(fn (UserActivityLog $log) => $this->formatActivityLog($log));
 
-        $warning = UserActivityLog::with('user.profile')
+        $warning = UserActivityLog::with(['user.profile', 'admin.profile'])
             ->whereIn('status', [UserActivityLog::STATUS_ERROR, UserActivityLog::STATUS_WARNING])
             ->latest('performed_at')
             ->limit(10)
@@ -176,12 +176,17 @@ class AdminDashboardController extends Controller
 
     private function formatActivityLog(UserActivityLog $log): array
     {
+        $actorName = $log->actor_type === UserActivityLog::ACTOR_ADMIN
+            ? ($log->admin?->profile?->full_name ?: $log->admin?->email)
+            : ($log->user?->profile?->full_name ?: $log->user?->email);
+
         return [
             'id' => $log->id,
             'performed_at' => $log->performed_at,
             'description' => $log->description ?? $log->action_name,
             'action_name' => $log->action_name,
-            'user_name' => $log->user?->profile?->full_name ?: $log->user?->email,
+            'actor_type' => $log->actor_type,
+            'user_name' => $actorName,
             'ip_address' => $log->ip_address,
             'status_name' => $log->status_name,
             'status_color' => $log->status_color,

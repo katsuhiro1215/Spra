@@ -99,6 +99,16 @@ class Service extends Model
     }
 
     /**
+     * Get the FAQs associated with this service.
+     */
+    public function faqs()
+    {
+        return $this->belongsToMany(Faq::class, 'faq_service')
+            ->withPivot('sort_order')
+            ->orderBy('faq_service.sort_order');
+    }
+
+    /**
      * Get the quotes for this service.
      */
     public function quotes()

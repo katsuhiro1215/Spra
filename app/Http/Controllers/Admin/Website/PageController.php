@@ -169,6 +169,7 @@ class PageController extends Controller
             'contact' => 'お問い合わせ',
             'service' => 'サービス',
             'blog' => 'ブログ',
+            'faq' => 'FAQ',
             'page' => '標準ページ',
         ];
     }

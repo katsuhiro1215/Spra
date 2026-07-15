@@ -235,6 +235,10 @@ class ServiceService extends BaseService
                 'portfolios' => function ($query) {
                     $query->where('is_displayed', true)->with('media');
                 },
+                'faqs' => function ($query) {
+                    $query->where('is_published', true)
+                        ->orderBy('faq_service.sort_order');
+                },
             ])
             ->first();
     }

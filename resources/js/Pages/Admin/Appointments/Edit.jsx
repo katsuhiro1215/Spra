@@ -131,7 +131,7 @@ export default function Edit({
                                         e.target.value,
                                     )
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             >
                                 <option value="">予約枠を選択</option>
@@ -156,7 +156,7 @@ export default function Edit({
                                 onChange={(e) =>
                                     setData("user_id", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
                                 <option value="">
                                     選択なし（一般クライアント）
@@ -175,8 +175,8 @@ export default function Edit({
 
                         {/* 一般クライアント連絡先（登録ユーザーを選択しない場合） */}
                         {!data.user_id && (
-                            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 space-y-4">
-                                <p className="text-sm font-medium text-amber-800">
+                            <div className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 space-y-4">
+                                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                                     一般クライアント（アカウントなし）の連絡先
                                 </p>
                                 <div>
@@ -255,7 +255,7 @@ export default function Edit({
                         <div>
                             <InputLabel value="会議形式 *" required />
                             <div className="mt-2 flex items-center gap-6">
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                     <input
                                         type="radio"
                                         name="location_type"
@@ -269,7 +269,7 @@ export default function Edit({
                                     />
                                     オンライン（Web会議）
                                 </label>
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                     <input
                                         type="radio"
                                         name="location_type"
@@ -311,7 +311,7 @@ export default function Edit({
                                                 e.target.value,
                                             )
                                         }
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     >
                                         <option value="">
                                             選択してください
@@ -365,7 +365,7 @@ export default function Edit({
                                 onChange={(e) =>
                                     handleCompanyChange(e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
                                 <option value="">選択なし</option>
                                 {companies.map((company) => (
@@ -395,7 +395,7 @@ export default function Edit({
                                 onChange={(e) =>
                                     setData("project_id", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 disabled={!data.company_id}
                             >
                                 <option value="">選択なし</option>
@@ -406,7 +406,7 @@ export default function Edit({
                                 ))}
                             </select>
                             {!data.company_id && (
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     企業を選択するとプロジェクトが表示されます
                                 </p>
                             )}
@@ -453,7 +453,7 @@ export default function Edit({
                                     setData("description", e.target.value)
                                 }
                                 rows="4"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="予約に関する詳細情報を記入してください"
                             />
                             <InputError
@@ -475,7 +475,7 @@ export default function Edit({
                                 onChange={(e) =>
                                     setData("status", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             >
                                 {statuses.map((status) => (
@@ -506,7 +506,7 @@ export default function Edit({
                                     setData("admin_notes", e.target.value)
                                 }
                                 rows="3"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="管理者のみが確認できる内部メモ"
                             />
                             <InputError
@@ -528,7 +528,7 @@ export default function Edit({
                                     setData("client_notes", e.target.value)
                                 }
                                 rows="3"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="クライアントと共有するメモや注意事項"
                             />
                             <InputError
@@ -546,7 +546,7 @@ export default function Edit({
                                 onChange={(e) =>
                                     setData("send_reminder", e.target.checked)
                                 }
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
                             />
                             <InputLabel
                                 htmlFor="send_reminder"
@@ -561,8 +561,8 @@ export default function Edit({
 
                         {/* 予約情報表示 */}
                         {appointment.confirmed_at && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                                <p className="text-sm text-blue-800">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
                                     <strong>確定日時:</strong>{" "}
                                     {new Date(
                                         appointment.confirmed_at,
@@ -571,15 +571,15 @@ export default function Edit({
                             </div>
                         )}
                         {appointment.cancelled_at && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                                <p className="text-sm text-red-800">
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+                                <p className="text-sm text-red-800 dark:text-red-300">
                                     <strong>キャンセル日時:</strong>{" "}
                                     {new Date(
                                         appointment.cancelled_at,
                                     ).toLocaleString("ja-JP")}
                                 </p>
                                 {appointment.cancellation_reason && (
-                                    <p className="text-sm text-red-800 mt-1">
+                                    <p className="text-sm text-red-800 dark:text-red-300 mt-1">
                                         <strong>理由:</strong>{" "}
                                         {appointment.cancellation_reason}
                                     </p>
@@ -588,7 +588,7 @@ export default function Edit({
                         )}
 
                         {/* アクションボタン */}
-                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <Link href={route("admin.appointments.index")}>
                                 <SecondaryButton type="button">
                                     キャンセル

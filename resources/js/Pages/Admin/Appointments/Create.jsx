@@ -125,7 +125,7 @@ export default function Create({
                                         e.target.value,
                                     )
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             >
                                 <option value="">予約枠を選択</option>
@@ -136,7 +136,7 @@ export default function Create({
                                 ))}
                             </select>
                             {selectedSlot && selectedSlot.assigned_admin && (
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     担当者: {selectedSlot.assigned_admin.name}
                                 </p>
                             )}
@@ -155,7 +155,7 @@ export default function Create({
                                 onChange={(e) =>
                                     setData("user_id", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
                                 <option value="">
                                     選択なし（一般クライアント）
@@ -174,8 +174,8 @@ export default function Create({
 
                         {/* 一般クライアント連絡先（登録ユーザーを選択しない場合） */}
                         {!data.user_id && (
-                            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 space-y-4">
-                                <p className="text-sm font-medium text-amber-800">
+                            <div className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 space-y-4">
+                                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                                     一般クライアント（アカウントなし）の連絡先
                                 </p>
                                 <div>
@@ -254,7 +254,7 @@ export default function Create({
                         <div>
                             <InputLabel value="会議形式 *" required />
                             <div className="mt-2 flex items-center gap-6">
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                     <input
                                         type="radio"
                                         name="location_type"
@@ -268,7 +268,7 @@ export default function Create({
                                     />
                                     オンライン（Web会議）
                                 </label>
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                     <input
                                         type="radio"
                                         name="location_type"
@@ -309,7 +309,7 @@ export default function Create({
                                             e.target.value,
                                         )
                                     }
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 >
                                     <option value="">選択してください</option>
                                     {meetingToolOptions.map((tool) => (
@@ -337,7 +337,7 @@ export default function Create({
                                 onChange={(e) =>
                                     handleCompanyChange(e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
                                 <option value="">選択なし</option>
                                 {companies.map((company) => (
@@ -367,7 +367,7 @@ export default function Create({
                                 onChange={(e) =>
                                     setData("project_id", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 disabled={!data.company_id}
                             >
                                 <option value="">選択なし</option>
@@ -378,7 +378,7 @@ export default function Create({
                                 ))}
                             </select>
                             {!data.company_id && (
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     企業を選択するとプロジェクトが表示されます
                                 </p>
                             )}
@@ -425,7 +425,7 @@ export default function Create({
                                     setData("description", e.target.value)
                                 }
                                 rows="4"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="予約に関する詳細情報を記入してください"
                             />
                             <InputError
@@ -447,7 +447,7 @@ export default function Create({
                                     setData("client_notes", e.target.value)
                                 }
                                 rows="3"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="クライアントと共有するメモや注意事項"
                             />
                             <InputError
@@ -465,7 +465,7 @@ export default function Create({
                                 onChange={(e) =>
                                     setData("send_reminder", e.target.checked)
                                 }
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
                             />
                             <InputLabel
                                 htmlFor="send_reminder"
@@ -479,7 +479,7 @@ export default function Create({
                         />
 
                         {/* アクションボタン */}
-                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <Link href={route("admin.appointments.index")}>
                                 <SecondaryButton type="button">
                                     キャンセル

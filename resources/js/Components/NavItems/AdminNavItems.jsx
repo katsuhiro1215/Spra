@@ -135,6 +135,10 @@ export const getAdminNavigationItems = () => {
                     href: "admin.schedules.exceptions.index",
                 },
                 { name: "祝日", href: "admin.schedules.holidays.index" },
+                {
+                    name: "リマインダー実行状況",
+                    href: "admin.batch.reminders.index",
+                },
             ],
         },
         // サービス管理

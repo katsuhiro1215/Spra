@@ -188,17 +188,17 @@ export default function Index({
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "pending":
-                return "bg-yellow-100 text-yellow-800";
+                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200";
             case "confirmed":
-                return "bg-blue-100 text-blue-800";
+                return "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200";
             case "completed":
-                return "bg-green-100 text-green-800";
+                return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
             case "cancelled":
-                return "bg-red-100 text-red-800";
+                return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200";
             case "no_show":
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
         }
     };
 
@@ -209,6 +209,16 @@ export default function Index({
 
     const formatTime = (time) => {
         return time ? time.substring(0, 5) : "";
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "-";
+        return new Date(dateStr).toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "short",
+        });
     };
 
     return (
@@ -227,13 +237,10 @@ export default function Index({
 
             {/* Delete Confirmation Modal */}
             <DeleteAlert
-                isOpen={!!deleteTarget}
+                show={!!deleteTarget}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                title="予約を削除"
-                message={`「${deleteTarget?.subject}」の予約を削除してもよろしいですか？`}
-                confirmText="削除"
-                cancelText="キャンセル"
+                itemName={deleteTarget?.subject}
             />
 
             <div className="w-full flex flex-col gap-4">
@@ -273,7 +280,7 @@ export default function Index({
                                     <button
                                         type="button"
                                         onClick={handleClearFilters}
-                                        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+                                        className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                                     >
                                         <XMarkIcon className="h-4 w-4 mr-1" />
                                         {
@@ -287,7 +294,7 @@ export default function Index({
 
                         {/* フィルターセクション */}
                         {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <FilterSelect
                                     label={
                                         PageConfig.appointments.filters.status
@@ -334,7 +341,7 @@ export default function Index({
                                     }
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         開始日
                                     </label>
                                     <input
@@ -343,11 +350,11 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_from", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         終了日
                                     </label>
                                     <input
@@ -356,7 +363,7 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_to", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -368,7 +375,7 @@ export default function Index({
                 <Card>
                     {appointments.data.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-gray-500">
+                            <p className="text-gray-500 dark:text-gray-400">
                                 {data.search || activeFilterCount > 0
                                     ? PageConfig.appointments.ui.empty.noResults
                                     : PageConfig.appointments.ui.empty.noData}
@@ -393,46 +400,48 @@ export default function Index({
                     ) : (
                         <>
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead className="bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 予約日時
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 件名
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 予約者
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 企業/プロジェクト
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 担当者
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 ステータス
                                             </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                                 操作
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                         {appointments.data.map(
                                             (appointment) => (
                                                 <tr
                                                     key={appointment.id}
-                                                    className="hover:bg-gray-50"
+                                                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
                                                 >
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {appointment
-                                                                .appointment_slot
-                                                                ?.date || "-"}
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                            {formatDate(
+                                                                appointment
+                                                                    .appointment_slot
+                                                                    ?.date,
+                                                            )}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                                             {formatTime(
                                                                 appointment
                                                                     .appointment_slot
@@ -447,13 +456,13 @@ export default function Index({
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                             {
                                                                 appointment.subject
                                                             }
                                                         </div>
                                                         {appointment.description && (
-                                                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                                                            <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                                                                 {
                                                                     appointment.description
                                                                 }
@@ -461,24 +470,24 @@ export default function Index({
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                             {
                                                                 appointment.booker_name
                                                             }
                                                         </div>
                                                         {appointment.is_guest_booking && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mt-1">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 mt-1">
                                                                 一般クライアント
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="text-sm text-gray-900">
+                                                        <div className="text-sm text-gray-900 dark:text-gray-100">
                                                             {appointment.company
                                                                 ?.name || "-"}
                                                         </div>
                                                         {appointment.project && (
-                                                            <div className="text-sm text-gray-500">
+                                                            <div className="text-sm text-gray-500 dark:text-gray-400">
                                                                 {
                                                                     appointment
                                                                         .project
@@ -488,7 +497,7 @@ export default function Index({
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className="text-sm text-gray-900">
+                                                        <span className="text-sm text-gray-900 dark:text-gray-100">
                                                             {appointment
                                                                 .appointment_slot
                                                                 ?.assigned_admin
@@ -516,7 +525,7 @@ export default function Index({
                                                                             appointment,
                                                                         )
                                                                     }
-                                                                    className="text-blue-600 hover:text-blue-900"
+                                                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
                                                                     title="確定"
                                                                 >
                                                                     <CheckCircleIcon className="h-5 w-5" />
@@ -534,7 +543,7 @@ export default function Index({
                                                                             appointment,
                                                                         )
                                                                     }
-                                                                    className="text-red-600 hover:text-red-900"
+                                                                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                                     title="キャンセル"
                                                                 >
                                                                     <XCircleIcon className="h-5 w-5" />
@@ -542,10 +551,19 @@ export default function Index({
                                                             )}
                                                             <Link
                                                                 href={route(
+                                                                    "admin.appointments.show",
+                                                                    appointment.id,
+                                                                )}
+                                                                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                                                            >
+                                                                詳細
+                                                            </Link>
+                                                            <Link
+                                                                href={route(
                                                                     "admin.appointments.edit",
                                                                     appointment.id,
                                                                 )}
-                                                                className="text-indigo-600 hover:text-indigo-900"
+                                                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                                                             >
                                                                 編集
                                                             </Link>
@@ -555,7 +573,7 @@ export default function Index({
                                                                         appointment,
                                                                     )
                                                                 }
-                                                                className="text-red-600 hover:text-red-900"
+                                                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                                 disabled={
                                                                     isDeleting ===
                                                                     appointment.id
