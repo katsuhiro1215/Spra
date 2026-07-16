@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->ulid('service_category_id');
             $table->foreign('service_category_id')->references('id')->on('service_categories')->onDelete('cascade');
+            $table->foreignUuid('media_id')->nullable()->constrained('media')->nullOnDelete()->comment('サムネイル画像のメディアID');
             $table->text('description');
             $table->longText('details')->nullable();
             $table->string('icon')->nullable();

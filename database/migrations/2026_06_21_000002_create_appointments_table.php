@@ -45,6 +45,8 @@ return new class extends Migration
       // 通知設定
       $table->boolean('send_reminder')->default(true)->comment('リマインダー送信');
       $table->timestamp('reminder_sent_at')->nullable()->comment('リマインダー送信日時');
+      $table->string('reminder_status')->default('pending')->comment('リマインダー送信状況（pending/sent/failed）');
+      $table->text('reminder_error')->nullable()->comment('リマインダー送信失敗時のエラー内容');
 
       // 監査用カラム
       $table->foreignUuid('created_by')->nullable()->constrained('admins')->nullOnDelete()->comment('作成者');

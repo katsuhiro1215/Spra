@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -9,7 +8,6 @@ import { Dl, Dt, Dd } from "@/Components/Description";
 import { Badge } from "@/Components/Badges";
 import Avatar from "@/Components/Avatar";
 import MediaSelectModal from "@/Components/Media/MediaSelectModal";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -23,7 +21,6 @@ import {
     CurrencyYenIcon,
     ClockIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { getStatusBadge } from "@/Constants/Badges";
 

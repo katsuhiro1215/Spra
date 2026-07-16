@@ -1,16 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { TextInput, Checkbox } from "@/Components/Forms";
 import { Table, THead, TBody, Tr, Td, Th } from "@/Components/Tables";
 import { PrimaryButton } from "@/Components/Buttons";
-// Icons
 import { CheckIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const EDITABLE_ROLES = ["admin", "editor"];

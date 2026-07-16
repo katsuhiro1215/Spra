@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// Components
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import {
     FormGroup,
@@ -9,7 +8,6 @@ import {
     InputError,
 } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
-// Validation
 import * as validation from "./validation";
 
 const Form = ({

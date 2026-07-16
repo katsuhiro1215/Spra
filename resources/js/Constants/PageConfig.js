@@ -956,6 +956,23 @@ export const PageConfig = {
     },
 
     /**
+     * 外部サービス連携（SaaS等へのリンク・APIデータ取得）
+     */
+    externalServices: {
+        title: "🔗 外部サービス連携",
+        description:
+            "外部で運用しているSaaS等のサービスへのリンクと、API経由で取得したデータを一元管理します",
+        documentTitle: "外部サービス連携",
+        breadcrumbs: ["ホーム", "外部サービス連携"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("外部サービス"),
+        search: createSearchTemplate("外部サービス"),
+        ui: createIndexPageUITemplates("外部サービス", "サービス名・分類で検索..."),
+    },
+
+    /**
      * サービス管理
      */
     serviceTypes: {

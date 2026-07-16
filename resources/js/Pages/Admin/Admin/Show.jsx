@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -10,12 +9,9 @@ import { Badge } from "@/Components/Badges";
 import Avatar from "@/Components/Avatar";
 import MediaSelectModal from "@/Components/Media/MediaSelectModal";
 import TabNavigation from "@/Components/TabNavigation";
-// Icons
 import { ArrowLeftIcon, CameraIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
-// タブコンポーネント
 import AdminBasicInfo from "./_components/AdminBasicInfo";
 import AdminLoginHistory from "./_components/AdminLoginHistory";
 import AdminSettings from "./_components/AdminSettings";

@@ -27,6 +27,8 @@ return new class extends Migration
             $table->id(); // permission id
             $table->string('name');
             $table->string('guard_name');
+            $table->string('group_label')->nullable()->comment('画面グループ表示名');
+            $table->string('action_label')->nullable()->comment('操作表示名');
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -9,7 +8,6 @@ import { Badge } from "@/Components/Badges";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import TabNavigation from "@/Components/TabNavigation";
 import MediaSelectModal from "@/Components/Media/MediaSelectModal";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,

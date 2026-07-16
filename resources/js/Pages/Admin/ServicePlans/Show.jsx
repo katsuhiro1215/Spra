@@ -10,7 +10,6 @@ import {
     DeleteButton,
     SecondaryButton,
 } from "@/Components/Buttons";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -19,7 +18,6 @@ import {
     PlusIcon,
     CurrencyYenIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ servicePlan }) {

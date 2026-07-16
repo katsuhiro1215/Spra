@@ -1,18 +1,12 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
-import {
-    EditButton,
-    DeleteButton,
-} from "@/Components/Buttons";
-// Icons
+import { EditButton, DeleteButton } from "@/Components/Buttons";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ serviceItem, benefitTypes }) {
@@ -107,10 +101,7 @@ export default function Show({ serviceItem, benefitTypes }) {
                 {/* 編集ボタンと削除ボタン */}
                 <div className="flex items-center justify-end gap-2">
                     <EditButton
-                        href={route(
-                            "admin.service.item.edit",
-                            serviceItem.id,
-                        )}
+                        href={route("admin.service.item.edit", serviceItem.id)}
                     >
                         編集
                     </EditButton>
@@ -161,9 +152,7 @@ export default function Show({ serviceItem, benefitTypes }) {
                                         serviceItem.service_plans.length >
                                             0 && (
                                             <div>
-                                                <Dt>
-                                                    含まれるサービスプラン
-                                                </Dt>
+                                                <Dt>含まれるサービスプラン</Dt>
                                                 <Dd>
                                                     <div className="flex flex-wrap gap-2">
                                                         {serviceItem.service_plans.map(
@@ -178,9 +167,7 @@ export default function Show({ serviceItem, benefitTypes }) {
                                                                     )}
                                                                     className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                                                 >
-                                                                    {
-                                                                        plan.name
-                                                                    }
+                                                                    {plan.name}
                                                                 </Link>
                                                             ),
                                                         )}
@@ -279,9 +266,7 @@ export default function Show({ serviceItem, benefitTypes }) {
                                         </div>
                                         {serviceItem.benefit_unit_minutes && (
                                             <div>
-                                                <Dt>
-                                                    チケット1枚あたりの時間
-                                                </Dt>
+                                                <Dt>チケット1枚あたりの時間</Dt>
                                                 <Dd>
                                                     {
                                                         serviceItem.benefit_unit_minutes
@@ -345,8 +330,7 @@ export default function Show({ serviceItem, benefitTypes }) {
                                                 <Dt>更新者</Dt>
                                                 <Dd>
                                                     {serviceItem.updater
-                                                        ?.profile
-                                                        ?.full_name ||
+                                                        ?.profile?.full_name ||
                                                         serviceItem.updater
                                                             ?.email}
                                                 </Dd>

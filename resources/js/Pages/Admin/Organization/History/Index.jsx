@@ -1,14 +1,11 @@
 import React, { useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import SearchBar from "@/Components/SearchBar";
 import Pagination from "@/Components/Layout/Pagination";
-// Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
-// History Components
 import HistoryTable from "./_components/HistoryTable";
 
 export default function Index({ histories, stats, filters }) {

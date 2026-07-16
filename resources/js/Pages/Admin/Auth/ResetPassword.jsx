@@ -1,7 +1,5 @@
 import { Head, useForm } from "@inertiajs/react";
-// Layouts
 import ApplicationLogo from "@/Components/ApplicationLogo";
-// Components
 import { InputLabel, TextInput, InputError } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";

@@ -5,7 +5,6 @@ import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { TextButton, DeleteButton } from "@/Components/Buttons";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
-// Icons
 import {
     EyeIcon,
     PencilIcon,

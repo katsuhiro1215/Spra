@@ -20,6 +20,8 @@ return new class extends Migration
             $table->json('content')->nullable()->comment('投稿内容(ブロックエディタ)');
             $table->string('thumbnail')->nullable()->comment('サムネイル画像');
             $table->text('excerpt')->nullable()->comment('抜粋');
+            $table->unsignedInteger('views')->default(0)->comment('閲覧数');
+            $table->json('tags')->nullable()->comment('タグ');
             $table->json('meta')->nullable()->comment('メタデータ');
             $table->boolean('is_published')->default(false)->comment('公開状態');
             $table->timestamp('published_at')->nullable()->comment('公開日時');

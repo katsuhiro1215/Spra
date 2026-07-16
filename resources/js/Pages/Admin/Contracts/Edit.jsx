@@ -1,13 +1,10 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { PageConfig } from "@/Constants/PageConfig";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Contract Components
 import ContractForm from "./_components/Form";
 
 export default function Edit({

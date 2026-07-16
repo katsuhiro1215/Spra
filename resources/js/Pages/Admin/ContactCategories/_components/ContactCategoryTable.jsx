@@ -3,7 +3,6 @@ import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { TextButton } from "@/Components/Buttons";
-// Icons
 import {
     PencilIcon,
     TrashIcon,

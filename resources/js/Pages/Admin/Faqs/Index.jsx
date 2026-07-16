@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
@@ -17,7 +16,6 @@ import {
     XCircleIcon,
     StarIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import BasicTable from "@/Components/Tables/BasicTable";
 
@@ -193,7 +191,7 @@ export default function Index({ faqs, categories, filters }) {
     ];
 
     const hasActiveFilters = data.search || data.role || data.status;
-    
+
     return (
         <AdminAuthenticatedLayout
             header={

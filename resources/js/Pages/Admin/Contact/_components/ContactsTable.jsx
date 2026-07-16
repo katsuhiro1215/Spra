@@ -4,7 +4,6 @@ import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { TextButton } from "@/Components/Buttons";
 import Avatar from "@/Components/Avatar";
-// Icons
 import {
     EyeIcon,
     TrashIcon,

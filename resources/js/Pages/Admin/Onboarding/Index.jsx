@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-// import PaginationLinks from "@/Components/PaginationLinks";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 

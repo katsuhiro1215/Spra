@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -9,11 +8,8 @@ import { Card } from "@/Components/Card";
 import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Quote Components
 import QuotesTable from "./_components/QuotesTable";
 
 const STATUS_AMOUNT_COLORS = {

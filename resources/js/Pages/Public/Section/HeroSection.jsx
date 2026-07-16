@@ -158,7 +158,7 @@ export default function HeroSection() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
                         <Link
-                            href="/#service"
+                            href="/service"
                             ref={buttonRef}
                             className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                         >

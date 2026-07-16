@@ -1,16 +1,12 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Company Components
 import CompanyForm from "./_components/CompanyForm";
 
 export default function Create({ companyTypes, statuses }) {

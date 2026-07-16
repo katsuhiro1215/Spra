@@ -1,9 +1,7 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -12,7 +10,6 @@ import {
     XCircleIcon,
     StarIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ faq }) {

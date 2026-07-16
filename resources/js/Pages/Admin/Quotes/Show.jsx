@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { TextButton } from "@/Components/Buttons";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -14,9 +12,7 @@ import {
     DocumentTextIcon,
     PlusIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Quote Components
 import QuoteBasicInfo from "./_components/QuoteBasicInfo";
 import QuoteItems from "./_components/QuoteItems";
 import QuoteAmount from "./_components/QuoteAmount";

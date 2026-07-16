@@ -52,6 +52,7 @@ return [
     'login_success' => 'ログインしました。',
     'logout_success' => 'ログアウトしました。',
     'login_failed' => 'ログインに失敗しました。',
+    'account_locked' => 'ログイン失敗が続いたため、アカウントを一時的にロックしました。:minutes分後に再度お試しください。',
     'registration_success' => 'アカウントが作成されました。',
     'registration_failed' => 'アカウントの作成に失敗しました。',
     'unauthorized' => 'アクセス権限がありません。',

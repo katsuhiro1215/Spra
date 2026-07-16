@@ -1,14 +1,11 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-// Icons
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
-// History Components
 import HistoryForm from "./_components/HistoryForm";
 
 export default function Create() {
@@ -56,23 +53,19 @@ export default function Create() {
                         processing={processing}
                     />
 
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="flex items-center justify-end gap-3">
-                            <SecondaryButton
-                                type="button"
-                                href={route(
-                                    "admin.organization.history.index",
-                                )}
-                                disabled={processing}
-                            >
-                                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                                キャンセル
-                            </SecondaryButton>
-                            <PrimaryButton type="submit" disabled={processing}>
-                                <CheckIcon className="h-4 w-4 mr-2" />
-                                作成
-                            </PrimaryButton>
-                        </div>
+                    <div className="flex items-center justify-end gap-3">
+                        <SecondaryButton
+                            type="button"
+                            href={route("admin.organization.history.index")}
+                            disabled={processing}
+                        >
+                            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                            キャンセル
+                        </SecondaryButton>
+                        <PrimaryButton type="submit" disabled={processing}>
+                            <CheckIcon className="h-4 w-4 mr-2" />
+                            作成
+                        </PrimaryButton>
                     </div>
                 </div>
             </form>

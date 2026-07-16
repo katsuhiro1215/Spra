@@ -7,7 +7,6 @@ import {
     DeleteButton,
     SecondaryButton,
 } from "@/Components/Buttons";
-// Icons
 import {
     PencilIcon,
     TrashIcon,

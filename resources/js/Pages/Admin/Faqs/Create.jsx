@@ -1,18 +1,14 @@
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { FlashMessage } from "@/Components/Notifications";
-// Components - Forms
 import InputLabel from "@/Components/Forms/InputLabel";
 import ValidatedInput from "@/Components/Forms/ValidatedInput";
 import ValidatedTextArea from "@/Components/Forms/ValidatedTextArea";
-// Icons
 import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ categories }) {

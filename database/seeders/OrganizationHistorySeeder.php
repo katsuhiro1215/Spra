@@ -20,11 +20,15 @@ class OrganizationHistorySeeder extends Seeder
         }
 
         $histories = [
-            ['event_date' => '2020-04-01', 'title' => '株式会社Smart Sprouts設立', 'sort_order' => 1],
-            ['event_date' => '2021-04-01', 'title' => '従業員数10名突破、大阪支社設立', 'sort_order' => 2],
-            ['event_date' => '2022-04-01', 'title' => '大手企業との協業プロジェクト開始', 'sort_order' => 3],
-            ['event_date' => '2023-04-01', 'title' => 'AI技術導入サービス開始、従業員数20名突破', 'sort_order' => 4],
-            ['event_date' => '2024-04-01', 'title' => '海外展開スタート、従業員数30名突破、資本金増資', 'sort_order' => 5],
+            ['event_date' => '2022-05-13', 'title' => '個人事業主として「かつコード」を設立、資本金100万円', 'sort_order' => 1],
+            ['event_date' => '2022-11-13', 'title' => 'Web制作案件10件突破', 'sort_order' => 2],
+            ['event_date' => '2023-05-13', 'title' => '「かつコード」、資本金200万円', 'sort_order' => 3],
+            ['event_date' => '2023-11-13', 'title' => 'Web制作案件30件突破', 'sort_order' => 4],
+            ['event_date' => '2024-05-13', 'title' => 'ブランド名として「Smart Sprouts」を採用、資本金300万円', 'sort_order' => 5],
+            ['event_date' => '2024-11-13', 'title' => 'Web制作案件50件突破', 'sort_order' => 6],
+            ['event_date' => '2025-05-13', 'title' => '愛称「Spra」を採用、資本金400万円', 'sort_order' => 7],
+            ['event_date' => '2025-11-13', 'title' => '自社システム「Spra」をリリース', 'sort_order' => 8],
+            ['event_date' => '2026-05-13', 'title' => 'SaaSプロダクト「Spra」をリリース、資本金500万円', 'sort_order' => 9],
         ];
 
         foreach ($histories as $historyData) {

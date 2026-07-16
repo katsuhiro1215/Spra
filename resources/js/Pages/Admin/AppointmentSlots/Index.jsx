@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -10,14 +9,12 @@ import { CreateButton, SecondaryButton } from "@/Components/Buttons";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import {
     PlusIcon,
     FunnelIcon,
     XMarkIcon,
     Squares2X2Icon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({

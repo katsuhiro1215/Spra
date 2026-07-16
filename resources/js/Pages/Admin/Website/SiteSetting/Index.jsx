@@ -1,13 +1,11 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Icons
 import {
     Cog6ToothIcon,
     Bars3Icon,
@@ -18,7 +16,6 @@ import {
     PencilIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const GROUP_LINKS = [

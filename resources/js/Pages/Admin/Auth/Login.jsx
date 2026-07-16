@@ -1,5 +1,4 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-// Components
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Card, CardBody } from "@/Components/Card";
 import {

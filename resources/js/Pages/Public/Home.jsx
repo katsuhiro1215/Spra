@@ -1,5 +1,4 @@
 import { Head, Link } from "@inertiajs/react";
-// Layouts
 import PublicLayout from "@/Layouts/PublicLayout";
 import HeroSection from "@/Pages/Public/Section/HeroSection";
 import AboutSection from "@/Pages/Public/Section/AboutSection";
@@ -7,7 +6,6 @@ import ServiceSection from "@/Pages/Public/Section/ServiceSection";
 import BannerSection from "@/Pages/Public/Section/BannerSection";
 import BlogSection from "@/Pages/Public/Section/BlogSection";
 import ContactSection from "@/Pages/Public/Section/ContactSection";
-//Components
 
 export default function Home({ services, newsItems, blogPosts, auth }) {
     return (

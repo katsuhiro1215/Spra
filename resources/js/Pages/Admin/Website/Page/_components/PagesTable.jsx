@@ -1,11 +1,8 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-// Components
 import BasicTable from "@/Components/Tables/BasicTable";
 import Badge from "@/Components/Badge";
-// Icons
 import { PencilIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const PagesTable = ({ pages, onDelete }) => {

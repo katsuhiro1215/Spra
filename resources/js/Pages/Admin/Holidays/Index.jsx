@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { DeleteAlert } from "@/Components/Alerts";
@@ -9,7 +8,6 @@ import { CreateButton, SecondaryButton } from "@/Components/Buttons";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import {
     PlusIcon,
     FunnelIcon,
@@ -17,9 +15,7 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Components
 import HolidaysTable from "./_components/HolidaysTable";
 
 export default function HolidaysIndex({

@@ -3,8 +3,6 @@ import {
     FormGroup,
     TextInput,
     TextArea,
-    InputError,
-    InputLabel,
     Toggle,
 } from "@/Components/Forms";
 
@@ -20,10 +18,12 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                     基本情報
                 </h3>
                 <div className="space-y-4">
-                    <FormGroup>
-                        <InputLabel htmlFor="event_date" required>
-                            年月
-                        </InputLabel>
+                    <FormGroup
+                        label="年月"
+                        htmlFor="event_date"
+                        required
+                        error={errors.event_date}
+                    >
                         <TextInput
                             id="event_date"
                             type="date"
@@ -33,13 +33,14 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                             }
                             disabled={processing}
                         />
-                        <InputError message={errors.event_date} />
                     </FormGroup>
 
-                    <FormGroup>
-                        <InputLabel htmlFor="title" required>
-                            タイトル
-                        </InputLabel>
+                    <FormGroup
+                        label="タイトル"
+                        htmlFor="title"
+                        required
+                        error={errors.title}
+                    >
                         <TextInput
                             id="title"
                             value={data.title}
@@ -49,11 +50,13 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                             disabled={processing}
                             placeholder="株式会社Smart Sprouts設立"
                         />
-                        <InputError message={errors.title} />
                     </FormGroup>
 
-                    <FormGroup>
-                        <InputLabel htmlFor="description">説明</InputLabel>
+                    <FormGroup
+                        label="説明"
+                        htmlFor="description"
+                        error={errors.description}
+                    >
                         <TextArea
                             id="description"
                             value={data.description || ""}
@@ -63,7 +66,6 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                             disabled={processing}
                             rows={3}
                         />
-                        <InputError message={errors.description} />
                     </FormGroup>
                 </div>
             </div>
@@ -73,8 +75,11 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                     表示設定
                 </h3>
                 <div className="space-y-4">
-                    <FormGroup>
-                        <InputLabel htmlFor="sort_order">表示順</InputLabel>
+                    <FormGroup
+                        label="表示順"
+                        htmlFor="sort_order"
+                        error={errors.sort_order}
+                    >
                         <TextInput
                             id="sort_order"
                             type="number"
@@ -85,7 +90,6 @@ const HistoryForm = ({ data, setData, errors, processing }) => {
                             disabled={processing}
                             min="0"
                         />
-                        <InputError message={errors.sort_order} />
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             小さい順に表示されます
                         </p>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
@@ -10,11 +9,8 @@ import { SecondaryButton, CreateButton } from "@/Components/Buttons";
 import { DeleteAlert } from "@/Components/Alerts";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Components
 import ContactCategoryTable from "./_components/ContactCategoryTable";
 
 export default function Index({ categories = {}, filters = {}, stats = {} }) {

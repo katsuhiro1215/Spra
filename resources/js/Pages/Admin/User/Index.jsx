@@ -1,22 +1,18 @@
 import { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { CrudButton, IconButton } from "@/Components/Buttons";
-// Icons
 import {
     PlusIcon,
     ListBulletIcon,
     Squares2X2Icon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// User Components
 import UsersFilterBar from "./_components/UsersFilterBar";
 import UsersTable from "./_components/UsersTable";
 import UsersGrid from "./_components/UsersGrid";

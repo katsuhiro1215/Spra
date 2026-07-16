@@ -133,8 +133,7 @@ export default function ServiceSection({ services = [] }) {
                                                 ? {
                                                       backgroundColor: color,
                                                       color: "#fff",
-                                                      transform:
-                                                          "scale(1.05)",
+                                                      transform: "scale(1.05)",
                                                   }
                                                 : {
                                                       backgroundColor: "#fff",
@@ -199,7 +198,9 @@ export default function ServiceSection({ services = [] }) {
                             {plans.map((plan, index) => (
                                 <div
                                     key={plan.id}
-                                    ref={(el) => (contentRefs.current[index] = el)}
+                                    ref={(el) =>
+                                        (contentRefs.current[index] = el)
+                                    }
                                     className="bg-white rounded-xl shadow-lg p-6 sm:p-8 transition-all hover:shadow-xl"
                                 >
                                     <div className="mb-6">
@@ -214,11 +215,30 @@ export default function ServiceSection({ services = [] }) {
                                         </p>
                                     </div>
 
+                                    {/* 画像グリッド */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                        <img
+                                            src="/upload/test1.jpg"
+                                            alt={`${plan.name} 1`}
+                                            className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow"
+                                        />
+                                        <img
+                                            src="/upload/test2.jpg"
+                                            alt={`${plan.name} 2`}
+                                            className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow"
+                                        />
+                                        <img
+                                            src="/upload/test3.jpg"
+                                            alt={`${plan.name} 3`}
+                                            className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow"
+                                        />
+                                    </div>
+
                                     <p className="text-gray-600 leading-relaxed">
                                         {plan.description ||
                                             `${plan.name}の詳細については、お気軽にお問い合わせください。`}
                                     </p>
-
+                                    
                                     <div className="mt-6 flex flex-wrap gap-3">
                                         <Link
                                             href={route(

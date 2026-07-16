@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-// Components
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import UserPagination from "@/Components/Layout/UserPagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -82,7 +81,7 @@ export default function InvoiceIndex({ invoices, filters }) {
                     <div className="grid gap-4">
                         {filteredInvoices.map((invoice) => (
                             <Link
-                                key={invoice.id}   
+                                key={invoice.id}
                                 href={route("user.invoice.show", invoice.id)}
                             >
                                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">

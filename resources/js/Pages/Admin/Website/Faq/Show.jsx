@@ -1,11 +1,9 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
-// Icons
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
 
 export default function Show({ faq }) {

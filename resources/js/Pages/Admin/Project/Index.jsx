@@ -10,11 +10,8 @@ import { CreateButton, SecondaryButton } from "@/Components/Buttons";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Project Components
 import ProjectsTable from "./_components/ProjectsTable";
 
 export default function Index({

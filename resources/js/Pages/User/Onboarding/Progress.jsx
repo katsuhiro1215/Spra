@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-// Icons
 import {
     CheckCircleIcon,
     ClockIcon,

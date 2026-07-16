@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-// Components
 import { TextInput, InputLabel, InputError } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Constants
 import { PREFECTURE_OPTIONS } from "@/Constants/SelectOptions";
 
 export default function AddressForm({

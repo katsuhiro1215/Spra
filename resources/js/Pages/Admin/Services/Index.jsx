@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -11,15 +10,12 @@ import { DeleteAlert } from "@/Components/Alerts";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import {
     SERVICE_STATUS_OPTIONS,
     IS_FEATURED_OPTIONS,
 } from "@/Constants/SelectOptions";
-// Service Components
 import ServicesTable from "./_components/ServicesTable";
 
 export default function Index({

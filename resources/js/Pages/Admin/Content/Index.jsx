@@ -1,10 +1,7 @@
 import { Head } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index() {

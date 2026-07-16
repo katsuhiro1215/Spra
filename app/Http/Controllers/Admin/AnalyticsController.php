@@ -194,6 +194,48 @@ class AnalyticsController extends Controller
         return [
             'totals' => $totals,
             'trend' => array_values($trend),
+            'monthlyTrend' => $this->getPeriodTrend('month', 12),
+            'yearlyTrend' => $this->getPeriodTrend('year', 5),
         ];
+    }
+
+    /**
+     * 業務KPI（日次データ）を月次/年次単位に集計する
+     * 直近N期間分を0埋めで返す（データがない期間も抜けなく表示するため）
+     */
+    private function getPeriodTrend(string $unit, int $count): array
+    {
+        $end = today();
+        $start = $unit === 'month'
+            ? $end->copy()->subMonths($count - 1)->startOfMonth()
+            : $end->copy()->subYears($count - 1)->startOfYear();
+
+        $sumKeys = ['revenue', 'new_contracts', 'quote_count', 'new_contacts'];
+
+        $rows = AnalyticsKpi::query()
+            ->companyWide()
+            ->period(AnalyticsKpi::PERIOD_DAILY)
+            ->whereIn('kpi_key', $sumKeys)
+            ->where('period_date', '>=', $start->toDateString())
+            ->get();
+
+        $groups = [];
+        foreach ($rows as $row) {
+            $key = $unit === 'month' ? $row->period_date->format('Y-m') : $row->period_date->format('Y');
+            $groups[$key][$row->kpi_key] = ($groups[$key][$row->kpi_key] ?? 0) + (float) $row->value;
+        }
+
+        $result = [];
+        for ($i = $count - 1; $i >= 0; $i--) {
+            $periodDate = $unit === 'month' ? $end->copy()->subMonths($i) : $end->copy()->subYears($i);
+            $key = $unit === 'month' ? $periodDate->format('Y-m') : $periodDate->format('Y');
+            $result[] = array_merge(
+                ['date' => $key],
+                array_fill_keys($sumKeys, 0.0),
+                $groups[$key] ?? []
+            );
+        }
+
+        return $result;
     }
 }

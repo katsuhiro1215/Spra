@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuid;
+use App\Models\Concerns\HasLoginLockout;
+use App\Models\Concerns\HasTwoFactorAuthentication;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -17,7 +19,7 @@ use Spatie\Permission\Models\Permission;
 
 class Admin extends Authenticatable
 {
-    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasRoles, HasLoginLockout, HasTwoFactorAuthentication;
 
     /**
      * idの型を指定(UUID対応)
@@ -48,6 +50,8 @@ class Admin extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -62,6 +66,10 @@ class Admin extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at'     => 'datetime',
+            'locked_until'      => 'datetime',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
             'password'          => 'hashed',
         ];
     }

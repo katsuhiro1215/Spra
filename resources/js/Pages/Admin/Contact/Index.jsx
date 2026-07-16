@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -10,19 +9,16 @@ import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import {
     XMarkIcon,
     FunnelIcon,
     ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import {
     CONTACT_SOURCE_OPTIONS,
     CONTACT_STATUS_OPTIONS,
 } from "@/Constants/SelectOptions";
-// Admin Components
 import ContactsTable from "./_components/ContactsTable";
 
 export default function Index({

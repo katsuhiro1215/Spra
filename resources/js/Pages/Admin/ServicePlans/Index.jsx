@@ -1,17 +1,13 @@
 import React, { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
 import SearchFilter from "@/Components/Layout/SearchFilter";
-// Icons
 import { PlusIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// ServicePlan Components
 import ServicePlansTable from "./_components/ServicePlansTable";
 
 export default function Index({

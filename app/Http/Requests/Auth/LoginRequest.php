@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -43,14 +45,27 @@ class LoginRequest extends FormRequest
 
         if ($this->routeIs('admin.*')) {
             $guard = 'admins';
+            $modelClass = Admin::class;
         } else {
             $guard = 'users';
+            $modelClass = User::class;
+        }
+
+        $authenticatable = $modelClass::where('email', $this->string('email'))->first();
+
+        if ($authenticatable && $authenticatable->isLocked()) {
+            throw ValidationException::withMessages([
+                'email' => __('messages.auth.account_locked', [
+                    'minutes' => $authenticatable->locked_until->diffInMinutes(now()) + 1,
+                ]),
+            ]);
         }
 
         $credentials = $this->only('email', 'password');
 
         if (! Auth::guard($guard)->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
+            $authenticatable?->registerFailedLogin();
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -58,8 +73,7 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
-
-        $authenticatable = Auth::guard($guard)->getProvider()->retrieveByCredentials($credentials);
+        $authenticatable->resetFailedLogins();
 
         // 二段階認証が有効な場合は、ログインを確定せずコード入力を待つ
         if ($authenticatable->two_factor_enabled) {
@@ -69,7 +83,10 @@ class LoginRequest extends FormRequest
                 'remember' => $this->boolean('remember'),
             ]);
 
-            \App\Models\OneTimePassword::generateFor($authenticatable);
+            // TOTP(認証アプリ)は端末側でコードが生成されるため、メール送信は行わない
+            if ($authenticatable->twoFactorMethod() !== \App\Models\Admin::TWO_FACTOR_METHOD_TOTP) {
+                \App\Models\OneTimePassword::generateFor($authenticatable);
+            }
 
             return;
         }

@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 export default function Index() {

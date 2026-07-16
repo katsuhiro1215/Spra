@@ -59,7 +59,7 @@ export const getAdminNavigationItems = () => {
         },
         // サービス管理
         {
-            name: "サービス管理",
+            name: "サービス",
             href: "admin.service.index",
             icon: "M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z",
             currentPath: "admin.service.*",
@@ -69,23 +69,23 @@ export const getAdminNavigationItems = () => {
                 { name: "サービス項目", href: "admin.service.item.index" },
                 { name: "サービスプラン", href: "admin.service.plan.index" },
                 {
-                    name: "カテゴリ管理",
+                    name: "サービスカテゴリ",
                     href: "admin.service.category.index",
                 },
                 {
-                    name: "使用技術管理",
+                    name: "使用技術",
                     href: "admin.service.technology.index",
                 },
                 {
-                    name: "実績・ポートフォリオ管理",
+                    name: "実績・ポートフォリオ",
                     href: "admin.portfolio.index",
                 },
-                { name: "プロジェクト一覧", href: "admin.project.index" },
+                { name: "プロジェクト", href: "admin.project.index" },
             ],
         },
         // スケジュール管理
         {
-            name: "スケジュール管理",
+            name: "スケジュール",
             href: "admin.schedules.index",
             icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5",
             currentPath: "admin.schedules.*",
@@ -95,7 +95,7 @@ export const getAdminNavigationItems = () => {
                     href: "admin.schedules.index",
                 },
                 {
-                    name: "予約一覧",
+                    name: "予約",
                     href: "admin.appointments.index",
                 },
                 {
@@ -119,7 +119,7 @@ export const getAdminNavigationItems = () => {
         },
         // Webサイト管理
         {
-            name: "Webサイト管理",
+            name: "Webサイト",
             href: "admin.website.dashboard",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
             currentPath: [
@@ -166,7 +166,7 @@ export const getAdminNavigationItems = () => {
 
         // 分析管理
         {
-            name: "分析管理",
+            name: "分析",
             href: "admin.analytics.index",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
             currentPath: "admin.analytics.*",
@@ -198,14 +198,25 @@ export const getAdminNavigationItems = () => {
                 },
             ],
         },
+        // 外部サービス連携
+        {
+            name: "外部サービス連携",
+            href: "admin.external-service.index",
+            icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244",
+            currentPath: "admin.external-service.*",
+            children: [
+                { name: "サービス一覧", href: "admin.external-service.index" },
+                { name: "新規登録", href: "admin.external-service.create" },
+            ],
+        },
         // メディア管理
         {
-            name: "メディア管理",
+            name: "メディア",
             href: "admin.media.index",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
             currentPath: "admin.media.*",
             children: [
-                { name: "メディア一覧", href: "admin.media.index" },
+                { name: "メディア", href: "admin.media.index" },
                 { name: "新規アップロード", href: "admin.media.create" },
                 // 画像
                 // 動画
@@ -215,26 +226,25 @@ export const getAdminNavigationItems = () => {
         },
         // 管理者管理
         {
-            name: "管理者管理",
+            name: "管理者",
             href: "admin.admin.index",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
             currentPath: "admin.admin.*",
             children: [
-                { name: "管理者一覧", href: "admin.admin.index" },
-                { name: "新規作成", href: "admin.admin.create" },
+                { name: "管理者", href: "admin.admin.index" },
                 {
-                    name: "権限管理",
+                    name: "権限",
                     href: "admin.permissions.index",
                     ownerOnly: true,
                 },
-                { name: "ログ", href: "admin.admin.create" },
+                // 今後勤怠管理や給与管理などの管理者向け機能が追加される可能性があるため、子要素を追加する余地を残しておく
             ],
         },
         // システム管理
         {
-            name: "システム管理",
+            name: "設定",
             href: "admin.systemSetting.index",
-            icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
+            icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z",
             currentPath: ["admin.systemSetting.*"],
             children: [
                 // { name: "システム設定", href: "admin.system.settings" },
@@ -245,10 +255,10 @@ export const getAdminNavigationItems = () => {
                 },
                 // { name: "メール設定", href: "admin.system.mail-settings" },
                 // { name: "通知設定", href: "admin.system.notification-settings" },
-                { name: "ログ管理", href: "admin.logs.index" },
+                { name: "ログ", href: "admin.logs.index" },
                 // { name: "バックアップ", href: "admin.system.backup" },
-                { name: "文書一覧", href: "admin.documents.index" },
-                { name: "新規文書作成", href: "admin.documents.create" },
+                { name: "文書", href: "admin.documents.index" },
+                { name: "新規文書", href: "admin.documents.create" },
                 { name: "同意記録", href: "admin.documentAcceptances.index" },
                 {
                     name: "お問い合わせ返信テンプレート",

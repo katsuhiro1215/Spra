@@ -1,13 +1,11 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { BlockPreview } from "@/Components/BlockUI";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -16,7 +14,6 @@ import {
     UserIcon,
     TagIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ post }) {

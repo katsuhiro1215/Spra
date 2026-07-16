@@ -1,19 +1,16 @@
 import React from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Dl, Dt, Dd } from "@/Components/Description";
 import { Badge } from "@/Components/Badges";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     EnvelopeIcon,
     EyeIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const CATEGORY_LABELS = {

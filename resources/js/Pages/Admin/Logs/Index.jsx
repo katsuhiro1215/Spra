@@ -1,19 +1,15 @@
 import { useState } from "react";
 import { Head } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import {
     ClockIcon,
     ExclamationTriangleIcon,
     SparklesIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const TABS = [

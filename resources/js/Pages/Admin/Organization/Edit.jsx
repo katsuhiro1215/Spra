@@ -1,7 +1,6 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
@@ -78,10 +77,12 @@ export default function Edit({ organization, address }) {
                             サイト表示情報
                         </h3>
                         <div className="space-y-4">
-                            <FormGroup>
-                                <InputLabel htmlFor="site_name">
-                                    サイト表示名
-                                </InputLabel>
+                            <FormGroup
+                                label="サイト表示名"
+                                htmlFor="site_name"
+                                help="サイト表示名を入力してください"
+                                error={errors.site_name}
+                            >
                                 <TextInput
                                     id="site_name"
                                     value={data.site_name}
@@ -94,37 +95,34 @@ export default function Edit({ organization, address }) {
                                     disabled={processing}
                                     placeholder="Smart Sprouts"
                                 />
-                                <InputError
-                                    message={errors.site_name}
-                                />
                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                     Header・Footerのロゴ横に表示されるサイト名
                                 </p>
                             </FormGroup>
 
-                            <FormGroup>
-                                <InputLabel htmlFor="name_en">
-                                    英語表記名
-                                </InputLabel>
+                            <FormGroup
+                                label="英語表記名"
+                                htmlFor="name_en"
+                                help="英語表記名を入力してください"
+                                error={errors.name_en}
+                            >
                                 <TextInput
                                     id="name_en"
                                     value={data.name_en}
                                     onChange={(e) =>
-                                        handleChange(
-                                            "name_en",
-                                            e.target.value,
-                                        )
+                                        handleChange("name_en", e.target.value)
                                     }
                                     disabled={processing}
                                     placeholder="Smart Sprouts Inc."
                                 />
-                                <InputError message={errors.name_en} />
                             </FormGroup>
 
-                            <FormGroup>
-                                <InputLabel htmlFor="logo_path">
-                                    ロゴ画像パス
-                                </InputLabel>
+                            <FormGroup
+                                label="ロゴ画像パス"
+                                htmlFor="logo_path"
+                                help="ロゴ画像のパスを入力してください"
+                                error={errors.logo_path}
+                            >
                                 <TextInput
                                     id="logo_path"
                                     value={data.logo_path}
@@ -137,7 +135,6 @@ export default function Edit({ organization, address }) {
                                     disabled={processing}
                                     placeholder="/upload/logo.svg"
                                 />
-                                <InputError message={errors.logo_path} />
                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                     public配下に配置した画像への直接パス
                                 </p>
@@ -151,10 +148,13 @@ export default function Edit({ organization, address }) {
                             組織情報
                         </h3>
                         <div className="space-y-4">
-                            <FormGroup>
-                                <InputLabel htmlFor="name" required>
-                                    組織名
-                                </InputLabel>
+                            <FormGroup
+                                label="組織名"
+                                htmlFor="name"
+                                required
+                                help="組織名を入力してください"
+                                error={errors.name}
+                            >
                                 <TextInput
                                     id="name"
                                     value={data.name}
@@ -164,13 +164,14 @@ export default function Edit({ organization, address }) {
                                     disabled={processing}
                                     placeholder="株式会社Smart Sprouts"
                                 />
-                                <InputError message={errors.name} />
                             </FormGroup>
 
-                            <FormGroup>
-                                <InputLabel htmlFor="legal_name">
-                                    法人正式名称
-                                </InputLabel>
+                            <FormGroup
+                                label="法人正式名称"
+                                htmlFor="legal_name"
+                                help="法人正式名称を入力してください"
+                                error={errors.legal_name}
+                            >
                                 <TextInput
                                     id="legal_name"
                                     value={data.legal_name}
@@ -182,13 +183,15 @@ export default function Edit({ organization, address }) {
                                     }
                                     disabled={processing}
                                 />
-                                <InputError message={errors.legal_name} />
                             </FormGroup>
 
-                            <FormGroup>
-                                <InputLabel htmlFor="representative_name">
-                                    代表者名
-                                </InputLabel>
+                            <FormGroup
+                                label="代表者名"
+                                htmlFor="representative_name"
+                                required
+                                help="代表者名を入力してください"
+                                error={errors.representative_name}
+                            >
                                 <TextInput
                                     id="representative_name"
                                     value={data.representative_name}
@@ -201,15 +204,14 @@ export default function Edit({ organization, address }) {
                                     disabled={processing}
                                     placeholder="山田 太郎"
                                 />
-                                <InputError
-                                    message={errors.representative_name}
-                                />
                             </FormGroup>
 
-                            <FormGroup>
-                                <InputLabel htmlFor="business_description">
-                                    事業内容
-                                </InputLabel>
+                            <FormGroup
+                                label="事業内容"
+                                htmlFor="business_description"
+                                help="事業内容を入力してください"
+                                error={errors.business_description}
+                            >
                                 <TextArea
                                     id="business_description"
                                     value={data.business_description}
@@ -225,19 +227,18 @@ export default function Edit({ organization, address }) {
                                         "Webサイト・アプリケーション開発\nシステム開発・保守運用"
                                     }
                                 />
-                                <InputError
-                                    message={errors.business_description}
-                                />
                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                     1行1項目で入力してください（会社概要ページに箇条書きで表示されます）
                                 </p>
                             </FormGroup>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="employee_count">
-                                        従業員数
-                                    </InputLabel>
+                                <FormGroup
+                                    label="従業員数"
+                                    htmlFor="employee_count"
+                                    help="従業員数を入力してください"
+                                    error={errors.employee_count}
+                                >
                                     <TextInput
                                         id="employee_count"
                                         type="number"
@@ -252,15 +253,14 @@ export default function Edit({ organization, address }) {
                                         min="0"
                                         placeholder="30"
                                     />
-                                    <InputError
-                                        message={errors.employee_count}
-                                    />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="capital">
-                                        資本金
-                                    </InputLabel>
+                                <FormGroup
+                                    label="資本金"
+                                    htmlFor="capital"
+                                    help="資本金を入力してください"
+                                    error={errors.capital}
+                                >
                                     <TextInput
                                         id="capital"
                                         value={data.capital}
@@ -273,15 +273,16 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="1,000万円"
                                     />
-                                    <InputError message={errors.capital} />
                                 </FormGroup>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="established_date">
-                                        設立日
-                                    </InputLabel>
+                                <FormGroup
+                                    label="設立日"
+                                    htmlFor="established_date"
+                                    help="設立日を入力してください"
+                                    error={errors.established_date}
+                                >
                                     <TextInput
                                         id="established_date"
                                         type="date"
@@ -294,15 +295,14 @@ export default function Edit({ organization, address }) {
                                         }
                                         disabled={processing}
                                     />
-                                    <InputError
-                                        message={errors.established_date}
-                                    />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="business_hours">
-                                        営業時間
-                                    </InputLabel>
+                                <FormGroup
+                                    label="営業時間"
+                                    htmlFor="business_hours"
+                                    help="営業時間を入力してください"
+                                    error={errors.business_hours}
+                                >
                                     <TextInput
                                         id="business_hours"
                                         value={data.business_hours}
@@ -315,17 +315,16 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="平日 9:00-18:00（土日祝休業）"
                                     />
-                                    <InputError
-                                        message={errors.business_hours}
-                                    />
                                 </FormGroup>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="registration_number">
-                                        法人番号
-                                    </InputLabel>
+                                <FormGroup
+                                    label="法人番号"
+                                    htmlFor="registration_number"
+                                    help="法人番号を入力してください"
+                                    error={errors.registration_number}
+                                >
                                     <TextInput
                                         id="registration_number"
                                         value={data.registration_number}
@@ -337,15 +336,14 @@ export default function Edit({ organization, address }) {
                                         }
                                         disabled={processing}
                                     />
-                                    <InputError
-                                        message={errors.registration_number}
-                                    />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="tax_number">
-                                        税務番号
-                                    </InputLabel>
+                                <FormGroup
+                                    label="税務番号"
+                                    htmlFor="tax_number"
+                                    help="税務番号を入力してください"
+                                    error={errors.tax_number}
+                                >
                                     <TextInput
                                         id="tax_number"
                                         value={data.tax_number}
@@ -357,17 +355,16 @@ export default function Edit({ organization, address }) {
                                         }
                                         disabled={processing}
                                     />
-                                    <InputError
-                                        message={errors.tax_number}
-                                    />
                                 </FormGroup>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="phone">
-                                        電話番号
-                                    </InputLabel>
+                                <FormGroup
+                                    label="電話番号"
+                                    htmlFor="phone"
+                                    help="電話番号を入力してください"
+                                    error={errors.phone}
+                                >
                                     <TextInput
                                         id="phone"
                                         value={data.phone}
@@ -380,13 +377,14 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="03-1234-5678"
                                     />
-                                    <InputError message={errors.phone} />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="fax">
-                                        FAX番号
-                                    </InputLabel>
+                                <FormGroup
+                                    label="FAX番号"
+                                    htmlFor="fax"
+                                    help="FAX番号を入力してください"
+                                    error={errors.fax}
+                                >
                                     <TextInput
                                         id="fax"
                                         value={data.fax}
@@ -395,15 +393,16 @@ export default function Edit({ organization, address }) {
                                         }
                                         disabled={processing}
                                     />
-                                    <InputError message={errors.fax} />
                                 </FormGroup>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="email">
-                                        メールアドレス
-                                    </InputLabel>
+                                <FormGroup
+                                    label="メールアドレス"
+                                    htmlFor="email"
+                                    help="メールアドレスを入力してください"
+                                    error={errors.email}
+                                >
                                     <TextInput
                                         id="email"
                                         type="email"
@@ -417,13 +416,14 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="info@smartsprouts.com"
                                     />
-                                    <InputError message={errors.email} />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="website">
-                                        WebサイトURL
-                                    </InputLabel>
+                                <FormGroup
+                                    label="WebサイトURL"
+                                    htmlFor="website"
+                                    help="WebサイトのURLを入力してください"
+                                    error={errors.website}
+                                >
                                     <TextInput
                                         id="website"
                                         value={data.website}
@@ -435,7 +435,6 @@ export default function Edit({ organization, address }) {
                                         }
                                         disabled={processing}
                                     />
-                                    <InputError message={errors.website} />
                                 </FormGroup>
                             </div>
                         </div>
@@ -447,10 +446,12 @@ export default function Edit({ organization, address }) {
                             住所
                         </h3>
                         <div className="space-y-4">
-                            <FormGroup>
-                                <InputLabel htmlFor="address_postal_code">
-                                    郵便番号
-                                </InputLabel>
+                            <FormGroup
+                                label="郵便番号"
+                                htmlFor="address_postal_code"
+                                help="郵便番号を入力してください"
+                                error={errors["address.postal_code"]}
+                            >
                                 <TextInput
                                     id="address_postal_code"
                                     value={data.address.postal_code}
@@ -463,16 +464,15 @@ export default function Edit({ organization, address }) {
                                     disabled={processing}
                                     placeholder="1000001"
                                 />
-                                <InputError
-                                    message={errors["address.postal_code"]}
-                                />
                             </FormGroup>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="address_prefecture">
-                                        都道府県
-                                    </InputLabel>
+                                <FormGroup
+                                    label="都道府県"
+                                    htmlFor="address_prefecture"
+                                    help="都道府県を入力してください"
+                                    error={errors["address.prefecture"]}
+                                >
                                     <TextInput
                                         id="address_prefecture"
                                         value={data.address.prefecture}
@@ -485,17 +485,14 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="東京都"
                                     />
-                                    <InputError
-                                        message={
-                                            errors["address.prefecture"]
-                                        }
-                                    />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="address_city">
-                                        市区町村
-                                    </InputLabel>
+                                <FormGroup
+                                    label="市区町村"
+                                    htmlFor="address_city"
+                                    help="市区町村を入力してください"
+                                    error={errors["address.city"]}
+                                >
                                     <TextInput
                                         id="address_city"
                                         value={data.address.city}
@@ -508,17 +505,16 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="千代田区"
                                     />
-                                    <InputError
-                                        message={errors["address.city"]}
-                                    />
                                 </FormGroup>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormGroup>
-                                    <InputLabel htmlFor="address_district">
-                                        町域
-                                    </InputLabel>
+                                <FormGroup
+                                    label="町域"
+                                    htmlFor="address_district"
+                                    help="町域を入力してください"
+                                    error={errors["address.district"]}
+                                >
                                     <TextInput
                                         id="address_district"
                                         value={data.address.district}
@@ -531,15 +527,14 @@ export default function Edit({ organization, address }) {
                                         disabled={processing}
                                         placeholder="千代田"
                                     />
-                                    <InputError
-                                        message={errors["address.district"]}
-                                    />
                                 </FormGroup>
 
-                                <FormGroup>
-                                    <InputLabel htmlFor="address_other">
-                                        番地・建物名
-                                    </InputLabel>
+                                <FormGroup
+                                    label="番地・建物名"
+                                    htmlFor="address_other"
+                                    help="番地・建物名を入力してください"
+                                    error={errors["address.address_other"]}
+                                >
                                     <TextInput
                                         id="address_other"
                                         value={data.address.address_other}
@@ -563,16 +558,11 @@ export default function Edit({ organization, address }) {
                     </div>
 
                     {/* アクションボタン */}
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="flex items-center justify-end gap-3">
-                            <PrimaryButton
-                                type="submit"
-                                disabled={processing}
-                            >
-                                <CheckIcon className="h-4 w-4 mr-2" />
-                                更新
-                            </PrimaryButton>
-                        </div>
+                    <div className="flex items-center justify-end gap-3">
+                        <PrimaryButton type="submit" disabled={processing}>
+                            <CheckIcon className="h-4 w-4 mr-2" />
+                            更新
+                        </PrimaryButton>
                     </div>
                 </div>
             </form>

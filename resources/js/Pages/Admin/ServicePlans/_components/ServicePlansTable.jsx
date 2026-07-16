@@ -1,8 +1,6 @@
 import React from "react";
 import { Link, router } from "@inertiajs/react";
-// Components
 import { Card } from "@/Components/Card";
-// Icons
 import {
     EyeIcon,
     PencilIcon,

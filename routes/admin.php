@@ -53,6 +53,9 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     // セキュリティ（二段階認証）
     Route::get('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'edit'])->name('security.edit');
     Route::put('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'update'])->name('security.update');
+    Route::post('/security/totp/setup', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'setupTotp'])->name('security.totp.setup');
+    Route::post('/security/totp/confirm', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'confirmTotp'])->name('security.totp.confirm');
+    Route::post('/security/recovery-codes/regenerate', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'regenerateRecoveryCodes'])->name('security.recovery-codes.regenerate');
 
     /**************************************
      * 管理者
@@ -256,4 +259,9 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     Route::resource('organization/history', OrganizationHistoryController::class)
         ->names('organization.history')
         ->except(['show']);
+
+    /**************************************
+     * 外部サービス連携（SaaS等へのリンク・APIデータ取得）
+     **************************************/
+    require __DIR__ . '/admin/external-service.php';
 });

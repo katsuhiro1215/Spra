@@ -230,19 +230,14 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                         {item.name}
                                     </span>
 
-                                    {/* サブメニューがある場合のインジケーター */}
-                                    {item.children &&
-                                        item.children.length > 0 && (
-                                            <div className="absolute top-1 right-1">
-                                                <div
-                                                    className="w-2 h-2 rounded-full"
-                                                    style={{
-                                                        backgroundColor:
-                                                            "var(--color-primary)",
-                                                    }}
-                                                ></div>
-                                            </div>
-                                        )}
+                                    {/* 現在選択中のインジケーター */}
+                                    {item.current && (
+                                        <div className="absolute top-1 right-1">
+                                            <div
+                                                className="w-2 h-2 rounded-full bg-white"
+                                            ></div>
+                                        </div>
+                                    )}
                                 </Link>
 
                                 {/* サブメニュー（ホバー時表示） */}

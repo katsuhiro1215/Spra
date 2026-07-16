@@ -10,7 +10,6 @@ import MonthlyCalendar from "./_components/MonthlyCalendar";
 import YearlyCalendar from "./_components/YearlyCalendar";
 import AppointmentSlotQuickCreateModal from "@/Components/Schedules/AppointmentSlotQuickCreateModal";
 import { formatDateKey } from "@/Utils/dateUtils";
-// Icons
 import {
     PlusIcon,
     CalendarDaysIcon,
@@ -21,7 +20,6 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function ScheduleIndex({

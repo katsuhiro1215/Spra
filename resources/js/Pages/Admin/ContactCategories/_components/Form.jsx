@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { useForm } from "@inertiajs/react";
-// Components
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { FormGroup, TextInput, TextArea, NumberInput } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Validation
 import * as validation from "./validation";
 
 const Form = ({ category = null, isEditing = false }) => {

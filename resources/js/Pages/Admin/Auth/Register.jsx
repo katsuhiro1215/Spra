@@ -1,5 +1,4 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-// Components
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { InputError, InputLabel, TextInput } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";

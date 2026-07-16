@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -55,10 +56,21 @@ class AdminLoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $admin = Admin::where('email', $this->string('email'))->first();
+
+        if ($admin && $admin->isLocked()) {
+            throw ValidationException::withMessages([
+                'email' => __('messages.auth.account_locked', [
+                    'minutes' => $admin->locked_until->diffInMinutes(now()) + 1,
+                ]),
+            ]);
+        }
+
         $credentials = $this->only('email', 'password');
 
         if (! Auth::guard('admins')->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
+            $admin?->registerFailedLogin();
 
             throw ValidationException::withMessages([
                 'email' => __('messages.auth.login_failed'),
@@ -66,8 +78,7 @@ class AdminLoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
-
-        $admin = Auth::guard('admins')->getProvider()->retrieveByCredentials($credentials);
+        $admin->resetFailedLogins();
 
         // 二段階認証が有効な場合は、ログインを確定せずコード入力を待つ
         if ($admin->two_factor_enabled) {
@@ -77,7 +88,10 @@ class AdminLoginRequest extends FormRequest
                 'remember' => $this->boolean('remember'),
             ]);
 
-            \App\Models\OneTimePassword::generateFor($admin);
+            // TOTP(認証アプリ)は端末側でコードが生成されるため、メール送信は行わない
+            if ($admin->twoFactorMethod() !== \App\Models\Admin::TWO_FACTOR_METHOD_TOTP) {
+                \App\Models\OneTimePassword::generateFor($admin);
+            }
 
             return;
         }

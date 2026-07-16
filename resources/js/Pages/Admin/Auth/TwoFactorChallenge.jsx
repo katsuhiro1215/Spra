@@ -5,7 +5,8 @@ import { InputError } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 
-export default function TwoFactorChallenge() {
+export default function TwoFactorChallenge({ method = "email" }) {
+    const isTotp = method === "totp";
     const { data, setData, post, processing, errors } = useForm({
         code: "",
     });
@@ -50,7 +51,9 @@ export default function TwoFactorChallenge() {
                         二段階認証
                     </h2>
                     <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        メールに送信された6桁の認証コードを入力してください
+                        {isTotp
+                            ? "認証アプリに表示されている6桁のコードを入力してください"
+                            : "メールに送信された6桁の認証コードを入力してください"}
                     </p>
                 </div>
 
@@ -66,7 +69,7 @@ export default function TwoFactorChallenge() {
                                     }
                                     className="w-full px-4 py-3 text-center text-2xl tracking-widest border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="000000"
-                                    maxLength={6}
+                                    maxLength={isTotp ? 20 : 6}
                                     autoComplete="one-time-code"
                                     autoFocus
                                 />
@@ -82,16 +85,22 @@ export default function TwoFactorChallenge() {
                             </PrimaryButton>
                         </form>
 
-                        <div className="text-center pt-2">
-                            <button
-                                type="button"
-                                onClick={resend}
-                                disabled={resending}
-                                className="text-sm text-blue-600 hover:text-blue-500 font-medium disabled:text-gray-400"
-                            >
-                                {resending ? "送信中..." : "コードを再送信する"}
-                            </button>
-                        </div>
+                        {isTotp ? (
+                            <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                                認証アプリが使えない場合は、発行済みのリカバリーコードを入力してください
+                            </p>
+                        ) : (
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={resend}
+                                    disabled={resending}
+                                    className="text-sm text-blue-600 hover:text-blue-500 font-medium disabled:text-gray-400"
+                                >
+                                    {resending ? "送信中..." : "コードを再送信する"}
+                                </button>
+                            </div>
+                        )}
                     </CardBody>
                 </Card>
             </div>

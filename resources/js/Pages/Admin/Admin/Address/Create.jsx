@@ -1,14 +1,11 @@
 import { Head, useForm, router } from "@inertiajs/react";
 import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
-// Address Component
 import AddressForm from "./_components/Form";
 
 export default function Create({ admin, types, isOtherAdmin }) {

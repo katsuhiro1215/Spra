@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bacon/bacon-qr-code": "^3.1",
         "barryvdh/laravel-dompdf": "^3.1",
         "barryvdh/laravel-snappy": "^1.0",
         "inertiajs/inertia-laravel": "^2.0",
@@ -16,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "mpdf/mpdf": "^8.3",
+        "pragmarx/google2fa": "^9.0",
         "spatie/laravel-permission": "^8.3",
         "tecnickcom/tcpdf": "^7.0",
         "tightenco/ziggy": "^2.0"

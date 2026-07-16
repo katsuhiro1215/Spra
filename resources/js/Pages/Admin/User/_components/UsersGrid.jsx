@@ -1,12 +1,9 @@
 import React from "react";
-// Components
 import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { IconButton } from "@/Components/Buttons";
 import Avatar from "@/Components/Avatar";
-// Icons
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-// Constants
 import { getStatusBadge } from "@/Constants/Badges";
 
 const getFullName = (user) =>

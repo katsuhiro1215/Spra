@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
@@ -15,7 +13,6 @@ import {
 import { Badge } from "@/Components/Badges";
 import { DeleteAlert } from "@/Components/Alerts";
 import InvitationModal from "./_components/InvitationModal";
-// Icons
 import {
     ArrowLeftIcon,
     UserIcon,
@@ -36,7 +33,6 @@ import {
     XCircleIcon,
     DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import {
     CONTACT_SOURCE_OPTIONS,

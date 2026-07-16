@@ -1,11 +1,9 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -15,7 +13,6 @@ import {
     DocumentTextIcon,
     GlobeAltIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { BlockPreview } from "@/Components/BlockUI";
 

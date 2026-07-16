@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import Pagination from "@/Components/Layout/Pagination";
-// Icons
 import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
-// PostCategory Components
 import PostCategoriesTable from "./_components/PostCategoriesTable";
 
 export default function Index({ categories, stats, allCategories, filters }) {

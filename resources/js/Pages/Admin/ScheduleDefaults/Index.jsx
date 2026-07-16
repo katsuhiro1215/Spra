@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader } from "@/Components/Card";
 import { PrimaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import DayScheduleCard from "./_components/DayScheduleCard";
 import ErrorMessage from "./_components/ErrorMessage";
-// Icons
 import {
     PlusIcon,
     ArrowLeftIcon,
     FunnelIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function DefaultSchedule({ auth, schedules }) {

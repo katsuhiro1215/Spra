@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -9,9 +8,7 @@ import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import ResponseTemplateTable from "./_components/ResponseTemplateTable";
-// Icons
 import { XMarkIcon, FunnelIcon, PlusIcon } from "@heroicons/react/24/outline";
-// Page Config
 import { PageConfig } from "@/Constants/PageConfig";
 
 const toOptions = (obj = {}) =>
