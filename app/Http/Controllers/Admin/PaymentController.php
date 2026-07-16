@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
+use App\Notifications\PaymentConfirmed;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -87,6 +88,35 @@ class PaymentController extends Controller
     public function update(PaymentRequest $request, Payment $payment): RedirectResponse
     {
         return redirect()->route('admin.invoice.show', $payment->invoice_id);
+    }
+
+    /**
+     * 入金報告(pending)を確認し、確定(completed)にする
+     * 請求額に達していれば請求書のステータス更新・領収書の下書き作成までPaymentServiceが行う
+     * (領収書の送信は行わない。内容を確認してから領収書詳細画面で送信する)
+     */
+    public function confirm(Payment $payment): RedirectResponse
+    {
+        if ($payment->status !== 'pending') {
+            return back()->with('error', 'この入金は確認待ちの状態ではありません。');
+        }
+
+        $wasReceiptIssued = (bool) $payment->invoice?->receipt;
+
+        $confirmed = $this->service->confirm($payment, auth('admins')->id());
+
+        $confirmed->invoice?->user?->notify(new PaymentConfirmed($confirmed));
+
+        // 請求額に達した場合、PaymentService::confirm() が領収書を下書きとして作成済み
+        // 内容を確認してから送信できるよう、領収書詳細画面へ遷移する
+        $invoice = $confirmed->invoice?->fresh('receipt');
+        if ($invoice?->receipt && !$wasReceiptIssued) {
+            return redirect()
+                ->route('admin.receipt.show', $invoice->receipt->id)
+                ->with('success', '入金を確認しました。請求額に達したため領収書を作成しました。内容を確認して送付してください。');
+        }
+
+        return back()->with('success', '入金を確認しました。');
     }
 
     /**

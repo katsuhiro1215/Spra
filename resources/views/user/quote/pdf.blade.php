@@ -1,3 +1,7 @@
+@php
+    // 明細・金額は Quote 自体ではなく currentVersion 側にある
+    $currentVersion = $quote->currentVersion;
+@endphp
 <!DOCTYPE html>
 <html>
 
@@ -187,7 +191,7 @@
         @endif
 
         <!-- 明細テーブル -->
-        @if ($quote->items && $quote->items->count() > 0)
+        @if ($currentVersion && $currentVersion->items && $currentVersion->items->count() > 0)
             <table class="table">
                 <thead>
                     <tr>
@@ -198,7 +202,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($quote->items as $item)
+                    @foreach ($currentVersion->items as $item)
                         <tr>
                             <td>{{ $item->name }}</td>
                             <td class="right-align">{{ $item->quantity }}</td>
@@ -214,23 +218,23 @@
         <div class="amount-table">
             <div class="amount-row">
                 <span class="amount-label">小計</span>
-                <span class="amount-value">¥{{ number_format($quote->subtotal_amount ?? 0, 0) }}</span>
+                <span class="amount-value">¥{{ number_format($currentVersion->base_amount ?? 0, 0) }}</span>
             </div>
-            @if ($quote->discount_amount > 0)
+            @if (($currentVersion->discount_amount ?? 0) > 0)
                 <div class="amount-row">
                     <span class="amount-label">割引</span>
-                    <span class="amount-value">-¥{{ number_format($quote->discount_amount, 0) }}</span>
+                    <span class="amount-value">-¥{{ number_format($currentVersion->discount_amount, 0) }}</span>
                 </div>
             @endif
-            @if ($quote->tax_rate > 0)
+            @if (($currentVersion->tax_rate ?? 0) > 0)
                 <div class="amount-row">
-                    <span class="amount-label">消費税（{{ $quote->tax_rate }}%）</span>
-                    <span class="amount-value">¥{{ number_format($quote->tax_amount ?? 0, 0) }}</span>
+                    <span class="amount-label">消費税（{{ $currentVersion->tax_rate }}%）</span>
+                    <span class="amount-value">¥{{ number_format($currentVersion->tax_amount ?? 0, 0) }}</span>
                 </div>
             @endif
             <div class="total-row">
                 <span class="total-label">合計金額</span>
-                <span class="total-value">¥{{ number_format($quote->total_amount ?? 0, 0) }}</span>
+                <span class="total-value">¥{{ number_format($currentVersion->total_amount ?? 0, 0) }}</span>
             </div>
         </div>
 

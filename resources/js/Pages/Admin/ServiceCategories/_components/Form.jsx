@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
-// Components
 import { Card, CardTitle, CardHeader, CardBody } from "@/Components/Card";
 import {
     FormGroup,

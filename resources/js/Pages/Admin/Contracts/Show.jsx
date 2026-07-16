@@ -33,6 +33,8 @@ import ContractAmount from "./_components/ContractAmount";
 import ContractVersionHistory from "./_components/ContractVersionHistory";
 import ContractClientInfo from "./_components/ContractClientInfo";
 import BillingInfo from "./_components/BillingInfo";
+import ContractInvoices from "./_components/ContractInvoices";
+import ContractReceipts from "./_components/ContractReceipts";
 
 export default function Show({ contract }) {
     const { flash } = usePage().props;
@@ -631,7 +633,8 @@ export default function Show({ contract }) {
                                                 ¥
                                                 {(
                                                     contract.quote
-                                                        .total_amount || 0
+                                                        .current_version
+                                                        ?.total_amount || 0
                                                 ).toLocaleString()}
                                             </p>
                                         </div>
@@ -652,18 +655,10 @@ export default function Show({ contract }) {
                             </>
                         )}
                         {activeTab === "invoices" && (
-                            <>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    請求書表示機能は準備中です。
-                                </p>
-                            </>
+                            <ContractInvoices contract={contract} />
                         )}
                         {activeTab === "receipts" && (
-                            <>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    領収書表示機能は準備中です。
-                                </p>
-                            </>
+                            <ContractReceipts contract={contract} />
                         )}
                     </CardBody>
                 </Card>

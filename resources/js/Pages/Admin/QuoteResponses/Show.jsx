@@ -207,7 +207,7 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                         ¥
-                                        {quoteResponse.quote.total_amount?.toLocaleString() ||
+                                        {quoteResponse.quote.current_version?.total_amount?.toLocaleString() ||
                                             "0"}
                                     </p>
                                 </div>

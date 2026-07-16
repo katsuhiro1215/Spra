@@ -59,7 +59,7 @@ export default function Index({ quotes = [], meta = null }) {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-900">
                                             ¥
-                                            {quote.total_amount?.toLocaleString() ||
+                                            {quote.current_version?.total_amount?.toLocaleString() ||
                                                 "0"}
                                         </td>
                                         <td className="px-6 py-4 text-sm">

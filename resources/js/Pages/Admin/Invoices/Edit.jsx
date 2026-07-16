@@ -23,7 +23,7 @@ export default function Edit({
         due_date: invoice.due_date || "",
         status: invoice.status || "draft",
         subtotal: invoice.subtotal || 0,
-        tax_rate: invoice.tax_rate || 0.1,
+        tax_rate: invoice.tax_rate || 10,
         tax_amount: invoice.tax_amount || 0,
         total_amount: invoice.total_amount || 0,
         notes: invoice.notes || "",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FormGroup, TextInput, SelectInput, FormTextarea } from "@/Components/Forms";
@@ -32,11 +32,24 @@ export default function InvoiceForm({
         }).format(amount || 0);
     };
 
-    // 合計金額を計算
+    // 合計金額を計算（tax_rate はパーセント表記、例: 10 = 10%）
     const subtotal = parseFloat(data.subtotal) || 0;
-    const taxRate = parseFloat(data.tax_rate) || 0.1;
-    const taxAmount = Math.round(subtotal * taxRate);
+    const taxRate = parseFloat(data.tax_rate) || 0;
+    const taxAmount = Math.round(subtotal * (taxRate / 100));
     const totalAmount = subtotal + taxAmount;
+
+    // 送信されるデータ（data.tax_amount / data.total_amount）を計算結果と同期する。
+    // useForm の data はサーバーへ送信される唯一の値なので、ここで同期しないと
+    // 画面表示上は正しい合計でも 0 円で送信されてしまう。
+    useEffect(() => {
+        if (data.tax_amount !== taxAmount) {
+            setData("tax_amount", taxAmount);
+        }
+        if (data.total_amount !== totalAmount) {
+            setData("total_amount", totalAmount);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subtotal, taxRate]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -357,18 +370,6 @@ export default function InvoiceForm({
                                 </div>
                             </div>
                         </div>
-
-                        {/* 隠し入力で合計を設定 */}
-                        <input
-                            type="hidden"
-                            name="tax_amount"
-                            value={taxAmount}
-                        />
-                        <input
-                            type="hidden"
-                            name="total_amount"
-                            value={totalAmount}
-                        />
                     </div>
                 </CardBody>
             </Card>

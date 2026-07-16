@@ -43,7 +43,7 @@ class OnboardingController extends Controller
             ->with(['company' => function ($query) {
                 $query->wherePivot('is_primary', true);
             }, 'quoteResponses' => function ($query) {
-                $query->with('quote')->latest();
+                $query->with('quote.currentVersion')->latest();
             }])
             ->findOrFail($userId);
 
@@ -76,7 +76,7 @@ class OnboardingController extends Controller
                 'quote_number' => $quote->quote_number,
                 'title' => $quote->title,
                 'description' => $quote->description,
-                'total_amount' => $quote->total_amount,
+                'total_amount' => $quote->currentVersion?->total_amount,
                 'payment_term_id' => $quote->payment_term_id,
                 'valid_until' => $quote->valid_until?->toDateString(),
             ] : null,
@@ -119,7 +119,8 @@ class OnboardingController extends Controller
             // Create invoice with payment terms
             // Payment term calculation: 50% due on contract, 30% on delivery, 20% on completion
             // We'll create the first invoice for the 50% deposit
-            $invoiceAmount = $quote->total_amount * 0.5;
+            // 金額は Quote 自体ではなく currentVersion 側にある
+            $invoiceAmount = ($quote->currentVersion?->total_amount ?? 0) * 0.5;
 
             $invoice = Invoice::create([
                 'company_id' => $company->id,

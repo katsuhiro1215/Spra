@@ -1,18 +1,15 @@
 import React from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { TextButton } from "@/Components/Buttons";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ serviceCategory, servicesCount }) {

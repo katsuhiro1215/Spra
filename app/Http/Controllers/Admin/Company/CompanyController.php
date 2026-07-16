@@ -89,7 +89,7 @@ class CompanyController extends Controller
         $company->load(['addresses', 'users.profile', 'media']);
         // 見積もりを取得
         $quotes = $company->quotes()
-            ->with(['user.profile', 'contact'])
+            ->with(['user.profile', 'contact', 'currentVersion'])
             ->orderBy('created_at', 'desc')
             ->get();
         // 請求書を取得

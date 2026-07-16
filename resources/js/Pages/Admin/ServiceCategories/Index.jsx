@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -11,12 +10,9 @@ import { Card } from "@/Components/Card";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { SERVICE_CATEGORY_STATUS_OPTIONS } from "@/Constants/SelectOptions";
-// ServiceCategory Components
 import ServiceCategoriesTable from "./_components/ServiceCategoriesTable";
 
 export default function Index({ serviceCategories, statuses, filters, stats }) {
@@ -186,84 +182,80 @@ export default function Index({ serviceCategories, statuses, filters, stats }) {
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* タブ + 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* タブナビゲーション */}
-                            <div className="flex-shrink-0">
-                                <TabNavigation
-                                    tabs={tabs}
-                                    activeTab={activeTab}
-                                    onChange={handleTabChange}
-                                />
-                            </div>
+                {/* タブ + 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* タブナビゲーション */}
+                    <div className="flex-shrink-0">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                        />
+                    </div>
 
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder={PageConfig.serviceCategories.ui.search.placeholder}
-                                    disabled={processing}
-                                />
-                            </div>
+                    {/* 検索バー */}
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) =>
+                                setData("search", value)
+                            }
+                            onSearch={handleSearch}
+                            placeholder={PageConfig.serviceCategories.ui.search.placeholder}
+                            disabled={processing}
+                        />
+                    </div>
 
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
+                    {/* フィルタートグルボタン */}
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="sm"
+                            className="relative"
+                        >
+                            <FunnelIcon className="h-4 w-4 mr-2" />
+                            {PageConfig.serviceCategories.ui.filter.button}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* フィルターセクション（折りたたみ可能）*/}
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {/* ステータスフィルター */}
+                            <FilterSelect
+                                label={PageConfig.serviceCategories.filters.status.label}
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={
+                                    SERVICE_CATEGORY_STATUS_OPTIONS
+                                }
+                                placeholder={PageConfig.serviceCategories.filters.status.placeholder}
+                            />
+
+                            {/* フィルタークリアボタン */}
+                            <div className="flex items-end">
                                 <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    size="sm"
-                                    className="relative"
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    className="w-full"
                                 >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    {PageConfig.serviceCategories.ui.filter.button}
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
+                                    <XMarkIcon className="h-4 w-4 mr-2" />
+                                    {PageConfig.serviceCategories.ui.filter.clear}
                                 </SecondaryButton>
                             </div>
                         </div>
-
-                        {/* フィルターセクション（折りたたみ可能）*/}
-                        {showFilters && (
-                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* ステータスフィルター */}
-                                    <FilterSelect
-                                        label={PageConfig.serviceCategories.filters.status.label}
-                                        value={data.status}
-                                        onChange={(value) =>
-                                            setData("status", value)
-                                        }
-                                        options={
-                                            SERVICE_CATEGORY_STATUS_OPTIONS
-                                        }
-                                        placeholder={PageConfig.serviceCategories.filters.status.placeholder}
-                                    />
-
-                                    {/* フィルタークリアボタン */}
-                                    <div className="flex items-end">
-                                        <SecondaryButton
-                                            onClick={handleClearFilters}
-                                            disabled={!hasActiveFilters}
-                                            size="md"
-                                            className="w-full"
-                                        >
-                                            <XMarkIcon className="h-4 w-4 mr-2" />
-                                            {PageConfig.serviceCategories.ui.filter.clear}
-                                        </SecondaryButton>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </Card>
+                )}
 
                 {/* サービスカテゴリー一覧テーブル */}
                 <ServiceCategoriesTable

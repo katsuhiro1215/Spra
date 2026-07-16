@@ -383,6 +383,7 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
 
     // 支払い管理
     Route::resource('payment', PaymentController::class);
+    Route::post('payment/{payment}/confirm', [PaymentController::class, 'confirm'])->name('payment.confirm');
 
     // 請求書管理
     Route::resource('invoice', InvoiceController::class);
@@ -395,7 +396,6 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
         Route::post('/{id}/confirm-payment', [InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
         Route::post('/{id}/resend', [InvoiceController::class, 'resend'])->name('resend');
         Route::post('/{id}/receipt/issue', [InvoiceController::class, 'issueReceipt'])->name('receipt.issue');
-        Route::post('/{invoiceId}/payment-notification/{notificationId}/acknowledge', [InvoiceController::class, 'acknowledgePaymentNotification'])->name('payment-notification.acknowledge');
         Route::get('/{id}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('receipt.download');
     });
 

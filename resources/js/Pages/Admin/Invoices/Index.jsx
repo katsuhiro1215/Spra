@@ -70,7 +70,7 @@ export default function Index({ invoices, filters = {}, stats = {} }) {
 
     const handleConfirmPayment = (invoice) => {
         const confirmed = confirm(
-            `請求書「${invoice.invoice_number}」の入金を確認し、領収書を発行・送付しますか？`,
+            `請求書「${invoice.invoice_number}」の入金を確認しますか？請求額に達している場合は領収書を作成します（送付は内容確認後に行います）。`,
         );
         if (confirmed) {
             router.post(route("admin.invoice.confirm-payment", invoice.id));

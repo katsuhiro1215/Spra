@@ -8,6 +8,14 @@ export default function ContractBasicInfo({ contract, statuses }) {
         return new Date(date).toLocaleDateString("ja-JP");
     };
 
+    // signatures は signed_at 降順で渡されるため、最初に見つかったもの＝最新の署名
+    const userSignature = contract.signatures?.find(
+        (s) => s.signature_type === "user" && s.status !== "rejected",
+    );
+    const adminSignature = contract.signatures?.find(
+        (s) => s.signature_type === "admin" && s.status !== "rejected",
+    );
+
     return (
         <>
             <Card>
@@ -107,6 +115,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                         ).toLocaleDateString("ja-JP")}
                                     </p>
                                 )}
+                                {userSignature?.signature_image && (
+                                    <div className="mt-3 flex justify-center bg-white dark:bg-gray-100 rounded border border-gray-200 dark:border-gray-600 p-2">
+                                        <img
+                                            src={userSignature.signature_image}
+                                            alt="ユーザー署名"
+                                            className="max-h-24 object-contain"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Admin 署名 */}
@@ -135,6 +152,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                             contract.admin_signed_at,
                                         ).toLocaleDateString("ja-JP")}
                                     </p>
+                                )}
+                                {adminSignature?.signature_image && (
+                                    <div className="mt-3 flex justify-center bg-white dark:bg-gray-100 rounded border border-gray-200 dark:border-gray-600 p-2">
+                                        <img
+                                            src={adminSignature.signature_image}
+                                            alt="Admin署名"
+                                            className="max-h-24 object-contain"
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>

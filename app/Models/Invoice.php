@@ -122,11 +122,6 @@ class Invoice extends Model
         return $this->hasOne(Receipt::class);
     }
 
-    public function paymentNotifications(): HasMany
-    {
-        return $this->hasMany(PaymentNotification::class)->orderBy('created_at', 'desc');
-    }
-
     public function clientDownloadedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_downloaded_by');

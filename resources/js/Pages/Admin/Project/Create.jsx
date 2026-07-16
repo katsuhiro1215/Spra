@@ -44,7 +44,7 @@ export default function Create({
         {
             label: "戻る",
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.project.index"),
         },
     ];
@@ -55,14 +55,17 @@ export default function Create({
     ];
 
     return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="プロジェクト新規作成"
+                    description="新しいプロジェクトを作成"
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title="プロジェクト新規作成" />
-
-            <PageHeader
-                title="プロジェクト新規作成"
-                description="新しいプロジェクトを作成"
-                actions={headerActions}
-            />
 
             <FlashMessage />
 

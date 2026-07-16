@@ -43,31 +43,6 @@ class AdminSeeder extends Seeder
                 'role' => 'admin',
                 'status' => 'active',
             ],
-            [
-                'email' => 'kakoi104@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'inactive',
-            ],
-            [
-                'email' => 'kakoi105@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'suspended',
-            ],
-            [
-                'email' => 'kakoi106@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi107@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi108@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
         ];
 
         foreach ($admins as $adminData) {

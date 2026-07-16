@@ -48,8 +48,16 @@ class ContractController extends Controller
         $contract = $this->service->findById($contract->id);
         abort_unless($contract, 404);
 
-        // quote・契約特典を含めて読み込む
-        $contract->load(['quote', 'benefits' => fn($q) => $q->orderBy('period_start')]);
+        // quote・契約特典・署名を含めて読み込む(quoteの金額はcurrentVersionにあるため合わせて読み込む)
+        // 請求書タブ・領収書タブで使うため、請求書に紐づく入金・領収書も合わせて読み込む
+        $contract->load([
+            'quote.currentVersion',
+            'benefits' => fn($q) => $q->orderBy('period_start'),
+            'signatures' => fn($q) => $q->latest('signed_at'),
+            'invoices' => fn($q) => $q->orderBy('issue_date', 'desc'),
+            'invoices.payments' => fn($q) => $q->orderBy('payment_date', 'desc'),
+            'invoices.receipt',
+        ]);
 
         return Inertia::render('Admin/Contracts/Show', [
             'contract' => $contract,

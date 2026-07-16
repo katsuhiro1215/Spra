@@ -8,6 +8,8 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\PublicServiceController;
 use App\Http\Controllers\PublicFaqController;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\PublicDocumentController;
 use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
@@ -29,7 +31,7 @@ Route::get('/', function (ServiceService $serviceService) {
         'canRegister' => Route::has('user.register'),
         'services' => $serviceService->getPublicList(),
     ]);
-});
+})->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
 Route::get('/service', [PublicServiceController::class, 'index'])->name('service');
 Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
@@ -39,21 +41,9 @@ Route::get('/faq', [PublicFaqController::class, 'show'])->name('faq');
 Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::get('/privacy-policy', fn() => Inertia::render('Public/PrivacyPolicy'))->name('privacy.policy');
-Route::get('/documents/{slug}', function (string $slug) {
-    $document = \App\Models\Document::where('slug', $slug)->firstOrFail();
-    abort_unless($document->activeVersion, 404);
-
-    return Inertia::render('Public/Document', [
-        'document' => [
-            'title' => $document->title,
-            'description' => $document->description,
-            'content' => $document->activeVersion->content,
-            'version' => $document->activeVersion->version,
-            'effective_date' => $document->activeVersion->effective_date,
-        ],
-    ]);
-})->name('documents.show');
+Route::get('/privacy-policy', [PublicDocumentController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/terms', [PublicDocumentController::class, 'terms'])->name('terms');
+Route::get('/documents/{slug}', [PublicDocumentController::class, 'show'])->name('documents.show');
 
 // Contact 送信
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -96,7 +86,7 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
 
     // 請求書（クライアント向け） userを付与
     Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
-    Route::post('/invoice/{invoice}/payment-notification', [InvoiceController::class, 'storePaymentNotification'])->name('invoice.payment-notification.store');
+    Route::post('/invoice/{invoice}/payments', [InvoiceController::class, 'storePayment'])->name('invoice.payments.store');
     Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
     Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoice.pdf');
     Route::get('/invoice/{invoice}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('invoice.pdf.preview');
@@ -170,7 +160,6 @@ Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'sa
 // Route::group(['prefix' => '', 'name' => 'public.'], function () {
 //     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
 //     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
-//     Route::get('/terms', fn() => inertiaPublic('Terms'))->name('terms');
 
 //     // Onboarding (public, no auth required)
 //     Route::get('/onboarding/{token}', [OnboardingController::class, 'show'])->name('onboarding.show');
@@ -182,9 +171,13 @@ Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'sa
 //     Route::get('/lp', fn() => inertiaPublic('LandingPage'))->name('landing.page');
 //     Route::get('/lp-minimal', fn() => inertiaPublic('LandingPageMinimal'))->name('landing.minimal');
 //     Route::get('/lp-creative', fn() => inertiaPublic('LandingPageCreative'))->name('landing.creative');
-//     Route::get('/reservation', fn() => inertiaPublic('Reservation'))->name('reservation');
-//     Route::post('/reservation', fn() => redirect()->back()->with('success', '予約を受け付けました。確認メールをお送りしました。'))->name('reservation.store');
 // });
 
 // Auth routes
 require __DIR__ . '/auth.php';
+
+// 汎用固定ページ(Page + ブロックエディタ content)。他の具体的なルートに一致しない場合のフォールバック
+// 必ず他の全ルート（特に auth.php の /login, /register 等）より後に定義すること
+Route::get('/{slug}', [PublicPageController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('page.show');

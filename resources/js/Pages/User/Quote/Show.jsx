@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import PageHeader from "@/Components/Layout/PageHeader";
-import { Card, CardHeader, CardBody, CardTitle } from "@/Components/Card";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardBody,
+    UserCardTitle,
+} from "@/Components/User";
 import Badge from "@/Components/Badge";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import {
-    ArrowLeftIcon,
     DocumentTextIcon,
     CheckIcon,
     XMarkIcon,
@@ -15,6 +19,8 @@ import {
 
 export default function Show({ quote }) {
     const [showDetails, setShowDetails] = useState(true);
+    // 金額・明細は currentVersion 側に保持されている
+    const currentVersion = quote.current_version;
 
     const formatDate = (date) => {
         if (!date) return "-";
@@ -76,135 +82,143 @@ export default function Show({ quote }) {
         router.visit(route("user.quote.index"));
     };
 
+    const breadcrumbs = [
+        { label: "ダッシュボード", href: "/dashboard" },
+        { label: "見積書一覧", href: route("user.quote.index") },
+        { label: quote.quote_number, href: null },
+    ];
+
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <UserPageHeader
+                    title={`見積書 ${quote.quote_number}`}
+                    description={quote.title}
+                    breadcrumbs={breadcrumbs}
+                    actions={[
+                        {
+                            label: "戻る",
+                            variant: "default",
+                            onClick: handleBack,
+                        },
+                        {
+                            label: "PDFをダウンロード",
+                            variant: "primary",
+                            onClick: handleDownloadPdf,
+                        },
+                    ]}
+                />
+            }
+        >
             <Head title={`見積書 - ${quote.quote_number}`} />
             <FlashMessage />
 
             <div className="space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <button
-                        onClick={handleBack}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    >
-                        <ArrowLeftIcon className="h-5 w-5" />
-                        <span>戻る</span>
-                    </button>
-                    <button
-                        onClick={handleDownloadPdf}
-                        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-900 border border-blue-600 hover:border-blue-900 rounded transition-colors"
-                    >
-                        <DocumentTextIcon className="h-5 w-5" />
-                        PDFをダウンロード
-                    </button>
-                </div>
-
                 {/* 基本情報 */}
-                <Card>
-                    <CardHeader>
+                <UserCard>
+                    <UserCardHeader>
                         <div className="flex justify-between items-center">
-                            <CardTitle>見積書情報</CardTitle>
+                            <UserCardTitle>見積書情報</UserCardTitle>
                             <Badge className={getStatusColor(quote.status)}>
                                 {getStatusLabel(quote.status)}
                             </Badge>
                         </div>
-                    </CardHeader>
-                    <CardBody>
+                    </UserCardHeader>
+                    <UserCardBody>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     見積書番号
                                 </dt>
-                                <dd className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-gray-100">
+                                <dd className="mt-1 text-lg font-mono font-semibold text-gray-900">
                                     {quote.quote_number}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     タイトル
                                 </dt>
-                                <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <dd className="mt-1 text-lg font-semibold text-gray-900">
                                     {quote.title}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     有効期限
                                 </dt>
-                                <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <dd className="mt-1 text-lg font-semibold text-gray-900">
                                     {formatDate(quote.expiry_date)}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     送信日
                                 </dt>
-                                <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <dd className="mt-1 text-lg font-semibold text-gray-900">
                                     {formatDate(quote.sent_at)}
                                 </dd>
                             </div>
                         </div>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
 
                 {/* 説明 */}
                 {quote.description && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>説明</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    <UserCard>
+                        <UserCardHeader>
+                            <UserCardTitle>説明</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
+                            <p className="text-gray-700 whitespace-pre-wrap">
                                 {quote.description}
                             </p>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 )}
 
                 {/* 見積明細 */}
-                {quote.items && quote.items.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>見積明細</CardTitle>
-                        </CardHeader>
-                        <CardBody>
+                {currentVersion?.items && currentVersion.items.length > 0 && (
+                    <UserCard>
+                        <UserCardHeader>
+                            <UserCardTitle>見積明細</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="border-b border-gray-200 dark:border-gray-700">
+                                    <thead className="border-b border-gray-200">
                                         <tr>
-                                            <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                            <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                 項目
                                             </th>
-                                            <th className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">
                                                 数量
                                             </th>
-                                            <th className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">
                                                 単価
                                             </th>
-                                            <th className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">
+                                            <th className="px-4 py-3 text-right font-semibold text-gray-700">
                                                 金額
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {quote.items.map((item, idx) => (
+                                        {currentVersion.items.map((item, idx) => (
                                             <tr
                                                 key={idx}
-                                                className="border-b border-gray-100 dark:border-gray-700"
+                                                className="border-b border-gray-100"
                                             >
-                                                <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                <td className="px-4 py-3 text-gray-900">
                                                     {item.name}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-100">
+                                                <td className="px-4 py-3 text-right text-gray-900">
                                                     {item.quantity}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-100">
+                                                <td className="px-4 py-3 text-right text-gray-900">
                                                     {formatAmount(
                                                         item.unit_price,
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">
+                                                <td className="px-4 py-3 text-right font-semibold text-gray-900">
                                                     {formatAmount(
                                                         item.quantity *
                                                             item.unit_price,
@@ -219,55 +233,55 @@ export default function Show({ quote }) {
                             {/* 合計 */}
                             <div className="mt-6 space-y-2">
                                 <div className="flex justify-end gap-12">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                                    <span className="font-medium text-gray-700">
                                         小計
                                     </span>
-                                    <span className="font-semibold text-gray-900 dark:text-gray-100 w-24 text-right">
-                                        {formatAmount(quote.subtotal_amount)}
+                                    <span className="font-semibold text-gray-900 w-24 text-right">
+                                        {formatAmount(currentVersion.base_amount)}
                                     </span>
                                 </div>
-                                {quote.discount_amount > 0 && (
+                                {currentVersion.discount_amount > 0 && (
                                     <div className="flex justify-end gap-12">
-                                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                                        <span className="font-medium text-gray-700">
                                             割引
                                         </span>
-                                        <span className="font-semibold text-gray-900 dark:text-gray-100 w-24 text-right">
+                                        <span className="font-semibold text-gray-900 w-24 text-right">
                                             -
                                             {formatAmount(
-                                                quote.discount_amount,
+                                                currentVersion.discount_amount,
                                             )}
                                         </span>
                                     </div>
                                 )}
-                                {quote.tax_rate > 0 && (
+                                {currentVersion.tax_rate > 0 && (
                                     <div className="flex justify-end gap-12">
-                                        <span className="font-medium text-gray-700 dark:text-gray-300">
-                                            税金 ({quote.tax_rate}%)
+                                        <span className="font-medium text-gray-700">
+                                            税金 ({currentVersion.tax_rate}%)
                                         </span>
-                                        <span className="font-semibold text-gray-900 dark:text-gray-100 w-24 text-right">
-                                            {formatAmount(quote.tax_amount)}
+                                        <span className="font-semibold text-gray-900 w-24 text-right">
+                                            {formatAmount(currentVersion.tax_amount)}
                                         </span>
                                     </div>
                                 )}
-                                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-end gap-12">
-                                    <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                                <div className="border-t border-gray-200 pt-2 flex justify-end gap-12">
+                                    <span className="font-bold text-lg text-gray-900">
                                         合計
                                     </span>
-                                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400 w-24 text-right">
-                                        {formatAmount(quote.total_amount)}
+                                    <span className="font-bold text-lg text-blue-600 w-24 text-right">
+                                        {formatAmount(currentVersion.total_amount)}
                                     </span>
                                 </div>
                             </div>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 )}
 
                 {/* 見積PDF表示 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>見積書PDF</CardTitle>
-                    </CardHeader>
-                    <CardBody>
+                <UserCard>
+                    <UserCardHeader>
+                        <UserCardTitle>見積書PDF</UserCardTitle>
+                    </UserCardHeader>
+                    <UserCardBody>
                         <div
                             style={{
                                 height: "600px",
@@ -286,12 +300,12 @@ export default function Show({ quote }) {
                                 title="見積書PDF"
                             />
                         </div>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
 
                 {/* アクションボタン */}
-                <Card>
-                    <CardBody>
+                <UserCard>
+                    <UserCardBody>
                         <div className="flex gap-3 flex-wrap">
                             {(quote.status === "draft" ||
                                 quote.status === "negotiating") && (
@@ -316,8 +330,8 @@ export default function Show({ quote }) {
                                 戻る
                             </SecondaryButton>
                         </div>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
             </div>
         </AuthenticatedLayout>
     );

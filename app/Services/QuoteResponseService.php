@@ -156,7 +156,7 @@ class QuoteResponseService extends BaseService
     public function getDetail(string $id): QuoteResponse
     {
         return $this->repository->getQuery()
-            ->with(['quote', 'quote.contact', 'user', 'company'])
+            ->with(['quote.contact', 'quote.currentVersion', 'user', 'company'])
             ->findOrFail($id);
     }
 

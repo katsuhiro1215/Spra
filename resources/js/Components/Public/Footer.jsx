@@ -250,7 +250,7 @@ export default function Footer({ logoUrl = "/upload/logo.svg" }) {
                                 利用規約
                             </Link>
                             <Link
-                                href="/privacy"
+                                href="/privacy-policy"
                                 className="hover:text-white transition-colors"
                             >
                                 プライバシーポリシー

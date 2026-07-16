@@ -59,7 +59,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Category/Create', [
+        return Inertia::render('Admin/ServiceCategories/Create', [
             'statuses' => $statuses,
         ]);
     }

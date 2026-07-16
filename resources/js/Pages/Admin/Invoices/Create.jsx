@@ -38,7 +38,7 @@ export default function Create({
         due_date: "",
         status: "draft",
         subtotal: 0,
-        tax_rate: 0.1,
+        tax_rate: 10,
         tax_amount: 0,
         total_amount: 0,
         notes: "",
@@ -72,12 +72,14 @@ export default function Create({
         }
 
         if (contract) {
-            const contractAmount = contract.current_version?.total_amount || 0;
+            const currentVersion = contract.current_version;
+            // 消費税は課税対象額（小計 - 割引）に対してかかるため、税込の総額ではなく
+            // 課税対象額を按分の基準にする（税込総額を基準にすると二重課税になる）
+            const taxableBase =
+                (currentVersion?.base_amount || 0) -
+                (currentVersion?.discount_amount || 0);
             const rate = isPartialBilling ? billingRate : 100;
-            const billedAmount = Math.round(contractAmount * (rate / 100));
-            const taxRate = 0.1;
-            const taxAmount = Math.round(billedAmount * taxRate);
-            const totalAmount = billedAmount + taxAmount;
+            const billedSubtotal = Math.round(taxableBase * (rate / 100));
 
             setData((prev) => ({
                 ...prev,
@@ -86,9 +88,8 @@ export default function Create({
                 company_id: contract.company_id || "",
                 billing_period_start: contract.start_date || today,
                 billing_period_end: contract.end_date || "",
-                subtotal: billedAmount,
-                tax_amount: taxAmount,
-                total_amount: totalAmount,
+                subtotal: billedSubtotal,
+                tax_rate: currentVersion?.tax_rate ?? 10,
             }));
         }
     }, [company, user, contract, billingRate, isPartialBilling]);
@@ -203,8 +204,11 @@ export default function Create({
                                 <span className="font-semibold text-lg text-blue-900 dark:text-blue-100 ml-2">
                                     ¥
                                     {Math.round(
-                                        data.subtotal || 0,
+                                        data.total_amount || 0,
                                     ).toLocaleString()}
+                                    <span className="text-xs font-normal ml-1">
+                                        （税込）
+                                    </span>
                                 </span>
                                 {isPartialBilling && (
                                     <span className="text-blue-700 dark:text-blue-300 ml-4">
@@ -212,7 +216,7 @@ export default function Create({
                                         {Math.round(
                                             (contract.current_version
                                                 ?.total_amount || 0) -
-                                                (data.subtotal || 0),
+                                                (data.total_amount || 0),
                                         ).toLocaleString()}
                                     </span>
                                 )}

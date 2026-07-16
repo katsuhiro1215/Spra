@@ -86,12 +86,12 @@ class QuoteResponseController extends Controller
 
         // Check if already registered
         if ($quoteResponse->user_id) {
-            return redirect()->route('public.home')->with('error', 'このリンクは既に使用されています。');
+            return redirect()->route('home')->with('error', 'このリンクは既に使用されています。');
         }
 
         // Check if token is expired (7 days)
         if ($quoteResponse->created_at->addDays(7)->isPast()) {
-            return redirect()->route('public.home')->with('error', 'このリンクの有効期限が切れています。');
+            return redirect()->route('home')->with('error', 'このリンクの有効期限が切れています。');
         }
 
         return Inertia::render('QuoteResponseRegister', [
@@ -112,12 +112,12 @@ class QuoteResponseController extends Controller
 
             // Check if already registered
             if ($quoteResponse->user_id) {
-                return redirect()->route('public.home')->with('error', 'このリンクは既に使用されています。');
+                return redirect()->route('home')->with('error', 'このリンクは既に使用されています。');
             }
 
             // Check if token is expired (7 days)
             if ($quoteResponse->created_at->addDays(7)->isPast()) {
-                return redirect()->route('public.home')->with('error', 'このリンクの有効期限が切れています。');
+                return redirect()->route('home')->with('error', 'このリンクの有効期限が切れています。');
             }
 
             // Validate - Stage 1: Only essential information
@@ -158,7 +158,7 @@ class QuoteResponseController extends Controller
                 ]);
             });
 
-            return redirect()->route('public.home')->with('success', 'アカウントを作成しました。ログインしてダッシュボードにアクセスしてください。管理者の確認後、追加情報の登録をお願いいたします。');
+            return redirect()->route('user.login')->with('success', 'アカウントを作成しました。ログインしてダッシュボードにアクセスしてください。管理者の確認後、追加情報の登録をお願いいたします。');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors());
         } catch (\Exception $e) {

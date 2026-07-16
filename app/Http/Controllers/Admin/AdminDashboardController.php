@@ -48,6 +48,11 @@ class AdminDashboardController extends Controller
                 'route' => route('admin.quote-response.index', ['status' => 'pending']),
             ],
             [
+                'label' => '確認待ちの入金報告',
+                'count' => Payment::where('status', 'pending')->count(),
+                'route' => route('admin.payment.index', ['status' => 'pending']),
+            ],
+            [
                 'label' => '署名待ちの契約',
                 'count' => Contract::where('status', 'pending_signature')->count(),
                 'route' => route('admin.contract.index'),

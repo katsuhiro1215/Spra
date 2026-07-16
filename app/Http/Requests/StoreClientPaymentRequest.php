@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class StorePaymentNotificationRequest extends FormRequest
+class StoreClientPaymentRequest extends FormRequest
 {
   public function authorize(): bool
   {
@@ -37,7 +37,7 @@ class StorePaymentNotificationRequest extends FormRequest
   }
 
   /**
-   * 請求書の残額を超える金額は通知できないようにする
+   * 請求書の残額を超える金額は登録できないようにする
    */
   public function withValidator(Validator $validator): void
   {

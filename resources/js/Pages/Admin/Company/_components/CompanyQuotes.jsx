@@ -39,13 +39,18 @@ export default function CompanyQuotes({ quotes = [] }) {
     };
 
     const totalAmount = quotes.reduce(
-        (sum, quote) => sum + parseFloat(quote.total_amount || 0),
+        (sum, quote) =>
+            sum + parseFloat(quote.current_version?.total_amount || 0),
         0,
     );
 
     const approvedAmount = quotes
         .filter((q) => q.status === "approved")
-        .reduce((sum, quote) => sum + parseFloat(quote.total_amount || 0), 0);
+        .reduce(
+            (sum, quote) =>
+                sum + parseFloat(quote.current_version?.total_amount || 0),
+            0,
+        );
 
     return (
         <div className="space-y-6">
@@ -183,7 +188,8 @@ export default function CompanyQuotes({ quotes = [] }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
                                                 {formatCurrency(
-                                                    quote.total_amount,
+                                                    quote.current_version
+                                                        ?.total_amount,
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">

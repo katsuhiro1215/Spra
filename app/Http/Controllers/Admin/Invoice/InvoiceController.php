@@ -14,7 +14,6 @@ use App\Services\ReceiptService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -221,11 +220,22 @@ class InvoiceController extends Controller
             'notes'             => 'nullable|string',
         ]);
 
+        $wasReceiptIssued = (bool) $invoice->receipt;
+
         $this->paymentService->create(array_merge($validated, [
             'invoice_id' => $invoice->id,
             'status' => 'completed',
             'confirmed_by' => auth('admins')->id(),
         ]));
+
+        // 請求額に達した場合、領収書が下書きとして作成される（送信はしない）
+        // 内容を確認してから送信できるよう、領収書詳細画面へ遷移する
+        $freshInvoice = $invoice->fresh('receipt');
+        if ($freshInvoice?->receipt && !$wasReceiptIssued) {
+            return redirect()
+                ->route('admin.receipt.show', $freshInvoice->receipt->id)
+                ->with('success', '入金を記録しました。請求額に達したため領収書を作成しました。内容を確認して送付してください。');
+        }
 
         return back()->with('success', '入金を記録しました。');
     }
@@ -304,6 +314,8 @@ class InvoiceController extends Controller
         }
 
         try {
+            $wasReceiptIssued = (bool) $invoice->receipt;
+
             $this->paymentService->create([
                 'invoice_id' => $invoice->id,
                 'company_id' => $invoice->company_id,
@@ -316,7 +328,16 @@ class InvoiceController extends Controller
                 'confirmed_at' => now(),
             ]);
 
-            return back()->with('success', '入金を確認しました。請求額に達したため領収書を発行・送信しました。');
+            // 請求額に達した場合、領収書が下書きとして作成される（送信はしない）
+            // 内容を確認してから送信できるよう、領収書詳細画面へ遷移する
+            $freshInvoice = $invoice->fresh('receipt');
+            if ($freshInvoice?->receipt && !$wasReceiptIssued) {
+                return redirect()
+                    ->route('admin.receipt.show', $freshInvoice->receipt->id)
+                    ->with('success', '入金を確認しました。請求額に達したため領収書を作成しました。内容を確認して送付してください。');
+            }
+
+            return back()->with('success', '入金を確認しました。');
         } catch (\Exception $e) {
             return back()->with('error', '入金確認処理に失敗しました: ' . $e->getMessage());
         }
@@ -358,15 +379,10 @@ class InvoiceController extends Controller
         abort_unless($invoice, 404);
 
         try {
-            $paymentNotificationId = $request->input('payment_notification_id');
-            $payment = null;
-
-            if ($paymentNotificationId) {
-                $paymentNotification = $invoice->paymentNotifications()
-                    ->where('id', $paymentNotificationId)
-                    ->first();
-                $payment = $paymentNotification?->payment;
-            }
+            $paymentId = $request->input('payment_id');
+            $payment = $paymentId
+                ? $invoice->payments()->where('id', $paymentId)->first()
+                : null;
 
             $receipt = $this->receiptService->issueReceipt($invoice, $payment);
 
@@ -377,51 +393,6 @@ class InvoiceController extends Controller
                 ->with('success', '領収書を発行・送付しました。');
         } catch (\Exception $e) {
             return back()->with('error', '領収書の発行に失敗しました: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * 支払い通知を確認
-     * 実際の入金記録(Payment)を作成し、請求額との比較により自動的に支払済み判定・領収書発行を行う
-     */
-    public function acknowledgePaymentNotification(string $invoiceId, string $notificationId): RedirectResponse
-    {
-        $invoice = $this->service->findById($invoiceId);
-        abort_unless($invoice, 404);
-
-        $notification = $invoice->paymentNotifications()
-            ->where('id', $notificationId)
-            ->first();
-
-        abort_unless($notification, 404);
-
-        if (!$notification->isPending()) {
-            return back()->with('error', 'この通知は既に確認済みです。');
-        }
-
-        try {
-            DB::transaction(function () use ($invoice, $notification) {
-                $adminId = auth('admins')->id();
-
-                $payment = $this->paymentService->create([
-                    'invoice_id' => $invoice->id,
-                    'company_id' => $invoice->company_id,
-                    'amount' => $notification->amount,
-                    'payment_method' => $notification->payment_method,
-                    'payment_date' => $notification->payment_date,
-                    'transaction_id' => $notification->transaction_id,
-                    'notes' => $notification->notes,
-                    'status' => 'completed',
-                    'confirmed_by' => $adminId,
-                    'confirmed_at' => now(),
-                ]);
-
-                $this->receiptService->acknowledgePaymentNotification($notification, $adminId, $payment->id);
-            });
-
-            return back()->with('success', '支払い通知を確認し、入金を記録しました。');
-        } catch (\Exception $e) {
-            return back()->with('error', '支払い通知の確認に失敗しました: ' . $e->getMessage());
         }
     }
 

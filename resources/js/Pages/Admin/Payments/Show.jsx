@@ -4,7 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
-import { TextButton, DangerButton } from "@/Components/Buttons";
+import { TextButton, DangerButton, PrimaryButton } from "@/Components/Buttons";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
@@ -32,6 +32,13 @@ export default function Show({ payment }) {
         router.delete(route("admin.payment.destroy", payment.id), {
             onFinish: () => setShowDelete(false),
         });
+    };
+
+    const handleConfirmPayment = () => {
+        if (!confirm(`${formatAmount(payment.amount)} の入金を確認しますか？`)) {
+            return;
+        }
+        router.post(route("admin.payment.confirm", payment.id));
     };
 
     const headerActions = [
@@ -188,10 +195,15 @@ export default function Show({ payment }) {
                     </Card>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-3">
                     <DangerButton onClick={() => setShowDelete(true)}>
                         入金記録を削除
                     </DangerButton>
+                    {payment.status === "pending" && (
+                        <PrimaryButton onClick={handleConfirmPayment}>
+                            入金を確認しました
+                        </PrimaryButton>
+                    )}
                 </div>
             </div>
         </AdminAuthenticatedLayout>

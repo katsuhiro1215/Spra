@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";

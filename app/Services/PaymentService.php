@@ -79,10 +79,7 @@ class PaymentService
   public function confirm(Payment $payment, string $confirmedByAdminId): Payment
   {
     return DB::transaction(function () use ($payment, $confirmedByAdminId) {
-      $confirmed = $this->paymentRepository->update($payment, [
-        'status' => 'completed',
-        'confirmed_by' => $confirmedByAdminId,
-      ]);
+      $confirmed = $this->paymentRepository->confirm($payment, $confirmedByAdminId);
 
       // 請求書のステータスを更新
       if ($confirmed->invoice_id) {
@@ -151,8 +148,11 @@ class PaymentService
   }
 
   /**
-   * 支払済みになった請求書の領収書を自動発行・送付する
+   * 支払済みになった請求書の領収書を自動発行する（下書きとして作成するのみ）
    * 既に発行済みの場合は何もしない(冪等)
+   *
+   * 送信までは自動で行わない。金額や宛名に誤りがないか管理者が内容を確認してから
+   * 明示的に送信する運用のため（ReceiptController::send() / 領収書詳細画面）。
    */
   private function issueReceiptForInvoice(Invoice $invoice): void
   {
@@ -166,8 +166,7 @@ class PaymentService
         ->latest('payment_date')
         ->first();
 
-      $receipt = $this->receiptService->issueReceipt($invoice, $latestPayment);
-      $this->receiptService->sendReceipt($receipt);
+      $this->receiptService->issueReceipt($invoice, $latestPayment);
     } catch (\Exception $e) {
       Log::error('領収書の自動発行に失敗しました', [
         'invoice_id' => $invoice->id,

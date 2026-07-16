@@ -137,9 +137,9 @@ class Admin extends Authenticatable
 
 
 
-    public function acknowledgedPaymentNotifications(): HasMany
+    public function confirmedPayments(): HasMany
     {
-        return $this->hasMany(PaymentNotification::class, 'acknowledged_by');
+        return $this->hasMany(Payment::class, 'confirmed_by');
     }
 
     // -------------------------

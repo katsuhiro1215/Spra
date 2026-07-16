@@ -1,15 +1,11 @@
 import React from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { CommonUIConstants } from "@/Constants/CommonUIConstants";
-// ServiceCategory Components
 import ServiceCategoryForm from "./_components/Form";
 
 export default function Create() {

@@ -2,7 +2,12 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
-import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardTitle,
+    UserCardBody,
+} from "@/Components/User";
 import { PrimaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
@@ -48,64 +53,64 @@ export default function Show({ receipt }) {
                     </PrimaryButton>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>領収書情報</CardTitle>
-                    </CardHeader>
-                    <CardBody>
+                <UserCard>
+                    <UserCardHeader>
+                        <UserCardTitle>領収書情報</UserCardTitle>
+                    </UserCardHeader>
+                    <UserCardBody>
                         <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     領収書番号
                                 </dt>
-                                <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                <dd className="mt-1 text-lg font-semibold text-gray-900">
                                     {receipt.receipt_number}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                <dt className="text-sm font-medium text-gray-500">
                                     発行日
                                 </dt>
-                                <dd className="mt-1 text-gray-900 dark:text-white">
+                                <dd className="mt-1 text-gray-900">
                                     {formatDate(receipt.issued_at)}
                                 </dd>
                             </div>
                             {receipt.invoice && (
                                 <div className="md:col-span-2">
-                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <dt className="text-sm font-medium text-gray-500">
                                         関連請求書
                                     </dt>
-                                    <dd className="mt-1 text-gray-900 dark:text-white">
+                                    <dd className="mt-1 text-gray-900">
                                         {receipt.invoice.invoice_number}
                                     </dd>
                                 </div>
                             )}
                         </dl>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
 
-                <Card>
-                    <CardBody>
+                <UserCard>
+                    <UserCardBody>
                         <div className="space-y-2 max-w-md ml-auto">
-                            <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                            <div className="flex justify-between text-gray-700">
                                 <span>金額（税抜き）</span>
                                 <span>{formatAmount(receipt.amount)}</span>
                             </div>
-                            <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                            <div className="flex justify-between text-gray-700">
                                 <span>消費税</span>
                                 <span>
                                     {formatAmount(receipt.tax_amount)}
                                 </span>
                             </div>
-                            <div className="flex justify-between text-2xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-3">
+                            <div className="flex justify-between text-2xl font-bold text-gray-900 border-t border-gray-300 pt-3">
                                 <span>合計</span>
                                 <span>
                                     {formatAmount(receipt.total_amount)}
                                 </span>
                             </div>
                         </div>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
             </div>
         </AuthenticatedLayout>
     );

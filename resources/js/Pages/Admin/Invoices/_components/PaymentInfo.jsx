@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 import { Card, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { Badge } from "@/Components/Badges";
 import { FormField, FormSelect, FormTextarea } from "@/Components/Forms";
 import {
     PAYMENT_METHOD_OPTIONS,
@@ -56,6 +57,20 @@ export default function PaymentInfo({ invoice, payments }) {
         });
     };
 
+    const handleConfirmPayment = (payment) => {
+        if (!confirm(`${formatAmount(payment.amount)} の入金を確認しますか？`)) {
+            return;
+        }
+        router.post(route("admin.payment.confirm", payment.id), {}, {
+            preserveScroll: true,
+        });
+    };
+
+    const pendingPayments =
+        payments?.filter((p) => p.status === "pending") || [];
+    const confirmedPayments =
+        payments?.filter((p) => p.status !== "pending") || [];
+
     const totalPaid =
         payments?.reduce((sum, p) => {
             if (p.status === "completed") {
@@ -99,6 +114,55 @@ export default function PaymentInfo({ invoice, payments }) {
                                     残高: {formatAmount(remainingAmount)}
                                 </span>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 確認待ちの入金報告 */}
+                {pendingPayments.length > 0 && (
+                    <div className="mb-6 border border-yellow-300 dark:border-yellow-700 rounded-lg overflow-hidden">
+                        <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                            確認待ちの入金報告
+                        </div>
+                        <div className="divide-y divide-yellow-200 dark:divide-yellow-800">
+                            {pendingPayments.map((payment) => (
+                                <div
+                                    key={payment.id}
+                                    className="flex items-center justify-between gap-4 p-4"
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-900 dark:text-white">
+                                                {formatAmount(payment.amount)}
+                                            </span>
+                                            <Badge variant="warning">
+                                                {payment.status_name}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            {formatDate(payment.payment_date)}{" "}
+                                            ・{" "}
+                                            {getPaymentMethodLabel(
+                                                payment.payment_method,
+                                            )}
+                                            {payment.transaction_id &&
+                                                ` ・ ${payment.transaction_id}`}
+                                        </p>
+                                        {payment.notes && (
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                {payment.notes}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <PrimaryButton
+                                        onClick={() =>
+                                            handleConfirmPayment(payment)
+                                        }
+                                    >
+                                        入金を確認しました
+                                    </PrimaryButton>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -207,8 +271,8 @@ export default function PaymentInfo({ invoice, payments }) {
                     </div>
                 )}
 
-                {/* 支払い履歴 */}
-                {payments && payments.length > 0 ? (
+                {/* 入金履歴 */}
+                {confirmedPayments.length > 0 ? (
                     <div className="overflow-x-auto">
                         <Table>
                             <THead>
@@ -219,10 +283,11 @@ export default function PaymentInfo({ invoice, payments }) {
                                     <Th>支払区分</Th>
                                     <Th>取引ID</Th>
                                     <Th>備考</Th>
+                                    <Th>ステータス</Th>
                                 </Tr>
                             </THead>
                             <TBody>
-                                {payments.map((payment) => (
+                                {confirmedPayments.map((payment) => (
                                     <Tr key={payment.id}>
                                         <Td className="text-gray-900 dark:text-white">
                                             {formatDate(payment.payment_date)}
@@ -247,6 +312,21 @@ export default function PaymentInfo({ invoice, payments }) {
                                         </Td>
                                         <Td className="text-sm text-gray-600 dark:text-gray-400">
                                             {payment.notes || "-"}
+                                        </Td>
+                                        <Td>
+                                            <Badge
+                                                variant={
+                                                    payment.status ===
+                                                    "completed"
+                                                        ? "success"
+                                                        : payment.status ===
+                                                            "failed"
+                                                          ? "danger"
+                                                          : "secondary"
+                                                }
+                                            >
+                                                {payment.status_name}
+                                            </Badge>
                                         </Td>
                                     </Tr>
                                 ))}

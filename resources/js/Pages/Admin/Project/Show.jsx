@@ -65,15 +65,9 @@ export default function Show({ project, currentVersion, progress = 0 }) {
 
     const headerActions = [
         {
-            label: "バージョン管理",
-            icon: FolderIcon,
-            variant: "primary",
-            route: route("admin.project.versions.index", project.id),
-        },
-        {
             label: "戻る",
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.project.index"),
         },
     ];
@@ -92,24 +86,24 @@ export default function Show({ project, currentVersion, progress = 0 }) {
     ];
 
     return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={`プロジェクト: ${project.title}`}
+                    description={project.project_code || "プロジェクトの詳細"}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title={`${project.title} - プロジェクト詳細`} />
-
-            <PageHeader
-                title="プロジェクト"
-                description="プロジェクトの詳細"
-                actions={headerActions}
-            />
 
             <FlashMessage />
 
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                            {project.title}
-                        </h1>
+                {/* ステータス・アクション */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
                         <Badge variant={getStatusBadge(project.status).variant}>
                             {getStatusBadge(project.status).label}
                         </Badge>
@@ -123,12 +117,23 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                         )}
                     </div>
 
-                    <SecondaryButton
-                        href={route("admin.project.edit", project.id)}
-                        icon={PencilIcon}
-                    >
-                        編集
-                    </SecondaryButton>
+                    <div className="flex gap-2">
+                        <SecondaryButton
+                            href={route(
+                                "admin.project.versions.index",
+                                project.id,
+                            )}
+                            icon={FolderIcon}
+                        >
+                            バージョン管理
+                        </SecondaryButton>
+                        <SecondaryButton
+                            href={route("admin.project.edit", project.id)}
+                            icon={PencilIcon}
+                        >
+                            編集
+                        </SecondaryButton>
+                    </div>
                 </div>
 
                 {/* プロジェクトコード */}
