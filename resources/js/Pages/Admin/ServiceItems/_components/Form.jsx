@@ -19,6 +19,7 @@ const ServiceItemForm = ({
     statuses,
     itemTypes,
     services,
+    benefitTypes,
     mode = "create",
 }) => {
     const [autoSlug, setAutoSlug] = useState(mode === "create");
@@ -74,6 +75,14 @@ const ServiceItemForm = ({
         return services.map((service) => ({
             value: service.id,
             label: service.name,
+        }));
+    };
+
+    const getBenefitTypeOptions = () => {
+        if (!benefitTypes) return [];
+        return Object.entries(benefitTypes).map(([key, value]) => ({
+            value: key,
+            label: value,
         }));
     };
 
@@ -261,6 +270,73 @@ const ServiceItemForm = ({
                                 step={0.5}
                                 placeholder="10"
                                 disabled={processing}
+                            />
+                        </FormGroup>
+                    </div>
+                </CardBody>
+            </Card>
+
+            {/* 契約特典（チケット） */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>契約特典（チケット）</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+                        この項目を契約に含めた場合に付与されるミーティングチケットの設定です。特典を付与しない項目は「特典タイプ」を未選択のままにしてください。
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* 特典タイプ */}
+                        <FormGroup
+                            label="特典タイプ"
+                            error={errors.benefit_type}
+                        >
+                            <SelectInput
+                                value={data.benefit_type || ""}
+                                onChange={(e) =>
+                                    setData(
+                                        "benefit_type",
+                                        e.target.value || null,
+                                    )
+                                }
+                                options={getBenefitTypeOptions()}
+                                disabled={processing}
+                            >
+                                <option value="">なし</option>
+                            </SelectInput>
+                        </FormGroup>
+
+                        {/* 付与チケット枚数 */}
+                        <FormGroup
+                            label="付与チケット枚数（1単位あたり）"
+                            error={errors.benefit_ticket_count}
+                        >
+                            <NumberInput
+                                value={data.benefit_ticket_count}
+                                onChange={(value) =>
+                                    setData("benefit_ticket_count", value)
+                                }
+                                min={0}
+                                step={1}
+                                placeholder="4"
+                                disabled={processing || !data.benefit_type}
+                            />
+                        </FormGroup>
+
+                        {/* 1枚あたりの時間 */}
+                        <FormGroup
+                            label="チケット1枚あたりの時間（分）"
+                            error={errors.benefit_unit_minutes}
+                        >
+                            <NumberInput
+                                value={data.benefit_unit_minutes}
+                                onChange={(value) =>
+                                    setData("benefit_unit_minutes", value)
+                                }
+                                min={0}
+                                step={5}
+                                placeholder="30"
+                                disabled={processing || !data.benefit_type}
                             />
                         </FormGroup>
                     </div>

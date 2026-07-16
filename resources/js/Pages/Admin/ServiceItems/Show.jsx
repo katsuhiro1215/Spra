@@ -15,7 +15,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Show({ serviceItem }) {
+export default function Show({ serviceItem, benefitTypes }) {
     // ========================================
     // Constants - Header Actions
     // ========================================
@@ -249,6 +249,53 @@ export default function Show({ serviceItem }) {
                                         </div>
                                     )}
                                 </Dl>
+                            </CardBody>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>契約特典（チケット）</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                {serviceItem.benefit_type ? (
+                                    <Dl>
+                                        <div>
+                                            <Dt>特典タイプ</Dt>
+                                            <Dd>
+                                                {benefitTypes?.[
+                                                    serviceItem.benefit_type
+                                                ] || serviceItem.benefit_type}
+                                            </Dd>
+                                        </div>
+                                        <div>
+                                            <Dt>
+                                                付与チケット枚数（1単位あたり）
+                                            </Dt>
+                                            <Dd>
+                                                {serviceItem.benefit_ticket_count ??
+                                                    "---"}
+                                                枚
+                                            </Dd>
+                                        </div>
+                                        {serviceItem.benefit_unit_minutes && (
+                                            <div>
+                                                <Dt>
+                                                    チケット1枚あたりの時間
+                                                </Dt>
+                                                <Dd>
+                                                    {
+                                                        serviceItem.benefit_unit_minutes
+                                                    }
+                                                    分
+                                                </Dd>
+                                            </div>
+                                        )}
+                                    </Dl>
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        この項目には契約特典（チケット）は設定されていません。
+                                    </p>
+                                )}
                             </CardBody>
                         </Card>
                     </div>

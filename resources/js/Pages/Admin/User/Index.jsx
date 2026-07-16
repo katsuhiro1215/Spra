@@ -1,50 +1,65 @@
 import { useState, useEffect } from "react";
-import { Head, Link, useForm, router } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 // Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import { CreateButton, SecondaryButton } from "@/Components/Buttons";
-import TabNavigation from "@/Components/TabNavigation";
-import SearchBar from "@/Components/SearchBar";
-import FilterSelect from "@/Components/FilterSelect";
+import { CrudButton, IconButton } from "@/Components/Buttons";
 // Icons
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+    PlusIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
+    UserGroupIcon,
+} from "@heroicons/react/24/outline";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
-import { ADMIN_STATUS_OPTIONS } from "@/Constants/SelectOptions";
 // User Components
+import UsersFilterBar from "./_components/UsersFilterBar";
 import UsersTable from "./_components/UsersTable";
+import UsersGrid from "./_components/UsersGrid";
+
+const DEFAULT_TRASHED = "without_trashed";
+const VIEW_MODE_STORAGE_KEY = "users-view-mode";
+
+// filters props からフォームの初期値/リセット値を組み立てる
+const buildFilterState = (filters) => ({
+    search: filters.search || "",
+    status: filters.status || "",
+    trashed: filters.trashed || DEFAULT_TRASHED,
+});
 
 export default function Index({ users, filters, stats }) {
     // ========================================
     // State & Form
     // ========================================
     const [activeTab, setActiveTab] = useState(
-        filters.trashed || "without_trashed",
+        filters.trashed || DEFAULT_TRASHED,
     );
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "table",
+    );
 
-    const { data, setData, get, processing } = useForm({
-        search: filters.search || "",
-        status: filters.status || "",
-        trashed: filters.trashed || "without_trashed",
-    });
+    const { data, setData, get, processing } = useForm(
+        buildFilterState(filters),
+    );
 
     // ========================================
     // Effects
     // ========================================
     // propsが更新されたらstateも更新
     useEffect(() => {
-        setActiveTab(filters.trashed || "without_trashed");
-        setData({
-            search: filters.search || "",
-            status: filters.status || "",
-            trashed: filters.trashed || "without_trashed",
-        });
+        setActiveTab(filters.trashed || DEFAULT_TRASHED);
+        setData(buildFilterState(filters));
     }, [filters.trashed]);
+
+    // 表示モード（テーブル/グリッド）を記憶
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     // フィルターがアクティブな場合は自動的に開く
     useEffect(() => {
@@ -91,7 +106,6 @@ export default function Index({ users, filters, stats }) {
         });
     };
 
-    // フィルタークリア
     const handleClearFilters = () => {
         setData({
             search: "",
@@ -108,12 +122,12 @@ export default function Index({ users, filters, stats }) {
     // ========================================
     // Handlers - Delete
     // ========================================
-    const handleDelete = (admin) => {
+    const handleDelete = (user) => {
         const confirmed = confirm(
-            `${admin.profile ? admin.profile.last_name : admin.email} を削除してもよろしいですか？`,
+            `${user.profile ? user.profile.last_name : user.email} を削除してもよろしいですか？`,
         );
         if (confirmed) {
-            router.delete(route("admin.user.destroy", admin.id));
+            router.delete(route("admin.user.destroy", user.id));
         }
     };
 
@@ -176,107 +190,111 @@ export default function Index({ users, filters, stats }) {
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* タブ + 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* タブナビゲーション */}
-                            <div className="flex-shrink-0">
-                                <TabNavigation
-                                    tabs={tabs}
-                                    activeTab={activeTab}
-                                    onChange={handleTabChange}
-                                />
-                            </div>
+                {/* 検索・フィルターツールバー */}
+                <UsersFilterBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    data={data}
+                    setData={setData}
+                    onSearch={handleSearch}
+                    searchDisabled={processing}
+                    showFilters={showFilters}
+                    onToggleFilters={() => setShowFilters(!showFilters)}
+                    activeFilterCount={activeFilterCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={handleClearFilters}
+                />
 
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder={
-                                        PageConfig.users.ui.search.placeholder
-                                    }
-                                    disabled={processing}
-                                />
-                            </div>
-
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
-                                <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    size="sm"
-                                    className="relative"
-                                >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    {PageConfig.users.ui.filter.button}
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </SecondaryButton>
-                            </div>
-                        </div>
-
-                        {/* フィルターセクション（折りたたみ可能）*/}
-                        {showFilters && (
-                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* ステータスフィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.users.filters.status
-                                                .label
-                                        }
-                                        value={data.status}
-                                        onChange={(value) =>
-                                            setData("status", value)
-                                        }
-                                        options={ADMIN_STATUS_OPTIONS}
-                                        placeholder={
-                                            PageConfig.users.filters.status
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* スペーサー */}
-                                    <div className="hidden lg:block"></div>
-
-                                    {/* フィルタークリアボタン */}
-                                    <div className="flex items-end">
-                                        <SecondaryButton
-                                            onClick={handleClearFilters}
-                                            disabled={!hasActiveFilters}
-                                            size="md"
-                                            className="w-full"
-                                        >
-                                            <XMarkIcon className="h-4 w-4 mr-2" />
-                                            {PageConfig.users.ui.filter.clear}
-                                        </SecondaryButton>
+                {users.data.length > 0 ? (
+                    <>
+                        {/* 統計情報 */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                        {stats?.total ?? users.total}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        総数
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                </Card>
-
-                {/* ユーザー一覧テーブル */}
-                <UsersTable users={users} onDelete={handleDelete} />
-
-                {/* ページネーション */}
-                {users.data.length > 0 && <Pagination paginationData={users} />}
-
-                {/* データがない場合 */}
-                {users.data.length === 0 && (
-                    <Card className="text-center py-12">
-                        <div className="text-slate-500 dark:text-slate-400 text-lg mb-4">
-                            👤
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {stats?.active ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        アクティブ
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-slate-500 dark:text-slate-400">
+                                        {stats?.inactive ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        非アクティブ
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card>
+                                <div className="p-4 text-center">
+                                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                        {stats?.suspended ?? 0}
+                                    </div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                        停止中
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
+
+                        {/* 一覧ヘッダー（件数 + 表示切替） */}
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                ユーザー一覧 ({users.total}件)
+                            </h2>
+                            <div className="flex gap-1">
+                                <IconButton
+                                    variant={
+                                        viewMode === "table"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={ListBulletIcon}
+                                    onClick={() => setViewMode("table")}
+                                    title="テーブル表示"
+                                />
+                                <IconButton
+                                    variant={
+                                        viewMode === "grid"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={Squares2X2Icon}
+                                    onClick={() => setViewMode("grid")}
+                                    title="グリッド表示"
+                                />
+                            </div>
+                        </div>
+
+                        {/* テーブル / グリッド */}
+                        {viewMode === "table" ? (
+                            <UsersTable users={users} onDelete={handleDelete} />
+                        ) : (
+                            <UsersGrid users={users} onDelete={handleDelete} />
+                        )}
+
+                        {/* ページネーション */}
+                        <Pagination paginationData={users} />
+                    </>
+                ) : (
+                    /* データがない場合 */
+                    <Card className="text-center py-12">
+                        <UserGroupIcon className="h-10 w-10 mx-auto text-slate-400 dark:text-slate-500 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400 mb-4">
                             {filters.search
                                 ? PageConfig.users.ui.empty.noResults
@@ -285,13 +303,15 @@ export default function Index({ users, filters, stats }) {
                                   : PageConfig.users.ui.empty.noData}
                         </p>
                         {!filters.search && activeTab !== "only_trashed" && (
-                            <CreateButton
+                            <CrudButton
+                                action="create"
+                                useTheme
                                 href={route("admin.user.create")}
                                 size="md"
+                                icon={PlusIcon}
                             >
-                                <PlusIcon className="h-4 w-4 mr-2" />
                                 {PageConfig.users.ui.empty.createFirst}
-                            </CreateButton>
+                            </CrudButton>
                         )}
                     </Card>
                 )}

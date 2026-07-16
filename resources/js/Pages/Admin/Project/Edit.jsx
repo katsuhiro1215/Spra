@@ -17,6 +17,7 @@ export default function Edit({
     users = [],
     companies = [],
     admins = [],
+    technologiesByContract = {},
 }) {
     const { data, setData, put, processing, errors } = useForm({
         project_code: project.project_code || "",
@@ -38,6 +39,9 @@ export default function Edit({
         is_client_visible: project.is_client_visible || false,
         client_visible_notes: project.client_visible_notes || "",
         internal_notes: project.internal_notes || "",
+        technology_ids: (project.technologies || []).map(
+            (technology) => technology.id,
+        ),
     });
 
     const submit = (e) => {
@@ -91,6 +95,9 @@ export default function Edit({
                                 users={users}
                                 companies={companies}
                                 admins={admins}
+                                technologiesByContract={
+                                    technologiesByContract
+                                }
                                 isEditMode={true}
                             />
                         </div>

@@ -12,12 +12,13 @@ import { PageConfig } from "@/Constants/PageConfig";
 import PostForm from "./_components/Form";
 
 export default function Edit({ post, categories }) {
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, patch, transform, processing, errors } = useForm({
         post_category_id: post.post_category_id || "",
         title: post.title || "",
         slug: post.slug || "",
         thumbnail: post.thumbnail || "",
         excerpt: post.excerpt || "",
+        tags: (post.tags || []).join(", "),
         content: post.content || {},
         meta_title: post.meta_title || "",
         meta_description: post.meta_description || "",
@@ -26,6 +27,15 @@ export default function Edit({ post, categories }) {
     });
 
     const handleSubmit = () => {
+        transform((data) => ({
+            ...data,
+            tags: data.tags
+                ? data.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean)
+                : [],
+        }));
         patch(route("admin.website.post.update", post.id));
     };
 

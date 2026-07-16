@@ -10,7 +10,13 @@ import ServiceItemForm from "./_components/Form";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Create({ statuses, itemTypes, services, service_id }) {
+export default function Create({
+    statuses,
+    itemTypes,
+    services,
+    benefitTypes,
+    service_id,
+}) {
     const { data, setData, post, processing, errors } = useForm({
         service_id: service_id || "",
         name: "",
@@ -21,6 +27,9 @@ export default function Create({ statuses, itemTypes, services, service_id }) {
         internal_cost: "",
         estimated_days: "",
         estimated_hours: "",
+        benefit_type: "",
+        benefit_ticket_count: "",
+        benefit_unit_minutes: "",
         sort_order: 0,
         status: "active",
     });
@@ -71,6 +80,7 @@ export default function Create({ statuses, itemTypes, services, service_id }) {
                     statuses={statuses}
                     itemTypes={itemTypes}
                     services={services}
+                    benefitTypes={benefitTypes}
                     mode="create"
                 />
             </div>

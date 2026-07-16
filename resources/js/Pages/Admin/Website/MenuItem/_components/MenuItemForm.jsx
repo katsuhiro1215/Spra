@@ -2,6 +2,7 @@ import React from "react";
 import {
     FormGroup,
     TextInput,
+    TextArea,
     InputError,
     InputLabel,
     SelectInput,
@@ -183,6 +184,59 @@ const MenuItemForm = ({
                         <InputError
                             message={localErrors.target || errors.target}
                         />
+                    </FormGroup>
+                </div>
+            </div>
+
+            {/* メガメニュー設定 */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                    メガメニュー設定
+                </h3>
+                <div className="space-y-4">
+                    <FormGroup>
+                        <InputLabel htmlFor="description">説明文</InputLabel>
+                        <TextArea
+                            id="description"
+                            value={data.description || ""}
+                            onChange={(e) =>
+                                handleChange("description", e.target.value)
+                            }
+                            disabled={processing}
+                            rows={3}
+                            placeholder="レスポンシブWebサイト・アプリ開発"
+                        />
+                        <InputError
+                            message={
+                                localErrors.description || errors.description
+                            }
+                        />
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            親アイテムではドロップダウン左側の紹介文、子アイテムではリンク下の説明文として表示されます
+                        </p>
+                    </FormGroup>
+
+                    <FormGroup>
+                        <InputLabel htmlFor="image_path">
+                            画像パス
+                        </InputLabel>
+                        <TextInput
+                            id="image_path"
+                            value={data.image_path || ""}
+                            onChange={(e) =>
+                                handleChange("image_path", e.target.value)
+                            }
+                            disabled={processing}
+                            placeholder="/upload/menu-service.jpg"
+                        />
+                        <InputError
+                            message={
+                                localErrors.image_path || errors.image_path
+                            }
+                        />
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            親アイテムのドロップダウン左側に表示される画像のパス（未設定時はアイコン表示）
+                        </p>
                     </FormGroup>
                 </div>
             </div>

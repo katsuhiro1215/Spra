@@ -98,6 +98,9 @@ class ServiceService extends BaseService
 
     /**
      * ギャラリー画像を同期（先頭を代表画像とする）
+     *
+     * service_media.id はULID主キーだが、sync()/attach()はクエリビルダで直接INSERTするため
+     * HasUlidのcreatingイベントが発火しない。新規アタッチ分のみここでULIDを採番する。
      */
     private function syncMedia(Service $service, ?array $mediaIds): void
     {
@@ -105,9 +108,15 @@ class ServiceService extends BaseService
             return;
         }
 
+        $existingIds = $service->media()->allRelatedIds()->all();
+
         $pivotData = [];
         foreach (array_values($mediaIds) as $index => $mediaId) {
-            $pivotData[$mediaId] = ['sort_order' => $index, 'is_primary' => $index === 0];
+            $attributes = ['sort_order' => $index, 'is_primary' => $index === 0];
+            if (!in_array($mediaId, $existingIds, true)) {
+                $attributes['id'] = (string) Str::ulid();
+            }
+            $pivotData[$mediaId] = $attributes;
         }
 
         $service->media()->sync($pivotData);
@@ -115,6 +124,9 @@ class ServiceService extends BaseService
 
     /**
      * 使用技術タグを同期
+     *
+     * service_technology.id も同様にsync()経由ではULIDが自動採番されないため、
+     * 新規アタッチ分のみここでULIDを採番する。
      */
     private function syncTechnologies(Service $service, ?array $technologyIds): void
     {
@@ -122,9 +134,15 @@ class ServiceService extends BaseService
             return;
         }
 
+        $existingIds = $service->technologies()->allRelatedIds()->all();
+
         $pivotData = [];
         foreach (array_values($technologyIds) as $index => $technologyId) {
-            $pivotData[$technologyId] = ['sort_order' => $index];
+            $attributes = ['sort_order' => $index];
+            if (!in_array($technologyId, $existingIds, true)) {
+                $attributes['id'] = (string) Str::ulid();
+            }
+            $pivotData[$technologyId] = $attributes;
         }
 
         $service->technologies()->sync($pivotData);

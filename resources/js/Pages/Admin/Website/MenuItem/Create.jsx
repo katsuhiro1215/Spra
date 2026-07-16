@@ -17,6 +17,8 @@ export default function Create({ menu, pages, menuItems }) {
         parent_id: "",
         label: "",
         url: "",
+        description: "",
+        image_path: "",
         page_id: "",
         target: "_self",
         is_active: true,

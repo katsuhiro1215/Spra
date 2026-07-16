@@ -16,7 +16,8 @@ export default function Edit({ page, pageTypes }) {
         page_type_id: page.page_type_id || "",
         title: page.title || "",
         slug: page.slug || "",
-        content: page.content && page.content.blocks ? page.content : { blocks: [] },
+        content:
+            page.content && page.content.blocks ? page.content : { blocks: [] },
         meta_title: page.meta_title || "",
         meta_description: page.meta_description || "",
         is_published: page.is_published || false,
@@ -47,11 +48,13 @@ export default function Edit({ page, pageTypes }) {
                 />
             }
         >
-            <Head title={`${PageConfig.pages.pages.edit.title} - ${page.title}`} />
+            <Head
+                title={`${PageConfig.pages.pages.edit.title} - ${page.title}`}
+            />
 
             <FlashMessage />
 
-            <div className="max-w-7xl">
+            <div className="w-full">
                 <PageForm
                     data={data}
                     setData={setData}

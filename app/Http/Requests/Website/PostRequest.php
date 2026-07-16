@@ -33,6 +33,8 @@ class PostRequest extends FormRequest
             ],
             'thumbnail' => ['nullable', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string', 'max:500'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
             'content' => ['nullable', 'array'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:300'],

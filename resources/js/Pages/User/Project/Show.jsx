@@ -231,6 +231,32 @@ export default function Show({ project }) {
                                     )}
                                 </UserCardBody>
                             </UserCard>
+
+                            {/* 使用技術 */}
+                            {project.technologies &&
+                                project.technologies.length > 0 && (
+                                    <UserCard className="md:col-span-2">
+                                        <UserCardHeader>
+                                            <UserCardTitle>
+                                                使用技術
+                                            </UserCardTitle>
+                                        </UserCardHeader>
+                                        <UserCardBody>
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.technologies.map(
+                                                    (technology) => (
+                                                        <Badge
+                                                            key={technology.id}
+                                                            variant="info"
+                                                        >
+                                                            {technology.name}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </UserCardBody>
+                                    </UserCard>
+                                )}
                         </div>
                     )}
 

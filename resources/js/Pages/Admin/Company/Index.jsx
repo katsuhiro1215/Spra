@@ -5,29 +5,28 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
-import PrimaryButton from "@/Components/Buttons/PrimaryButton";
-import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-import SearchBar from "@/Components/SearchBar";
-import FilterSelect from "@/Components/FilterSelect";
+import { CrudButton, IconButton } from "@/Components/Buttons";
 import {
     PlusIcon,
-    FunnelIcon,
-    XMarkIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
     BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
-import {
-    COMPANY_TYPE_OPTIONS,
-    ADMIN_STATUS_OPTIONS,
-    INDUSTRY_OPTIONS,
-} from "@/Constants/SelectOptions";
+import CompaniesFilterBar from "./_components/CompaniesFilterBar";
 import CompaniesTable from "./_components/CompaniesTable";
+import CompaniesGrid from "./_components/CompaniesGrid";
+
+const VIEW_MODE_STORAGE_KEY = "companies-view-mode";
 
 export default function Index({ companies, filters = {}, stats = {} }) {
     // ========================================
     // State & Form
     // ========================================
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "table",
+    );
 
     const { data, setData, get, processing } = useForm({
         search: filters.search || "",
@@ -39,6 +38,11 @@ export default function Index({ companies, filters = {}, stats = {} }) {
     // ========================================
     // Effects
     // ========================================
+    // 表示モード（テーブル/グリッド）を記憶
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
+
     // フィルターがアクティブな場合は自動的に開く
     useEffect(() => {
         if (data.company_type || data.status || data.industry) {
@@ -142,103 +146,18 @@ export default function Index({ companies, filters = {}, stats = {} }) {
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                {/* 検索 + フィルタートグル */}
-                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                    {/* 検索バー */}
-                    <div className="flex-1 max-w-md">
-                        <SearchBar
-                            value={data.search}
-                            onChange={(value) => setData("search", value)}
-                            onSearch={handleSearch}
-                            placeholder={
-                                PageConfig.companies.ui.search.placeholder
-                            }
-                            disabled={processing}
-                        />
-                    </div>
-
-                    {/* フィルタートグルボタン */}
-                    <div className="flex-shrink-0">
-                        <SecondaryButton
-                            onClick={() => setShowFilters(!showFilters)}
-                            size="sm"
-                            className="relative"
-                            aria-expanded={showFilters}
-                        >
-                            <FunnelIcon className="h-4 w-4 mr-2" />
-                            {PageConfig.companies.ui.filter.button}
-                            {activeFilterCount > 0 && (
-                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                    {activeFilterCount}
-                                </span>
-                            )}
-                        </SecondaryButton>
-                    </div>
-                </div>
-
-                {/* フィルターセクション（折りたたみ可能）*/}
-                {showFilters && (
-                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            <FilterSelect
-                                label={
-                                    PageConfig.companies.filters.companyType
-                                        .label
-                                }
-                                value={data.company_type}
-                                onChange={(value) =>
-                                    setData("company_type", value)
-                                }
-                                options={COMPANY_TYPE_OPTIONS}
-                                placeholder={
-                                    PageConfig.companies.filters.companyType
-                                        .placeholder
-                                }
-                            />
-
-                            <FilterSelect
-                                label={
-                                    PageConfig.companies.filters.status.label
-                                }
-                                value={data.status}
-                                onChange={(value) => setData("status", value)}
-                                options={ADMIN_STATUS_OPTIONS}
-                                placeholder={
-                                    PageConfig.companies.filters.status
-                                        .placeholder
-                                }
-                            />
-
-                            <FilterSelect
-                                label={
-                                    PageConfig.companies.filters.industry
-                                        .label
-                                }
-                                value={data.industry}
-                                onChange={(value) =>
-                                    setData("industry", value)
-                                }
-                                options={INDUSTRY_OPTIONS}
-                                placeholder={
-                                    PageConfig.companies.filters.industry
-                                        .placeholder
-                                }
-                            />
-
-                            <div className="flex items-end">
-                                <SecondaryButton
-                                    onClick={handleClearFilters}
-                                    disabled={!hasActiveFilters}
-                                    size="md"
-                                    className="w-full"
-                                >
-                                    <XMarkIcon className="h-4 w-4 mr-2" />
-                                    {PageConfig.companies.ui.filter.clear}
-                                </SecondaryButton>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* 検索・フィルターツールバー */}
+                <CompaniesFilterBar
+                    data={data}
+                    setData={setData}
+                    onSearch={handleSearch}
+                    searchDisabled={processing}
+                    showFilters={showFilters}
+                    onToggleFilters={() => setShowFilters(!showFilters)}
+                    activeFilterCount={activeFilterCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={handleClearFilters}
+                />
 
                 {companies.data.length > 0 ? (
                     <>
@@ -286,11 +205,47 @@ export default function Index({ companies, filters = {}, stats = {} }) {
                             </Card>
                         </div>
 
-                        {/* 企業一覧テーブル */}
-                        <CompaniesTable
-                            companies={companies}
-                            onDelete={handleDelete}
-                        />
+                        {/* 一覧ヘッダー（件数 + 表示切替） */}
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                企業一覧 ({companies.total}件)
+                            </h2>
+                            <div className="flex gap-1">
+                                <IconButton
+                                    variant={
+                                        viewMode === "table"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={ListBulletIcon}
+                                    onClick={() => setViewMode("table")}
+                                    title="テーブル表示"
+                                />
+                                <IconButton
+                                    variant={
+                                        viewMode === "grid"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={Squares2X2Icon}
+                                    onClick={() => setViewMode("grid")}
+                                    title="グリッド表示"
+                                />
+                            </div>
+                        </div>
+
+                        {/* テーブル / グリッド */}
+                        {viewMode === "table" ? (
+                            <CompaniesTable
+                                companies={companies}
+                                onDelete={handleDelete}
+                            />
+                        ) : (
+                            <CompaniesGrid
+                                companies={companies}
+                                onDelete={handleDelete}
+                            />
+                        )}
 
                         {/* ページネーション */}
                         <Pagination paginationData={companies} />
@@ -305,13 +260,15 @@ export default function Index({ companies, filters = {}, stats = {} }) {
                                 : PageConfig.companies.ui.empty.noData}
                         </p>
                         {!filters.search && (
-                            <PrimaryButton
+                            <CrudButton
+                                action="create"
+                                useTheme
                                 href={route("admin.company.create")}
                                 size="md"
+                                icon={PlusIcon}
                             >
-                                <PlusIcon className="h-4 w-4 mr-2" />
                                 {PageConfig.companies.ui.empty.createFirst}
-                            </PrimaryButton>
+                            </CrudButton>
                         )}
                     </Card>
                 )}

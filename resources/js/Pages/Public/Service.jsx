@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
 import { resolveServiceIcon } from "@/Utils/serviceIcon";
@@ -19,10 +19,18 @@ const formatPriceRange = (plans) => {
 };
 
 export default function Service({ auth, services = [] }) {
+    const { props } = usePage();
+    const siteName = props.organization?.site_name || props.organization?.name;
     const breadcrumbs = [{ label: "サービス" }];
 
     return (
         <PublicLayout auth={auth}>
+            <Head title={`サービス | ${siteName || ""}`}>
+                <meta
+                    name="description"
+                    content={`${siteName || ""}が提供するサービス一覧です。`}
+                />
+            </Head>
             <PageHero
                 title="Our Services"
                 subtitle="提供サービス一覧"

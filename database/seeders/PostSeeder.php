@@ -1,0 +1,191 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Admin;
+use App\Models\Post;
+use App\Models\PostCategory;
+use Illuminate\Database\Seeder;
+
+class PostSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $newsCategory = PostCategory::where('slug', 'news')->first();
+        $blogCategory = PostCategory::where('slug', 'blog')->first();
+        $authorId = Admin::first()?->id;
+
+        if (! $newsCategory || ! $blogCategory) {
+            return;
+        }
+
+        $newsPosts = [
+            [
+                'title' => '【重要】システムメンテナンスのお知らせ',
+                'slug' => 'system-maintenance-notice',
+                'excerpt' => '2025年12月1日(日) 2:00-6:00の間、システムメンテナンスを実施します。',
+                'body' => '2025年12月1日(日) 2:00-6:00の間、システムメンテナンスを実施いたします。メンテナンス中はサービスをご利用いただけません。ご不便をおかけしますが、何卒よろしくお願いいたします。',
+                'published_at' => '2025-11-25',
+            ],
+            [
+                'title' => '新サービス「クラウドホスティング」リリース',
+                'slug' => 'cloud-hosting-release',
+                'excerpt' => '高速・安定・低価格のクラウドホスティングサービスを開始しました。',
+                'body' => '高速・安定・低価格のクラウドホスティングサービスを開始しました。お客様のビジネスをさらに加速させる新プランをぜひご検討ください。',
+                'published_at' => '2025-11-20',
+            ],
+            [
+                'title' => '年末年始の営業時間について',
+                'slug' => 'year-end-business-hours',
+                'excerpt' => '年末年始(12/29-1/3)は休業とさせていただきます。お問い合わせは1/4より順次対応いたします。',
+                'body' => '年末年始(12/29-1/3)は休業とさせていただきます。お問い合わせは1/4より順次対応いたします。ご不便をおかけしますが、何卒よろしくお願いいたします。',
+                'published_at' => '2025-11-15',
+            ],
+        ];
+
+        foreach ($newsPosts as $data) {
+            Post::updateOrCreate(
+                ['slug' => $data['slug']],
+                [
+                    'post_category_id' => $newsCategory->id,
+                    'title' => $data['title'],
+                    'excerpt' => $data['excerpt'],
+                    'content' => [
+                        'blocks' => [
+                            [
+                                'id' => 'b1',
+                                'type' => 'text',
+                                'data' => ['html' => '<p>' . $data['body'] . '</p>'],
+                            ],
+                        ],
+                    ],
+                    'views' => 0,
+                    'is_published' => true,
+                    'published_at' => $data['published_at'],
+                    'created_by' => $authorId,
+                ],
+            );
+        }
+
+        $blogPosts = [
+            [
+                'title' => 'React 18の新機能を徹底解説',
+                'slug' => 'react-18-features',
+                'excerpt' => 'React 18で導入された新機能について、実際のコード例を交えながら詳しく解説します。Concurrent Rendering、Automatic Batching、Suspenseの改善など。',
+                'thumbnail' => '/upload/test1.jpg',
+                'tags' => ['React', 'JavaScript', 'Web開発'],
+                'views' => 1234,
+                'published_at' => '2024-11-15',
+                'sections' => [
+                    ['heading' => 'Concurrent Rendering', 'text' => 'Concurrent Renderingは、React 18の最も重要な新機能の一つです。これにより、Reactはレンダリング作業を中断し、より重要な更新を優先することができます。'],
+                    ['heading' => 'Automatic Batching', 'text' => 'React 18では、自動バッチングが改善され、Promise、setTimeout、ネイティブイベントハンドラー内でも複数の状態更新がバッチ処理されるようになりました。'],
+                    ['heading' => 'Suspenseの改善', 'text' => 'SuspenseがSSRでも利用できるようになり、より柔軟なローディング状態の管理が可能になりました。これらの新機能により、よりパフォーマンスの高いアプリケーションを構築できるようになりました。'],
+                ],
+            ],
+            [
+                'title' => 'DX推進のための5つのステップ',
+                'slug' => 'dx-five-steps',
+                'excerpt' => 'デジタルトランスフォーメーション(DX)を成功させるための具体的なステップと、実際の導入事例を紹介します。',
+                'thumbnail' => '/upload/test2.jpg',
+                'tags' => ['DX', 'ビジネス'],
+                'views' => 987,
+                'published_at' => '2024-11-10',
+                'sections' => [
+                    ['heading' => '現状分析とビジョンの策定', 'text' => 'まず、自社の現状を正確に把握し、DXによって実現したい姿を明確にすることが重要です。'],
+                    ['heading' => 'ロードマップと技術の選定', 'text' => '段階的な実行計画を立て、適切なツールとプラットフォームを選定します。'],
+                    ['heading' => '組織変革', 'text' => '社内の意識改革と体制づくりを進めることで、DXを組織全体に浸透させます。'],
+                ],
+            ],
+            [
+                'title' => 'UI/UXデザインのベストプラクティス2024',
+                'slug' => 'ui-ux-best-practices-2024',
+                'excerpt' => '2024年のUI/UXデザインのトレンドとベストプラクティスを紹介。ユーザー体験を向上させるための実践的なテクニック。',
+                'thumbnail' => '/upload/test3.jpg',
+                'tags' => ['UI/UX', 'デザイン', 'Web開発'],
+                'views' => 756,
+                'published_at' => '2024-11-05',
+                'sections' => [
+                    ['heading' => 'モバイルファースト', 'text' => 'スマートフォンでの利用を最優先に設計します。'],
+                    ['heading' => 'アクセシビリティ', 'text' => 'すべてのユーザーが利用できるデザインを心がけます。'],
+                    ['heading' => 'マイクロインタラクション', 'text' => '細部までこだわったアニメーションで、ユーザー体験を向上させます。'],
+                ],
+            ],
+            [
+                'title' => 'Laravel 11で構築する高速Webアプリケーション',
+                'slug' => 'laravel-11-high-performance',
+                'excerpt' => 'Laravel 11の新機能を活用して、高速で拡張性の高いWebアプリケーションを構築する方法を解説します。',
+                'thumbnail' => '/upload/test4.jpg',
+                'tags' => ['Laravel', 'PHP', 'Web開発'],
+                'views' => 543,
+                'published_at' => '2024-10-28',
+                'sections' => [
+                    ['heading' => '新しいディレクトリ構造', 'text' => 'より直感的で管理しやすい構造になりました。'],
+                    ['heading' => 'パフォーマンスの最適化', 'text' => 'クエリの最適化とキャッシュ戦略を活用することで、高速なアプリケーションを構築できます。'],
+                ],
+            ],
+            [
+                'title' => 'SEO対策の基礎から応用まで',
+                'slug' => 'seo-complete-guide',
+                'excerpt' => '検索エンジン最適化(SEO)の基礎知識から、最新のテクニックまでを網羅的に解説します。',
+                'thumbnail' => '/upload/test1.jpg',
+                'tags' => ['SEO', 'マーケティング', 'Web開発'],
+                'views' => 891,
+                'published_at' => '2024-10-20',
+                'sections' => [
+                    ['heading' => 'テクニカルSEO', 'text' => 'サイトの技術的な最適化について解説します。'],
+                    ['heading' => 'コンテンツSEO', 'text' => '質の高いコンテンツの作成方法を紹介します。'],
+                    ['heading' => 'リンクビルディング', 'text' => '効果的なバックリンク獲得戦略について解説します。'],
+                ],
+            ],
+            [
+                'title' => 'ECサイト構築の成功事例',
+                'slug' => 'ec-site-case-study',
+                'excerpt' => '実際に構築したECサイトの事例を紹介。売上を3倍にした施策とは?',
+                'thumbnail' => '/upload/test2.jpg',
+                'tags' => ['開発事例', 'EC', 'Web開発'],
+                'views' => 1100,
+                'published_at' => '2024-10-15',
+                'sections' => [
+                    ['heading' => '課題', 'text' => '既存サイトのコンバージョン率が低いという課題を抱えていました。'],
+                    ['heading' => '解決策', 'text' => 'ユーザー体験の改善とマーケティング施策の最適化に取り組みました。'],
+                    ['heading' => '結果', 'text' => '3ヶ月で売上が3倍に増加しました。'],
+                ],
+            ],
+        ];
+
+        foreach ($blogPosts as $data) {
+            $blocks = [];
+            foreach ($data['sections'] as $i => $section) {
+                $blocks[] = [
+                    'id' => 'h' . $i,
+                    'type' => 'heading',
+                    'data' => ['text' => $section['heading'], 'level' => 'h2', 'align' => 'left'],
+                ];
+                $blocks[] = [
+                    'id' => 't' . $i,
+                    'type' => 'text',
+                    'data' => ['html' => '<p>' . $section['text'] . '</p>'],
+                ];
+            }
+
+            Post::updateOrCreate(
+                ['slug' => $data['slug']],
+                [
+                    'post_category_id' => $blogCategory->id,
+                    'title' => $data['title'],
+                    'excerpt' => $data['excerpt'],
+                    'thumbnail' => $data['thumbnail'],
+                    'tags' => $data['tags'],
+                    'content' => ['blocks' => $blocks],
+                    'views' => $data['views'],
+                    'is_published' => true,
+                    'published_at' => $data['published_at'],
+                    'created_by' => $authorId,
+                ],
+            );
+        }
+    }
+}

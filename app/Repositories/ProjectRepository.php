@@ -17,7 +17,7 @@ class ProjectRepository implements ProjectRepositoryInterface
 
   public function findById(string $id): ?Project
   {
-    return Project::with(['user', 'company', 'admin', 'milestones', 'contracts'])->find($id);
+    return Project::with(['user', 'company', 'admin', 'milestones', 'contracts', 'technologies'])->find($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Project
@@ -30,6 +30,7 @@ class ProjectRepository implements ProjectRepositoryInterface
           ->whereHas('projectVersion', fn($v) => $v->where('is_current', true)),
         'updates' => fn($q) => $q->clientVisible(),
         'contract',
+        'technologies',
         'currentVersion.items' => fn($q) => $q->where('is_client_visible', true)->orderBy('sort_order'),
         'currentVersion.items.assignee.profile',
       ])

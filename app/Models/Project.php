@@ -124,6 +124,27 @@ class Project extends Model
         return $this->hasMany(Contract::class);
     }
 
+    /**
+     * このプロジェクトで実際に使用している技術
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'project_technology')
+            ->withPivot('sort_order')
+            ->orderBy('project_technology.sort_order');
+    }
+
+    /**
+     * 紐づく契約のServicePlan→Serviceが持つ使用技術（選択候補）。
+     * 契約やServicePlanが未設定の場合は空コレクションを返す。
+     */
+    public function availableTechnologies(): \Illuminate\Support\Collection
+    {
+        $service = $this->contract?->servicePlan?->service;
+
+        return $service ? $service->technologies()->get() : collect();
+    }
+
     public function scopeForClient($query, string $userId)
     {
         return $query->where('user_id', $userId)->where('is_client_visible', true);

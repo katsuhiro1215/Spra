@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Contract;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
@@ -34,7 +35,36 @@ class StoreProjectRequest extends FormRequest
       'is_client_visible' => ['nullable', 'boolean'],
       'client_visible_notes' => ['nullable', 'string', 'max:1000'],
       'internal_notes' => ['nullable', 'string', 'max:1000'],
+      'technology_ids' => ['nullable', 'array'],
+      'technology_ids.*' => ['string', 'exists:technologies,id'],
     ];
+  }
+
+  /**
+   * technology_idsは、契約先のServicePlan→Serviceが持つ使用技術の範囲に限定する。
+   */
+  public function withValidator($validator): void
+  {
+    $validator->after(function ($validator) {
+      $technologyIds = $this->input('technology_ids', []);
+
+      if (empty($technologyIds)) {
+        return;
+      }
+
+      $contract = $this->input('contract_id')
+        ? Contract::with('servicePlan.service.technologies')->find($this->input('contract_id'))
+        : null;
+      $service = $contract?->servicePlan?->service;
+      $availableIds = $service ? $service->technologies->pluck('id')->all() : [];
+
+      if (array_diff($technologyIds, $availableIds) !== []) {
+        $validator->errors()->add(
+          'technology_ids',
+          '選択された使用技術の中に、契約先のサービスで許可されていないものが含まれています。',
+        );
+      }
+    });
   }
 
   /**
@@ -57,6 +87,7 @@ class StoreProjectRequest extends FormRequest
       'is_client_visible' => 'クライアント公開',
       'client_visible_notes' => 'クライアントへのメモ',
       'internal_notes' => '内部メモ',
+      'technology_ids' => '使用技術',
     ];
   }
 

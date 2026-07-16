@@ -10,7 +10,13 @@ import ServiceItemForm from "./_components/Form";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Edit({ serviceItem, statuses, itemTypes, services }) {
+export default function Edit({
+    serviceItem,
+    statuses,
+    itemTypes,
+    services,
+    benefitTypes,
+}) {
     const { data, setData, put, processing, errors } = useForm({
         service_id: serviceItem.service_id || "",
         name: serviceItem.name || "",
@@ -21,6 +27,9 @@ export default function Edit({ serviceItem, statuses, itemTypes, services }) {
         internal_cost: serviceItem.internal_cost || "",
         estimated_days: serviceItem.estimated_days || "",
         estimated_hours: serviceItem.estimated_hours || "",
+        benefit_type: serviceItem.benefit_type || "",
+        benefit_ticket_count: serviceItem.benefit_ticket_count ?? "",
+        benefit_unit_minutes: serviceItem.benefit_unit_minutes ?? "",
         sort_order: serviceItem.sort_order || 0,
         status: serviceItem.status || "active",
     });
@@ -75,6 +84,7 @@ export default function Edit({ serviceItem, statuses, itemTypes, services }) {
                     statuses={statuses}
                     itemTypes={itemTypes}
                     services={services}
+                    benefitTypes={benefitTypes}
                     mode="edit"
                 />
             </div>

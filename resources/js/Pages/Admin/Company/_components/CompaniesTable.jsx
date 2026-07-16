@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader } from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { IconButton } from "@/Components/Buttons";
@@ -18,7 +18,6 @@ const CompaniesTable = ({ companies, onDelete }) => {
 
     return (
         <Card>
-            <CardHeader>企業一覧 ({companies.total}件)</CardHeader>
             <Table>
                 <THead>
                     <Tr hover={false}>

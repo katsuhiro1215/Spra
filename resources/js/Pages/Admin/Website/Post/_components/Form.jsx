@@ -125,6 +125,22 @@ const PostForm = ({
                             />
                             <InputError message={errors.excerpt} />
                         </FormGroup>
+
+                        <FormGroup label="タグ" htmlFor="tags">
+                            <TextInput
+                                id="tags"
+                                value={data.tags || ""}
+                                onChange={(e) =>
+                                    setData("tags", e.target.value)
+                                }
+                                disabled={processing}
+                                placeholder="React, JavaScript, Web開発"
+                            />
+                            <InputError message={errors.tags} />
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                カンマ区切りで入力してください
+                            </p>
+                        </FormGroup>
                     </div>
                 </CardBody>
             </Card>

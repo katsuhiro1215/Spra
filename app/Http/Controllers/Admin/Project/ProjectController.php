@@ -43,7 +43,9 @@ class ProjectController extends Controller
         $admins = Admin::select('id', 'email')->with('profile')->get();
         $users = \App\Models\User::select('id', 'email')->with('profile')->get();
         $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
+        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+            ->with('servicePlan.service.technologies')
+            ->get();
         $contract = null;
 
         // URLパラメータから contract_id を取得
@@ -58,6 +60,7 @@ class ProjectController extends Controller
             'users' => $users,
             'companies' => $companies,
             'admins' => $admins,
+            'technologiesByContract' => $this->buildTechnologiesByContract($contracts),
         ]);
     }
 
@@ -88,7 +91,8 @@ class ProjectController extends Controller
             'admin',
             'contract',
             'versions',
-            'updates'
+            'updates',
+            'technologies',
         ]);
 
         $currentVersion = $project->versions()
@@ -114,7 +118,11 @@ class ProjectController extends Controller
         $admins = Admin::select('id', 'email')->with('profile')->get();
         $users = \App\Models\User::select('id', 'email')->with('profile')->get();
         $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
+        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+            ->with('servicePlan.service.technologies')
+            ->get();
+
+        $project->load('technologies');
 
         return Inertia::render('Admin/Project/Edit', [
             'project' => $project,
@@ -122,7 +130,29 @@ class ProjectController extends Controller
             'users' => $users,
             'companies' => $companies,
             'admins' => $admins,
+            'technologiesByContract' => $this->buildTechnologiesByContract($contracts),
         ]);
+    }
+
+    /**
+     * 契約ID => その契約のServicePlan→Serviceが持つ使用技術一覧、のマップを作る
+     * （Create/Edit画面で「契約先サービスの候補技術」から選ばせるため）
+     *
+     * @param \Illuminate\Support\Collection<int, \App\Models\Contract> $contracts
+     * @return array<string, array<int, array{id: string, name: string}>>
+     */
+    private function buildTechnologiesByContract($contracts): array
+    {
+        return $contracts->mapWithKeys(function ($contract) {
+            $technologies = $contract->servicePlan?->service?->technologies ?? collect();
+
+            return [
+                $contract->id => $technologies
+                    ->map(fn ($technology) => ['id' => $technology->id, 'name' => $technology->name])
+                    ->values()
+                    ->all(),
+            ];
+        })->all();
     }
 
     /**

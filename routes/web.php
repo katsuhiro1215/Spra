@@ -10,36 +10,64 @@ use App\Http\Controllers\PublicServiceController;
 use App\Http\Controllers\PublicFaqController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\PublicDocumentController;
+use App\Http\Controllers\PublicPostController;
+use App\Models\Post;
 use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
 use App\Http\Controllers\User\ContractController;
-use App\Http\Controllers\User\InvoiceController;
 use App\Http\Controllers\User\ReceiptController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\UserAddressController;
-use App\Http\Controllers\User\QuoteController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
 use Inertia\Inertia;
 
 Route::get('/', function (ServiceService $serviceService) {
+    $summarize = fn ($post) => [
+        'id' => $post->id,
+        'slug' => $post->slug,
+        'title' => $post->title,
+        'category' => $post->postCategory?->name,
+        'date' => $post->published_at?->format('Y.m.d'),
+        'excerpt' => $post->excerpt,
+        'image' => $post->thumbnail,
+    ];
+
     return Inertia::render('Public/Home', [
         'canLogin' => Route::has('user.login'),
         'canRegister' => Route::has('user.register'),
         'services' => $serviceService->getPublicList(),
+        'newsItems' => Post::published()
+            ->whereHas('postCategory', fn ($q) => $q->where('slug', 'news'))
+            ->with('postCategory')
+            ->recent(3)
+            ->get()
+            ->map($summarize),
+        'blogPosts' => Post::published()
+            ->whereHas('postCategory', fn ($q) => $q->where('slug', '!=', 'news'))
+            ->with('postCategory')
+            ->recent(3)
+            ->get()
+            ->map($summarize),
     ]);
 })->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
 Route::get('/service', [PublicServiceController::class, 'index'])->name('service');
 Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
-Route::get('/blog', fn() => Inertia::render('Public/Blog'))->name('blog');
-Route::get('/blog/{slug}', fn($slug) => Inertia::render('Public/BlogDetail', ['slug' => $slug]))->name('blog.detail');
+Route::get('/blog', [PublicPostController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [PublicPostController::class, 'show'])->name('blog.detail');
+Route::get('/news', [PublicPostController::class, 'newsIndex'])->name('news');
+Route::get('/news/{slug}', [PublicPostController::class, 'show'])->name('news.detail');
 Route::get('/faq', [PublicFaqController::class, 'show'])->name('faq');
 Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
-Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
+Route::get('/company', function () {
+    return Inertia::render('Public/Company', [
+        'histories' => \App\Models\OrganizationHistory::published()->ordered()->get(),
+    ]);
+})->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::get('/privacy-policy', [PublicDocumentController::class, 'privacyPolicy'])->name('privacy.policy');
 Route::get('/terms', [PublicDocumentController::class, 'terms'])->name('terms');
@@ -84,23 +112,19 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::get('/contracts/{id}/pdf', [ContractController::class, 'generatePdf'])->name('contract.pdf');
     Route::get('/contracts/{id}/pdf/preview', [ContractController::class, 'previewPdf'])->name('contract.pdf.preview');
 
-    // 請求書（クライアント向け） userを付与
-    Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
-    Route::post('/invoice/{invoice}/payments', [InvoiceController::class, 'storePayment'])->name('invoice.payments.store');
-    Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
-    Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoice.pdf');
-    Route::get('/invoice/{invoice}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('invoice.pdf.preview');
+    /**************************************
+     * 請求書
+     **************************************/
+    require __DIR__ . '/user/invoice.php';
 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
     Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
 
-    // 見積書（クライアント向け）
-    Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');
-    Route::get('/quotes/{id}', [QuoteController::class, 'show'])->name('quote.show');
-    Route::get('/quotes/{id}/pdf', [QuoteController::class, 'pdf'])->name('quote.pdf');
-    Route::post('/quotes/{id}/accept', [QuoteController::class, 'accept'])->name('quote.accept');
-    Route::post('/quotes/{id}/reject', [QuoteController::class, 'reject'])->name('quote.reject');
+    /**************************************
+     * 見積もり
+     **************************************/
+    require __DIR__ . '/user/quote.php';
 
     // 進捗状況（クライアント向け）
     Route::get('/progress', [UserProjectController::class, 'progress'])->name('progress.index');

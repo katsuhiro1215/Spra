@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
             // 管理者（認証確認用）
             AdminSeeder::class,
 
+            // 自社組織情報（Header/Footer表示用）
+            OrganizationSeeder::class,
+            OrganizationHistorySeeder::class,
+
             // 会社（ユーザーより先に作成 → company_user で参照される）
             CompanySeeder::class,
 
@@ -81,11 +85,15 @@ class DatabaseSeeder extends Seeder
             // 予約（面談）
             AppointmentSeeder::class,
 
-            // Webサイト管理（ページタイプ・FAQ）
+            // Webサイト管理（ページタイプ・FAQ・ヘッダーメニュー）
             PageTypeSeeder::class,
             FaqCategorySeeder::class,
             FaqSeeder::class,
             FaqPageSeeder::class,
+            MenuSeeder::class,
+            MenuItemSeeder::class,
+            PostCategorySeeder::class,
+            PostSeeder::class,
         ]);
     }
 }

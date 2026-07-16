@@ -220,133 +220,129 @@ export default function Index({
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* タブ + 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* タブナビゲーション */}
-                            <div className="flex-shrink-0">
-                                <TabNavigation
-                                    tabs={tabs}
-                                    activeTab={activeTab}
-                                    onChange={handleTabChange}
-                                />
-                            </div>
+                {/* タブ + 検索 + フィルタートグル */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* タブナビゲーション */}
+                    <div className="flex-shrink-0">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                        />
+                    </div>
 
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder={
-                                        PageConfig.services.ui.search
-                                            .placeholder
-                                    }
-                                    disabled={processing}
-                                />
-                            </div>
+                    {/* 検索バー */}
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) =>
+                                setData("search", value)
+                            }
+                            onSearch={handleSearch}
+                            placeholder={
+                                PageConfig.services.ui.search
+                                    .placeholder
+                            }
+                            disabled={processing}
+                        />
+                    </div>
 
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
+                    {/* フィルタートグルボタン */}
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="sm"
+                            className="relative"
+                        >
+                            <FunnelIcon className="h-4 w-4 mr-2" />
+                            {PageConfig.services.ui.filter.button}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {/* フィルターセクション（折りたたみ可能）*/}
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {/* カテゴリフィルター */}
+                            <FilterSelect
+                                label={
+                                    PageConfig.services.filters.category
+                                        .label
+                                }
+                                value={data.category}
+                                onChange={(value) =>
+                                    setData("category", value)
+                                }
+                                options={
+                                    categories?.map((cat) => ({
+                                        value: cat.id,
+                                        label: cat.name,
+                                    })) || []
+                                }
+                                placeholder={
+                                    PageConfig.services.filters.category
+                                        .placeholder
+                                }
+                            />
+
+                            {/* ステータスフィルター */}
+                            <FilterSelect
+                                label={
+                                    PageConfig.services.filters.status
+                                        .label
+                                }
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={SERVICE_STATUS_OPTIONS}
+                                placeholder={
+                                    PageConfig.services.filters.status
+                                        .placeholder
+                                }
+                            />
+
+                            {/* 注目フィルター */}
+                            <FilterSelect
+                                label={
+                                    PageConfig.services.filters.featured
+                                        .label
+                                }
+                                value={data.is_featured}
+                                onChange={(value) =>
+                                    setData("is_featured", value)
+                                }
+                                options={IS_FEATURED_OPTIONS}
+                                placeholder={
+                                    PageConfig.services.filters.featured
+                                        .placeholder
+                                }
+                            />
+
+                            {/* フィルタークリアボタン */}
+                            <div className="flex items-end">
                                 <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    size="sm"
-                                    className="relative"
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    className="w-full"
                                 >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    {PageConfig.services.ui.filter.button}
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
+                                    <XMarkIcon className="h-4 w-4 mr-2" />
+                                    {
+                                        PageConfig.services.ui.filter
+                                            .clear
+                                    }
                                 </SecondaryButton>
                             </div>
                         </div>
-
-                        {/* フィルターセクション（折りたたみ可能）*/}
-                        {showFilters && (
-                            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* カテゴリフィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.services.filters.category
-                                                .label
-                                        }
-                                        value={data.category}
-                                        onChange={(value) =>
-                                            setData("category", value)
-                                        }
-                                        options={
-                                            categories?.map((cat) => ({
-                                                value: cat.id,
-                                                label: cat.name,
-                                            })) || []
-                                        }
-                                        placeholder={
-                                            PageConfig.services.filters.category
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* ステータスフィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.services.filters.status
-                                                .label
-                                        }
-                                        value={data.status}
-                                        onChange={(value) =>
-                                            setData("status", value)
-                                        }
-                                        options={SERVICE_STATUS_OPTIONS}
-                                        placeholder={
-                                            PageConfig.services.filters.status
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* 注目フィルター */}
-                                    <FilterSelect
-                                        label={
-                                            PageConfig.services.filters.featured
-                                                .label
-                                        }
-                                        value={data.is_featured}
-                                        onChange={(value) =>
-                                            setData("is_featured", value)
-                                        }
-                                        options={IS_FEATURED_OPTIONS}
-                                        placeholder={
-                                            PageConfig.services.filters.featured
-                                                .placeholder
-                                        }
-                                    />
-
-                                    {/* フィルタークリアボタン */}
-                                    <div className="flex items-end">
-                                        <SecondaryButton
-                                            onClick={handleClearFilters}
-                                            disabled={!hasActiveFilters}
-                                            size="md"
-                                            className="w-full"
-                                        >
-                                            <XMarkIcon className="h-4 w-4 mr-2" />
-                                            {
-                                                PageConfig.services.ui.filter
-                                                    .clear
-                                            }
-                                        </SecondaryButton>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </Card>
+                )}
 
                 {/* サービス一覧テーブル */}
                 <ServicesTable services={services} onDelete={handleDelete} />

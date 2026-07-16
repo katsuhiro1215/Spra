@@ -46,6 +46,9 @@ class ProjectService
   public function create(array $data): Project
   {
     return DB::transaction(function () use ($data) {
+      $technologyIds = $data['technology_ids'] ?? null;
+      unset($data['technology_ids']);
+
       // Generate unique project code if not provided
       if (empty($data['project_code'])) {
         $timestamp = time() % 10000; // Last 4 digits of timestamp
@@ -69,6 +72,8 @@ class ProjectService
 
       // Create project
       $project = $this->repository->create($data);
+
+      $this->syncTechnologies($project, $technologyIds);
 
       // Create initial ProjectVersion (v1, is_current = true)
       $versionData = [
@@ -200,7 +205,12 @@ class ProjectService
   public function update(Project $project, array $data, array $categoryIds = []): Project
   {
     return DB::transaction(function () use ($project, $data, $categoryIds) {
+      $technologyIds = $data['technology_ids'] ?? null;
+      unset($data['technology_ids']);
+
       $updated = $this->repository->update($project, $data);
+
+      $this->syncTechnologies($updated, $technologyIds);
 
       if ($categoryIds !== []) {
         $this->repository->syncCategories($updated, $categoryIds);
@@ -208,6 +218,24 @@ class ProjectService
 
       return $updated;
     });
+  }
+
+  /**
+   * 使用技術タグを同期する。project_technologyは複合主キーのため、
+   * service_technology/service_mediaのような明示的なULID採番は不要。
+   */
+  private function syncTechnologies(Project $project, ?array $technologyIds): void
+  {
+    if ($technologyIds === null) {
+      return;
+    }
+
+    $pivotData = [];
+    foreach (array_values($technologyIds) as $index => $technologyId) {
+      $pivotData[$technologyId] = ['sort_order' => $index];
+    }
+
+    $project->technologies()->sync($pivotData);
   }
 
   public function delete(Project $project): bool

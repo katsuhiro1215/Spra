@@ -55,7 +55,7 @@ export default function Create({ pageTypes }) {
 
             <FlashMessage />
 
-            <div className="max-w-7xl">
+            <div className="w-full">
                 <PageForm
                     data={data}
                     setData={setData}

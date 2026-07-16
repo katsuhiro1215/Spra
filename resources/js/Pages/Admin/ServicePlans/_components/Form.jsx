@@ -299,6 +299,29 @@ const ServicePlanForm = ({
                                         placeholder="30"
                                     />
                                 </FormGroup>
+
+                                {/* チケット繰越上限 */}
+                                <FormGroup
+                                    label="チケット繰越上限（枚）"
+                                    error={errors.max_carryover_tickets}
+                                    className="md:col-span-2"
+                                >
+                                    <NumberInput
+                                        value={data.max_carryover_tickets}
+                                        onChange={(value) =>
+                                            setData(
+                                                "max_carryover_tickets",
+                                                value,
+                                            )
+                                        }
+                                        min={0}
+                                        step={1}
+                                        placeholder="未設定（繰越不可）"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        契約特典（ミーティングチケット）を翌期間へ繰り越せる上限枚数です。空欄の場合は繰越されません（残数は失効）。
+                                    </p>
+                                </FormGroup>
                             </div>
                         </CardBody>
                     </Card>

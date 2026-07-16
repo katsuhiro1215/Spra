@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
 import { resolveServiceIcon } from "@/Utils/serviceIcon";
@@ -36,6 +36,9 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
     const activeImage = media[activeImageIndex];
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
+    const { props } = usePage();
+    const siteName = props.organization?.site_name || props.organization?.name;
+
     const breadcrumbs = [
         { label: "サービス", href: "/service" },
         { label: service.name },
@@ -43,6 +46,12 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
 
     return (
         <PublicLayout auth={auth}>
+            <Head title={`${service.name} | ${siteName || ""}`}>
+                <meta
+                    name="description"
+                    content={service.description || service.name}
+                />
+            </Head>
             <PageHero
                 title={service.name}
                 subtitle={service.description}

@@ -34,6 +34,7 @@ class ServicePlanRequest extends FormRequest
             'billing_cycle' => ['required', 'in:one_time,monthly,quarterly,yearly'],
             'setup_fee' => ['nullable', 'numeric', 'min:0'],
             'max_revisions' => ['nullable', 'integer', 'min:0'],
+            'max_carryover_tickets' => ['nullable', 'integer', 'min:0'],
             'estimated_delivery_days' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'in:active,inactive,suspended'],
             'is_displayed' => ['boolean'],

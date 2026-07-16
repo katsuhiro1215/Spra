@@ -17,6 +17,8 @@ export default function Edit({ menu, menuItem, pages, menuItems }) {
         parent_id: menuItem.parent_id || "",
         label: menuItem.label || "",
         url: menuItem.url || "",
+        description: menuItem.description || "",
+        image_path: menuItem.image_path || "",
         page_id: menuItem.page_id || "",
         target: menuItem.target || "_self",
         is_active: menuItem.is_active ?? true,

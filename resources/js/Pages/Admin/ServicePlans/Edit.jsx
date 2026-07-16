@@ -25,6 +25,7 @@ export default function Edit({
         billing_cycle: servicePlan.billing_cycle || "one_time",
         setup_fee: servicePlan.setup_fee || "",
         max_revisions: servicePlan.max_revisions || "",
+        max_carryover_tickets: servicePlan.max_carryover_tickets ?? "",
         estimated_delivery_days: servicePlan.estimated_delivery_days || "",
         is_featured: servicePlan.is_featured || false,
         status: servicePlan.status || "active",

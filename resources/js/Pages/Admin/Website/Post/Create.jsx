@@ -13,12 +13,13 @@ import { PageConfig } from "@/Constants/PageConfig";
 import PostForm from "./_components/Form";
 
 export default function Create({ categories }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, transform, processing, errors } = useForm({
         post_category_id: "",
         title: "",
         slug: "",
         thumbnail: "",
         excerpt: "",
+        tags: "",
         content: {},
         meta_title: "",
         meta_description: "",
@@ -27,6 +28,15 @@ export default function Create({ categories }) {
     });
 
     const handleSubmit = () => {
+        transform((data) => ({
+            ...data,
+            tags: data.tags
+                ? data.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean)
+                : [],
+        }));
         post(route("admin.website.post.store"));
     };
 

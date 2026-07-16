@@ -18,6 +18,8 @@ class Post extends Model
         'content',
         'thumbnail',
         'excerpt',
+        'views',
+        'tags',
         'meta',
         'meta_title',
         'meta_description',
@@ -30,6 +32,7 @@ class Post extends Model
 
     protected $casts = [
         'content' => 'array',  // JSON for block editor
+        'tags' => 'array',
         'meta' => 'array',
         'is_published' => 'boolean',
         'published_at' => 'datetime',

@@ -17,6 +17,7 @@ export default function Create({
     users = [],
     companies = [],
     admins = [],
+    technologiesByContract = {},
 }) {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
@@ -33,6 +34,7 @@ export default function Create({
         is_client_visible: true,
         client_visible_notes: "",
         internal_notes: "",
+        technology_ids: [],
     });
 
     const submit = (e) => {
@@ -69,7 +71,7 @@ export default function Create({
 
             <FlashMessage />
 
-            <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl py-6 px-4 sm:px-6 lg:px-8">
                 <form onSubmit={submit} className="space-y-6">
                     {/* 契約情報（表示用） */}
                     {contract && (
@@ -112,6 +114,9 @@ export default function Create({
                                 users={users}
                                 companies={companies}
                                 admins={admins}
+                                technologiesByContract={
+                                    technologiesByContract
+                                }
                                 isEditMode={false}
                             />
                         </div>

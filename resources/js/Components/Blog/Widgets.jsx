@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePage } from "@inertiajs/react";
 import {
     MagnifyingGlassIcon,
     CalendarIcon,
@@ -223,14 +224,22 @@ export function SearchWidget() {
 
 // ロゴWidget
 export function LogoWidget() {
+    const { props } = usePage();
+    const organization = props.organization;
+    const siteName =
+        organization?.site_name || organization?.name || "Smart Sprouts";
+
     return (
         <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-md p-8 text-center text-white">
-            <div className="text-4xl font-bold mb-2">Smart Sprouts</div>
-            <p className="text-blue-100 text-sm">
-                革新的なITソリューションで
-                <br />
-                ビジネスを成長させる
-            </p>
+            <div className="text-4xl font-bold mb-2">{siteName}</div>
+            {organization?.business_description && (
+                <p className="text-blue-100 text-sm whitespace-pre-line">
+                    {organization.business_description
+                        .split("\n")
+                        .slice(0, 2)
+                        .join("\n")}
+                </p>
+            )}
         </div>
     );
 }
@@ -258,7 +267,7 @@ export function RecentPostsWidget({ posts, limit = 5 }) {
                                         {post.title}
                                     </h4>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        {post.publishedAt}
+                                        {post.published_at}
                                     </p>
                                 </div>
                             </div>

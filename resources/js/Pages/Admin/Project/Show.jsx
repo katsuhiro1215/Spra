@@ -100,7 +100,7 @@ export default function Show({ project, currentVersion, progress = 0 }) {
 
             <FlashMessage />
 
-            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full space-y-6">
                 {/* ステータス・アクション */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
@@ -525,6 +525,32 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                     </dl>
                                 </CardBody>
                             </Card>
+
+                            {/* 使用技術 */}
+                            {project.technologies &&
+                                project.technologies.length > 0 && (
+                                    <Card>
+                                        <CardHeader>
+                                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                                使用技術
+                                            </h2>
+                                        </CardHeader>
+                                        <CardBody>
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.technologies.map(
+                                                    (technology) => (
+                                                        <Badge
+                                                            key={technology.id}
+                                                            variant="primary"
+                                                        >
+                                                            {technology.name}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                )}
 
                             {/* カテゴリ */}
                             {project.categories &&

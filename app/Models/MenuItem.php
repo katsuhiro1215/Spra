@@ -17,6 +17,8 @@ class MenuItem extends Model
         'parent_id',
         'label',
         'url',
+        'description',
+        'image_path',
         'page_id',
         'target',
         'is_active',

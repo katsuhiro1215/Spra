@@ -25,6 +25,7 @@ export default function Create({
         billing_cycle: "one_time",
         setup_fee: "",
         max_revisions: "",
+        max_carryover_tickets: "",
         estimated_delivery_days: "",
         is_featured: false,
         status: "active",

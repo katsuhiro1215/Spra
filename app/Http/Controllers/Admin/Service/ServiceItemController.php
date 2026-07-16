@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContractBenefit;
 use App\Models\ServiceItem;
 use App\Services\ServiceItemService;
 use App\Services\ServiceService;
@@ -89,6 +90,7 @@ class ServiceItemController extends Controller
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,
             'services' => $services,
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
             'service_id' => $request->query('service_id'),
         ]);
     }
@@ -123,6 +125,7 @@ class ServiceItemController extends Controller
                 'creator.profile',
                 'updater.profile',
             ]),
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
         ]);
     }
 
@@ -140,6 +143,7 @@ class ServiceItemController extends Controller
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,
             'services' => $services,
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
         ]);
     }
 

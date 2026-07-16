@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     EnvelopeIcon,
     PhoneIcon,
@@ -12,8 +12,22 @@ import {
     FaGithub,
     FaYoutube,
 } from "react-icons/fa";
+import { formatAddress, formatPostalCode } from "@/Utils/address";
 
-export default function Footer({ logoUrl = "/upload/logo.svg" }) {
+const DEFAULT_LOGO_URL = "/upload/logo.svg";
+const DEFAULT_SITE_NAME = "Smart Sprouts";
+
+export default function Footer() {
+    const { props } = usePage();
+    const organization = props.organization;
+    const address = organization?.default_address?.[0];
+
+    const logoUrl = organization?.logo_path || DEFAULT_LOGO_URL;
+    const siteName =
+        organization?.site_name || organization?.name || DEFAULT_SITE_NAME;
+    const formattedAddress = formatAddress(address);
+    const formattedPostalCode = formatPostalCode(address?.postal_code);
+
     const currentYear = new Date().getFullYear();
 
     const footerLinks = {
@@ -90,14 +104,14 @@ export default function Footer({ logoUrl = "/upload/logo.svg" }) {
                         >
                             <img
                                 src={logoUrl}
-                                alt="Smart Sprouts"
+                                alt={siteName}
                                 className="h-10 w-auto brightness-0 invert"
                                 onError={(e) => {
-                                    e.target.src = "/upload/logo.svg";
+                                    e.target.src = DEFAULT_LOGO_URL;
                                 }}
                             />
                             <span className="text-xl font-bold text-white">
-                                Smart Sprouts
+                                {siteName}
                             </span>
                         </Link>
                         <p className="text-sm text-gray-400 mb-6 leading-relaxed">
@@ -107,27 +121,34 @@ export default function Footer({ logoUrl = "/upload/logo.svg" }) {
 
                         {/* Contact Info */}
                         <div className="space-y-3">
-                            <div className="flex items-start gap-3 text-sm">
-                                <MapPinIcon className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                                <span>
-                                    〒100-0001
-                                    <br />
-                                    東京都千代田区千代田1-1-1
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <PhoneIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                                <span>03-1234-5678</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <EnvelopeIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                                <a
-                                    href="mailto:info@smartsprouts.com"
-                                    className="hover:text-white transition-colors"
-                                >
-                                    info@smartsprouts.com
-                                </a>
-                            </div>
+                            {formattedAddress && (
+                                <div className="flex items-start gap-3 text-sm">
+                                    <MapPinIcon className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                        {formattedPostalCode && (
+                                            <>〒{formattedPostalCode}<br /></>
+                                        )}
+                                        {formattedAddress}
+                                    </span>
+                                </div>
+                            )}
+                            {organization?.phone && (
+                                <div className="flex items-center gap-3 text-sm">
+                                    <PhoneIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                    <span>{organization.phone}</span>
+                                </div>
+                            )}
+                            {organization?.email && (
+                                <div className="flex items-center gap-3 text-sm">
+                                    <EnvelopeIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                    <a
+                                        href={`mailto:${organization.email}`}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        {organization.email}
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
 

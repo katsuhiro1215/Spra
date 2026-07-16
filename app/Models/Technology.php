@@ -35,6 +35,13 @@ class Technology extends Model
             ->orderBy('service_technology.sort_order');
     }
 
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_technology')
+            ->withPivot('sort_order')
+            ->orderBy('project_technology.sort_order');
+    }
+
     public function creator()
     {
         return $this->belongsTo(Admin::class, 'created_by');

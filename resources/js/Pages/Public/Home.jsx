@@ -9,7 +9,7 @@ import BlogSection from "@/Pages/Public/Section/BlogSection";
 import ContactSection from "@/Pages/Public/Section/ContactSection";
 //Components
 
-export default function Home({ services, blogs, auth }) {
+export default function Home({ services, newsItems, blogPosts, auth }) {
     return (
         <PublicLayout
             auth={auth}
@@ -21,7 +21,7 @@ export default function Home({ services, blogs, auth }) {
             <AboutSection />
             <ServiceSection services={services} />
             <BannerSection />
-            <BlogSection blogs={blogs} />
+            <BlogSection newsItems={newsItems} blogPosts={blogPosts} />
             <ContactSection />
         </PublicLayout>
     );

@@ -1,3 +1,4 @@
+import { Head, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
 import {
@@ -9,6 +10,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function About({ auth }) {
+    const { props } = usePage();
+    const siteName = props.organization?.site_name || props.organization?.name;
     const breadcrumbs = [{ label: "私たちについて" }];
 
     const values = [
@@ -76,6 +79,12 @@ export default function About({ auth }) {
 
     return (
         <PublicLayout auth={auth}>
+            <Head title={`私たちについて | ${siteName || ""}`}>
+                <meta
+                    name="description"
+                    content={`${siteName || ""}のミッション・バリュー・チームをご紹介します。`}
+                />
+            </Head>
             <PageHero
                 title="About Us"
                 subtitle="Smart Sproutsについて"

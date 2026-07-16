@@ -5,6 +5,7 @@ import {
     TextArea,
     SelectInput,
     Checkbox,
+    InputError,
 } from "@/Components/Forms";
 
 const statusOptions = [
@@ -33,13 +34,42 @@ export default function ProjectForm({
     users = [],
     companies = [],
     admins = [],
+    technologiesByContract = {},
     isEditMode = false,
 }) {
     const handleChange = (field, value) => {
         setData(field, value);
     };
 
-    console.log("ProjectForm data:", data);
+    const availableTechnologies = data.contract_id
+        ? technologiesByContract[data.contract_id] || []
+        : [];
+
+    const handleContractChange = (contractId) => {
+        handleChange("contract_id", contractId);
+
+        // 契約変更に伴い、新しい契約先サービスの候補に含まれない技術は選択解除する
+        const nextAvailableIds = (
+            technologiesByContract[contractId] || []
+        ).map((technology) => technology.id);
+        handleChange(
+            "technology_ids",
+            (data.technology_ids || []).filter((id) =>
+                nextAvailableIds.includes(id),
+            ),
+        );
+    };
+
+    const toggleTechnology = (technologyId) => {
+        const current = data.technology_ids || [];
+        handleChange(
+            "technology_ids",
+            current.includes(technologyId)
+                ? current.filter((id) => id !== technologyId)
+                : [...current, technologyId],
+        );
+    };
+
     // オプションに変換
     const contractOptions = [
         { value: "", label: "なし" },
@@ -159,7 +189,7 @@ export default function ProjectForm({
                             <SelectInput
                                 value={data.contract_id || ""}
                                 onChange={(e) =>
-                                    handleChange("contract_id", e.target.value)
+                                    handleContractChange(e.target.value)
                                 }
                                 options={contractOptions}
                                 error={errors.contract_id}
@@ -167,6 +197,47 @@ export default function ProjectForm({
                         </FormGroup>
                     </div>
                 </div>
+            </div>
+
+            {/* 使用技術 */}
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                    使用技術
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                    契約先のサービスに登録されている技術の中から、このプロジェクトで実際に使用しているものを選択してください。クライアントにも表示されます。
+                </p>
+                {!data.contract_id ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        契約を選択すると、使用技術を選べるようになります。
+                    </p>
+                ) : availableTechnologies.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        この契約のサービスには使用技術が登録されていません。サービス側の「使用技術」設定を確認してください。
+                    </p>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {availableTechnologies.map((technology) => (
+                            <label
+                                key={technology.id}
+                                className="flex items-center"
+                            >
+                                <Checkbox
+                                    checked={(
+                                        data.technology_ids || []
+                                    ).includes(technology.id)}
+                                    onChange={() =>
+                                        toggleTechnology(technology.id)
+                                    }
+                                />
+                                <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                                    {technology.name}
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+                )}
+                <InputError message={errors.technology_ids} />
             </div>
 
             {/* クライアント情報 */}

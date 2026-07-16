@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ContractBenefit;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ServiceItemRequest extends FormRequest
 {
@@ -23,6 +25,9 @@ class ServiceItemRequest extends FormRequest
             'internal_cost' => ['required', 'numeric', 'min:0'],
             'estimated_days' => ['nullable', 'integer', 'min:0'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0'],
+            'benefit_type' => ['nullable', 'string', Rule::in(array_keys(ContractBenefit::BENEFIT_TYPES))],
+            'benefit_ticket_count' => ['nullable', 'integer', 'min:0'],
+            'benefit_unit_minutes' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
         ];
