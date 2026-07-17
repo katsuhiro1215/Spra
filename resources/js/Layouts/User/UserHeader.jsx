@@ -20,6 +20,7 @@ const formatRelativeTime = (dateString) => {
 export default function UserHeader({ sidebarOpen, setSidebarOpen }) {
     const { props } = usePage();
     const user = props.auth?.user;
+    const displayName = user?.profile?.full_name || user?.name || "";
     const unreadCount = props.userNotifications?.unreadCount || 0;
     const notificationItems = props.userNotifications?.items || [];
     const [searchQuery, setSearchQuery] = useState("");
@@ -62,6 +63,14 @@ export default function UserHeader({ sidebarOpen, setSidebarOpen }) {
                                     />
                                 </svg>
                             </button>
+                            {/* 公開サイトボタン */}
+                            <Link
+                                href={route("home")}
+                                target="_blank"
+                                className="ml-4 px-3 py-2 border border-green-400 hover:bg-green-100 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-colors"
+                            >
+                                公開サイト
+                            </Link>
                         </div>
 
                         {/* 中央: 検索バー */}
@@ -173,6 +182,66 @@ export default function UserHeader({ sidebarOpen, setSidebarOpen }) {
                             >
                                 <QuestionMarkCircleIcon className="h-6 w-6" />
                             </Link> */}
+
+                            {/* ユーザーメニュー */}
+                            <div className="flex items-center ml-2 pl-2 border-l border-gray-200">
+                                <Dropdown>
+                                    <Dropdown.Trigger>
+                                        <button className="flex items-center text-sm rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                            <span className="sr-only">
+                                                ユーザーメニューを開く
+                                            </span>
+                                            {user?.profile?.media ? (
+                                                <img
+                                                    src={
+                                                        user.profile.media.url
+                                                    }
+                                                    alt={displayName}
+                                                    className="h-8 w-8 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                                                    <span className="text-white text-sm font-medium">
+                                                        {displayName
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </button>
+                                    </Dropdown.Trigger>
+
+                                    <Dropdown.Content>
+                                        <div className="px-4 py-3">
+                                            <p className="text-sm text-gray-600">
+                                                ログイン中
+                                            </p>
+                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                {displayName}
+                                            </p>
+                                        </div>
+                                        <div className="border-t border-gray-100"></div>
+                                        <Dropdown.Link
+                                            href={route("user.profile.edit")}
+                                        >
+                                            プロフィール
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href={route("user.settings.index")}
+                                        >
+                                            設定
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href={route("user.logout")}
+                                            method="post"
+                                            as="button"
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            ログアウト
+                                        </Dropdown.Link>
+                                    </Dropdown.Content>
+                                </Dropdown>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ProjectAdmin;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProjectFromTemplateRequest extends FormRequest
 {
@@ -23,7 +25,9 @@ class StoreProjectFromTemplateRequest extends FormRequest
       'title' => ['required', 'string', 'max:255'],
       'description' => ['nullable', 'string'],
       'contract_id' => ['nullable', 'string', 'exists:contracts,id'],
-      'admin_id' => ['required', 'string', 'exists:admins,id'],
+      'admins' => ['required', 'array', 'min:1'],
+      'admins.*.admin_id' => ['required', 'string', 'exists:admins,id'],
+      'admins.*.role' => ['required', Rule::in(array_keys(ProjectAdmin::ROLES))],
       'start_date' => ['required', 'date'],
       'estimated_end_date' => ['required', 'date', 'after:start_date'],
       'template_id' => ['required', 'string', 'exists:project_templates,id'],
@@ -40,7 +44,8 @@ class StoreProjectFromTemplateRequest extends FormRequest
     return [
       'title.required' => 'プロジェクト名は必須です。',
       'title.max' => 'プロジェクト名は255文字以下である必要があります。',
-      'admin_id.required' => '担当者は必須です。',
+      'admins.required' => '担当者は1人以上必須です。',
+      'admins.min' => '担当者は1人以上必須です。',
       'start_date.required' => '開始予定日は必須です。',
       'estimated_end_date.required' => '納期は必須です。',
       'estimated_end_date.after' => '納期は開始予定日より後の日付である必要があります。',

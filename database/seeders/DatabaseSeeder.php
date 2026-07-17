@@ -55,8 +55,11 @@ class DatabaseSeeder extends Seeder
 
             // 使用技術・ギャラリー画像・実績（サービス表示強化）
             TechnologySeeder::class,
-            ServiceMediaSeeder::class,
-            PortfolioSeeder::class,
+            // ServiceMediaSeeder::class,
+            // PortfolioSeeder::class,
+
+            // キャンペーン（メディア作成後に実行し、サムネイルを紐付け）
+            CampaignSeeder::class,
 
             // 祝日・面談枠
             ScheduleDefaultSeeder::class,

@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\Batch\ReminderExecutionController;
 
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\OrganizationController;
@@ -254,6 +255,9 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
 
     // ログ管理
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
+    // 全体検索
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
 
     // 通知
     Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');

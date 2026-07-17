@@ -8,3 +8,5 @@ use App\Http\Controllers\Admin\CampaignController;
 
 // キャンペーン管理
 Route::resource('campaign', CampaignController::class);
+Route::post('/campaign/{campaign}/attach-media', [CampaignController::class, 'attachMedia'])->name('campaign.attach-media');
+Route::delete('/campaign/{campaign}/detach-media', [CampaignController::class, 'detachMedia'])->name('campaign.detach-media');

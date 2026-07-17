@@ -1,20 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-import { CreateButton } from "@/Components/Buttons";
+import { CreateButton, IconButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import {
+    PlusIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import MembershipRanksTable from "./_components/MembershipRanksTable";
+import MembershipRanksGrid from "./_components/MembershipRanksGrid";
+
+const VIEW_MODE_STORAGE_KEY = "membership-ranks-view-mode";
 
 export default function Index({ membershipRanks, filters = {}, stats = {} }) {
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
     });
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "grid",
+    );
+
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     const handleSearch = () => {
         get(route("admin.membership-rank.index"), {
@@ -92,10 +106,42 @@ export default function Index({ membershipRanks, filters = {}, stats = {} }) {
                     />
                 </div>
 
-                <MembershipRanksTable
-                    membershipRanks={membershipRanks}
-                    onDelete={handleDelete}
-                />
+                {/* 一覧ヘッダー（件数 + 表示切替） */}
+                <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                        会員ランク一覧 ({membershipRanks.total}件)
+                    </h2>
+                    <div className="flex gap-1">
+                        <IconButton
+                            variant={
+                                viewMode === "table" ? "secondary" : "text"
+                            }
+                            icon={ListBulletIcon}
+                            onClick={() => setViewMode("table")}
+                            title="テーブル表示"
+                        />
+                        <IconButton
+                            variant={
+                                viewMode === "grid" ? "secondary" : "text"
+                            }
+                            icon={Squares2X2Icon}
+                            onClick={() => setViewMode("grid")}
+                            title="グリッド表示"
+                        />
+                    </div>
+                </div>
+
+                {viewMode === "table" ? (
+                    <MembershipRanksTable
+                        membershipRanks={membershipRanks}
+                        onDelete={handleDelete}
+                    />
+                ) : (
+                    <MembershipRanksGrid
+                        membershipRanks={membershipRanks}
+                        onDelete={handleDelete}
+                    />
+                )}
 
                 {membershipRanks?.last_page > 1 && (
                     <Pagination paginationData={membershipRanks} />

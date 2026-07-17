@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import {
     CheckCircleIcon,
     ClockIcon,
@@ -62,12 +63,21 @@ export default function OnboardingProgress({ user }) {
     const progressPercentage = Math.round((completedCount / totalSteps) * 100);
 
     return (
-        <AuthenticatedLayout header="登録情報の完成"
-
-        >
+        <AuthenticatedLayout>
             <Head title="登録情報の完成 | Smart Sprouts" />
 
             <div className="max-w-3xl mx-auto space-y-8">
+                <UserPageHeader
+                    title="登録情報の完成"
+                    description="契約書作成までの最後のステップです"
+                    breadcrumbs={[
+                        {
+                            label: "ダッシュボード",
+                            href: route("user.dashboard"),
+                        },
+                        { label: "登録情報の完成", href: "#" },
+                    ]}
+                />
                 {/* ウェルカムセクション */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">

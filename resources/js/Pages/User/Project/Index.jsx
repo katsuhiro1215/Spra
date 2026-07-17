@@ -163,6 +163,57 @@ export default function Index({ projects, filters }) {
                                                 </div>
                                             </div>
 
+                                            {/* 担当チーム */}
+                                            {project.team &&
+                                                project.team.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                                            担当チーム
+                                                        </p>
+                                                        <div className="flex flex-wrap items-center gap-3">
+                                                            {project.team.map(
+                                                                (
+                                                                    member,
+                                                                    idx,
+                                                                ) => (
+                                                                    <div
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                        className="flex items-center gap-1.5"
+                                                                        title={
+                                                                            member.role_label
+                                                                        }
+                                                                    >
+                                                                        {member.avatar_url ? (
+                                                                            <img
+                                                                                src={
+                                                                                    member.avatar_url
+                                                                                }
+                                                                                alt={
+                                                                                    member.name
+                                                                                }
+                                                                                className="w-6 h-6 rounded-full object-cover"
+                                                                            />
+                                                                        ) : (
+                                                                            <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-xs font-semibold">
+                                                                                {
+                                                                                    member.name
+                                                                                }
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                                                                            {member.is_leader
+                                                                                ? `${member.name}（${member.role_label}）`
+                                                                                : member.role_label}
+                                                                        </span>
+                                                                    </div>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                             {/* マイルストーン表示 */}
                                             {project.milestones &&
                                                 project.milestones.length >

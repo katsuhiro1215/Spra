@@ -138,9 +138,15 @@ class Admin extends Authenticatable
         return $this->hasMany(Post::class, 'author_id');
     }
 
-    public function assignedProjects(): HasMany
+    /**
+     * このAdminが担当しているプロジェクト（複数プロジェクト・役割付き）
+     */
+    public function projects(): BelongsToMany
     {
-        return $this->hasMany(Project::class, 'admin_id');
+        return $this->belongsToMany(Project::class, 'project_admin')
+            ->using(ProjectAdmin::class)
+            ->withPivot(['id', 'role'])
+            ->withTimestamps();
     }
 
 

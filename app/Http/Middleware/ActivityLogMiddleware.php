@@ -283,7 +283,7 @@ class ActivityLogMiddleware
             ];
 
             // ステータスを決定
-            $status = $this->determineStatus($response);
+            $status = $this->determineStatus($response, $request, $action);
 
             $data = [
                 'user_id' => $actor && $actor['type'] === UserActivityLog::ACTOR_USER ? $actor['id'] : null,
@@ -358,6 +358,15 @@ class ActivityLogMiddleware
             }
         }
 
+        // ルート名が無い場合はパスで判定
+        // （例: routes/auth.php の POST /login は ->name() が付与されていない）
+        if ($method === 'POST' && Str::is(['login', '*/login'], $path)) {
+            return UserActivityLog::ACTION_LOGIN;
+        }
+        if ($method === 'POST' && Str::is(['logout', '*/logout'], $path)) {
+            return UserActivityLog::ACTION_LOGOUT;
+        }
+
         // HTTPメソッドに基づく判定
         switch ($method) {
             case 'GET':
@@ -414,18 +423,31 @@ class ActivityLogMiddleware
 
     /**
      * ステータスを決定
+     *
+     * ログインはバリデーション失敗時もリダイレクト(2xx/3xx)で返るため、
+     * HTTPステータスコードだけでは失敗を判定できない。
+     * その場合はセッションに積まれたバリデーションエラーの有無で判定する。
      */
-    private function determineStatus(Response $response): string
+    private function determineStatus(Response $response, Request $request, string $action): string
     {
         $statusCode = $response->getStatusCode();
 
         if ($statusCode >= 500) {
             return UserActivityLog::STATUS_ERROR;
-        } elseif ($statusCode >= 400) {
-            return UserActivityLog::STATUS_WARNING;
-        } else {
-            return UserActivityLog::STATUS_SUCCESS;
         }
+
+        if ($statusCode >= 400) {
+            return UserActivityLog::STATUS_WARNING;
+        }
+
+        if ($action === UserActivityLog::ACTION_LOGIN) {
+            $errors = $request->session()->get('errors');
+            if ($errors && method_exists($errors, 'any') && $errors->any()) {
+                return UserActivityLog::STATUS_ERROR;
+            }
+        }
+
+        return UserActivityLog::STATUS_SUCCESS;
     }
 
     /**
@@ -436,6 +458,13 @@ class ActivityLogMiddleware
         $routeName = $request->route()?->getName();
         $method = $request->method();
         $statusCode = $response->getStatusCode();
+
+        if ($action === UserActivityLog::ACTION_LOGIN) {
+            $errors = $request->session()->get('errors');
+            if ($errors && method_exists($errors, 'any') && $errors->any()) {
+                return 'ユーザーのログインに失敗しました';
+            }
+        }
 
         $descriptions = [
             UserActivityLog::ACTION_LOGIN => 'ユーザーがログインしました',

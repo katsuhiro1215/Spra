@@ -232,6 +232,59 @@ export default function Show({ project }) {
                                 </UserCardBody>
                             </UserCard>
 
+                            {/* 担当チーム */}
+                            {project.team && project.team.length > 0 && (
+                                <UserCard>
+                                    <UserCardHeader>
+                                        <UserCardTitle>
+                                            担当チーム
+                                        </UserCardTitle>
+                                    </UserCardHeader>
+                                    <UserCardBody>
+                                        <div className="space-y-3">
+                                            {project.team.map(
+                                                (member, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center gap-3"
+                                                    >
+                                                        {member.avatar_url ? (
+                                                            <img
+                                                                src={
+                                                                    member.avatar_url
+                                                                }
+                                                                alt={
+                                                                    member.name
+                                                                }
+                                                                className="w-9 h-9 rounded-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-semibold">
+                                                                {member.name}
+                                                            </span>
+                                                        )}
+                                                        <div>
+                                                            {member.is_leader && (
+                                                                <p className="text-sm font-medium text-gray-900">
+                                                                    {
+                                                                        member.name
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            <p className="text-xs text-gray-500">
+                                                                {
+                                                                    member.role_label
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </UserCardBody>
+                                </UserCard>
+                            )}
+
                             {/* 使用技術 */}
                             {project.technologies &&
                                 project.technologies.length > 0 && (

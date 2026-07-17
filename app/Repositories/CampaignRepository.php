@@ -45,7 +45,7 @@ class CampaignRepository extends BaseRepository
    */
   protected function getDefaultRelations(): array
   {
-    return [];
+    return ['media'];
   }
 
   /**

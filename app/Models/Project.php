@@ -21,7 +21,6 @@ class Project extends Model
         'contract_id',
         'user_id',
         'company_id',
-        'admin_id',
         'title',
         'description',
         'thumbnail',
@@ -78,9 +77,23 @@ class Project extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function admin(): BelongsTo
+    /**
+     * このプロジェクトの担当管理者（複数人・役割付き）
+     */
+    public function admins(): BelongsToMany
     {
-        return $this->belongsTo(Admin::class);
+        return $this->belongsToMany(Admin::class, 'project_admin')
+            ->using(ProjectAdmin::class)
+            ->withPivot(['id', 'role'])
+            ->withTimestamps();
+    }
+
+    /**
+     * プロジェクトリーダー（1人のみ）
+     */
+    public function leader(): ?Admin
+    {
+        return $this->admins->firstWhere('pivot.role', 'leader');
     }
 
     /**

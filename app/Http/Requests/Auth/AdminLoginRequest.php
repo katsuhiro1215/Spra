@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Validation\ValidationException;
 
@@ -71,6 +72,8 @@ class AdminLoginRequest extends FormRequest
         if (! Auth::guard('admins')->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
             $admin?->registerFailedLogin();
+
+            event(new Failed('admins', $admin, $credentials));
 
             throw ValidationException::withMessages([
                 'email' => __('messages.auth.login_failed'),

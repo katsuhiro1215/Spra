@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CampaignRequest;
 use App\Models\Campaign;
+use App\Models\Media;
 use App\Services\CampaignService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,8 +79,23 @@ class CampaignController extends Controller
      */
     public function show(Campaign $campaign): Response
     {
+        $campaign->load('media');
+
+        $mediaList = Media::where('type', 'image')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($media) => [
+                'id' => $media->id,
+                'title' => $media->title,
+                'file_name' => $media->original_filename,
+                'alt_text' => $media->alt_text,
+                'url' => $media->url,
+                'file_size' => $media->original_file_size,
+            ]);
+
         return Inertia::render('Admin/Campaign/Show', [
             'campaign' => $campaign,
+            'mediaList' => $mediaList,
         ]);
     }
 
@@ -126,6 +142,49 @@ class CampaignController extends Controller
             Log::error('Campaign destroy error: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * サムネイル画像を設定
+     */
+    public function attachMedia(Request $request, Campaign $campaign): RedirectResponse
+    {
+        $validated = $request->validate([
+            'media_id' => ['required', 'exists:media,id'],
+        ]);
+
+        try {
+            $campaign->update(['media_id' => $validated['media_id']]);
+
+            return back()->with('success', 'サムネイル画像を設定しました。');
+        } catch (\Exception $e) {
+            Log::error('キャンペーン画像設定エラー', [
+                'message' => $e->getMessage(),
+                'campaign_id' => $campaign->id,
+                'media_id' => $validated['media_id'],
+            ]);
+
+            return back()->with('error', '画像の設定に失敗しました。');
+        }
+    }
+
+    /**
+     * サムネイル画像を削除
+     */
+    public function detachMedia(Campaign $campaign): RedirectResponse
+    {
+        try {
+            $campaign->update(['media_id' => null]);
+
+            return back()->with('success', 'サムネイル画像を削除しました。');
+        } catch (\Exception $e) {
+            Log::error('キャンペーン画像削除エラー', [
+                'message' => $e->getMessage(),
+                'campaign_id' => $campaign->id,
+            ]);
+
+            return back()->with('error', '画像の削除に失敗しました。');
         }
     }
 }

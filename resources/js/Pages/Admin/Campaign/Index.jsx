@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
@@ -9,10 +9,20 @@ import { SecondaryButton, CreateButton } from "@/Components/Buttons";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@/Components/Buttons";
+import {
+    PlusIcon,
+    FunnelIcon,
+    XMarkIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import CampaignsTable from "./_components/CampaignsTable";
+import CampaignsGrid from "./_components/CampaignsGrid";
 import CampaignCalendar from "./_components/CampaignCalendar";
+
+const VIEW_MODE_STORAGE_KEY = "campaigns-view-mode";
 
 export default function Index({
     campaigns,
@@ -25,6 +35,13 @@ export default function Index({
     // ========================================
     const [view, setView] = useState("list");
     const [showFilters, setShowFilters] = useState(!!filters?.is_active);
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "grid",
+    );
+
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
@@ -217,11 +234,47 @@ export default function Index({
                             </div>
                         )}
 
-                        {/* テーブル */}
-                        <CampaignsTable
-                            campaigns={campaigns}
-                            onDelete={handleDelete}
-                        />
+                        {/* 一覧ヘッダー（件数 + 表示切替） */}
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                キャンペーン一覧 ({campaigns.total}件)
+                            </h2>
+                            <div className="flex gap-1">
+                                <IconButton
+                                    variant={
+                                        viewMode === "table"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={ListBulletIcon}
+                                    onClick={() => setViewMode("table")}
+                                    title="テーブル表示"
+                                />
+                                <IconButton
+                                    variant={
+                                        viewMode === "grid"
+                                            ? "secondary"
+                                            : "text"
+                                    }
+                                    icon={Squares2X2Icon}
+                                    onClick={() => setViewMode("grid")}
+                                    title="グリッド表示"
+                                />
+                            </div>
+                        </div>
+
+                        {/* テーブル / グリッド */}
+                        {viewMode === "table" ? (
+                            <CampaignsTable
+                                campaigns={campaigns}
+                                onDelete={handleDelete}
+                            />
+                        ) : (
+                            <CampaignsGrid
+                                campaigns={campaigns}
+                                onDelete={handleDelete}
+                            />
+                        )}
 
                         {/* ページネーション */}
                         {campaigns?.last_page > 1 && (

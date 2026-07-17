@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use App\Models\Admin;
 use App\Models\User;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,8 @@ class LoginRequest extends FormRequest
         if (! Auth::guard($guard)->validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
             $authenticatable?->registerFailedLogin();
+
+            event(new Failed($guard, $authenticatable, $credentials));
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

@@ -41,6 +41,11 @@ class HandleInertiaRequests extends Middleware
             $admin->load('profile');
         }
 
+        // user に profile リレーションを含める（アバター表示用）
+        if ($user) {
+            $user->load('profile.media');
+        }
+
         return [
             ...parent::share($request),
             'auth' => [

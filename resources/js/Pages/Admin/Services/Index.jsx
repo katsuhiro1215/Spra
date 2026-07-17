@@ -10,13 +10,23 @@ import { DeleteAlert } from "@/Components/Alerts";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@/Components/Buttons";
+import {
+    PlusIcon,
+    FunnelIcon,
+    XMarkIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import {
     SERVICE_STATUS_OPTIONS,
     IS_FEATURED_OPTIONS,
 } from "@/Constants/SelectOptions";
 import ServicesTable from "./_components/ServicesTable";
+import ServicesGrid from "./_components/ServicesGrid";
+
+const VIEW_MODE_STORAGE_KEY = "services-view-mode";
 
 export default function Index({
     services,
@@ -34,6 +44,13 @@ export default function Index({
     const [isDeleting, setIsDeleting] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState(
+        () => localStorage.getItem(VIEW_MODE_STORAGE_KEY) || "table",
+    );
+
+    useEffect(() => {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     const { data, setData, get, processing } = useForm({
         search: filters.search || "",
@@ -340,8 +357,45 @@ export default function Index({
                     </div>
                 )}
 
-                {/* サービス一覧テーブル */}
-                <ServicesTable services={services} onDelete={handleDelete} />
+                {/* 一覧ヘッダー（件数 + 表示切替） */}
+                <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                        サービス一覧 ({services.total}件)
+                    </h2>
+                    <div className="flex gap-1">
+                        <IconButton
+                            variant={
+                                viewMode === "table" ? "secondary" : "text"
+                            }
+                            icon={ListBulletIcon}
+                            onClick={() => setViewMode("table")}
+                            title="テーブル表示"
+                        />
+                        <IconButton
+                            variant={
+                                viewMode === "grid" ? "secondary" : "text"
+                            }
+                            icon={Squares2X2Icon}
+                            onClick={() => setViewMode("grid")}
+                            title="グリッド表示"
+                        />
+                    </div>
+                </div>
+
+                {/* サービス一覧 テーブル / グリッド */}
+                {viewMode === "table" ? (
+                    <ServicesTable
+                        services={services}
+                        onDelete={handleDelete}
+                        isDeleting={isDeleting}
+                    />
+                ) : (
+                    <ServicesGrid
+                        services={services}
+                        onDelete={handleDelete}
+                        isDeleting={isDeleting}
+                    />
+                )}
 
                 {/* ページネーション */}
                 {services.data.length > 0 && (

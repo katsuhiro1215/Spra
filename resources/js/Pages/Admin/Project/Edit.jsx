@@ -26,7 +26,11 @@ export default function Edit({
         contract_id: project.contract_id || "",
         user_id: project.user_id || "",
         company_id: project.company_id || "",
-        admin_id: project.admin_id || "",
+        admins:
+            (project.admins || []).map((admin) => ({
+                admin_id: admin.id,
+                role: admin.pivot.role,
+            })) || [],
         start_date: project.start_date ? project.start_date.split(" ")[0] : "",
         estimated_end_date: project.estimated_end_date
             ? project.estimated_end_date.split(" ")[0]

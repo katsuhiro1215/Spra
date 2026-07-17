@@ -25,7 +25,7 @@ class ProjectController extends Controller
      */
     public function index(): Response
     {
-        $projects = Project::with(['user', 'company', 'admin'])
+        $projects = Project::with(['user', 'company', 'admins.profile'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
@@ -88,7 +88,7 @@ class ProjectController extends Controller
         $project->load([
             'user',
             'company',
-            'admin',
+            'admins.profile',
             'contract',
             'versions',
             'updates',
@@ -122,7 +122,7 @@ class ProjectController extends Controller
             ->with('servicePlan.service.technologies')
             ->get();
 
-        $project->load('technologies');
+        $project->load(['technologies', 'admins.profile']);
 
         return Inertia::render('Admin/Project/Edit', [
             'project' => $project,

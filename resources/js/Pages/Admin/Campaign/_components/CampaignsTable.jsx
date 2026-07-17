@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { Card, CardHeader } from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -36,7 +36,6 @@ const formatDateTime = (value) => {
 const CampaignsTable = ({ campaigns, onDelete }) => {
     return (
         <Card>
-            <CardHeader>キャンペーン一覧 ({campaigns.total}件)</CardHeader>
             <Table>
                 <THead>
                     <Tr hover={false}>

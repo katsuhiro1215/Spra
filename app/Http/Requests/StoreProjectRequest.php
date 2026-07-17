@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Contract;
+use App\Models\ProjectAdmin;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -28,7 +30,9 @@ class StoreProjectRequest extends FormRequest
       'contract_id' => ['nullable', 'string', 'exists:contracts,id'],
       'user_id' => ['required', 'string', 'exists:users,id'],
       'company_id' => ['nullable', 'string', 'exists:companies,id'],
-      'admin_id' => ['required', 'string', 'exists:admins,id'],
+      'admins' => ['required', 'array', 'min:1'],
+      'admins.*.admin_id' => ['required', 'string', 'exists:admins,id'],
+      'admins.*.role' => ['required', Rule::in(array_keys(ProjectAdmin::ROLES))],
       'start_date' => ['required', 'date', 'date_format:Y-m-d'],
       'estimated_end_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
       'actual_end_date' => ['nullable', 'date', 'date_format:Y-m-d'],
@@ -48,21 +52,30 @@ class StoreProjectRequest extends FormRequest
     $validator->after(function ($validator) {
       $technologyIds = $this->input('technology_ids', []);
 
-      if (empty($technologyIds)) {
-        return;
+      if (!empty($technologyIds)) {
+        $contract = $this->input('contract_id')
+          ? Contract::with('servicePlan.service.technologies')->find($this->input('contract_id'))
+          : null;
+        $service = $contract?->servicePlan?->service;
+        $availableIds = $service ? $service->technologies->pluck('id')->all() : [];
+
+        if (array_diff($technologyIds, $availableIds) !== []) {
+          $validator->errors()->add(
+            'technology_ids',
+            '選択された使用技術の中に、契約先のサービスで許可されていないものが含まれています。',
+          );
+        }
       }
 
-      $contract = $this->input('contract_id')
-        ? Contract::with('servicePlan.service.technologies')->find($this->input('contract_id'))
-        : null;
-      $service = $contract?->servicePlan?->service;
-      $availableIds = $service ? $service->technologies->pluck('id')->all() : [];
+      $admins = collect($this->input('admins', []));
+      $adminIds = $admins->pluck('admin_id')->filter();
 
-      if (array_diff($technologyIds, $availableIds) !== []) {
-        $validator->errors()->add(
-          'technology_ids',
-          '選択された使用技術の中に、契約先のサービスで許可されていないものが含まれています。',
-        );
+      if ($adminIds->count() !== $adminIds->unique()->count()) {
+        $validator->errors()->add('admins', '同じ担当者を複数回指定することはできません。');
+      }
+
+      if ($admins->where('role', 'leader')->count() !== 1) {
+        $validator->errors()->add('admins', 'リーダーは1人だけ指定してください。');
       }
     });
   }
@@ -80,7 +93,9 @@ class StoreProjectRequest extends FormRequest
       'contract_id' => '契約',
       'user_id' => 'クライアント',
       'company_id' => '企業',
-      'admin_id' => '担当管理者',
+      'admins' => '担当管理者',
+      'admins.*.admin_id' => '担当管理者',
+      'admins.*.role' => '役割',
       'start_date' => '開始日',
       'estimated_end_date' => '予定終了日',
       'actual_end_date' => '実績終了日',
@@ -99,7 +114,10 @@ class StoreProjectRequest extends FormRequest
     return [
       'title.required' => 'プロジェクト名は必須です。',
       'user_id.required' => 'クライアントは必須です。',
-      'admin_id.required' => '担当管理者は必須です。',
+      'admins.required' => '担当管理者は1人以上必須です。',
+      'admins.min' => '担当管理者は1人以上必須です。',
+      'admins.*.admin_id.required' => '担当管理者を選択してください。',
+      'admins.*.role.required' => '役割を選択してください。',
       'start_date.required' => '開始日は必須です。',
       'start_date.date_format' => '開始日は Y-m-d 形式である必要があります。',
       'estimated_end_date.after_or_equal' => '予定終了日は開始日以降である必要があります。',

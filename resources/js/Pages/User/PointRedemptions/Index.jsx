@@ -50,6 +50,8 @@ export default function Index({ catalogItems, membership, redemptions }) {
             }
         >
             <Head title="ポイント交換" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <ConfirmAlert

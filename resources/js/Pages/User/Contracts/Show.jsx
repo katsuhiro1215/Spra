@@ -173,6 +173,8 @@ export default function Show({
             }
         >
             <Head title={`${contract.title} - 契約詳細`} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="space-y-6">

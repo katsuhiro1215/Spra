@@ -1267,6 +1267,16 @@ export const PageConfig = {
     },
 
     /**
+     * 全体検索
+     */
+    search: {
+        title: "🔍 検索結果",
+        description: "会社・顧客・プロジェクトなど全体を横断して検索します",
+        documentTitle: "検索結果",
+        breadcrumbs: ["ホーム", "検索結果"],
+    },
+
+    /**
      * バッチ実行管理（リマインダー実行状況）
      */
     batchReminders: {

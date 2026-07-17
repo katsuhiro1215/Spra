@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Lockout;
 use App\Listeners\UserLoginListener;
 
 class EventServiceProvider extends ServiceProvider
@@ -25,6 +26,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         Failed::class => [
             [UserLoginListener::class, 'handleFailed'],
+        ],
+        Lockout::class => [
+            [UserLoginListener::class, 'handleLockout'],
         ],
     ];
 

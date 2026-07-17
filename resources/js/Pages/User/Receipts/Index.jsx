@@ -30,6 +30,8 @@ export default function Index({ receipts }) {
             }
         >
             <Head title="領収書一覧" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-8">

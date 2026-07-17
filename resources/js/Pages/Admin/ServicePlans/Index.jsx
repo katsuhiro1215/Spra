@@ -1,12 +1,15 @@
-import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-import SearchFilter from "@/Components/Layout/SearchFilter";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { SecondaryButton } from "@/Components/Buttons";
+import SearchBar from "@/Components/SearchBar";
+import FilterSelect from "@/Components/FilterSelect";
+import { IS_FEATURED_OPTIONS } from "@/Constants/SelectOptions";
+import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import ServicePlansTable from "./_components/ServicePlansTable";
 
@@ -17,48 +20,46 @@ export default function Index({
     services,
     filters: initialFilters,
 }) {
-    const [data, setData] = useState(
-        initialFilters || {
-            search: "",
-            status: "",
-            service_id: "",
-            is_featured: "",
-        },
-    );
-    const [processing, setProcessing] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
     const [isDeleting, setIsDeleting] = useState(null);
 
-    // データ更新用のヘルパー関数
-    const updateData = (key, value) => {
-        setData((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
-    };
+    const { data, setData, get, processing } = useForm({
+        search: initialFilters?.search || "",
+        status: initialFilters?.status || "",
+        service_id: initialFilters?.service_id || "",
+        is_featured: initialFilters?.is_featured || "",
+    });
 
     // 検索実行
     const handleSearch = () => {
-        setProcessing(true);
-        router.get(route("admin.service.plan.index"), data, {
+        get(route("admin.service.plan.index"), {
             preserveState: true,
             preserveScroll: true,
-            replace: true,
-            onFinish: () => setProcessing(false),
         });
     };
 
-    // フィルター適用（debounce付き）
-    React.useEffect(() => {
+    // フィルター変更時に自動検索
+    useEffect(() => {
         const timer = setTimeout(() => {
-            router.get(route("admin.service.plan.index"), data, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
-        }, 500);
-
+            if (
+                data.status !== (initialFilters?.status || "") ||
+                data.service_id !== (initialFilters?.service_id || "") ||
+                data.is_featured !== (initialFilters?.is_featured || "")
+            ) {
+                handleSearch();
+            }
+        }, 300);
         return () => clearTimeout(timer);
-    }, [data]);
+    }, [data.status, data.service_id, data.is_featured]);
+
+    const handleClearFilters = () => {
+        setData({ search: "", status: "", service_id: "", is_featured: "" });
+        setShowFilters(false);
+        get(route("admin.service.plan.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
 
     const handleDelete = (servicePlan) => {
         if (
@@ -73,27 +74,24 @@ export default function Index({
         }
     };
 
-    // フィルター設定を作成
-    const searchFilterConfig = [
-        {
-            key: "service_id",
-            label: "サービス",
-            placeholder: "すべてのサービス",
-            options: (services || []).map((service) => ({
-                value: service.id,
-                label: service.name,
-            })),
-        },
-        {
-            key: "status",
-            label: "ステータス",
-            placeholder: "すべてのステータス",
-            options: (statuses || []).map((status) => ({
-                value: status.value,
-                label: status.label,
-            })),
-        },
-    ];
+    const serviceOptions = (services || []).map((service) => ({
+        value: service.id,
+        label: service.name,
+    }));
+
+    const statusOptions = (statuses || []).map((status) => ({
+        value: status.value,
+        label: status.label,
+    }));
+
+    const hasActiveFilters =
+        data.search || data.status || data.service_id || data.is_featured;
+
+    const activeFilterCount = [
+        data.status,
+        data.service_id,
+        data.is_featured,
+    ].filter(Boolean).length;
 
     // ========================================
     // Constants - Header Actions
@@ -126,17 +124,80 @@ export default function Index({
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
-                <Card>
-                    <div className="p-4 space-y-4">
-                        <SearchFilter
-                            data={data}
-                            updateData={updateData}
-                            config={searchFilterConfig}
+                {/* 検索・フィルター */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
                             onSearch={handleSearch}
-                            processing={processing}
+                            placeholder="プラン名・説明で検索"
+                            disabled={processing}
                         />
                     </div>
-                </Card>
+
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="md"
+                            className="relative"
+                        >
+                            <FunnelIcon className="h-4 w-4 mr-2" />
+                            フィルター
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
+
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FilterSelect
+                                label="サービス"
+                                value={data.service_id}
+                                onChange={(value) =>
+                                    setData("service_id", value)
+                                }
+                                options={serviceOptions}
+                                placeholder="すべてのサービス"
+                            />
+                            <FilterSelect
+                                label="ステータス"
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={statusOptions}
+                                placeholder="すべてのステータス"
+                            />
+                            <FilterSelect
+                                label="注目"
+                                value={data.is_featured}
+                                onChange={(value) =>
+                                    setData("is_featured", value)
+                                }
+                                options={IS_FEATURED_OPTIONS}
+                                placeholder="すべて"
+                            />
+                            <div className="flex items-end">
+                                <SecondaryButton
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    className="w-full"
+                                >
+                                    <XMarkIcon className="h-4 w-4 mr-2" />
+                                    クリア
+                                </SecondaryButton>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* サービスプラン一覧 */}
                 <ServicePlansTable
                     servicePlans={servicePlans.data || []}

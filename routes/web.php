@@ -23,6 +23,7 @@ use App\Http\Controllers\User\ReceiptController;
 use App\Http\Controllers\User\PointController;
 use App\Http\Controllers\User\PointRedemptionController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
+use App\Http\Controllers\User\MediaController as UserMediaController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\UserAddressController;
@@ -144,6 +145,9 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
+    // メディア（プロフィール画像アップロード用）
+    Route::post('/media', [UserMediaController::class, 'store'])->name('media.store');
+
     // 設定（クライアント向け）
     Route::get('/settings', function () {
         return Inertia::render('User/Settings/Index');
@@ -153,6 +157,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         // 個人情報（Profile）
         Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/attach-media', [UserProfileController::class, 'attachMedia'])->name('profile.attach-media');
+        Route::delete('/profile/detach-media', [UserProfileController::class, 'detachMedia'])->name('profile.detach-media');
 
         // 会社情報（Company）
         Route::get('/company', [CompanyController::class, 'edit'])->name('company.edit');

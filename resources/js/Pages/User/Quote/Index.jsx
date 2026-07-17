@@ -6,10 +6,8 @@ import Badge from "@/Components/Badge";
 
 export default function Index({ quotes = [], meta = null }) {
     return (
-        <AuthenticatedLayout>
-            <Head title="見積書" />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="見積書"
                     description="受け取った見積書の一覧"
@@ -21,7 +19,11 @@ export default function Index({ quotes = [], meta = null }) {
                         { label: "見積書", href: "#" },
                     ]}
                 />
+            }
+        >
+            <Head title="見積書" />
 
+            <div className="space-y-6">
                 {/* 見積書がある場合 */}
                 {quotes && quotes.length > 0 ? (
                     <div className="bg-white rounded-lg shadow overflow-hidden">

@@ -15,10 +15,8 @@ export default function Index({ updates }) {
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title="進捗状況" />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="進捗状況"
                     description="プロジェクトの進行状況を確認"
@@ -30,7 +28,11 @@ export default function Index({ updates }) {
                         { label: "進捗状況", href: "#" },
                     ]}
                 />
+            }
+        >
+            <Head title="進捗状況" />
 
+            <div className="space-y-6">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
                     {updates.data.length === 0 ? (
                         <Card>
@@ -79,9 +81,7 @@ export default function Index({ updates }) {
                                                 </h3>
                                             </div>
                                             <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                                                {formatDate(
-                                                    update.created_at,
-                                                )}
+                                                {formatDate(update.created_at)}
                                             </span>
                                         </div>
                                         {update.content && (

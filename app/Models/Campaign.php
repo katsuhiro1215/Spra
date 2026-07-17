@@ -21,6 +21,7 @@ class Campaign extends Model
         'name',
         'code',
         'description',
+        'media_id',
         'discount_type',
         'discount_value',
         'starts_at',
@@ -45,6 +46,11 @@ class Campaign extends Model
     // -------------------------
     // リレーション
     // -------------------------
+
+    public function media(): BelongsTo
+    {
+        return $this->belongsTo(Media::class);
+    }
 
     public function creator(): BelongsTo
     {

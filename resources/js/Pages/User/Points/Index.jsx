@@ -56,6 +56,8 @@ export default function Index({ membership, pointTransactions }) {
             }
         >
             <Head title="ポイント" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-8 space-y-6">
@@ -213,8 +215,7 @@ export default function Index({ membership, pointTransactions }) {
                                                                 : "text-red-600"
                                                         }`}
                                                     >
-                                                        {transaction.points >=
-                                                        0
+                                                        {transaction.points >= 0
                                                             ? "+"
                                                             : ""}
                                                         {transaction.points}pt

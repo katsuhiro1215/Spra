@@ -72,6 +72,8 @@ export default function Create({ availableSlots, projects, ticketBalances }) {
             }
         >
             <Head title="予約する" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-2xl mx-auto sm:px-6 lg:px-8 py-8">
@@ -170,9 +172,7 @@ export default function Create({ availableSlots, projects, ticketBalances }) {
                                         <div className="mt-1">
                                             <SlotCalendar
                                                 slots={availableSlots}
-                                                value={
-                                                    data.appointment_slot_id
-                                                }
+                                                value={data.appointment_slot_id}
                                                 onChange={(slotId) =>
                                                     setData(
                                                         "appointment_slot_id",
@@ -304,16 +304,14 @@ export default function Create({ availableSlots, projects, ticketBalances }) {
                                             <option value="">
                                                 選択してください
                                             </option>
-                                            {meetingToolOptions.map(
-                                                (tool) => (
-                                                    <option
-                                                        key={tool.value}
-                                                        value={tool.value}
-                                                    >
-                                                        {tool.label}
-                                                    </option>
-                                                ),
-                                            )}
+                                            {meetingToolOptions.map((tool) => (
+                                                <option
+                                                    key={tool.value}
+                                                    value={tool.value}
+                                                >
+                                                    {tool.label}
+                                                </option>
+                                            ))}
                                         </select>
                                         <InputError
                                             message={errors.meeting_tool}
@@ -325,9 +323,7 @@ export default function Create({ availableSlots, projects, ticketBalances }) {
                                 {/* 送信ボタン */}
                                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                     <Link
-                                        href={route(
-                                            "user.appointments.index",
-                                        )}
+                                        href={route("user.appointments.index")}
                                     >
                                         <SecondaryButton type="button">
                                             キャンセル

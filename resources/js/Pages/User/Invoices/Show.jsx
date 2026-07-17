@@ -111,6 +111,8 @@ export default function InvoiceShow({ invoice }) {
             }
         >
             <Head title={`請求書 ${invoice.invoice_number}`} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 py-8 space-y-6">
@@ -123,9 +125,7 @@ export default function InvoiceShow({ invoice }) {
                                 : "bg-blue-100 text-blue-800"
                         }`}
                     >
-                        {isPaid && (
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                        )}
+                        {isPaid && <CheckCircleIcon className="h-4 w-4 mr-1" />}
                         {statusLabels[invoice.status]}
                     </div>
                     <div className="flex flex-wrap gap-3">
@@ -215,8 +215,7 @@ export default function InvoiceShow({ invoice }) {
                                         </p>
                                         <p className="text-gray-900">
                                             {formatAmount(
-                                                invoice.contract
-                                                    .current_version
+                                                invoice.contract.current_version
                                                     .total_amount,
                                             )}
                                         </p>
@@ -242,9 +241,7 @@ export default function InvoiceShow({ invoice }) {
                                             invoice.billing_period_start,
                                         )}{" "}
                                         〜{" "}
-                                        {formatDate(
-                                            invoice.billing_period_end,
-                                        )}
+                                        {formatDate(invoice.billing_period_end)}
                                     </p>
                                 </div>
                                 <div>
@@ -359,9 +356,7 @@ export default function InvoiceShow({ invoice }) {
                                     <div className="flex justify-between text-green-700">
                                         <span>入金済み:</span>
                                         <span>
-                                            {formatAmount(
-                                                invoice.paid_amount,
-                                            )}
+                                            {formatAmount(invoice.paid_amount)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between font-semibold text-gray-900">
@@ -401,10 +396,7 @@ export default function InvoiceShow({ invoice }) {
                         入金通知
                     </h3>
 
-                    <form
-                        onSubmit={handleSubmitPayment}
-                        className="space-y-4"
-                    >
+                    <form onSubmit={handleSubmitPayment} className="space-y-4">
                         <FormGroup>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 支払方法 <span className="text-red-500">*</span>

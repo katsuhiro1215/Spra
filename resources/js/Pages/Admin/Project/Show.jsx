@@ -37,6 +37,14 @@ const priorityConfig = {
     urgent: { variant: "danger", label: "緊急" },
 };
 
+const ROLE_LABELS = {
+    leader: "リーダー",
+    designer: "デザイン担当",
+    developer: "開発担当",
+    manager: "マネージャー",
+    other: "その他",
+};
+
 export default function Show({ project, currentVersion, progress = 0 }) {
     const [activeTab, setActiveTab] = useState("overview");
     const isCompleted = progress >= 100;
@@ -458,16 +466,53 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                             </div>
                                         )}
 
-                                        {project.admin && (
-                                            <div>
-                                                <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                                    担当管理者
-                                                </dt>
-                                                <dd className="mt-1 text-sm text-slate-900 dark:text-slate-100">
-                                                    {project.admin.name}
-                                                </dd>
-                                            </div>
-                                        )}
+                                        {project.admins &&
+                                            project.admins.length > 0 && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        担当管理者
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm text-slate-900 dark:text-slate-100 space-y-1">
+                                                        {project.admins.map(
+                                                            (admin) => (
+                                                                <div
+                                                                    key={
+                                                                        admin.id
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <span>
+                                                                        {admin
+                                                                            .profile
+                                                                            ?.full_name ||
+                                                                            admin.email}
+                                                                    </span>
+                                                                    <Badge
+                                                                        variant={
+                                                                            admin
+                                                                                .pivot
+                                                                                .role ===
+                                                                            "leader"
+                                                                                ? "primary"
+                                                                                : "secondary"
+                                                                        }
+                                                                        size="sm"
+                                                                    >
+                                                                        {ROLE_LABELS[
+                                                                            admin
+                                                                                .pivot
+                                                                                .role
+                                                                        ] ||
+                                                                            admin
+                                                                                .pivot
+                                                                                .role}
+                                                                    </Badge>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </dd>
+                                                </div>
+                                            )}
                                     </dl>
                                 </CardBody>
                             </Card>

@@ -43,6 +43,8 @@ export default function Show({ receipt }) {
             }
         >
             <Head title={`領収書 ${receipt.receipt_number}`} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-3xl mx-auto sm:px-6 lg:px-8 py-8 space-y-6">
@@ -98,9 +100,7 @@ export default function Show({ receipt }) {
                             </div>
                             <div className="flex justify-between text-gray-700">
                                 <span>消費税</span>
-                                <span>
-                                    {formatAmount(receipt.tax_amount)}
-                                </span>
+                                <span>{formatAmount(receipt.tax_amount)}</span>
                             </div>
                             <div className="flex justify-between text-2xl font-bold text-gray-900 border-t border-gray-300 pt-3">
                                 <span>合計</span>

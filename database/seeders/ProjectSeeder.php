@@ -57,7 +57,6 @@ class ProjectSeeder extends Seeder
                 'contract_id' => $contract->id,
                 'user_id' => $contract->user_id,
                 'company_id' => $contract->company_id,
-                'admin_id' => $admin->id,
                 'title' => str_replace(' - 契約', '', $contract->title) . ' プロジェクト',
                 'description' => $contract->currentVersion?->terms_and_conditions,
                 'status' => $projectStatus,

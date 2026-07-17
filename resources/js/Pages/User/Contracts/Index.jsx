@@ -76,12 +76,8 @@ export default function Index({ contracts }) {
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title="契約管理" />
-            <FlashMessage />
-
-            <div className="space-y-6">
-                {/* ページヘッダー */}
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="契約管理"
                     description="契約書の確認と署名"
@@ -93,7 +89,14 @@ export default function Index({ contracts }) {
                         { label: "契約管理", href: "#" },
                     ]}
                 />
+            }
+        >
+            <Head title="契約管理" />
 
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+
+            <div className="space-y-6">
                 {/* ステータス別カード */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button

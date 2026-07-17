@@ -57,6 +57,8 @@ export default function Edit({ appointment, availableSlots, projects }) {
             }
         >
             <Head title="予約の変更" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-2xl mx-auto sm:px-6 lg:px-8 py-8">
@@ -269,9 +271,7 @@ export default function Edit({ appointment, availableSlots, projects }) {
                                 </DangerButton>
                                 <div className="flex gap-3">
                                     <Link
-                                        href={route(
-                                            "user.appointments.index",
-                                        )}
+                                        href={route("user.appointments.index")}
                                     >
                                         <SecondaryButton type="button">
                                             戻る

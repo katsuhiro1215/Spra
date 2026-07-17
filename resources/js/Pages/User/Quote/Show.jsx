@@ -111,6 +111,8 @@ export default function Show({ quote }) {
             }
         >
             <Head title={`見積書 - ${quote.quote_number}`} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="space-y-6">
