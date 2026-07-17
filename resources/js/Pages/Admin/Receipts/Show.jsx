@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head, router, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Card from "@/Components/Card";
 import Badge from "@/Components/Badge";
 import { FlashMessage } from "@/Components/Notifications";
+import { DeleteAlert, ConfirmAlert } from "@/Components/Alerts";
 import {
     PencilIcon,
     TrashIcon,
     ArrowDownTrayIcon,
+    ArrowLeftIcon,
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
@@ -42,30 +44,28 @@ const formatDateTime = (datetime) => {
 
 export default function Show({ receipt }) {
     // ========================================
+    // State - Alerts
+    // ========================================
+    const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+    const [showSendAlert, setShowSendAlert] = useState(false);
+
+    // ========================================
     // Handlers - Actions
     // ========================================
-    const handleDelete = () => {
-        if (
-            confirm(
-                `領収書「${receipt.receipt_number}」を削除してもよろしいですか？`,
-            )
-        ) {
-            router.delete(route("admin.receipt.destroy", receipt.id), {
-                onSuccess: () => {
-                    router.visit(route("admin.receipt.index"));
-                },
-            });
-        }
+    const handleDelete = () => setShowDeleteAlert(true);
+
+    const confirmDelete = () => {
+        router.delete(route("admin.receipt.destroy", receipt.id), {
+            onSuccess: () => {
+                router.visit(route("admin.receipt.index"));
+            },
+        });
     };
 
-    const handleSend = () => {
-        if (
-            confirm(
-                `領収書「${receipt.receipt_number}」をメールで送付しますか？`,
-            )
-        ) {
-            router.post(route("admin.receipts.send", receipt.id));
-        }
+    const handleSend = () => setShowSendAlert(true);
+
+    const confirmSend = () => {
+        router.post(route("admin.receipts.send", receipt.id));
     };
 
     const handleDownload = () => {
@@ -93,36 +93,12 @@ export default function Show({ receipt }) {
     // ========================================
     const headerActions = [
         {
-            label: "ダウンロード",
-            icon: ArrowDownTrayIcon,
-            variant: "secondary",
-            onClick: handleDownload,
+            label: PageConfig.contracts.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.receipt.index"),
         },
     ];
-
-    if (receipt.status !== "sent") {
-        headerActions.push({
-            label: "編集",
-            icon: PencilIcon,
-            variant: "secondary",
-            route: route("admin.receipt.edit", receipt.id),
-        });
-        headerActions.push({
-            label: "削除",
-            icon: TrashIcon,
-            variant: "danger",
-            onClick: handleDelete,
-        });
-    }
-
-    if (receipt.status === "issued") {
-        headerActions.push({
-            label: "送付",
-            icon: PaperAirplaneIcon,
-            variant: "primary",
-            onClick: handleSend,
-        });
-    }
 
     const breadcrumbs = [
         ...PageConfig.receipts.breadcrumbs,
@@ -143,6 +119,65 @@ export default function Show({ receipt }) {
             <Head title={`領収書: ${receipt.receipt_number}`} />
 
             <FlashMessage />
+
+            <DeleteAlert
+                show={showDeleteAlert}
+                onClose={() => setShowDeleteAlert(false)}
+                onConfirm={confirmDelete}
+                itemName={receipt.receipt_number}
+            />
+
+            <ConfirmAlert
+                isOpen={showSendAlert}
+                onClose={() => setShowSendAlert(false)}
+                onConfirm={confirmSend}
+                title="送付確認"
+                message={`領収書「${receipt.receipt_number}」をメールで送付しますか？`}
+                confirmText="送付する"
+                type="confirm"
+            />
+
+            {/* ダウンロード、削除、送付ボタン */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <button
+                        onClick={handleDownload}
+                        className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition"
+                    >
+                        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                        ダウンロード
+                    </button>
+                </div>
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    {receipt.status !== "sent" && (
+                        <button
+                            onClick={handleSend}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition"
+                        >
+                            <PaperAirplaneIcon className="h-5 w-5 mr-2" />
+                            送付
+                        </button>
+                    )}
+                    {receipt.status !== "sent" && (
+                        <>
+                            <Link
+                                href={route("admin.receipt.edit", receipt.id)}
+                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition"
+                            >
+                                <PencilIcon className="h-5 w-5 mr-2" />
+                                編集
+                            </Link>
+                            <button
+                                onClick={handleDelete}
+                                className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500 transition"
+                            >
+                                <TrashIcon className="h-5 w-5 mr-2" />
+                                削除
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* メインコンテンツ */}

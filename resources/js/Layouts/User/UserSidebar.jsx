@@ -39,6 +39,18 @@ export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
             current: route().current("user.receipt.*"),
         },
         {
+            name: "ポイント",
+            href: "user.points.index",
+            icon: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z",
+            current: route().current("user.points.*"),
+        },
+        {
+            name: "ポイント交換",
+            href: "user.point-redemptions.index",
+            icon: "M7.5 21L3 16.5m0 0L7.5 12M3 16.5h18M16.5 3L21 7.5m0 0L16.5 12M21 7.5H3",
+            current: route().current("user.point-redemptions.*"),
+        },
+        {
             name: "進捗状況",
             href: "user.progress.index",
             icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",

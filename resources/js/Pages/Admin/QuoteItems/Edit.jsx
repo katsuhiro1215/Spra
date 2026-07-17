@@ -14,7 +14,9 @@ export default function Edit({
     services,
     serviceItems,
     servicePlans,
+    campaigns,
     discount_amount,
+    campaign_id,
     tax_rate,
     base_amount,
     tax_amount,
@@ -24,6 +26,7 @@ export default function Edit({
     const { data, setData, put, processing, errors } = useForm({
         items: items || [],
         discount_amount: discount_amount || 0,
+        campaign_id: campaign_id || "",
         tax_rate: tax_rate || 10,
         base_amount: base_amount || 0,
         tax_amount: tax_amount || 0,
@@ -77,6 +80,7 @@ export default function Edit({
                     services={services}
                     serviceItems={serviceItems}
                     servicePlans={servicePlans}
+                    campaigns={campaigns}
                     isEdit={true}
                 />
             </div>

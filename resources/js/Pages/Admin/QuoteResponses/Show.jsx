@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
-import { Card } from "@/Components/Card";
+import { Card, CardHeader, CardTitle } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
 const QUOTE_STATUS_BADGE_VARIANT = {
@@ -69,14 +69,24 @@ export default function Detail({ quoteResponse, responseTypes }) {
         return responseTypes[responseType] || responseType;
     };
 
+    const headerActions = [
+        {
+            label: PageConfig.quoteResponses.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.quote-response.index"),
+        },
+    ];
+
     const breadcrumbs = [...PageConfig.quoteResponses.breadcrumbs, "詳細"];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="見積返信詳細"
-                    description="クライアントからの見積返信内容を確認します"
+                    title={PageConfig.quoteResponses.title}
+                    description={PageConfig.quoteResponses.description}
+                    actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
@@ -85,27 +95,16 @@ export default function Detail({ quoteResponse, responseTypes }) {
 
             <FlashMessage />
 
-            <div className="space-y-4">
-                {/* 戻るボタン */}
-                <div>
-                    <Link href={route("admin.quote-response.index")}>
-                        <SecondaryButton>
-                            <ChevronLeftIcon className="w-4 h-4" />
-                            一覧に戻る
-                        </SecondaryButton>
-                    </Link>
-                </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 基本情報 */}
                 <Card>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                返信内容
-                            </h2>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <CardTitle>返信内容</CardTitle>
                             {getStatusBadge(quoteResponse)}
                         </div>
-
+                    </CardHeader>
+                    <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">

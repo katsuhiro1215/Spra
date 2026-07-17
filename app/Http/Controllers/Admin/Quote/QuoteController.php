@@ -245,6 +245,7 @@ class QuoteController extends Controller
             'requirements' => 'nullable|string',
             'custom_specifications' => 'nullable|string',
             'discount_amount' => 'nullable|numeric|min:0',
+            'campaign_id' => 'nullable|exists:campaigns,id',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'status' => 'required|in:draft,negotiating,approved,rejected,contracted,cancelled',
             'items' => 'array',

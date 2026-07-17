@@ -167,9 +167,9 @@ export default function Create({
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            {/* 見積選択セクション - QuoteResponse 経由の場合は非表示 */}
-            {!fromQuoteResponse && (
-                <div className="max-w-7xl mb-6">
+            <div className="w-full space-y-6">
+                {/* 見積選択セクション - QuoteResponse 経由の場合は非表示 */}
+                {!fromQuoteResponse && (
                     <Card>
                         <CardHeader>
                             <CardTitle>見積書を選択</CardTitle>
@@ -205,12 +205,9 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* QuoteResponse 経由の表示 */}
-            {fromQuoteResponse && quoteResponse && (
-                <div className="w-full mb-6">
+                )}
+                {/* QuoteResponse 経由の表示 */}
+                {fromQuoteResponse && quoteResponse && (
                     <Card>
                         <CardHeader>
                             <CardTitle>📌 見積返信から遷移しました</CardTitle>
@@ -225,12 +222,9 @@ export default function Create({
                             </p>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* クライアント情報の詳細チェック */}
-            {quote && (
-                <div className="w-full mb-6">
+                )}
+                {/* クライアント情報の詳細チェック */}
+                {quote && (
                     <Card
                         className={
                             fromQuoteResponse
@@ -462,12 +456,9 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* 必要情報チェック結果 */}
-            {quote && requirementStatus && !requirementStatus.can_send && (
-                <div className="max-w-7xl mb-6">
+                )}
+                {/* 必要情報チェック結果 */}
+                {quote && requirementStatus && !requirementStatus.can_send && (
                     <Card className="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
                         <CardBody>
                             <div className="flex gap-4">
@@ -501,12 +492,9 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* 必要情報が揃っている場合 */}
-            {quote && requirementStatus && requirementStatus.can_send && (
-                <div className="max-w-7xl mb-6">
+                )}
+                {/* 必要情報が揃っている場合 */}
+                {quote && requirementStatus && requirementStatus.can_send && (
                     <Card className="border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20">
                         <CardBody>
                             <div className="flex gap-4">
@@ -522,10 +510,7 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            <div className="w-full">
+                )}
                 <ContractForm
                     data={data}
                     setData={setData}

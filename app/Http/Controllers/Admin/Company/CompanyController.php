@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CompanyRequest;
 use App\Models\Address;
 use App\Models\Company;
+use App\Models\CompanyMembership;
 use App\Models\Media;
+use App\Models\PointReward;
 use App\Services\CompanyService;
+use App\Services\PointService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +20,8 @@ use Inertia\Response;
 class CompanyController extends Controller
 {
     public function __construct(
-        private CompanyService $companyService
+        private CompanyService $companyService,
+        private PointService $pointService,
     ) {}
 
     /**
@@ -125,15 +129,30 @@ class CompanyController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
+        // ポイント残高・履歴を取得
+        $membership = $company->membership()->with('currentRank')->first() ?: new CompanyMembership([
+            'points_balance' => 0,
+            'lifetime_points' => 0,
+            'annual_usage_amount' => 0,
+        ]);
+        $pointTransactions = $company->pointTransactions()
+            ->with(['pointReward', 'receipt', 'referral'])
+            ->limit(100)
+            ->get();
+        $activePointRewards = PointReward::active()->orderBy('name')->get(['id', 'code', 'name', 'points']);
+
         return Inertia::render('Admin/Company/Show', [
-            'company'      => $company,
-            'addressTypes' => Address::TYPES,
-            'quotes'       => $quotes,
-            'invoices'     => $invoices,
-            'receipts'     => $receipts,
-            'payments'     => $payments,
-            'stats'        => $stats,
-            'mediaList'    => $mediaList,
+            'company'            => $company,
+            'addressTypes'       => Address::TYPES,
+            'quotes'             => $quotes,
+            'invoices'           => $invoices,
+            'receipts'           => $receipts,
+            'payments'           => $payments,
+            'stats'              => $stats,
+            'mediaList'          => $mediaList,
+            'membership'         => $membership,
+            'pointTransactions'  => $pointTransactions,
+            'activePointRewards' => $activePointRewards,
         ]);
     }
 
@@ -340,5 +359,23 @@ class CompanyController extends Controller
 
             return back()->with('error', '画像の削除に失敗しました。');
         }
+    }
+
+    /**
+     * ポイントを手動付与（PointRewardマスタのルールに基づく）
+     */
+    public function grantPoints(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reward_code' => ['required', 'exists:point_rewards,code'],
+        ]);
+
+        $transaction = $this->pointService->grantReward($company->id, $validated['reward_code']);
+
+        if (!$transaction) {
+            return back()->with('error', 'ポイントの付与に失敗しました。特典が無効になっていないか確認してください。');
+        }
+
+        return back()->with('success', "{$transaction->points}ポイントを付与しました。");
     }
 }

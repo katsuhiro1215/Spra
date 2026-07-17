@@ -20,6 +20,7 @@ export default function QuoteItemForm({
     services = [],
     serviceItems = {},
     servicePlans = [],
+    campaigns = [],
     isEdit = false,
 }) {
     const [items, setItems] = useState(data.items || []);
@@ -189,10 +190,27 @@ export default function QuoteItemForm({
         0,
     );
 
+    // 選択中のキャンペーン
+    const selectedCampaign = campaigns.find(
+        (campaign) => campaign.id === data.campaign_id,
+    );
+
+    const calculateCampaignDiscount = (campaign, baseAmount) => {
+        if (!campaign) return 0;
+        if (campaign.discount_type === "percentage") {
+            return Math.round(
+                baseAmount * (parseFloat(campaign.discount_value) / 100),
+            );
+        }
+        return Math.min(parseFloat(campaign.discount_value) || 0, baseAmount);
+    };
+
     // QuoteVersion用の金額計算
     useEffect(() => {
         const baseAmount = totalAmount;
-        const discountAmount = parseFloat(data.discount_amount) || 0;
+        const discountAmount = selectedCampaign
+            ? calculateCampaignDiscount(selectedCampaign, baseAmount)
+            : parseFloat(data.discount_amount) || 0;
         const taxRate = parseFloat(data.tax_rate) / 100 || 0.1;
         const taxAmount = (baseAmount - discountAmount) * taxRate;
         const calculatedTotalAmount = baseAmount - discountAmount + taxAmount;
@@ -200,10 +218,12 @@ export default function QuoteItemForm({
         setData((prev) => ({
             ...prev,
             base_amount: baseAmount,
+            // キャンペーン適用中は自動計算した値で上書きし、手入力欄との齟齬を防ぐ
+            ...(selectedCampaign ? { discount_amount: discountAmount } : {}),
             tax_amount: taxAmount,
             total_amount: calculatedTotalAmount,
         }));
-    }, [totalAmount, data.discount_amount, data.tax_rate]);
+    }, [totalAmount, data.discount_amount, data.tax_rate, data.campaign_id]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -465,10 +485,42 @@ export default function QuoteItemForm({
                 <CardBody>
                     <div className="space-y-4 max-w-md ml-auto">
                         <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2">
+                                <FormGroup
+                                    label="キャンペーン"
+                                    htmlFor="campaign_id"
+                                    error={errors.campaign_id}
+                                    helpText="選択すると値引き額がキャンペーンの割引ルールから自動計算されます"
+                                >
+                                    <SelectInput
+                                        id="campaign_id"
+                                        value={data.campaign_id || ""}
+                                        onChange={(e) =>
+                                            setData(
+                                                "campaign_id",
+                                                e.target.value,
+                                            )
+                                        }
+                                        options={[
+                                            { value: "", label: "適用しない" },
+                                            ...campaigns.map((campaign) => ({
+                                                value: campaign.id,
+                                                label: `${campaign.name}（${campaign.code}）`,
+                                            })),
+                                        ]}
+                                    />
+                                </FormGroup>
+                            </div>
+
                             <FormGroup
                                 label="値引き額"
                                 htmlFor="discount_amount"
                                 error={errors.discount_amount}
+                                helpText={
+                                    selectedCampaign
+                                        ? "キャンペーン適用中は自動計算されます"
+                                        : undefined
+                                }
                             >
                                 <TextInput
                                     id="discount_amount"
@@ -476,6 +528,7 @@ export default function QuoteItemForm({
                                     step="0.01"
                                     min="0"
                                     value={data.discount_amount || 0}
+                                    disabled={!!selectedCampaign}
                                     onChange={(e) =>
                                         setData(
                                             "discount_amount",

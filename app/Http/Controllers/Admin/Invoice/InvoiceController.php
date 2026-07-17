@@ -79,8 +79,13 @@ class InvoiceController extends Controller
         }
 
         // contract_idパラメータがある場合、契約情報を取得
+        $remainingAmount = null;
         if ($request->has('contract_id')) {
             $contract = Contract::with(['user', 'company', 'currentVersion'])->find($request->contract_id);
+
+            if ($contract && !$contract->isRecurring()) {
+                $remainingAmount = $contract->remainingAmount();
+            }
         }
 
         return Inertia::render('Admin/Invoices/Create', [
@@ -91,6 +96,7 @@ class InvoiceController extends Controller
             'company'   => $company,
             'user'      => $user,
             'contract'  => $contract,
+            'remainingAmount' => $remainingAmount,
         ]);
     }
 
@@ -116,12 +122,19 @@ class InvoiceController extends Controller
                 ->with('error', 'この請求書は編集できません。');
         }
 
+        $remainingAmount = null;
+        if ($invoice->contract && !$invoice->contract->isRecurring()) {
+            // 編集中の請求書自身は残金の計算から除外する
+            $remainingAmount = $invoice->contract->remainingAmount($invoice->id);
+        }
+
         return Inertia::render('Admin/Invoices/Edit', [
             'invoice'   => $invoice,
             'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
             'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
             'statuses'  => Invoice::STATUSES,
+            'remainingAmount' => $remainingAmount,
         ]);
     }
 

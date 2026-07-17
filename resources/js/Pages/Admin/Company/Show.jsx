@@ -26,6 +26,7 @@ import CompanyInvoices from "./_components/CompanyInvoices";
 import CompanyReceipts from "./_components/CompanyReceipts";
 import CompanyQuotes from "./_components/CompanyQuotes";
 import CompanyPayments from "./_components/CompanyPayments";
+import CompanyPoints from "./_components/CompanyPoints";
 
 export default function Show({
     company,
@@ -36,6 +37,9 @@ export default function Show({
     payments = [],
     stats = {},
     mediaList = [],
+    membership = {},
+    pointTransactions = [],
+    activePointRewards = [],
 }) {
     const [activeTab, setActiveTab] = useState("basic");
     const [showMediaModal, setShowMediaModal] = useState(false);
@@ -101,6 +105,11 @@ export default function Show({
             label: "決済",
             count: payments.length,
         },
+        {
+            key: "points",
+            label: "ポイント",
+            count: pointTransactions.length,
+        },
     ];
 
     const renderTabContent = () => {
@@ -132,6 +141,15 @@ export default function Show({
                 return <CompanyQuotes quotes={quotes} />;
             case "payments":
                 return <CompanyPayments payments={payments} />;
+            case "points":
+                return (
+                    <CompanyPoints
+                        company={company}
+                        membership={membership}
+                        pointTransactions={pointTransactions}
+                        activePointRewards={activePointRewards}
+                    />
+                );
             default:
                 return null;
         }

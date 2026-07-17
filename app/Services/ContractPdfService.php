@@ -65,7 +65,7 @@ class ContractPdfService
 
         $html = view('contracts.pdf-template', [
             'contract' => $contract,
-            'formattedAmount' => $this->formatAmount($contract->currentVersion?->total_amount ?? 0),
+            'formattedAmount' => $this->formatAmount($this->calculateTaxableAmount($contract)),
             'totalWithTax' => $this->formatAmount($this->calculateTotalWithTax($contract)),
             'generatedAt' => now()->format('Y年m月d日'),
             'signatureBase64' => $signatureBase64, // Base64エンコード済み署名画像データ
@@ -92,13 +92,25 @@ class ContractPdfService
     }
 
     /**
-     * 税込合計を計算
+     * 税抜き金額（税率・割引適用後の課税対象額）を計算
+     */
+    private function calculateTaxableAmount(Contract $contract): float
+    {
+        $baseAmount = $contract->currentVersion?->base_amount ?? 0;
+        $discountAmount = $contract->currentVersion?->discount_amount ?? 0;
+        return $baseAmount - $discountAmount;
+    }
+
+    /**
+     * 税込合計を取得
+     *
+     * ContractVersion.total_amount は ContractService::recalculateVersionAmounts() で
+     * 既に税込みの金額として計算・保存されているため、ここで税率を再度掛けてはならない
+     * （以前はここで total_amount に (1 + taxRate) を掛けて二重に課税してしまっていた）
      */
     private function calculateTotalWithTax(Contract $contract): float
     {
-        $taxRate = $contract->currentVersion?->tax_rate ?? 0;
-        $amount = $contract->currentVersion?->total_amount ?? 0;
-        return $amount * (1 + $taxRate / 100);
+        return $contract->currentVersion?->total_amount ?? 0;
     }
 
     /**
@@ -161,7 +173,7 @@ class ContractPdfService
         // ページ1：金額情報
         $page1 = view('contracts.pdf-template', [
             'contract' => $contract,
-            'formattedAmount' => $this->formatAmount($contract->currentVersion?->total_amount ?? 0),
+            'formattedAmount' => $this->formatAmount($this->calculateTaxableAmount($contract)),
             'totalWithTax' => $this->formatAmount($this->calculateTotalWithTax($contract)),
             'generatedAt' => now()->format('Y年m月d日'),
             'signatureBase64' => null, // ページ1には署名を表示しない

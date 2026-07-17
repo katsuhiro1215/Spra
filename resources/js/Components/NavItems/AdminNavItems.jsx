@@ -28,6 +28,12 @@ export const getAdminNavigationItems = () => {
                 "admin.contract.*",
                 "admin.contract-group.*",
                 "admin.quote-response.*",
+                "admin.campaign.*",
+                "admin.point-reward.*",
+                "admin.referral.*",
+                "admin.membership-rank.*",
+                "admin.point-catalog-item.*",
+                "admin.point-redemption.*",
                 "admin.invoice.*",
                 "admin.receipt.*",
                 "admin.payment.*",
@@ -47,6 +53,24 @@ export const getAdminNavigationItems = () => {
                 { name: "契約グループ", href: "admin.contract-group.index" },
                 { name: "見積管理", href: "admin.quote.index" },
                 { name: "見積返信", href: "admin.quote-response.index" },
+                { name: "キャンペーン管理", href: "admin.campaign.index" },
+                {
+                    name: "ポイント特典管理",
+                    href: "admin.point-reward.index",
+                },
+                { name: "紹介管理", href: "admin.referral.index" },
+                {
+                    name: "会員ランク管理",
+                    href: "admin.membership-rank.index",
+                },
+                {
+                    name: "ポイント交換カタログ管理",
+                    href: "admin.point-catalog-item.index",
+                },
+                {
+                    name: "ポイント交換申請管理",
+                    href: "admin.point-redemption.index",
+                },
                 // 商談管理
                 // 提案管理
                 { name: "請求書", href: "admin.invoice.index" },

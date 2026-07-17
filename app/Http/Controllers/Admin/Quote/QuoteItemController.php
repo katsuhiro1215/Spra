@@ -8,6 +8,7 @@ use App\Models\Quote;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServicePlan;
+use App\Services\CampaignService;
 use App\Services\QuoteService;
 use App\Services\ServiceCategoryService;
 use App\Services\ServiceItemService;
@@ -21,7 +22,8 @@ class QuoteItemController extends Controller
     public function __construct(
         private QuoteService $quoteService,
         private ServiceCategoryService $serviceCategoryService,
-        private ServiceItemService $serviceItemService
+        private ServiceItemService $serviceItemService,
+        private CampaignService $campaignService
     ) {}
 
     /**
@@ -88,7 +90,9 @@ class QuoteItemController extends Controller
             'services' => $services,
             'serviceItems' => $serviceItems,
             'servicePlans' => $servicePlans,
+            'campaigns' => $this->campaignService->getActiveForSelect(),
             'discount_amount' => $quote->currentVersion->discount_amount ?? 0,
+            'campaign_id' => $quote->currentVersion->campaign_id ?? '',
             'tax_rate' => $quote->currentVersion->tax_rate ?? 10,
             'base_amount' => $quote->currentVersion->base_amount ?? 0,
             'tax_amount' => $quote->currentVersion->tax_amount ?? 0,
@@ -122,6 +126,9 @@ class QuoteItemController extends Controller
             }
             if (isset($validated['custom_specifications'])) {
                 $currentVersion->custom_specifications = $validated['custom_specifications'];
+            }
+            if (array_key_exists('campaign_id', $validated)) {
+                $currentVersion->campaign_id = $validated['campaign_id'] ?: null;
             }
             $currentVersion->save();
 
@@ -236,7 +243,9 @@ class QuoteItemController extends Controller
             'services' => $services,
             'serviceItems' => $serviceItems,
             'servicePlans' => $servicePlans,
+            'campaigns' => $this->campaignService->getActiveForSelect(),
             'discount_amount' => $quote->currentVersion->discount_amount ?? 0,
+            'campaign_id' => $quote->currentVersion->campaign_id ?? '',
             'tax_rate' => $quote->currentVersion->tax_rate ?? 10,
             'base_amount' => $quote->currentVersion->base_amount ?? 0,
             'tax_amount' => $quote->currentVersion->tax_amount ?? 0,
@@ -270,6 +279,9 @@ class QuoteItemController extends Controller
             }
             if (isset($validated['custom_specifications'])) {
                 $currentVersion->custom_specifications = $validated['custom_specifications'];
+            }
+            if (array_key_exists('campaign_id', $validated)) {
+                $currentVersion->campaign_id = $validated['campaign_id'] ?: null;
             }
             $currentVersion->save();
 

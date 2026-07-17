@@ -16,8 +16,12 @@ use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
+use App\Http\Controllers\User\NotificationController;
+use App\Http\Controllers\User\SecuritySettingsController;
 use App\Http\Controllers\User\ContractController;
 use App\Http\Controllers\User\ReceiptController;
+use App\Http\Controllers\User\PointController;
+use App\Http\Controllers\User\PointRedemptionController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
@@ -121,6 +125,13 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
     Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
 
+    // ポイント（クライアント向け）
+    Route::get('/points', [PointController::class, 'index'])->name('points.index');
+
+    // ポイント交換（クライアント向け）
+    Route::get('/point-redemptions', [PointRedemptionController::class, 'index'])->name('point-redemptions.index');
+    Route::post('/point-redemptions', [PointRedemptionController::class, 'store'])->name('point-redemptions.store');
+
     /**************************************
      * 見積もり
      **************************************/
@@ -130,8 +141,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::get('/progress', [UserProjectController::class, 'progress'])->name('progress.index');
 
     // 通知（クライアント向け）
-    Route::get('/notifications/{id}/read', [\App\Http\Controllers\User\NotificationController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/read-all', [\App\Http\Controllers\User\NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     // 設定（クライアント向け）
     Route::get('/settings', function () {
@@ -156,8 +167,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::put('/address', [UserAddressController::class, 'update'])->name('address.update');
 
         // セキュリティ（二段階認証）
-        Route::get('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'edit'])->name('security.edit');
-        Route::put('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'update'])->name('security.update');
+        Route::get('/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
+        Route::put('/security', [SecuritySettingsController::class, 'update'])->name('security.update');
     });
 
     Route::get('/reservation-settings', function () {

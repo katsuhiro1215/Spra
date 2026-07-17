@@ -208,6 +208,34 @@ class Contract extends Model
     }
 
     /**
+     * 既に請求済みの金額（キャンセル済みの請求書を除く）
+     *
+     * $excludeInvoiceId を指定すると、その請求書自身を除いて集計する
+     * （既存請求書の編集時に自分自身の金額を二重に差し引かないため）
+     */
+    public function invoicedAmount(?string $excludeInvoiceId = null): float
+    {
+        return (float) $this->invoices()
+            ->where('status', '!=', 'cancelled')
+            ->when($excludeInvoiceId, fn($query) => $query->where('id', '!=', $excludeInvoiceId))
+            ->sum('total_amount');
+    }
+
+    /**
+     * 未請求の残額（契約金額 - 既に請求済みの金額）
+     *
+     * 一括払い契約(one_time)向けの概念。月額/年額の継続契約は請求サイクルが
+     * 繰り返されるため「残金」という概念自体が馴染まず、呼び出し側で
+     * isRecurring() をチェックした上で使うこと。
+     */
+    public function remainingAmount(?string $excludeInvoiceId = null): float
+    {
+        $contractTotal = (float) ($this->currentVersion?->total_amount ?? 0);
+
+        return max($contractTotal - $this->invoicedAmount($excludeInvoiceId), 0);
+    }
+
+    /**
      * 値上げ・更新時に新しい契約を作成
      */
     public function renew(array $data = []): Contract

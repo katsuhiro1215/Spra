@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Mail\SendQuoteMail;
+use App\Models\Campaign;
 use App\Models\Quote;
 use App\Models\QuoteResponse;
 use App\Models\ServiceItem;
 use App\Repositories\QuoteRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class QuoteService extends BaseService
@@ -118,6 +120,7 @@ class QuoteService extends BaseService
                 'total_amount' => 0,
                 'status' => 'draft',
                 'is_current' => true,
+                'campaign_id' => $data['campaign_id'] ?? null,
                 'created_by' => $createdBy,
             ];
 
@@ -177,6 +180,7 @@ class QuoteService extends BaseService
                     'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
                     'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
                     'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
+                    'campaign_id' => array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id,
                     'updated_by' => auth('admins')->id(),
                 ];
                 $currentVersion->update($versionUpdate);
@@ -222,6 +226,7 @@ class QuoteService extends BaseService
                     'total_amount' => 0,
                     'status' => 'draft', // 新バージョンはドラフト状態で作成
                     'is_current' => true, // 新バージョンを現在のバージョンにセット
+                    'campaign_id' => array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id,
                     'created_by' => auth('admins')->id(),
                 ];
 
@@ -445,6 +450,21 @@ class QuoteService extends BaseService
     {
         $baseAmount = $quoteVersion->items()->sum('amount');
         $discountAmount = $quoteVersion->discount_amount ?? 0;
+
+        // キャンペーンが適用されている場合は、キャンペーンの割引ルールから割引額を自動算出する
+        if ($quoteVersion->campaign_id) {
+            $campaign = Campaign::find($quoteVersion->campaign_id);
+
+            if ($campaign && $campaign->isCurrentlyActive()) {
+                $discountAmount = $campaign->calculateDiscount((float) $baseAmount);
+            } else {
+                Log::warning('Campaign is not currently active, falling back to stored discount_amount', [
+                    'quote_version_id' => $quoteVersion->id,
+                    'campaign_id' => $quoteVersion->campaign_id,
+                ]);
+            }
+        }
+
         $taxRate = ($quoteVersion->tax_rate ?? 10) / 100; // 整数（10）を小数（0.10）に変換
 
         $subtotal = $baseAmount - $discountAmount;

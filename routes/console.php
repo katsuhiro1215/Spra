@@ -17,6 +17,9 @@ Schedule::command('invoices:generate-monthly')->dailyAt('09:00');
 // 継続契約の契約特典（チケット）を毎日午前9時に自動生成
 Schedule::command('benefits:generate-monthly')->dailyAt('09:00');
 
+// 会員ランク（年間利用額に基づく）を毎日午前9時30分に再計算
+Schedule::command('membership:calculate-ranks')->dailyAt('09:30');
+
 // 未送信請求書を毎日午前10時に送信
 Schedule::command('invoices:send-pending')->dailyAt('10:00');
 

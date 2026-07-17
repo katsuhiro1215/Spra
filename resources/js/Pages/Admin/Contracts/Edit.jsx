@@ -70,7 +70,7 @@ export default function Edit({
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-7xl">
+            <div className="w-full space-y-6">
                 <ContractForm
                     data={data}
                     setData={setData}

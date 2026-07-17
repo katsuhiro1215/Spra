@@ -7,12 +7,17 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Mail\ReceiptMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReceiptService
 {
+  public function __construct(
+    private PointService $pointService,
+  ) {}
+
   /**
    * 入金確認後に領収書を発行
    * Invoice1件につき領収書は1件のみ(既に発行済みの場合はそれを返す)
@@ -39,6 +44,18 @@ class ReceiptService
         'issued_at' => now(),
         'created_by' => auth()->guard('admins')->id(),
       ]);
+
+      // ポイント付与はここが入金確認の実質的なタイミング(Receiptがdraftで作られた瞬間)。
+      // 失敗しても領収書の発行自体は妨げないよう、内側のトランザクション(セーブポイント)ごと
+      // 握りつぶす。
+      try {
+        $this->pointService->grantForReceipt($receipt);
+      } catch (\Throwable $e) {
+        Log::error('ポイント付与に失敗しました', [
+          'receipt_id' => $receipt->id,
+          'error' => $e->getMessage(),
+        ]);
+      }
 
       return $receipt;
     });

@@ -47,11 +47,8 @@ export default function Dashboard({
     ];
 
     return (
-        <AuthenticatedLayout>
-            <Head title="ダッシュボード" />
-
-            <div className="space-y-6">
-                {/* ページヘッダー */}
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="ダッシュボード"
                     description="契約情報と重要なタスク"
@@ -59,7 +56,11 @@ export default function Dashboard({
                         { label: "ホーム", href: route("user.dashboard") },
                     ]}
                 />
+            }
+        >
+            <Head title="ダッシュボード" />
 
+            <div className="space-y-6">
                 {/* 統計情報 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {stats.map((stat) => {

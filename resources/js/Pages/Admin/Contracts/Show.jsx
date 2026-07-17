@@ -101,6 +101,18 @@ export default function Show({ contract }) {
     const canSend = hasItems && hasTerms && currentVersion?.status === "draft";
     const readyForNextSteps = contract.signature_status === "fully_signed";
 
+    // 一括払い契約は契約金額の残金が0円になったら新しい請求書を作成できない
+    // （月額/年額の継続契約は請求サイクルが繰り返されるため対象外）
+    const isRecurringContract = ["monthly", "annual"].includes(contract.type);
+    const invoicedAmount = (contract.invoices || [])
+        .filter((invoice) => invoice.status !== "cancelled")
+        .reduce((sum, invoice) => sum + parseFloat(invoice.total_amount || 0), 0);
+    const remainingToInvoice = Math.max(
+        (currentVersion?.total_amount || 0) - invoicedAmount,
+        0,
+    );
+    const canCreateInvoice = isRecurringContract || remainingToInvoice > 0;
+
     // ========================================
     // アクションハンドラー
     // ========================================
@@ -419,14 +431,22 @@ export default function Show({ contract }) {
                                             </button>
                                             <button
                                                 onClick={handleCreateInvoice}
-                                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                                disabled={!canCreateInvoice}
+                                                title={
+                                                    canCreateInvoice
+                                                        ? undefined
+                                                        : "この契約は既に契約金額の全額を請求済みです"
+                                                }
+                                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-green-600 disabled:hover:to-emerald-600"
                                             >
                                                 <DocumentTextIcon className="h-5 w-5" />
                                                 請求書を作成
                                             </button>
                                         </div>
                                         <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
-                                            プロジェクトと請求書は平行して作成できます。
+                                            {canCreateInvoice
+                                                ? "プロジェクトと請求書は平行して作成できます。"
+                                                : "この契約は既に契約金額の全額を請求済みのため、請求書は作成できません。"}
                                         </p>
                                     </div>
                                 )}

@@ -13,7 +13,9 @@ export default function Create({
     services,
     serviceItems,
     servicePlans,
+    campaigns,
     discount_amount,
+    campaign_id,
     tax_rate,
     base_amount,
     tax_amount,
@@ -23,6 +25,7 @@ export default function Create({
     const { data, setData, post, processing, errors } = useForm({
         items: [],
         discount_amount: discount_amount || 0,
+        campaign_id: campaign_id || "",
         tax_rate: tax_rate || 10,
         base_amount: base_amount || 0,
         tax_amount: tax_amount || 0,
@@ -76,6 +79,7 @@ export default function Create({
                     services={services}
                     serviceItems={serviceItems}
                     servicePlans={servicePlans}
+                    campaigns={campaigns}
                     isEdit={false}
                 />
             </div>

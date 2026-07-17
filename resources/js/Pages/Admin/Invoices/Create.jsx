@@ -14,6 +14,7 @@ export default function Create({
     company = null,
     user = null,
     contract = null,
+    remainingAmount = null,
 }) {
     const today = new Date().toISOString().split("T")[0];
     const [billingRate, setBillingRate] = useState(50); // 契約金額に対する請求割合(%)
@@ -73,13 +74,26 @@ export default function Create({
 
         if (contract) {
             const currentVersion = contract.current_version;
+            const taxRate = currentVersion?.tax_rate ?? 10;
             // 消費税は課税対象額（小計 - 割引）に対してかかるため、税込の総額ではなく
             // 課税対象額を按分の基準にする（税込総額を基準にすると二重課税になる）
             const taxableBase =
                 (currentVersion?.base_amount || 0) -
                 (currentVersion?.discount_amount || 0);
             const rate = isPartialBilling ? billingRate : 100;
-            const billedSubtotal = Math.round(taxableBase * (rate / 100));
+            let billedSubtotal = Math.round(taxableBase * (rate / 100));
+
+            // 契約の残金（税込）を超えないよう、税抜きに換算してキャップする。
+            // これにより「請求書作成を押すと残金以下になる」ことを構造的に保証する
+            if (remainingAmount !== null) {
+                const remainingSubtotal = Math.round(
+                    remainingAmount / (1 + taxRate / 100),
+                );
+                billedSubtotal = Math.max(
+                    0,
+                    Math.min(billedSubtotal, remainingSubtotal),
+                );
+            }
 
             setData((prev) => ({
                 ...prev,
@@ -89,10 +103,10 @@ export default function Create({
                 billing_period_start: contract.start_date || today,
                 billing_period_end: contract.end_date || "",
                 subtotal: billedSubtotal,
-                tax_rate: currentVersion?.tax_rate ?? 10,
+                tax_rate: taxRate,
             }));
         }
-    }, [company, user, contract, billingRate, isPartialBilling]);
+    }, [company, user, contract, billingRate, isPartialBilling, remainingAmount]);
 
     const handleSubmit = () => {
         post(route("admin.invoice.store"));
@@ -210,16 +224,20 @@ export default function Create({
                                         （税込）
                                     </span>
                                 </span>
-                                {isPartialBilling && (
-                                    <span className="text-blue-700 dark:text-blue-300 ml-4">
-                                        残金：¥
-                                        {Math.round(
-                                            (contract.current_version
-                                                ?.total_amount || 0) -
-                                                (data.total_amount || 0),
-                                        ).toLocaleString()}
-                                    </span>
-                                )}
+                                {isPartialBilling &&
+                                    remainingAmount !== null && (
+                                        <span className="text-blue-700 dark:text-blue-300 ml-4">
+                                            この請求後の残金：¥
+                                            {Math.max(
+                                                0,
+                                                Math.round(
+                                                    remainingAmount -
+                                                        (data.total_amount ||
+                                                            0),
+                                                ),
+                                            ).toLocaleString()}
+                                        </span>
+                                    )}
                             </div>
                         </div>
                     </div>
@@ -239,6 +257,7 @@ export default function Create({
                     contracts={contracts}
                     users={users}
                     companies={companies}
+                    remainingAmount={remainingAmount}
                 />
             </div>
         </AdminAuthenticatedLayout>

@@ -110,7 +110,7 @@
             </tr>
             <tr>
                 <td>税率</td>
-                <td class="text-right">{{ $contract->tax_rate }}%</td>
+                <td class="text-right">{{ $contract->currentVersion?->tax_rate ?? 0 }}%</td>
             </tr>
             <tr>
                 <td style="font-weight:bold">税込合計</td>

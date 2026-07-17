@@ -12,6 +12,7 @@ export default function Edit({
     users,
     companies,
     statuses,
+    remainingAmount = null,
 }) {
     const { data, setData, put, processing, errors } = useForm({
         contract_id: invoice.contract_id || "",
@@ -66,6 +67,7 @@ export default function Edit({
                     contracts={contracts}
                     users={users}
                     companies={companies}
+                    remainingAmount={remainingAmount}
                 />
             </div>
         </AdminAuthenticatedLayout>

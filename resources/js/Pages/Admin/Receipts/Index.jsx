@@ -7,6 +7,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { DeleteAlert, ConfirmAlert } from "@/Components/Alerts";
 import { SecondaryButton, IconButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
@@ -50,6 +51,8 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
     // State & Form
     // ========================================
     const [showFilters, setShowFilters] = useState(!!filters?.status);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [sendTarget, setSendTarget] = useState(null);
 
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
@@ -78,21 +81,23 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
     // ========================================
     // Handlers - Actions
     // ========================================
-    const handleDelete = (receipt) => {
-        const confirmed = confirm(
-            `領収書「${receipt.receipt_number}」を削除してもよろしいですか？`,
-        );
-        if (confirmed) {
-            router.delete(route("admin.receipt.destroy", receipt.id));
+    const handleDelete = (receipt) => setDeleteTarget(receipt);
+
+    const handleConfirmDelete = () => {
+        if (deleteTarget) {
+            router.delete(route("admin.receipt.destroy", deleteTarget.id), {
+                onFinish: () => setDeleteTarget(null),
+            });
         }
     };
 
-    const handleSend = (receipt) => {
-        const confirmed = confirm(
-            `領収書「${receipt.receipt_number}」をメールで送付しますか？`,
-        );
-        if (confirmed) {
-            router.post(route("admin.receipts.send", receipt.id));
+    const handleSend = (receipt) => setSendTarget(receipt);
+
+    const handleConfirmSend = () => {
+        if (sendTarget) {
+            router.post(route("admin.receipts.send", sendTarget.id), {
+                onFinish: () => setSendTarget(null),
+            });
         }
     };
 
@@ -135,6 +140,23 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
+
+            <DeleteAlert
+                show={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+                itemName={deleteTarget?.receipt_number}
+            />
+
+            <ConfirmAlert
+                isOpen={!!sendTarget}
+                onClose={() => setSendTarget(null)}
+                onConfirm={handleConfirmSend}
+                title="送付確認"
+                message={`領収書「${sendTarget?.receipt_number}」をメールで送付しますか？`}
+                confirmText="送付する"
+                type="confirm"
+            />
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索 + フィルタートグル */}
@@ -380,8 +402,8 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
                                                         />
                                                     </>
                                                 )}
-                                                {receipt.status ===
-                                                    "issued" && (
+                                                {receipt.status !==
+                                                    "sent" && (
                                                     <IconButton
                                                         variant="info-text"
                                                         icon={

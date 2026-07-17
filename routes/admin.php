@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Admin\AdminAddressController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\SecuritySettingsController;
 use App\Http\Controllers\Admin\AdminPermissionOverrideController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\User\UserProfileController;
@@ -51,11 +52,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // セキュリティ（二段階認証）
-    Route::get('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'edit'])->name('security.edit');
-    Route::put('/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'update'])->name('security.update');
-    Route::post('/security/totp/setup', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'setupTotp'])->name('security.totp.setup');
-    Route::post('/security/totp/confirm', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'confirmTotp'])->name('security.totp.confirm');
-    Route::post('/security/recovery-codes/regenerate', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'regenerateRecoveryCodes'])->name('security.recovery-codes.regenerate');
+    Route::get('/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
+    Route::put('/security', [SecuritySettingsController::class, 'update'])->name('security.update');
+    Route::post('/security/totp/setup', [SecuritySettingsController::class, 'setupTotp'])->name('security.totp.setup');
+    Route::post('/security/totp/confirm', [SecuritySettingsController::class, 'confirmTotp'])->name('security.totp.confirm');
+    Route::post('/security/recovery-codes/regenerate', [SecuritySettingsController::class, 'regenerateRecoveryCodes'])->name('security.recovery-codes.regenerate');
 
     /**************************************
      * 管理者
@@ -125,6 +126,7 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     Route::patch('/company/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('company.toggle-status');
     Route::post('/company/{company}/attach-media', [CompanyController::class, 'attachMedia'])->name('company.attach-media');
     Route::delete('/company/{company}/detach-media', [CompanyController::class, 'detachMedia'])->name('company.detach-media');
+    Route::post('/company/{company}/points/grant', [CompanyController::class, 'grantPoints'])->name('company.points.grant');
     // 会社住所管理
     Route::controller(CompanyAddressController::class)->prefix('company/{company}/address')->name('company.address.')->group(function () {
         Route::get('/create', 'create')->name('create');
@@ -171,6 +173,20 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      * 見積もり
      **************************************/
     require __DIR__ . '/admin/quote.php';
+
+    /**************************************
+     * キャンペーン
+     **************************************/
+    require __DIR__ . '/admin/campaign.php';
+
+    /**************************************
+     * ポイント特典・紹介
+     **************************************/
+    require __DIR__ . '/admin/point-reward.php';
+    require __DIR__ . '/admin/referral.php';
+    require __DIR__ . '/admin/membership-rank.php';
+    require __DIR__ . '/admin/point-catalog-item.php';
+    require __DIR__ . '/admin/point-redemption.php';
 
     // オンボーディング管理
     Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {

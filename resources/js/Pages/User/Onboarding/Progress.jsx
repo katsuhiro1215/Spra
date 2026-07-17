@@ -62,7 +62,9 @@ export default function OnboardingProgress({ user }) {
     const progressPercentage = Math.round((completedCount / totalSteps) * 100);
 
     return (
-        <AuthenticatedLayout header="登録情報の完成">
+        <AuthenticatedLayout header="登録情報の完成"
+
+        >
             <Head title="登録情報の完成 | Smart Sprouts" />
 
             <div className="max-w-3xl mx-auto space-y-8">
