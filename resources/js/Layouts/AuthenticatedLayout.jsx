@@ -41,7 +41,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 setSidebarOpen={setSidebarOpen}
             />
 
-            <div className="md:ml-56 relative z-10">
+            <div className="md:ml-64 relative z-10">
                 {/* ヘッダー */}
                 <UserHeader
                     sidebarOpen={sidebarOpen}

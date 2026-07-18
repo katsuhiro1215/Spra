@@ -12,7 +12,6 @@ export default function Create({ pageTypes }) {
         page_type_id: "",
         title: "",
         slug: "",
-        content: { blocks: [] },
         meta_title: "",
         meta_description: "",
         is_published: false,
@@ -51,7 +50,7 @@ export default function Create({ pageTypes }) {
 
             <FlashMessage />
 
-            <div className="w-full">
+            <div className="max-w-7xl">
                 <PageForm
                     data={data}
                     setData={setData}

@@ -1,14 +1,109 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Link, usePage } from "@inertiajs/react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { getUserNavigationItems } from "@/Components/NavItems/UserNavItems";
+
+function NavList({ items, openSections, onToggle, onNavigate }) {
+    return (
+        <>
+            {items.map((item) => {
+                const hasChildren = item.children.length > 0;
+
+                if (!hasChildren) {
+                    return (
+                        <Link
+                            key={item.name}
+                            href={route(item.href)}
+                            onClick={onNavigate}
+                            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                item.current
+                                    ? "bg-indigo-50 text-indigo-700 border-l-4 border-indigo-700"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                        >
+                            <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                            {item.name}
+                        </Link>
+                    );
+                }
+
+                const isOpen = openSections[item.name] ?? item.current;
+
+                return (
+                    <div key={item.name}>
+                        <button
+                            type="button"
+                            onClick={() => onToggle(item.name, item.current)}
+                            className={`w-full flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                item.current
+                                    ? "bg-indigo-50 text-indigo-700"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                        >
+                            <span className="flex items-center">
+                                <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                                {item.name}
+                            </span>
+                            <ChevronDownIcon
+                                className={`h-4 w-4 flex-shrink-0 transition-transform ${
+                                    isOpen ? "rotate-180" : ""
+                                }`}
+                            />
+                        </button>
+
+                        {isOpen && (
+                            <div className="mt-1 ml-8 space-y-1 border-l border-gray-200 pl-3">
+                                {item.children.map((child) => (
+                                    <Link
+                                        key={child.name}
+                                        href={route(child.href)}
+                                        onClick={onNavigate}
+                                        className={`block px-2 py-1.5 rounded-md text-sm transition-colors ${
+                                            child.current
+                                                ? "text-indigo-700 font-medium bg-indigo-50"
+                                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {child.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </>
+    );
+}
 
 export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
     const { props } = usePage();
     const user = props.auth?.user;
+    const [openSections, setOpenSections] = useState({});
 
-    const navigationItems = getUserNavigationItems();
+    const toggleSection = (name, defaultOpen) => {
+        setOpenSections((prev) => ({
+            ...prev,
+            [name]: !(prev[name] ?? defaultOpen),
+        }));
+    };
+
+    const navigationItems = getUserNavigationItems().map((item) => {
+        const isCurrent = Array.isArray(item.currentPath)
+            ? item.currentPath.some((path) => route().current(path))
+            : route().current(item.currentPath);
+
+        return {
+            ...item,
+            current: isCurrent,
+            children: item.children.map((child) => ({
+                ...child,
+                current: route().current(child.href),
+            })),
+        };
+    });
 
     return (
         <>
@@ -30,26 +125,11 @@ export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
 
                     {/* ナビゲーション */}
                     <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-                        {navigationItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={route(item.href)}
-                                className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                    item.current
-                                        ? "bg-indigo-50 text-indigo-700 border-l-4 border-indigo-700"
-                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                }`}
-                            >
-                                <svg
-                                    className="h-5 w-5 mr-3"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path d={item.icon} />
-                                </svg>
-                                {item.name}
-                            </Link>
-                        ))}
+                        <NavList
+                            items={navigationItems}
+                            openSections={openSections}
+                            onToggle={toggleSection}
+                        />
                     </nav>
 
                     {/* ユーザーメニュー */}
@@ -121,27 +201,12 @@ export default function UserSidebar({ sidebarOpen, setSidebarOpen }) {
 
                         {/* ナビゲーション */}
                         <nav className="px-2 py-3 space-y-1">
-                            {navigationItems.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={route(item.href)}
-                                    className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                        item.current
-                                            ? "bg-indigo-50 text-indigo-700 border-l-4 border-indigo-700"
-                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                    }`}
-                                    onClick={() => setSidebarOpen(false)}
-                                >
-                                    <svg
-                                        className="h-5 w-5 mr-3"
-                                        fill="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path d={item.icon} />
-                                    </svg>
-                                    {item.name}
-                                </Link>
-                            ))}
+                            <NavList
+                                items={navigationItems}
+                                openSections={openSections}
+                                onToggle={toggleSection}
+                                onNavigate={() => setSidebarOpen(false)}
+                            />
                         </nav>
 
                         {/* ユーザーメニュー */}

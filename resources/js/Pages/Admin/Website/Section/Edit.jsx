@@ -9,12 +9,16 @@ import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
 import SectionForm from "./_components/SectionForm";
 import * as validation from "./_components/validation";
 
-export default function Edit({ section, pages }) {
+export default function Edit({ section, pages, mediaList }) {
     const { data, setData, put, processing, errors } = useForm({
         page_id: section.page_id || "",
         name: section.name || "",
         role: section.role || "",
         sort_order: section.sort_order || 0,
+        content:
+            section.content && Array.isArray(section.content.blocks)
+                ? section.content
+                : { blocks: [] },
     });
 
     const [localErrors, setLocalErrors] = useState({});
@@ -66,6 +70,7 @@ export default function Edit({ section, pages }) {
                         setLocalErrors={setLocalErrors}
                         processing={processing}
                         pages={pages}
+                        mediaList={mediaList}
                     />
 
                     {/* アクションボタン */}

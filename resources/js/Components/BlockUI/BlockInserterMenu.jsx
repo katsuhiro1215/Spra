@@ -2,9 +2,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { BLOCK_TYPES } from "./registry";
 
-export default function BlockInserterMenu({ onInsert, label = "ブロックを追加" }) {
+export default function BlockInserterMenu({
+    onInsert,
+    label = "ブロックを追加",
+    allowedTypes,
+}) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef(null);
+    const blockTypes =
+        Array.isArray(allowedTypes) && allowedTypes.length > 0
+            ? BLOCK_TYPES.filter((block) => allowedTypes.includes(block.type))
+            : BLOCK_TYPES;
 
     useEffect(() => {
         if (!open) return;
@@ -36,7 +44,7 @@ export default function BlockInserterMenu({ onInsert, label = "ブロックを�
 
             {open && (
                 <div className="absolute z-20 mt-2 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-1">
-                    {BLOCK_TYPES.map((block) => {
+                    {blockTypes.map((block) => {
                         const Icon = block.icon;
                         return (
                             <button

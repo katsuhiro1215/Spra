@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             ServiceItemSeeder::class,
             ServicePlanSeeder::class,
-            ServicePlanItemSeeder::class,
+            // ServicePlanItemSeeder::class,
 
             // 使用技術・ギャラリー画像・実績（サービス表示強化）
             TechnologySeeder::class,
@@ -88,8 +88,10 @@ class DatabaseSeeder extends Seeder
             // 予約（面談）
             AppointmentSeeder::class,
 
-            // Webサイト管理（ページタイプ・FAQ・ヘッダーメニュー）
+            // Webサイト管理（ページタイプ・ページ・セクション・FAQ・ヘッダーメニュー）
             PageTypeSeeder::class,
+            PageSeeder::class,
+            SectionSeeder::class,
             FaqCategorySeeder::class,
             FaqSeeder::class,
             FaqPageSeeder::class,

@@ -6,10 +6,21 @@ import {
     TextArea,
     InputError,
     Toggle,
+    ArrayFieldEditor,
 } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { BLOCK_TYPES } from "@/Components/BlockUI";
 import * as validation from "./validation";
+
+const DEFAULT_LAYOUT_SECTION_SCHEMA = {
+    role: {
+        type: "text",
+        label: "役割（hero / main / sidebar / footer）",
+        default: "main",
+    },
+    name: { type: "text", label: "セクション名", default: "" },
+};
 
 const PageTypeForm = ({
     data,
@@ -71,6 +82,21 @@ const PageTypeForm = ({
         if (typeof onSubmit === "function") {
             onSubmit();
         }
+    };
+
+    const allowedComponentTypes = data.allowed_component_types || [];
+
+    const toggleComponentType = (type) => {
+        const next = allowedComponentTypes.includes(type)
+            ? allowedComponentTypes.filter((t) => t !== type)
+            : [...allowedComponentTypes, type];
+        handleChange("allowed_component_types", next);
+    };
+
+    const defaultLayoutSections = data.default_layout?.sections || [];
+
+    const handleDefaultLayoutSectionsChange = (sections) => {
+        handleChange("default_layout", { ...data.default_layout, sections });
     };
 
     return (
@@ -232,6 +258,58 @@ const PageTypeForm = ({
                                 disabled={processing}
                             />
                         </div>
+                    </div>
+                </CardBody>
+            </Card>
+
+            {/* 初期セクション構成 */}
+            <Card>
+                <CardHeader>初期セクション構成</CardHeader>
+                <CardBody>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        このページタイプでページを新規作成した際に、自動で作成されるセクションです。役割は
+                        hero / main / sidebar / footer
+                        から選んで入力してください。
+                    </p>
+                    <ArrayFieldEditor
+                        value={defaultLayoutSections}
+                        onChange={handleDefaultLayoutSectionsChange}
+                        itemsSchema={DEFAULT_LAYOUT_SECTION_SCHEMA}
+                        label="セクション"
+                    />
+                </CardBody>
+            </Card>
+
+            {/* 使用可能なブロック */}
+            <Card>
+                <CardHeader>使用可能なブロック</CardHeader>
+                <CardBody>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        このページタイプのセクションでブロックエディタに表示するブロックを選択します。何も選択しない場合は全ブロックが使用可能になります。
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {BLOCK_TYPES.map((block) => (
+                            <label
+                                key={block.type}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-blue-400"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={allowedComponentTypes.includes(
+                                        block.type,
+                                    )}
+                                    onChange={() =>
+                                        toggleComponentType(block.type)
+                                    }
+                                    disabled={processing}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <block.icon className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="text-sm text-slate-700 dark:text-slate-300 truncate">
+                                    {block.label}
+                                </span>
+                            </label>
+                        ))}
                     </div>
                 </CardBody>
             </Card>

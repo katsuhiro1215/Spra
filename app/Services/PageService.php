@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Page;
+use App\Models\PageType;
+use App\Models\Section;
 use App\Repositories\PageRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -37,8 +39,37 @@ class PageService extends BaseService
             // 作成者情報の追加
             $data['created_by'] = Auth::guard('admins')->id();
 
-            return $this->repository->create($data);
+            $page = $this->repository->create($data);
+            $this->createDefaultSections($page);
+
+            return $page;
         });
+    }
+
+    /**
+     * ページタイプのdefault_layoutに従って初期セクションを作成
+     */
+    private function createDefaultSections(Page $page): void
+    {
+        $pageType = PageType::find($page->page_type_id);
+        $sections = $pageType?->default_layout['sections'] ?? [];
+
+        if (empty($sections)) {
+            return;
+        }
+
+        $adminId = Auth::guard('admins')->id();
+
+        foreach ($sections as $index => $section) {
+            Section::create([
+                'page_id' => $page->id,
+                'name' => $section['name'] ?? 'セクション',
+                'role' => $section['role'] ?? 'main',
+                'sort_order' => $index,
+                'content' => ['blocks' => []],
+                'created_by' => $adminId,
+            ]);
+        }
     }
 
     /**

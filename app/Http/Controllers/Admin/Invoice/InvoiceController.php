@@ -211,6 +211,9 @@ class InvoiceController extends Controller
             'sent_at' => now(),
         ]);
 
+        // メール内の入金通知リンク（ログイン不要）用のトークンを発行
+        $invoice->issuePaymentReportToken();
+
         $invoice->user?->notify(new \App\Notifications\InvoiceSent($invoice));
 
         // メール送信ジョブをディスパッチ（失敗してもステータスには影響しない）

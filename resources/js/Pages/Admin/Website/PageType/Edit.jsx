@@ -26,9 +26,7 @@ export default function Edit({ pageType }) {
 
     const [localErrors, setLocalErrors] = useState({});
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
+    const handleSubmit = () => {
         // バリデーション
         const tempData = { ...data, errors: {} };
         validation.validatePageTypeForm(tempData);

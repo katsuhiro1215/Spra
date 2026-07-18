@@ -111,12 +111,12 @@
         }
 
         .items-table th {
-            background-color: #333;
+            background-color: #1E90FF;
             color: white;
             padding: 8px;
             text-align: left;
             font-size: 9pt;
-            border: 1px solid #333;
+            border: 1px solid #ddd;
         }
 
         .items-table td {

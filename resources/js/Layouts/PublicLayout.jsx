@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { router } from "@inertiajs/react";
 import { Header, Footer } from "@/Components/Public";
 import LoadingAnimation from "@/Components/Loading/LoadingAnimation";
@@ -53,7 +53,7 @@ export default function PublicLayout({ children, auth, showLoading = false }) {
         };
     }, []);
 
-    const handleLoadingComplete = () => {
+    const handleLoadingComplete = useCallback(() => {
         setIsLoading(false);
         setHasShownInitialLoading(true);
         try {
@@ -61,7 +61,7 @@ export default function PublicLayout({ children, auth, showLoading = false }) {
         } catch (error) {
             console.warn("SessionStorage is not available:", error);
         }
-    };
+    }, []);
 
     return (
         <>

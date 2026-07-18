@@ -10,7 +10,7 @@ import {
 } from "@/Components/User";
 import { PrimaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { DocumentMagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 const formatAmount = (amount) =>
     new Intl.NumberFormat("ja-JP", {
@@ -28,8 +28,8 @@ export default function Show({ receipt }) {
         { label: receipt.receipt_number, href: null },
     ];
 
-    const handleDownload = () => {
-        window.open(route("user.receipt.download", receipt.id), "_blank");
+    const handlePreview = () => {
+        window.open(route("user.receipt.pdf.preview", receipt.id), "_blank");
     };
 
     return (
@@ -49,9 +49,9 @@ export default function Show({ receipt }) {
 
             <div className="max-w-3xl mx-auto sm:px-6 lg:px-8 py-8 space-y-6">
                 <div className="flex justify-end">
-                    <PrimaryButton onClick={handleDownload}>
-                        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                        PDFをダウンロード
+                    <PrimaryButton onClick={handlePreview}>
+                        <DocumentMagnifyingGlassIcon className="h-5 w-5 mr-2" />
+                        PDFで確認
                     </PrimaryButton>
                 </div>
 

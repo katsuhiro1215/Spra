@@ -225,6 +225,34 @@ class ServiceService extends BaseService
     }
 
     /**
+     * トップページ向けに、注目サービス（is_featured）のみを取得
+     *
+     * @return \Illuminate\Support\Collection<int, Service>
+     */
+    public function getFeaturedForHome()
+    {
+        return Service::query()
+            ->where('status', 'active')
+            ->where('is_displayed', true)
+            ->where('is_featured', true)
+            ->whereHas('serviceCategory', function ($query) {
+                $query->where('status', 'active')->where('is_displayed', true);
+            })
+            ->with([
+                'serviceCategory',
+                'servicePlans' => function ($query) {
+                    $query->where('status', 'active')
+                        ->where('is_displayed', true)
+                        ->orderBy('sort_order');
+                },
+                'media',
+                'technologies',
+            ])
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    /**
      * 公開サイト向けに、slugを指定してWeb公開中のサービスを1件取得
      * （プランに含まれる項目もあわせて取得）
      *
@@ -256,6 +284,12 @@ class ServiceService extends BaseService
                 'faqs' => function ($query) {
                     $query->where('is_published', true)
                         ->orderBy('faq_service.sort_order');
+                },
+                'voices' => function ($query) {
+                    $query->where('is_published', true)
+                        ->with(['user.profile', 'avatar'])
+                        ->orderBy('sort_order')
+                        ->orderByDesc('created_at');
                 },
             ])
             ->first();

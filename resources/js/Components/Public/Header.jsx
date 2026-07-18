@@ -162,9 +162,7 @@ export default function Header({ auth }) {
                                             <div className="w-1/3 p-6">
                                                 <MegaMenuIcon
                                                     image={item.submenu.image}
-                                                    letter={item.name.charAt(
-                                                        0,
-                                                    )}
+                                                    letter={item.name.charAt(0)}
                                                 />
                                                 <h3 className="text-lg font-bold text-gray-900 mb-2">
                                                     {item.submenu.title}
@@ -201,7 +199,7 @@ export default function Header({ auth }) {
                                                                     </span>
                                                                 </div>
                                                             </Link>
-                                                        )
+                                                        ),
                                                     )}
                                                 </div>
                                             </div>
@@ -220,8 +218,8 @@ export default function Header({ auth }) {
                                     href="/dashboard"
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                                         isScrolled
-                                            ? "text-gray-700 hover:bg-gray-100"
-                                            : "text-white hover:bg-white/20"
+                                            ? "text-gray-700 hover:text-gray-900"
+                                            : "text-gray-500 hover:bg-white/20"
                                     }`}
                                 >
                                     <UserCircleIcon className="w-5 h-5" />
@@ -233,8 +231,8 @@ export default function Header({ auth }) {
                                     as="button"
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                                         isScrolled
-                                            ? "text-gray-700 hover:bg-gray-100"
-                                            : "text-white hover:bg-white/20"
+                                            ? "text-gray-700 hover:text-gray-900"
+                                            : "text-gray-500 hover:bg-white/20"
                                     }`}
                                 >
                                     <ArrowRightOnRectangleIcon className="w-5 h-5" />
@@ -261,8 +259,8 @@ export default function Header({ auth }) {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className={`md:hidden p-2 rounded-lg transition-colors ${
                             isScrolled
-                                ? "text-gray-900 hover:bg-gray-100"
-                                : "text-white hover:bg-white/20"
+                                ? "text-gray-700 hover:text-gray-900"
+                                : "text-gray-500 hover:bg-white/20"
                         }`}
                         aria-label="メニュー"
                     >
@@ -306,7 +304,7 @@ export default function Header({ auth }) {
                                                     >
                                                         {subItem.name}
                                                     </Link>
-                                                )
+                                                ),
                                             )}
                                         </div>
                                     )}

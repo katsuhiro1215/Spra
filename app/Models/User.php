@@ -77,6 +77,11 @@ class User extends Authenticatable
             ->where('is_active', true);
     }
 
+    public function voices(): HasMany
+    {
+        return $this->hasMany(Voice::class);
+    }
+
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')

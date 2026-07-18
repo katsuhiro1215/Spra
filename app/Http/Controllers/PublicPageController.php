@@ -17,13 +17,19 @@ class PublicPageController extends Controller
 
         abort_unless($page, 404);
 
+        $page->load(['sections' => fn ($query) => $query->orderBy('sort_order')]);
+
         return Inertia::render('Public/Page', [
             'page' => [
                 'title' => $page->title,
                 'meta_title' => $page->meta_title,
                 'meta_description' => $page->meta_description,
                 'template' => $page->template,
-                'content' => $page->content,
+                'sections' => $page->sections->map(fn ($section) => [
+                    'id' => $section->id,
+                    'role' => $section->role,
+                    'content' => $section->content,
+                ]),
             ],
         ]);
     }

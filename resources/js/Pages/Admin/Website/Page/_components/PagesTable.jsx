@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import BasicTable from "@/Components/Tables/BasicTable";
+import { Card, CardHeader } from "@/Components/Card";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import Badge from "@/Components/Badge";
 import { PencilIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
@@ -52,62 +53,40 @@ const PagesTable = ({ pages, onDelete }) => {
     };
 
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                    ページ一覧 ({pages.total}件)
-                </h3>
-            </div>
-            <BasicTable>
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {PageConfig.pages.table.headers.page}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {PageConfig.pages.table.headers.template}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {PageConfig.pages.table.headers.status}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {PageConfig.pages.table.headers.sortOrder}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {PageConfig.pages.table.headers.updatedAt}
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <Card>
+            <CardHeader>ページ一覧 ({pages.total}件)</CardHeader>
+            <Table>
+                <THead>
+                    <Tr>
+                        <Th>{PageConfig.pages.table.headers.page}</Th>
+                        <Th>{PageConfig.pages.table.headers.template}</Th>
+                        <Th>{PageConfig.pages.table.headers.status}</Th>
+                        <Th>{PageConfig.pages.table.headers.sortOrder}</Th>
+                        <Th>{PageConfig.pages.table.headers.updatedAt}</Th>
+                        <Th className="text-right">
                             {PageConfig.pages.table.headers.actions}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                        </Th>
+                    </Tr>
+                </THead>
+                <TBody>
                     {pages.data && pages.data.length > 0 ? (
                         pages.data.map((page) => (
-                            <tr key={page.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4">
+                            <Tr key={page.id} className="hover:bg-gray-50">
+                                <Td>
                                     <div>
-                                        <div className="text-sm font-medium text-gray-900">
+                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {page.title}
                                         </div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                             /{page.slug}
                                         </div>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    {getTemplateBadge(page.template)}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {getStatusBadge(page.is_published)}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-900">
-                                    {page.sort_order}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {page.updated_at}
-                                </td>
-                                <td className="px-6 py-4 text-right text-sm font-medium">
+                                </Td>
+                                <Td>{getTemplateBadge(page.template)}</Td>
+                                <Td>{getStatusBadge(page.is_published)}</Td>
+                                <Td>{page.sort_order}</Td>
+                                <Td>{page.updated_at}</Td>
+                                <Td className="text-right">
                                     <div className="flex items-center justify-end space-x-2">
                                         <Link
                                             href={route(
@@ -137,22 +116,22 @@ const PagesTable = ({ pages, onDelete }) => {
                                             <TrashIcon className="w-4 h-4" />
                                         </button>
                                     </div>
-                                </td>
-                            </tr>
+                                </Td>
+                            </Tr>
                         ))
                     ) : (
-                        <tr>
-                            <td
+                        <Tr>
+                            <Td
                                 colSpan={6}
                                 className="text-center text-slate-500 dark:text-slate-400 py-8"
                             >
                                 ページが見つかりません
-                            </td>
-                        </tr>
+                            </Td>
+                        </Tr>
                     )}
-                </tbody>
-            </BasicTable>
-        </div>
+                </TBody>
+            </Table>
+        </Card>
     );
 };
 

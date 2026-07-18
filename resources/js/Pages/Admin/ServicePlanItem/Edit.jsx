@@ -15,6 +15,7 @@ export default function Edit({
         id: item.id,
         service_item_id: item.service_item_id,
         name: item.serviceItem?.name || "",
+        slug: item.serviceItem?.slug || "",
         item_type: item.serviceItem?.item_type || "",
         standard_price: item.serviceItem?.standard_price || 0,
         quantity: item.quantity || 1,

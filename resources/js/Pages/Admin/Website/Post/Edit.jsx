@@ -7,7 +7,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import PostForm from "./_components/Form";
 
-export default function Edit({ post, categories }) {
+export default function Edit({ post, categories, mediaList }) {
     const { data, setData, patch, transform, processing, errors } = useForm({
         post_category_id: post.post_category_id || "",
         title: post.title || "",
@@ -72,6 +72,7 @@ export default function Edit({ post, categories }) {
                     onSubmit={handleSubmit}
                     cancelRoute={route("admin.website.post.index")}
                     categories={categories}
+                    mediaList={mediaList}
                     isEdit={true}
                 />
             </div>

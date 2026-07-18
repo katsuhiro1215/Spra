@@ -22,7 +22,7 @@ import { createBlock } from "./registry";
  * ページ/投稿の content(json) カラムを対象にしたブロックエディタ。
  * value / onChange は { blocks: [{ id, type, data }] } 形式で受け渡す。
  */
-export default function BlockEditor({ value, onChange }) {
+export default function BlockEditor({ value, onChange, allowedTypes, mediaList }) {
     const blocks = Array.isArray(value?.blocks) ? value.blocks : [];
 
     const sensors = useSensors(
@@ -86,7 +86,10 @@ export default function BlockEditor({ value, onChange }) {
                 <div className="flex flex-col items-center justify-center gap-3 py-12 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-400">
                     <Squares2X2Icon className="h-10 w-10" />
                     <p className="text-sm">まだブロックがありません</p>
-                    <BlockInserterMenu onInsert={(type) => handleInsert(type)} />
+                    <BlockInserterMenu
+                        onInsert={(type) => handleInsert(type)}
+                        allowedTypes={allowedTypes}
+                    />
                 </div>
             ) : (
                 <>
@@ -111,13 +114,17 @@ export default function BlockEditor({ value, onChange }) {
                                         onMoveDown={() => moveBlock(block.id, 1)}
                                         isFirst={index === 0}
                                         isLast={index === blocks.length - 1}
+                                        mediaList={mediaList}
                                     />
                                 ))}
                             </div>
                         </SortableContext>
                     </DndContext>
 
-                    <BlockInserterMenu onInsert={(type) => handleInsert(type)} />
+                    <BlockInserterMenu
+                        onInsert={(type) => handleInsert(type)}
+                        allowedTypes={allowedTypes}
+                    />
                 </>
             )}
         </div>

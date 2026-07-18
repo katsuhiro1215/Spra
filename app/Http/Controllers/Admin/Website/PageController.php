@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Website;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Page;
 use App\Models\PageType;
 use App\Services\PageService;
@@ -68,10 +69,10 @@ class PageController extends Controller
     public function store(PageRequest $request): RedirectResponse
     {
         try {
-            $this->pageService->createPage($request->validated());
+            $page = $this->pageService->createPage($request->validated());
 
-            return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを作成しました。');
+            return redirect()->route('admin.website.page.edit', $page)
+                ->with('success', 'ページを作成しました。続けてセクションの内容を編集してください。');
         } catch (\Exception $e) {
             Log::error('Page store error: ' . $e->getMessage());
             return redirect()->back()
@@ -85,6 +86,11 @@ class PageController extends Controller
      */
     public function show(Page $page): Response
     {
+        $page->load([
+            'sections' => fn ($query) => $query->orderBy('sort_order'),
+            'pageType',
+        ]);
+
         return Inertia::render('Admin/Website/Page/Show', [
             'page' => $page,
         ]);
@@ -95,6 +101,11 @@ class PageController extends Controller
      */
     public function edit(Page $page): Response
     {
+        $page->load([
+            'sections' => fn ($query) => $query->orderBy('sort_order'),
+            'pageType',
+        ]);
+
         $pageTypes = PageType::query()
             ->orderBy('name')
             ->get(['id', 'name', 'key', 'description']);
@@ -103,6 +114,7 @@ class PageController extends Controller
             'page' => $page,
             'pageTypes' => $pageTypes,
             'templates' => $this->getAvailableTemplates(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 

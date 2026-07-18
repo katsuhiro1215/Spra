@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { PageHero } from "@/Components/Public";
+import VoiceSection from "@/Pages/Public/Section/VoiceSection";
+import PlanComparisonTable from "@/Pages/Public/Section/PlanComparisonTable";
 import { resolveServiceIcon } from "@/Utils/serviceIcon";
 import {
     CheckCircleIcon,
@@ -32,6 +34,7 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
     const technologies = service.technologies || [];
     const portfolios = service.portfolios || [];
     const faqs = service.faqs || [];
+    const voices = service.voices || [];
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const activeImage = media[activeImageIndex];
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
@@ -491,6 +494,16 @@ export default function ServiceDetail({ auth, service, relatedServices = [] }) {
                     </div>
                 </div>
             </section>
+
+            {/* プラン比較表 */}
+            <PlanComparisonTable plans={plans} />
+
+            {/* お客様の声 */}
+            <VoiceSection
+                voices={voices}
+                title="お客様の声"
+                subtitle={`${service.name}をご利用いただいたお客様からいただいた声をご紹介します`}
+            />
 
             {/* CTA */}
             <section className="py-20 bg-gray-50">

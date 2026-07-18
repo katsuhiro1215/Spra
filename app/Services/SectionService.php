@@ -46,4 +46,16 @@ class SectionService extends BaseService
   {
     return $this->repository->restore($section);
   }
+
+  /**
+   * セクションの並び順を一括更新
+   */
+  public function reorderSections(array $sectionIds): void
+  {
+    DB::transaction(function () use ($sectionIds) {
+      foreach ($sectionIds as $index => $id) {
+        Section::whereKey($id)->update(['sort_order' => $index]);
+      }
+    });
+  }
 }

@@ -170,6 +170,7 @@ export const getAdminNavigationItems = () => {
                     name: "FAQカテゴリ",
                     href: "admin.website.faq.category.index",
                 },
+                { name: "お客様の声", href: "admin.website.voice.index" },
                 {
                     name: "サイト設定",
                     href: "admin.website.siteSetting.index",

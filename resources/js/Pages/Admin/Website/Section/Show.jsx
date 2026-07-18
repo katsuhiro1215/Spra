@@ -4,6 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
+import { BlockPreview } from "@/Components/BlockUI";
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
 
 export default function Show({ section }) {
@@ -84,6 +85,14 @@ export default function Show({ section }) {
                                 </dd>
                             </div>
                         </div>
+                    </div>
+                </Card>
+
+                {/* コンテンツ */}
+                <Card>
+                    <CardHeader>コンテンツ</CardHeader>
+                    <div className="p-6">
+                        <BlockPreview value={section.content} />
                     </div>
                 </Card>
 

@@ -109,6 +109,14 @@ class Service extends Model
     }
 
     /**
+     * Get the customer voices (testimonials) for this service.
+     */
+    public function voices()
+    {
+        return $this->hasMany(Voice::class);
+    }
+
+    /**
      * Get the quotes for this service.
      */
     public function quotes()

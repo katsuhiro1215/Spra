@@ -60,7 +60,10 @@ function AvailableItemCard({ item, isDragging, onDragStart, onDragEnd, onAdd }) 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {item.name}
+                        {item.name}{" "}
+                        <span className="font-normal text-gray-400 dark:text-gray-500">
+                            ({item.slug})
+                        </span>
                     </span>
                     <ItemTypeBadge type={item.item_type} />
                 </div>
@@ -115,7 +118,10 @@ function AssignedItemCard({
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {item.name}
+                        {item.name}{" "}
+                        <span className="font-normal text-gray-400 dark:text-gray-500">
+                            ({item.slug})
+                        </span>
                     </span>
                     <ItemTypeBadge type={item.item_type} />
                 </div>
@@ -219,6 +225,7 @@ const ServicePlanItemForm = ({
         const newItem = {
             service_item_id: item.id,
             name: item.name,
+            slug: item.slug,
             item_type: item.item_type,
             standard_price: item.standard_price,
             quantity: 1,

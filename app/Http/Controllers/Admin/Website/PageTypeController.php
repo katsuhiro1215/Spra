@@ -60,7 +60,7 @@ class PageTypeController extends Controller
         try {
             $this->pageTypeService->createPageType($request->validated());
 
-            return redirect()->route('admin.website.page-type.index')
+            return redirect()->route('admin.website.page.type.index')
                 ->with('success', 'ページタイプを作成しました。');
         } catch (\Exception $e) {
             Log::error('PageType store error: ' . $e->getMessage());
@@ -98,7 +98,7 @@ class PageTypeController extends Controller
         try {
             $this->pageTypeService->updatePageType($pageType, $request->validated());
 
-            return redirect()->route('admin.website.page-type.index')
+            return redirect()->route('admin.website.page.type.index')
                 ->with('success', 'ページタイプを更新しました。');
         } catch (\Exception $e) {
             Log::error('PageType update error: ' . $e->getMessage());
@@ -116,7 +116,7 @@ class PageTypeController extends Controller
         try {
             $this->pageTypeService->deletePageType($pageType);
 
-            return redirect()->route('admin.website.page-type.index')
+            return redirect()->route('admin.website.page.type.index')
                 ->with('success', 'ページタイプを削除しました。');
         } catch (\Exception $e) {
             Log::error('PageType destroy error: ' . $e->getMessage());

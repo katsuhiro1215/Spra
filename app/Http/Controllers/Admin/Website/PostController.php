@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Website;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Media\StoreMediaRequest;
 use App\Http\Requests\Website\PostRequest;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Admin;
@@ -68,6 +69,7 @@ class PostController extends Controller
 
         return Inertia::render('Admin/Website/Post/Create', [
             'categories' => $categories,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -112,6 +114,7 @@ class PostController extends Controller
         return Inertia::render('Admin/Website/Post/Edit', [
             'post' => $post,
             'categories' => $categories,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 

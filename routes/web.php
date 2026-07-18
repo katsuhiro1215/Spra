@@ -4,15 +4,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
 use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
+use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
+use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\PublicServiceController;
 use App\Http\Controllers\PublicFaqController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\PublicDocumentController;
 use App\Http\Controllers\PublicPostController;
-use App\Models\Post;
-use App\Services\ServiceService;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
@@ -28,37 +28,11 @@ use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\UserAddressController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
+use App\Http\Controllers\User\CalendarController as UserCalendarController;
+use App\Http\Controllers\User\ContactController as UserContactController;
 use Inertia\Inertia;
 
-Route::get('/', function (ServiceService $serviceService) {
-    $summarize = fn ($post) => [
-        'id' => $post->id,
-        'slug' => $post->slug,
-        'title' => $post->title,
-        'category' => $post->postCategory?->name,
-        'date' => $post->published_at?->format('Y.m.d'),
-        'excerpt' => $post->excerpt,
-        'image' => $post->thumbnail,
-    ];
-
-    return Inertia::render('Public/Home', [
-        'canLogin' => Route::has('user.login'),
-        'canRegister' => Route::has('user.register'),
-        'services' => $serviceService->getPublicList(),
-        'newsItems' => Post::published()
-            ->whereHas('postCategory', fn ($q) => $q->where('slug', 'news'))
-            ->with('postCategory')
-            ->recent(3)
-            ->get()
-            ->map($summarize),
-        'blogPosts' => Post::published()
-            ->whereHas('postCategory', fn ($q) => $q->where('slug', '!=', 'news'))
-            ->with('postCategory')
-            ->recent(3)
-            ->get()
-            ->map($summarize),
-    ]);
-})->name('home');
+Route::get('/', [PublicHomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
 Route::get('/service', [PublicServiceController::class, 'index'])->name('service');
 Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
@@ -78,6 +52,11 @@ Route::get('/privacy-policy', [PublicDocumentController::class, 'privacyPolicy']
 Route::get('/terms', [PublicDocumentController::class, 'terms'])->name('terms');
 Route::get('/documents/{slug}', [PublicDocumentController::class, 'show'])->name('documents.show');
 
+// // More public routes
+Route::get('/lp', fn() => Inertia::render('Public/LandingPage'))->name('landing.page');
+Route::get('/lp-minimal', fn() => Inertia::render('Public/LandingPageMinimal'))->name('landing.minimal');
+Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative'))->name('landing.creative');
+
 // Contact 送信
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // 見積もりシミュレーター
@@ -88,6 +67,10 @@ Route::get('/quote-response/{token}', [QuoteResponseController::class, 'show'])-
 Route::post('/quote-response/{token}', [QuoteResponseController::class, 'store'])->name('quote.response.store');
 Route::get('/quote-response/{token}/register', [QuoteResponseController::class, 'registerShow'])->name('quote.response.register');
 Route::post('/quote-response/{token}/register', [QuoteResponseController::class, 'registerStore'])->name('quote.response.register.store');
+
+// 請求書メールからの入金報告（Public - ログイン不要）
+Route::get('/invoice-payment/{token}', [InvoicePaymentController::class, 'show'])->name('invoice.payment.show');
+Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store'])->name('invoice.payment.store');
 
 
 // Public routes - define authenticated routes FIRST before public routes
@@ -125,6 +108,7 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
     Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
+    Route::get('/receipt/{receipt}/pdf/preview', [ReceiptController::class, 'previewPdf'])->name('receipt.pdf.preview');
 
     // ポイント（クライアント向け）
     Route::get('/points', [PointController::class, 'index'])->name('points.index');
@@ -184,6 +168,9 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         return redirect()->back()->with('success', '予約設定を保存しました。');
     })->name('reservation.settings.store');
 
+    // カレンダー（自分の予定確認）
+    Route::get('/calendar', [UserCalendarController::class, 'index'])->name('calendar.index');
+
     // 予約（Adminとの面談予約）
     Route::prefix('appointments')->name('appointments.')->group(function () {
         Route::get('/', [UserAppointmentController::class, 'index'])->name('index');
@@ -192,6 +179,12 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::get('/{appointment}/edit', [UserAppointmentController::class, 'edit'])->name('edit');
         Route::put('/{appointment}', [UserAppointmentController::class, 'update'])->name('update');
         Route::post('/{appointment}/cancel', [UserAppointmentController::class, 'cancel'])->name('cancel');
+    });
+
+    // お問い合わせ
+    Route::prefix('contact')->name('contact.')->group(function () {
+        Route::get('/', [UserContactController::class, 'index'])->name('index');
+        Route::post('/', [UserContactController::class, 'send'])->name('send');
     });
 });
 
@@ -205,13 +198,6 @@ Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'sa
 //     // Onboarding (public, no auth required)
 //     Route::get('/onboarding/{token}', [OnboardingController::class, 'show'])->name('onboarding.show');
 //     Route::post('/onboarding/{token}', [OnboardingController::class, 'store'])->name('onboarding.store');
-// });
-
-// // More public routes
-// Route::name('public.')->prefix('/')->group(function () {
-//     Route::get('/lp', fn() => inertiaPublic('LandingPage'))->name('landing.page');
-//     Route::get('/lp-minimal', fn() => inertiaPublic('LandingPageMinimal'))->name('landing.minimal');
-//     Route::get('/lp-creative', fn() => inertiaPublic('LandingPageCreative'))->name('landing.creative');
 // });
 
 // Auth routes

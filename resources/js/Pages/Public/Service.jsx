@@ -18,10 +18,35 @@ const formatPriceRange = (plans) => {
     return `¥${min.toLocaleString()} 〜 ¥${max.toLocaleString()}`;
 };
 
+function groupServicesByCategory(services) {
+    const groups = new Map();
+
+    services.forEach((service) => {
+        const category = service.service_category;
+        const key = category?.id || "uncategorized";
+
+        if (!groups.has(key)) {
+            groups.set(key, {
+                id: key,
+                name: category?.name || "その他",
+                sortOrder: category?.sort_order ?? 0,
+                services: [],
+            });
+        }
+
+        groups.get(key).services.push(service);
+    });
+
+    return Array.from(groups.values()).sort(
+        (a, b) => a.sortOrder - b.sortOrder,
+    );
+}
+
 export default function Service({ auth, services = [] }) {
     const { props } = usePage();
     const siteName = props.organization?.site_name || props.organization?.name;
     const breadcrumbs = [{ label: "サービス" }];
+    const categoryGroups = groupServicesByCategory(services);
 
     return (
         <PublicLayout auth={auth}>
@@ -55,8 +80,14 @@ export default function Service({ auth, services = [] }) {
                             現在ご案内できるサービスがありません。
                         </p>
                     ) : (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {services.map((service) => {
+                        <div className="space-y-16">
+                            {categoryGroups.map((group) => (
+                                <div key={group.id}>
+                                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200">
+                                        {group.name}
+                                    </h3>
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {group.services.map((service) => {
                                 const Icon = resolveServiceIcon(
                                     service.icon ||
                                         service.service_category?.icon,
@@ -179,8 +210,11 @@ export default function Service({ auth, services = [] }) {
                                             </div>
                                         </div>
                                     </Link>
-                                );
-                            })}
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>

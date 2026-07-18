@@ -21,7 +21,7 @@ class ServicePlanItemController extends Controller
     {
         // servicePlanItemsをロードしてデータを構築
         $servicePlanItemsRaw = $servicePlan->servicePlanItems()
-            ->with('serviceItem:id,name,item_type,standard_price,internal_cost,service_id')
+            ->with('serviceItem:id,name,slug,item_type,standard_price,internal_cost,service_id')
             ->get();
 
         // 明示的に配列化してリレーション情報を含める
@@ -35,6 +35,7 @@ class ServicePlanItemController extends Controller
                 'serviceItem' => $item->serviceItem ? [
                     'id' => $item->serviceItem->id,
                     'name' => $item->serviceItem->name,
+                    'slug' => $item->serviceItem->slug,
                     'item_type' => $item->serviceItem->item_type,
                     'standard_price' => $item->serviceItem->standard_price,
                     'internal_cost' => $item->serviceItem->internal_cost,
@@ -50,7 +51,7 @@ class ServicePlanItemController extends Controller
         $available_items = ServiceItem::where('status', 'active')
             ->where('service_id', $servicePlan->service_id)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
+            ->get(['id', 'name', 'slug', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
             ->toArray();
 
         // servicePlanを配列化して必要なフィールドを明示的に含める

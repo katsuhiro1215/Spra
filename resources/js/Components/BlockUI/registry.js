@@ -4,6 +4,19 @@ import {
     PhotoIcon,
     CursorArrowRaysIcon,
     Bars2Icon,
+    MinusIcon,
+    ChatBubbleBottomCenterTextIcon,
+    MegaphoneIcon,
+    ChartBarIcon,
+    CheckBadgeIcon,
+    RectangleGroupIcon,
+    Squares2X2Icon,
+    Square3Stack3DIcon,
+    PlayCircleIcon,
+    BuildingOffice2Icon,
+    QuestionMarkCircleIcon,
+    ViewColumnsIcon,
+    FlagIcon,
 } from "@heroicons/react/24/outline";
 
 import HeadingBlock, {
@@ -20,6 +33,37 @@ import SpacerBlock, {
     SPACER_DEFAULT_DATA,
     SpacerBlockPreview,
 } from "./blocks/SpacerBlock";
+import DividerBlock, {
+    DIVIDER_DEFAULT_DATA,
+    DividerBlockPreview,
+} from "./blocks/DividerBlock";
+import QuoteBlock, { QUOTE_DEFAULT_DATA, QuoteBlockPreview } from "./blocks/QuoteBlock";
+import CTABlock, { CTA_DEFAULT_DATA, CTABlockPreview } from "./blocks/CTABlock";
+import StatsBlock, { STATS_DEFAULT_DATA, StatsBlockPreview } from "./blocks/StatsBlock";
+import IconTextBlock, {
+    ICON_TEXT_DEFAULT_DATA,
+    IconTextBlockPreview,
+} from "./blocks/IconTextBlock";
+import CardBlock, { CARD_DEFAULT_DATA, CardBlockPreview } from "./blocks/CardBlock";
+import CardGroupBlock, {
+    CARD_GROUP_DEFAULT_DATA,
+    CardGroupBlockPreview,
+} from "./blocks/CardGroupBlock";
+import GalleryBlock, {
+    GALLERY_DEFAULT_DATA,
+    GalleryBlockPreview,
+} from "./blocks/GalleryBlock";
+import VideoBlock, { VIDEO_DEFAULT_DATA, VideoBlockPreview } from "./blocks/VideoBlock";
+import LogoCloudBlock, {
+    LOGO_CLOUD_DEFAULT_DATA,
+    LogoCloudBlockPreview,
+} from "./blocks/LogoCloudBlock";
+import AccordionBlock, {
+    ACCORDION_DEFAULT_DATA,
+    AccordionBlockPreview,
+} from "./blocks/AccordionBlock";
+import TabsBlock, { TABS_DEFAULT_DATA, TabsBlockPreview } from "./blocks/TabsBlock";
+import HeroBlock, { HERO_DEFAULT_DATA, HeroBlockPreview } from "./blocks/HeroBlock";
 
 // ブロック種別レジストリ
 // 新しいブロックを追加する場合はここに登録する
@@ -63,6 +107,110 @@ export const BLOCK_REGISTRY = {
         defaultData: SPACER_DEFAULT_DATA,
         Edit: SpacerBlock,
         Preview: SpacerBlockPreview,
+    },
+    divider: {
+        type: "divider",
+        label: "区切り線",
+        icon: MinusIcon,
+        defaultData: DIVIDER_DEFAULT_DATA,
+        Edit: DividerBlock,
+        Preview: DividerBlockPreview,
+    },
+    quote: {
+        type: "quote",
+        label: "引用",
+        icon: ChatBubbleBottomCenterTextIcon,
+        defaultData: QUOTE_DEFAULT_DATA,
+        Edit: QuoteBlock,
+        Preview: QuoteBlockPreview,
+    },
+    cta: {
+        type: "cta",
+        label: "CTA（行動喚起）",
+        icon: MegaphoneIcon,
+        defaultData: CTA_DEFAULT_DATA,
+        Edit: CTABlock,
+        Preview: CTABlockPreview,
+    },
+    stats: {
+        type: "stats",
+        label: "数値実績",
+        icon: ChartBarIcon,
+        defaultData: STATS_DEFAULT_DATA,
+        Edit: StatsBlock,
+        Preview: StatsBlockPreview,
+    },
+    iconText: {
+        type: "iconText",
+        label: "アイコン+テキスト",
+        icon: CheckBadgeIcon,
+        defaultData: ICON_TEXT_DEFAULT_DATA,
+        Edit: IconTextBlock,
+        Preview: IconTextBlockPreview,
+    },
+    card: {
+        type: "card",
+        label: "カード",
+        icon: RectangleGroupIcon,
+        defaultData: CARD_DEFAULT_DATA,
+        Edit: CardBlock,
+        Preview: CardBlockPreview,
+    },
+    cardGroup: {
+        type: "cardGroup",
+        label: "カードグループ",
+        icon: Squares2X2Icon,
+        defaultData: CARD_GROUP_DEFAULT_DATA,
+        Edit: CardGroupBlock,
+        Preview: CardGroupBlockPreview,
+    },
+    gallery: {
+        type: "gallery",
+        label: "ギャラリー",
+        icon: Square3Stack3DIcon,
+        defaultData: GALLERY_DEFAULT_DATA,
+        Edit: GalleryBlock,
+        Preview: GalleryBlockPreview,
+    },
+    video: {
+        type: "video",
+        label: "動画",
+        icon: PlayCircleIcon,
+        defaultData: VIDEO_DEFAULT_DATA,
+        Edit: VideoBlock,
+        Preview: VideoBlockPreview,
+    },
+    logoCloud: {
+        type: "logoCloud",
+        label: "ロゴ一覧",
+        icon: BuildingOffice2Icon,
+        defaultData: LOGO_CLOUD_DEFAULT_DATA,
+        Edit: LogoCloudBlock,
+        Preview: LogoCloudBlockPreview,
+    },
+    accordion: {
+        type: "accordion",
+        label: "アコーディオン（FAQ）",
+        icon: QuestionMarkCircleIcon,
+        defaultData: ACCORDION_DEFAULT_DATA,
+        Edit: AccordionBlock,
+        Preview: AccordionBlockPreview,
+    },
+    tabs: {
+        type: "tabs",
+        label: "タブ",
+        icon: ViewColumnsIcon,
+        defaultData: TABS_DEFAULT_DATA,
+        Edit: TabsBlock,
+        Preview: TabsBlockPreview,
+    },
+    hero: {
+        type: "hero",
+        label: "ヒーロー（トップページ）",
+        icon: FlagIcon,
+        defaultData: HERO_DEFAULT_DATA,
+        Edit: HeroBlock,
+        Preview: HeroBlockPreview,
     },
 };
 

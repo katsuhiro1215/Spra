@@ -16,13 +16,13 @@ export default function Show({ pageType }) {
             label: "一覧に戻る",
             icon: ArrowLeftIcon,
             variant: "secondary",
-            route: route("admin.website.page-type.index"),
+            route: route("admin.website.page.type.index"),
         },
         {
             label: "編集",
             icon: PencilIcon,
             variant: "primary",
-            route: route("admin.website.page-type.edit", pageType.id),
+            route: route("admin.website.page.type.edit", pageType.id),
         },
     ];
 

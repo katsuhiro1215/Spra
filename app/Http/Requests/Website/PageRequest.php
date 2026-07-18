@@ -46,8 +46,6 @@ class PageRequest extends FormRequest
                 Rule::notIn(self::RESERVED_SLUGS),
             ],
             'template' => ['nullable', 'string', 'max:50'],
-            'content' => ['nullable', 'array'],
-            'content.blocks' => ['nullable', 'array'],
             'meta_title' => ['nullable', 'string', 'max:200'],
             'meta_description' => ['nullable', 'string'],
             'is_published' => ['boolean'],

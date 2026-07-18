@@ -20,14 +20,11 @@ export default function TextBlock({ data, onChange }) {
 
 export function TextBlockPreview({ data }) {
     const value = { ...TEXT_DEFAULT_DATA, ...data };
-
-    if (!value.html) {
-        return <p className="text-slate-400 italic">（本文未入力）</p>;
-    }
+    if (!value.html) return null;
 
     return (
         <div
-            className="prose prose-sm max-w-none dark:prose-invert"
+            className="prose prose-lg max-w-none text-gray-700"
             dangerouslySetInnerHTML={{ __html: value.html }}
         />
     );

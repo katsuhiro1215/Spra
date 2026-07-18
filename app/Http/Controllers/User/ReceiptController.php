@@ -72,4 +72,26 @@ class ReceiptController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$receipt->receipt_number}.pdf\"",
         ]);
     }
+
+    /**
+     * 領収書PDFをプレビュー表示（ブラウザ内で確認してからダウンロードできる）
+     */
+    public function previewPdf(Receipt $receipt): HttpResponse
+    {
+        $userId = auth('users')->id();
+        abort_unless($receipt->user_id === $userId, 403);
+        abort_unless(in_array($receipt->status, ['issued', 'sent']), 404);
+
+        if (!$receipt->pdf_path) {
+            $this->service->generateAndSavePdf($receipt);
+            $receipt->refresh();
+        }
+
+        $pdf = Storage::disk('private')->get($receipt->pdf_path);
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$receipt->receipt_number}.pdf\"",
+        ]);
+    }
 }

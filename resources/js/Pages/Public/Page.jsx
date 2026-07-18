@@ -5,6 +5,7 @@ import BlockRenderer from "@/Components/BlockUI/BlockRenderer";
 
 export default function Page({ auth, page }) {
     const breadcrumbs = [{ label: page.title }];
+    const sections = Array.isArray(page.sections) ? page.sections : [];
 
     return (
         <PublicLayout auth={auth}>
@@ -12,13 +13,15 @@ export default function Page({ auth, page }) {
 
             <PageHero title={page.title} breadcrumbs={breadcrumbs} />
 
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="max-w-3xl mx-auto">
-                        <BlockRenderer blocks={page.content?.blocks} />
+            {sections.map((section) => (
+                <section key={section.id} className="py-20 bg-white">
+                    <div className="container mx-auto px-6">
+                        <div className="max-w-3xl mx-auto">
+                            <BlockRenderer blocks={section.content?.blocks} />
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            ))}
         </PublicLayout>
     );
 }

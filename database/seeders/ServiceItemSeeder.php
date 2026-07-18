@@ -46,7 +46,7 @@ class ServiceItemSeeder extends Seeder
             // 準備・設計
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '制作準備(ベーシックプラン)',
+                'name' => '制作準備',
                 'slug' => 'website-preparation-basic-plan',
                 'description' => 'ベーシックプラン用の制作前ヒアリング・要件定義・サイト設計にかかる費用',
                 'item_type' => 'plan_base',
@@ -61,7 +61,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'キックオフミーティング(ベーシックプラン)',
+                'name' => 'キックオフミーティング',
                 'slug' => 'website-kickoff-meeting-basic-plan',
                 'description' => 'ベーシックプラン用のプロジェクト開始時の打ち合わせ費用',
                 'item_type' => 'plan_base',
@@ -76,7 +76,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '要件定義(ベーシックプラン)',
+                'name' => '要件定義',
                 'slug' => 'website-requirements-definition-basic-plan',
                 'description' => 'ベーシックプラン用のプロジェクトの要件定義にかかる費用',
                 'item_type' => 'plan_base',
@@ -91,7 +91,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'サイトマップ作成(ベーシックプラン)',
+                'name' => 'サイトマップ作成',
                 'slug' => 'website-sitemap-creation-basic-plan',
                 'description' => 'ベーシックプラン用のサイトマップ作成にかかる費用',
                 'item_type' => 'plan_base',
@@ -106,7 +106,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'ワイヤーフレーム作成(ベーシックプラン)',
+                'name' => 'ワイヤーフレーム作成',
                 'slug' => 'website-wireframe-creation-basic-plan',
                 'description' => 'ベーシックプラン用のワイヤーフレーム作成にかかる費用',
                 'item_type' => 'plan_base',
@@ -121,7 +121,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '制作準備(スタンダードプラン)',
+                'name' => '制作準備',
                 'slug' => 'website-preparation-standard-plan',
                 'description' => 'スタンダードプラン用の制作前ヒアリング・要件定義・サイト設計にかかる費用',
                 'item_type' => 'plan_base',
@@ -136,7 +136,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'キックオフミーティング(スタンダードプラン)',
+                'name' => 'キックオフミーティング',
                 'slug' => 'website-kickoff-meeting-standard-plan',
                 'description' => 'スタンダードプラン用のプロジェクト開始時の打ち合わせ費用',
                 'item_type' => 'plan_base',
@@ -151,7 +151,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '要件定義(スタンダードプラン)',
+                'name' => '要件定義',
                 'slug' => 'website-requirements-definition-standard-plan',
                 'description' => 'スタンダードプラン用のプロジェクトの要件定義にかかる費用',
                 'item_type' => 'plan_base',
@@ -166,7 +166,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'サイトマップ作成(スタンダードプラン)',
+                'name' => 'サイトマップ作成',
                 'slug' => 'website-sitemap-creation-standard-plan',
                 'description' => 'スタンダードプラン用のサイトマップ作成にかかる費用',
                 'item_type' => 'plan_base',
@@ -181,7 +181,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'ワイヤーフレーム作成(スタンダードプラン)',
+                'name' => 'ワイヤーフレーム作成',
                 'slug' => 'website-wireframe-creation-standard-plan',
                 'description' => 'スタンダードプラン用のワイヤーフレーム作成にかかる費用',
                 'item_type' => 'plan_base',
@@ -196,7 +196,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '制作準備(プレミアムプラン)',
+                'name' => '制作準備',
                 'slug' => 'website-preparation-premium-plan',
                 'description' => 'プレミアムプラン用の制作前ヒアリング・要件定義・サイト設計にかかる費用',
                 'item_type' => 'plan_base',
@@ -211,7 +211,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'キックオフミーティング(プレミアムプラン)',
+                'name' => 'キックオフミーティング',
                 'slug' => 'website-kickoff-meeting-premium-plan',
                 'description' => 'プレミアムプラン用のプロジェクト開始時の打ち合わせ費用',
                 'item_type' => 'included',
@@ -226,7 +226,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '要件定義(プレミアムプラン)',
+                'name' => '要件定義',
                 'slug' => 'website-requirements-definition-premium-plan',
                 'description' => 'プレミアムプラン用のプロジェクトの要件定義にかかる費用',
                 'item_type' => 'plan_base',
@@ -241,7 +241,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'サイトマップ作成(プレミアムプラン)',
+                'name' => 'サイトマップ作成',
                 'slug' => 'website-sitemap-creation-premium-plan',
                 'description' => 'プレミアムプラン用のサイトマップ作成にかかる費用',
                 'item_type' => 'included',
@@ -256,7 +256,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'ワイヤーフレーム作成(プレミアムプラン)',
+                'name' => 'ワイヤーフレーム作成',
                 'slug' => 'website-wireframe-creation-premium-plan',
                 'description' => 'プレミアムプラン用のワイヤーフレーム作成にかかる費用',
                 'item_type' => 'plan_base',
@@ -272,7 +272,7 @@ class ServiceItemSeeder extends Seeder
             // デザイン
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページデザイン(ベーシックプラン)',
+                'name' => 'トップページデザイン',
                 'slug' => 'website-top-page-design-basic-plan',
                 'description' => 'ベーシックプラン用のトップページのデザイン',
                 'item_type' => 'plan_base',
@@ -287,7 +287,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページデザイン（1ページ）(ベーシックプラン)',
+                'name' => '下層ページデザイン（1ページ）',
                 'slug' => 'website-lower-page-design-basic-plan',
                 'description' => 'ベーシックプラン用の下層ページのデザイン（1ページ）',
                 'item_type' => 'plan_base',
@@ -302,7 +302,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブデザイン(ベーシックプラン)',
+                'name' => 'レスポンシブデザイン',
                 'slug' => 'website-responsive-design-basic-plan',
                 'description' => 'ベーシックプラン用のスマートフォン・タブレット対応のレスポンシブデザイン',
                 'item_type' => 'included',
@@ -317,7 +317,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページデザイン(スタンダードプラン)',
+                'name' => 'トップページデザイン',
                 'slug' => 'website-top-page-design-standard-plan',
                 'description' => 'スタンダードプラン用のトップページのデザイン',
                 'item_type' => 'plan_base',
@@ -332,7 +332,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページデザイン（1ページ）(スタンダードプラン)',
+                'name' => '下層ページデザイン（1ページ）',
                 'slug' => 'website-lower-page-design-standard-plan',
                 'description' => 'スタンダードプラン用の下層ページのデザイン（1ページ）',
                 'item_type' => 'plan_base',
@@ -347,7 +347,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブデザイン(スタンダードプラン)',
+                'name' => 'レスポンシブデザイン',
                 'slug' => 'website-responsive-design-standard-plan',
                 'description' => 'スタンダードプラン用のスマートフォン・タブレット対応のレスポンシブデザイン',
                 'item_type' => 'included',
@@ -362,7 +362,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページデザイン(プレミアムプラン)',
+                'name' => 'トップページデザイン',
                 'slug' => 'website-top-page-design-premium-plan',
                 'description' => 'プレミアムプラン用のトップページのデザイン',
                 'item_type' => 'plan_base',
@@ -377,7 +377,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページデザイン（1ページ）(プレミアムプラン)',
+                'name' => '下層ページデザイン（1ページ）',
                 'slug' => 'website-lower-page-design-premium-plan',
                 'description' => 'プレミアムプラン用の下層ページのデザイン（1ページ）',
                 'item_type' => 'plan_base',
@@ -392,7 +392,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブデザイン(プレミアムプラン)',
+                'name' => 'レスポンシブデザイン',
                 'slug' => 'website-responsive-design-premium-plan',
                 'description' => 'プレミアムプラン用のスマートフォン・タブレット対応のレスポンシブデザイン',
                 'item_type' => 'included',
@@ -438,7 +438,7 @@ class ServiceItemSeeder extends Seeder
             // コーディング
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページ構築(ベーシックプラン)',
+                'name' => 'トップページ構築',
                 'slug' => 'website-top-page-development-basic-plan',
                 'description' => 'ベーシックプラン用のトップページのコーディング・構築',
                 'item_type' => 'plan_base',
@@ -453,7 +453,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページ構築（1ページ）(ベーシックプラン)',
+                'name' => '下層ページ構築（1ページ）',
                 'slug' => 'website-lower-page-development-basic-plan',
                 'description' => 'ベーシックプラン用の下層ページのコーディング・構築（1ページ）',
                 'item_type' => 'plan_base',
@@ -468,7 +468,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブ対応(ベーシックプラン)',
+                'name' => 'レスポンシブ対応',
                 'slug' => 'website-responsive-support-basic-plan',
                 'description' => 'ベーシックプラン用のスマートフォン・タブレット対応のレスポンシブコーディング',
                 'item_type' => 'included',
@@ -483,7 +483,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページ構築(スタンダードプラン)',
+                'name' => 'トップページ構築',
                 'slug' => 'website-top-page-development-standard-plan',
                 'description' => 'スタンダードプラン用のトップページのコーディング・構築',
                 'item_type' => 'plan_base',
@@ -498,7 +498,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページ構築（1ページ）(スタンダードプラン)',
+                'name' => '下層ページ構築（1ページ）',
                 'slug' => 'website-lower-page-development-standard-plan',
                 'description' => 'スタンダードプラン用の下層ページのコーディング・構築（1ページ）',
                 'item_type' => 'plan_base',
@@ -513,7 +513,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブ対応(スタンダードプラン)',
+                'name' => 'レスポンシブ対応',
                 'slug' => 'website-responsive-support-standard-plan',
                 'description' => 'スタンダードプラン用のスマートフォン・タブレット対応のレスポンシブコーディング',
                 'item_type' => 'included',
@@ -528,7 +528,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'トップページ構築(プレミアムプラン)',
+                'name' => 'トップページ構築',
                 'slug' => 'website-top-page-development-premium-plan',
                 'description' => 'プレミアムプラン用のトップページのコーディング・構築',
                 'item_type' => 'plan_base',
@@ -543,7 +543,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '下層ページ構築（1ページ）(プレミアムプラン)',
+                'name' => '下層ページ構築（1ページ）',
                 'slug' => 'website-lower-page-development-premium-plan',
                 'description' => 'プレミアムプラン用の下層ページのコーディング・構築（1ページ）',
                 'item_type' => 'plan_base',
@@ -558,7 +558,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'レスポンシブ対応(プレミアムプラン)',
+                'name' => 'レスポンシブ対応',
                 'slug' => 'website-responsive-support-premium-plan',
                 'description' => 'プレミアムプラン用のスマートフォン・タブレット対応のレスポンシブコーディング',
                 'item_type' => 'included',
@@ -589,7 +589,7 @@ class ServiceItemSeeder extends Seeder
             // CMS
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'CMS導入(ベーシックプラン)',
+                'name' => 'CMS導入',
                 'slug' => 'website-cms-implementation-basic-plan',
                 'description' => 'ベーシックプラン用のWordPressなどのCMS導入・設定',
                 'item_type' => 'included',
@@ -604,7 +604,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '投稿機能(ベーシックプラン)',
+                'name' => '投稿機能',
                 'slug' => 'website-post-functionality-basic-plan',
                 'description' => 'ベーシックプラン用の投稿機能設定',
                 'item_type' => 'plan_base',
@@ -619,7 +619,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'CMS導入(スタンダードプラン)',
+                'name' => 'CMS導入',
                 'slug' => 'website-cms-implementation-standard-plan',
                 'description' => 'スタンダードプラン用のWordPressなどのCMS導入・設定',
                 'item_type' => 'included',
@@ -634,7 +634,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '投稿機能(スタンダードプラン)',
+                'name' => '投稿機能',
                 'slug' => 'website-post-functionality-standard-plan',
                 'description' => 'スタンダードプラン用の投稿機能設定',
                 'item_type' => 'included',
@@ -649,7 +649,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'CMS導入(プレミアムプラン)',
+                'name' => 'CMS導入',
                 'slug' => 'website-cms-implementation-premium-plan',
                 'description' => 'プレミアムプラン用のWordPressなどのCMS導入・設定',
                 'item_type' => 'plan_base',
@@ -664,7 +664,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '投稿機能(プレミアムプラン)',
+                'name' => '投稿機能',
                 'slug' => 'website-post-functionality-premium-plan',
                 'description' => 'プレミアムプラン用の投稿機能設定',
                 'item_type' => 'included',
@@ -710,7 +710,7 @@ class ServiceItemSeeder extends Seeder
             // フォーム
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'お問い合わせフォーム(ベーシックプラン)',
+                'name' => 'お問い合わせフォーム',
                 'slug' => 'website-contact-form-basic-plan',
                 'description' => 'ベーシックプラン用のお問い合わせフォームの設置・設定',
                 'item_type' => 'plan_base',
@@ -725,7 +725,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'お問い合わせフォーム(スタンダードプラン)',
+                'name' => 'お問い合わせフォーム',
                 'slug' => 'website-contact-form-standard-plan',
                 'description' => 'スタンダードプラン用のお問い合わせフォームの設置・設定',
                 'item_type' => 'included',
@@ -740,7 +740,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'お問い合わせフォーム(プレミアムプラン)',
+                'name' => 'お問い合わせフォーム',
                 'slug' => 'website-contact-form-premium-plan',
                 'description' => 'プレミアムプラン用のお問い合わせフォームの設置・設定',
                 'item_type' => 'included',
@@ -816,7 +816,7 @@ class ServiceItemSeeder extends Seeder
             // SEO対策
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '基本SEO対策(ベーシックプラン)',
+                'name' => '基本SEO対策',
                 'slug' => 'website-basic-seo-basic-plan',
                 'description' => 'ベーシックプラン用の基本的なSEO対策の実施',
                 'item_type' => 'plan_base',
@@ -831,7 +831,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '基本SEO対策(スタンダードプラン)',
+                'name' => '基本SEO対策',
                 'slug' => 'website-basic-seo-standard-plan',
                 'description' => 'スタンダードプラン用の基本的なSEO対策の実施',
                 'item_type' => 'included',
@@ -846,7 +846,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '詳細SEO対策(スタンダードプラン)',
+                'name' => '詳細SEO対策',
                 'slug' => 'website-advanced-seo-standard-plan',
                 'description' => 'スタンダードプラン用の詳細なSEO対策の実施',
                 'item_type' => 'plan_base',
@@ -861,7 +861,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '基本SEO対策(プレミアムプラン)',
+                'name' => '基本SEO対策',
                 'slug' => 'website-basic-seo-premium-plan',
                 'description' => 'プレミアムプラン用の基本的なSEO対策の実施',
                 'item_type' => 'included',
@@ -876,7 +876,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => '詳細SEO対策(プレミアムプラン)',
+                'name' => '詳細SEO対策',
                 'slug' => 'website-advanced-seo-premium-plan',
                 'description' => 'プレミアムプラン用の詳細なSEO対策の実施',
                 'item_type' => 'optional',
@@ -921,7 +921,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'OGP設定(プレミアムプラン)',
+                'name' => 'OGP設定',
                 'slug' => 'website-ogp-setup-premium-plan',
                 'description' => 'プレミアムプラン用のSNSでのシェア時に表示されるOGPの設定',
                 'item_type' => 'included',
@@ -951,7 +951,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'XMLサイトマップ(プレミアムプラン)',
+                'name' => 'XMLサイトマップ',
                 'slug' => 'website-xml-sitemap-premium-plan',
                 'description' => 'プレミアムプラン用の検索エンジン向けのXMLサイトマップの作成',
                 'item_type' => 'included',
@@ -982,7 +982,7 @@ class ServiceItemSeeder extends Seeder
             // 解析
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'Google Analytics設定(ベーシックプラン)',
+                'name' => 'Google Analytics設定',
                 'slug' => 'website-google-analytics-setup-basic-plan',
                 'description' => 'ベーシックプラン用のGoogle Analyticsの設定・導入',
                 'item_type' => 'plan_base',
@@ -997,7 +997,7 @@ class ServiceItemSeeder extends Seeder
             ],
             [
                 'service_id' => $websiteProduction?->id,
-                'name' => 'Google Analytics設定(スタンダードプラン)',
+                'name' => 'Google Analytics設定',
                 'slug' => 'website-google-analytics-setup-standard-plan',
                 'description' => 'スタンダードプラン用のGoogle Analyticsの設定・導入',
                 'item_type' => 'included',

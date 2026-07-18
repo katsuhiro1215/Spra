@@ -20,6 +20,7 @@ const PostForm = ({
     onSubmit,
     cancelRoute,
     categories = [],
+    mediaList,
     isEdit = false,
 }) => {
     const generateSlug = (title) => {
@@ -152,6 +153,7 @@ const PostForm = ({
                     <BlockEditor
                         value={data.content}
                         onChange={(value) => setData("content", value)}
+                        mediaList={mediaList}
                     />
                     <InputError message={errors.content} />
                 </CardBody>

@@ -66,13 +66,15 @@ export default function ButtonBlock({ data, onChange }) {
 }
 
 const STYLE_CLASSES = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700",
-    secondary: "bg-slate-200 text-slate-900 hover:bg-slate-300",
-    outline: "border border-blue-600 text-blue-600 hover:bg-blue-50",
+    primary:
+        "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1",
+    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
+    outline: "border-2 border-blue-600 text-blue-600 hover:bg-blue-50",
 };
 
 export function ButtonBlockPreview({ data }) {
     const value = { ...BUTTON_DEFAULT_DATA, ...data };
+    if (!value.label || !value.url) return null;
     const alignClass =
         value.align === "center"
             ? "justify-center"
@@ -82,11 +84,16 @@ export function ButtonBlockPreview({ data }) {
 
     return (
         <div className={`flex ${alignClass}`}>
-            <span
-                className={`inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${STYLE_CLASSES[value.style] || STYLE_CLASSES.primary}`}
+            <a
+                href={value.url}
+                target={value.openInNewTab ? "_blank" : undefined}
+                rel={value.openInNewTab ? "noopener noreferrer" : undefined}
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-xl transition-all duration-300 ${
+                    STYLE_CLASSES[value.style] || STYLE_CLASSES.primary
+                }`}
             >
-                {value.label || "（ボタンラベル未入力）"}
-            </span>
+                {value.label}
+            </a>
         </div>
     );
 }

@@ -82,7 +82,8 @@ export default function ArrayFieldEditor({
                         required={fieldConfig.required}
                     >
                         <TextInput
-                            {...commonProps}
+                            value={commonProps.value}
+                            onChange={(e) => commonProps.onChange(e.target.value)}
                             placeholder={
                                 fieldConfig.default || fieldConfig.label
                             }
@@ -98,7 +99,8 @@ export default function ArrayFieldEditor({
                         required={fieldConfig.required}
                     >
                         <TextArea
-                            {...commonProps}
+                            value={commonProps.value}
+                            onChange={(e) => commonProps.onChange(e.target.value)}
                             placeholder={
                                 fieldConfig.default || fieldConfig.label
                             }

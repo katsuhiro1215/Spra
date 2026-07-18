@@ -38,6 +38,7 @@ class Invoice extends Model
         'client_downloaded_by',
         'notes',
         'pdf_path',
+        'payment_report_token',
         'resend_count',
         'last_resent_at',
         'created_by',
@@ -135,6 +136,20 @@ class Invoice extends Model
     public function scopeUnpaid($query)
     {
         return $query->whereIn('status', ['sent', 'viewed', 'overdue']);
+    }
+
+    /**
+     * 入金通知フォーム（ログイン不要・トークン付きURL）用のトークンを発行する。
+     * 既に発行済みの場合はそれを再利用する。
+     */
+    public function issuePaymentReportToken(): string
+    {
+        if (!$this->payment_report_token) {
+            $this->payment_report_token = \Illuminate\Support\Str::random(60);
+            $this->save();
+        }
+
+        return $this->payment_report_token;
     }
 
     public function isPaid(): bool

@@ -9,12 +9,13 @@ import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
 import SectionForm from "./_components/SectionForm";
 import * as validation from "./_components/validation";
 
-export default function Create({ pages }) {
+export default function Create({ pages, mediaList }) {
     const { data, setData, post, processing, errors } = useForm({
         page_id: "",
         name: "",
         role: "",
         sort_order: 0,
+        content: { blocks: [] },
     });
 
     const [localErrors, setLocalErrors] = useState({});
@@ -66,6 +67,7 @@ export default function Create({ pages }) {
                         setLocalErrors={setLocalErrors}
                         processing={processing}
                         pages={pages}
+                        mediaList={mediaList}
                     />
 
                     {/* アクションボタン */}

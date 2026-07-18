@@ -92,21 +92,19 @@ export default function Contact({ auth, categories = [] }) {
                                     const isForm =
                                         info.title === "フォームでのお問い合わせ";
                                     const content = (
-                                        <div className="flex items-start gap-4">
+                                        <div className="flex flex-col items-start gap-4">
                                             <div className="flex-shrink-0 p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
                                                 <Icon className="w-6 h-6 text-white" />
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-gray-900 mb-2">
-                                                    {info.title}
-                                                </h3>
-                                                <p className="text-lg font-semibold text-blue-600 mb-1">
-                                                    {info.content}
-                                                </p>
-                                                <p className="text-sm text-gray-600">
-                                                    {info.description}
-                                                </p>
-                                            </div>
+                                            <h3 className="font-bold text-gray-900 mb-2">
+                                                {info.title}
+                                            </h3>
+                                            <p className="text-lg font-semibold text-blue-600 mb-1">
+                                                {info.content}
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                                {info.description}
+                                            </p>
                                         </div>
                                     );
 

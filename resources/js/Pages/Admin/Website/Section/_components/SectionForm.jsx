@@ -6,6 +6,7 @@ import {
     InputLabel,
     SelectInput,
 } from "@/Components/Forms";
+import { BlockEditor } from "@/Components/BlockUI";
 import * as validation from "./validation";
 
 const SectionForm = ({
@@ -16,6 +17,7 @@ const SectionForm = ({
     setLocalErrors,
     processing,
     pages,
+    mediaList,
 }) => {
     const handleBlur = (fieldName) => {
         const tempData = { ...data, errors: {} };
@@ -65,10 +67,13 @@ const SectionForm = ({
                     基本情報
                 </h3>
                 <div className="space-y-4">
-                    <FormGroup>
-                        <InputLabel htmlFor="page_id" required>
-                            ページ
-                        </InputLabel>
+                    <FormGroup
+                        label="ページ"
+                        htmlFor="page_id"
+                        required
+                        helpText="このセクションが属するページを選択してください。"
+                        error={localErrors.page_id || errors.page_id}
+                    >
                         <SelectInput
                             id="page_id"
                             value={data.page_id}
@@ -80,15 +85,15 @@ const SectionForm = ({
                             options={pageOptions}
                             placeholder="ページを選択..."
                         />
-                        <InputError
-                            message={localErrors.page_id || errors.page_id}
-                        />
                     </FormGroup>
 
-                    <FormGroup>
-                        <InputLabel htmlFor="name" required>
-                            セクション名
-                        </InputLabel>
+                    <FormGroup
+                        label="セクション名"
+                        htmlFor="name"
+                        required
+                        helpText="セクションの名前を入力してください。"
+                        error={localErrors.name || errors.name}
+                    >
                         <TextInput
                             id="name"
                             value={data.name}
@@ -99,11 +104,14 @@ const SectionForm = ({
                             disabled={processing}
                             placeholder="ヒーローセクション"
                         />
-                        <InputError message={localErrors.name || errors.name} />
                     </FormGroup>
 
-                    <FormGroup>
-                        <InputLabel htmlFor="role">役割</InputLabel>
+                    <FormGroup
+                        label="役割"
+                        htmlFor="role"
+                        helpText="セクションの役割を識別するためのキー（オプション）"
+                        error={localErrors.role || errors.role}
+                    >
                         <TextInput
                             id="role"
                             value={data.role || ""}
@@ -114,14 +122,16 @@ const SectionForm = ({
                             disabled={processing}
                             placeholder="hero, content, sidebar など"
                         />
-                        <InputError message={localErrors.role || errors.role} />
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             セクションの役割を識別するためのキー（オプション）
                         </p>
                     </FormGroup>
 
-                    <FormGroup>
-                        <InputLabel htmlFor="sort_order">表示順</InputLabel>
+                    <FormGroup
+                        label="表示順"
+                        htmlFor="sort_order"
+                        error={localErrors.sort_order || errors.sort_order}
+                    >
                         <TextInput
                             id="sort_order"
                             type="number"
@@ -134,16 +144,24 @@ const SectionForm = ({
                             placeholder="0"
                             min="0"
                         />
-                        <InputError
-                            message={
-                                localErrors.sort_order || errors.sort_order
-                            }
-                        />
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             ページ内での表示順（小さい順に表示）
                         </p>
                     </FormGroup>
                 </div>
+            </div>
+
+            {/* コンテンツ（ブロックエディタ） */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                    コンテンツ
+                </h3>
+                <BlockEditor
+                    value={data.content}
+                    onChange={(value) => handleChange("content", value)}
+                    mediaList={mediaList}
+                />
+                <InputError message={localErrors.content || errors.content} />
             </div>
         </div>
     );

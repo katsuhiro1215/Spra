@@ -17,7 +17,6 @@ class Page extends Model
         'title',
         'slug',
         'template',
-        'content',
         'meta_title',
         'meta_description',
         'is_published',
@@ -29,7 +28,6 @@ class Page extends Model
     ];
 
     protected $casts = [
-        'content' => 'array',  // JSON for block editor
         'is_published' => 'boolean',
         'published_at' => 'datetime',
     ];

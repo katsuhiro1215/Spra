@@ -48,6 +48,7 @@ export default function HeadingBlock({ data, onChange }) {
 
 export function HeadingBlockPreview({ data }) {
     const value = { ...HEADING_DEFAULT_DATA, ...data };
+    if (!value.text) return null;
     const Tag = value.level;
     const alignClass =
         value.align === "center"
@@ -57,8 +58,6 @@ export function HeadingBlockPreview({ data }) {
               : "text-left";
 
     return (
-        <Tag className={`font-bold text-slate-900 dark:text-slate-100 ${alignClass}`}>
-            {value.text || "（見出し未入力）"}
-        </Tag>
+        <Tag className={`font-bold text-gray-900 ${alignClass}`}>{value.text}</Tag>
     );
 }

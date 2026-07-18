@@ -4,7 +4,7 @@ import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import UserPagination from "@/Components/Layout/UserPagination";
 import Badge from "@/Components/Badge";
 
-export default function Index({ quotes = [], meta = null }) {
+export default function Index({ quotes }) {
     return (
         <AuthenticatedLayout
             header={
@@ -25,7 +25,7 @@ export default function Index({ quotes = [], meta = null }) {
 
             <div className="space-y-6">
                 {/* 見積書がある場合 */}
-                {quotes && quotes.length > 0 ? (
+                {quotes.data.length > 0 ? (
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
@@ -48,7 +48,7 @@ export default function Index({ quotes = [], meta = null }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {quotes.map((quote) => (
+                                {quotes.data.map((quote) => (
                                     <tr
                                         key={quote.id}
                                         className="hover:bg-gray-50"
@@ -113,7 +113,7 @@ export default function Index({ quotes = [], meta = null }) {
                         </table>
 
                         {/* ページネーション */}
-                        <UserPagination links={quotes.links} meta={meta} />
+                        <UserPagination links={quotes.links} meta={quotes} />
                     </div>
                 ) : (
                     /* データなしのメッセージ */

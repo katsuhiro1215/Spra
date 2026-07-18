@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Website;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Website\SectionRequest;
+use App\Models\Media;
 use App\Models\Page;
 use App\Models\Section;
 use App\Services\SectionService;
@@ -56,6 +57,7 @@ class SectionController extends Controller
 
         return Inertia::render('Admin/Website/Section/Create', [
             'pages' => $pages,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -101,6 +103,7 @@ class SectionController extends Controller
         return Inertia::render('Admin/Website/Section/Edit', [
             'section' => $section,
             'pages' => $pages,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -138,6 +141,25 @@ class SectionController extends Controller
             return redirect()
                 ->back()
                 ->withErrors(['error' => 'セクションの削除に失敗しました。']);
+        }
+    }
+
+    /**
+     * セクションの並び順を一括更新（ページ編集画面のドラッグ&ドロップ用）
+     */
+    public function reorder(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'section_ids' => ['required', 'array'],
+            'section_ids.*' => ['string', 'exists:sections,id'],
+        ]);
+
+        try {
+            $this->sectionService->reorderSections($validated['section_ids']);
+
+            return back();
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'セクションの並び替えに失敗しました。']);
         }
     }
 }
