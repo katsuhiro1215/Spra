@@ -93,6 +93,7 @@ class ProjectController extends Controller
             'versions',
             'updates',
             'technologies',
+            'documents.currentVersion',
         ]);
 
         $currentVersion = $project->versions()

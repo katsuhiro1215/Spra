@@ -26,17 +26,19 @@ export default function Edit({
         contract_id: project.contract_id || "",
         user_id: project.user_id || "",
         company_id: project.company_id || "",
+        repository_url: project.repository_url || "",
+        production_url: project.production_url || "",
         admins:
             (project.admins || []).map((admin) => ({
                 admin_id: admin.id,
                 role: admin.pivot.role,
             })) || [],
-        start_date: project.start_date ? project.start_date.split(" ")[0] : "",
+        start_date: project.start_date ? project.start_date.slice(0, 10) : "",
         estimated_end_date: project.estimated_end_date
-            ? project.estimated_end_date.split(" ")[0]
+            ? project.estimated_end_date.slice(0, 10)
             : "",
         actual_end_date: project.actual_end_date
-            ? project.actual_end_date.split(" ")[0]
+            ? project.actual_end_date.slice(0, 10)
             : "",
         is_client_visible: project.is_client_visible || false,
         client_visible_notes: project.client_visible_notes || "",

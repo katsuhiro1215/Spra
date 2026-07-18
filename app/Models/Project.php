@@ -24,6 +24,8 @@ class Project extends Model
         'title',
         'description',
         'thumbnail',
+        'repository_url',
+        'production_url',
         'status',
         'priority',
         'start_date',
@@ -118,6 +120,11 @@ class Project extends Model
     public function updates(): HasMany
     {
         return $this->hasMany(ProjectUpdate::class)->orderBy('created_at', 'desc');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProjectDocument::class);
     }
 
     public function currentVersion(): HasOne

@@ -228,6 +228,48 @@ export default function ProjectForm({
                 </div>
             </div>
 
+            {/* 関連リンク */}
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                    関連リンク
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormGroup
+                        label="リポジトリURL"
+                        error={errors.repository_url}
+                    >
+                        <TextInput
+                            value={data.repository_url || ""}
+                            onChange={(e) =>
+                                handleChange(
+                                    "repository_url",
+                                    e.target.value,
+                                )
+                            }
+                            placeholder="https://github.com/org/repo"
+                            error={errors.repository_url}
+                        />
+                    </FormGroup>
+
+                    <FormGroup
+                        label="公開URL"
+                        error={errors.production_url}
+                    >
+                        <TextInput
+                            value={data.production_url || ""}
+                            onChange={(e) =>
+                                handleChange(
+                                    "production_url",
+                                    e.target.value,
+                                )
+                            }
+                            placeholder="https://example.com"
+                            error={errors.production_url}
+                        />
+                    </FormGroup>
+                </div>
+            </div>
+
             {/* 使用技術 */}
             <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
                 <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">

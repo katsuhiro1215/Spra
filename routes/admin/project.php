@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectItemController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
 use App\Http\Controllers\Admin\Project\GanttChartController;
+use App\Http\Controllers\Admin\Project\ProjectDocumentController;
+use App\Http\Controllers\Admin\Project\ProjectDocumentVersionController;
+use App\Http\Controllers\Admin\Project\ProjectDocumentSectionController;
 
 // 認証・権限ミドルウェアは admin.php 側の親グループで適用済みのためここでは付与しない
 
@@ -48,5 +51,24 @@ Route::prefix('project/{project}')->name('project.')->group(function () {
         Route::resource('milestones', ProjectMilestoneController::class)->except(['index']);
         // ProjectItem ネストされたリソース
         Route::resource('items', ProjectItemController::class)->except(['index']);
+    });
+
+    // ProjectDocument（設計文書の中央管理）
+    Route::resource('documents', ProjectDocumentController::class)->except(['create', 'edit']);
+
+    Route::prefix('documents/{document}')->name('documents.')->group(function () {
+        // 版を確定（現在のドラフトをreleasedにし、次のドラフトを複製発行）
+        Route::post('versions', [ProjectDocumentVersionController::class, 'store'])->name('versions.store');
+        Route::get('versions/{version}/pdf', [ProjectDocumentVersionController::class, 'pdf'])->name('versions.pdf');
+        // バージョン間の差分比較
+        Route::get('compare', [ProjectDocumentController::class, 'compare'])->name('compare');
+
+        // ProjectDocumentSection（現在のドラフト版に対する操作）
+        Route::post('sections', [ProjectDocumentSectionController::class, 'store'])->name('sections.store');
+        Route::put('sections/{section}', [ProjectDocumentSectionController::class, 'update'])->name('sections.update');
+        Route::put('sections/{section}/details', [ProjectDocumentSectionController::class, 'updateDetails'])->name('sections.updateDetails');
+        Route::delete('sections/{section}', [ProjectDocumentSectionController::class, 'destroy'])->name('sections.destroy');
+        Route::post('sections/reorder', [ProjectDocumentSectionController::class, 'reorder'])->name('sections.reorder');
+        Route::get('sections/{section}/migration', [ProjectDocumentSectionController::class, 'migration'])->name('sections.migration');
     });
 });

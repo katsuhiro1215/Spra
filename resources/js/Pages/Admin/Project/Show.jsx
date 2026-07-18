@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -17,7 +17,13 @@ import {
     ChatBubbleLeftRightIcon,
     ClipboardDocumentListIcon,
     ChartBarIcon,
+    ArchiveBoxIcon,
+    PlusIcon,
 } from "@heroicons/react/24/outline";
+import {
+    DOCUMENT_TYPE_LABELS,
+    DOCUMENT_STATUS_LABELS,
+} from "./Document/_shared/constants";
 
 const statusConfig = {
     planning: { variant: "default", label: "計画中" },
@@ -90,8 +96,19 @@ export default function Show({ project, currentVersion, progress = 0 }) {
         { id: "milestones", label: "マイルストーン", icon: FolderIcon },
         { id: "updates", label: "更新履歴", icon: ChatBubbleLeftRightIcon },
         { id: "gantt", label: "ガントチャート", icon: ChartBarIcon },
+        { id: "documents", label: "ドキュメント", icon: ArchiveBoxIcon },
         { id: "files", label: "ファイル", icon: DocumentTextIcon },
     ];
+
+    const documentsByType = Object.fromEntries(
+        (project.documents || []).map((doc) => [doc.document_type, doc]),
+    );
+
+    const handleCreateDocument = (documentType) => {
+        router.post(route("admin.project.documents.store", project.id), {
+            document_type: documentType,
+        });
+    };
 
     return (
         <AdminAuthenticatedLayout
@@ -367,7 +384,7 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                             </Card>
 
                             {/* 関連情報 */}
-                            {project.contract && (
+                            {(project.contract || project.repository_url || project.production_url) && (
                                 <Card>
                                     <CardHeader>
                                         <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
@@ -385,6 +402,42 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                                         {project.contract
                                                             .contract_number ||
                                                             `契約 #${project.contract.id}`}
+                                                    </dd>
+                                                </div>
+                                            )}
+
+                                            {project.repository_url && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        リポジトリ
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm">
+                                                        <a
+                                                            href={project.repository_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                                                        >
+                                                            {project.repository_url}
+                                                        </a>
+                                                    </dd>
+                                                </div>
+                                            )}
+
+                                            {project.production_url && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        公開URL
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm">
+                                                        <a
+                                                            href={project.production_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                                                        >
+                                                            {project.production_url}
+                                                        </a>
                                                     </dd>
                                                 </div>
                                             )}
@@ -793,6 +846,57 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                 </CardBody>
                             </Card>
                         )}
+                    </div>
+                )}
+
+                {activeTab === "documents" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.entries(DOCUMENT_TYPE_LABELS).map(([type, label]) => {
+                            const doc = documentsByType[type];
+                            const currentDocVersion = doc?.current_version;
+                            return (
+                                <Card key={type}>
+                                    <CardBody>
+                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                            <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                                {label}
+                                            </h3>
+                                            {doc ? (
+                                                <Badge variant={doc.status === "confirmed" ? "success" : "info"}>
+                                                    {DOCUMENT_STATUS_LABELS[doc.status] || doc.status}
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="secondary">未作成</Badge>
+                                            )}
+                                        </div>
+
+                                        {doc ? (
+                                            <>
+                                                {currentDocVersion && (
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500 mb-3">
+                                                        現在の編集版: v{currentDocVersion.version}
+                                                    </p>
+                                                )}
+                                                <SecondaryButton
+                                                    href={route("admin.project.documents.show", [project.id, doc.id])}
+                                                    className="w-full"
+                                                >
+                                                    開く
+                                                </SecondaryButton>
+                                            </>
+                                        ) : (
+                                            <SecondaryButton
+                                                onClick={() => handleCreateDocument(type)}
+                                                icon={PlusIcon}
+                                                className="w-full"
+                                            >
+                                                作成する
+                                            </SecondaryButton>
+                                        )}
+                                    </CardBody>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
 

@@ -29,7 +29,9 @@
         "@heroicons/react": "^2.2.0",
         "@tinymce/tinymce-react": "^6.3.0",
         "date-fns": "^4.4.0",
+        "diff": "^9.0.0",
         "gsap": "^3.13.0",
+        "mermaid": "^11.16.0",
         "react-icons": "^5.5.0",
         "react-signature-canvas": "^1.1.0-alpha.2",
         "yubinbango-core2": "^0.6.3"

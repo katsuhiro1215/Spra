@@ -25,6 +25,8 @@ export default function Create({
         contract_id: contract?.id || "",
         user_id: contract?.user_id || "",
         company_id: contract?.company_id || "",
+        repository_url: "",
+        production_url: "",
         admins: [{ admin_id: "", role: "leader" }],
         start_date: new Date().toISOString().split("T")[0],
         estimated_end_date: "",
