@@ -11,13 +11,20 @@ import {
     TrashIcon,
     PhotoIcon,
 } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({ portfolios }) {
+    // ========================================
+    // Handlers - Delete
+    // ========================================
     const [deleteTarget, setDeleteTarget] = useState(null);
 
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
     const headerActions = [
         {
-            label: "新規作成",
+            label: PageConfig.portfolios.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.portfolio.create"),
@@ -36,14 +43,15 @@ export default function Index({ portfolios }) {
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="実績・ポートフォリオ管理"
-                    description="過去の制作物をサービス詳細ページに表示するために管理します"
+                    title={PageConfig.portfolios.title}
+                    description={PageConfig.portfolios.description}
                     actions={headerActions}
                 />
             }
         >
-            <Head title="実績・ポートフォリオ管理" />
+            <Head title={PageConfig.portfolios.documentTitle} />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <DeleteAlert
@@ -86,7 +94,8 @@ export default function Index({ portfolios }) {
                                     )}
                                 </div>
                                 <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                                    {portfolio.description || "説明がありません"}
+                                    {portfolio.description ||
+                                        "説明がありません"}
                                 </p>
                                 {portfolio.services?.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mb-3">

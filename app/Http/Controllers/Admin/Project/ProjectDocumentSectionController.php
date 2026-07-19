@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectDocumentSectionDetailsRequest;
-use App\Http\Requests\ProjectDocumentSectionRequest;
+use App\Http\Requests\Project\ProjectDocumentSectionDetailsRequest;
+use App\Http\Requests\Project\ProjectDocumentSectionRequest;
 use App\Models\Project;
 use App\Models\ProjectDocument;
 use App\Models\ProjectDocumentSection;

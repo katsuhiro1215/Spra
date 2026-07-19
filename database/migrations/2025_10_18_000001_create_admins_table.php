@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('email')->unique()->comment('メールアドレス');
             $table->timestamp('email_verified_at')->nullable()->comment('メール確認日時');
             $table->string('password')->comment('パスワード');
-            $table->enum('role', ['owner', 'super_admin', 'admin', 'editor'])->default('admin')->comment('役割');
+            $table->enum('role', ['owner', 'super_admin', 'admin', 'editor', 'viewer'])->default('admin')->comment('役割');
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active')->comment('ステータス');
             $table->boolean('two_factor_enabled')->default(false)->comment('二段階認証の有効化フラグ');
             $table->string('two_factor_method')->nullable()->comment('email/totp。nullは既存互換のためemail相当として扱う');

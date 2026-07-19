@@ -53,24 +53,34 @@ export default function PortfolioForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormGroup
                             label="タイトル"
+                            htmlFor="title"
+                            help="ポートフォリオのタイトルを入力してください"
                             required
+                            error={errors.title}
                             className="md:col-span-2"
                         >
                             <TextInput
+                                id="title"
+                                name="title"
                                 value={data.title}
                                 onChange={(e) =>
                                     setData("title", e.target.value)
                                 }
                                 placeholder="例: ○○株式会社様 コーポレートサイト"
+                                required
                             />
-                            <InputError message={errors.title} />
                         </FormGroup>
 
                         <FormGroup
                             label="説明"
+                            htmlFor="description"
+                            help="ポートフォリオの説明を入力してください"
+                            error={errors.description}
                             className="md:col-span-2"
                         >
                             <TextArea
+                                id="description"
+                                name="description"
                                 rows={4}
                                 value={data.description || ""}
                                 onChange={(e) =>
@@ -78,41 +88,57 @@ export default function PortfolioForm({
                                 }
                                 placeholder="制作の概要や工夫した点などを入力してください"
                             />
-                            <InputError message={errors.description} />
                         </FormGroup>
 
-                        <FormGroup label="公開URL">
+                        <FormGroup
+                            label="公開URL"
+                            htmlFor="url"
+                            help="ポートフォリオの公開URLを入力してください"
+                            error={errors.url}
+                            className="md:col-span-2"
+                        >
                             <TextInput
+                                id="url"
+                                name="url"
                                 value={data.url || ""}
-                                onChange={(e) =>
-                                    setData("url", e.target.value)
-                                }
+                                onChange={(e) => setData("url", e.target.value)}
                                 placeholder="https://example.com"
                             />
-                            <InputError message={errors.url} />
                         </FormGroup>
 
-                        <FormGroup label="制作完了日">
-                            <input
+                        <FormGroup
+                            label="制作完了日"
+                            htmlFor="completed_at"
+                            help="制作が完了した日付を入力してください"
+                            error={errors.completed_at}
+                        >
+                            <TextInput
+                                id="completed_at"
+                                name="completed_at"
                                 type="date"
                                 value={data.completed_at || ""}
                                 onChange={(e) =>
                                     setData("completed_at", e.target.value)
                                 }
-                                className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                             />
                             <InputError message={errors.completed_at} />
                         </FormGroup>
 
-                        <FormGroup label="表示順">
+                        <FormGroup
+                            label="表示順"
+                            htmlFor="sort_order"
+                            help="表示順を指定します。数値が小さいほど上位に表示されます。"
+                            error={errors.sort_order}
+                        >
                             <NumberInput
+                                id="sort_order"
+                                name="sort_order"
                                 min={0}
                                 value={data.sort_order}
                                 onChange={(val) =>
                                     setData("sort_order", val || 0)
                                 }
                             />
-                            <InputError message={errors.sort_order} />
                         </FormGroup>
 
                         <div className="flex items-center mt-6">
@@ -199,7 +225,7 @@ export default function PortfolioForm({
                                             toggleService(service.id)
                                         }
                                     />
-                                    <span className="ml-2 text-sm text-gray-700">
+                                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                         {service.name}
                                     </span>
                                 </label>

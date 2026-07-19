@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuid;
 use App\Models\Concerns\HasLoginLockout;
 use App\Models\Concerns\HasTwoFactorAuthentication;
+use App\Notifications\AdminResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -79,12 +80,13 @@ class Admin extends Authenticatable
         'super_admin' => 'スーパー管理者',
         'admin'       => '管理者',
         'editor'      => '編集者',
+        'viewer'      => '閲覧者',
     ];
 
     /**
      * 個別制限をかけられるロール（owner/super_adminは常にフルアクセスのため対象外）
      */
-    public const RESTRICTABLE_ROLES = ['admin', 'editor'];
+    public const RESTRICTABLE_ROLES = ['admin', 'editor', 'viewer'];
 
     public const STATUSES = [
         'active'    => '有効',
@@ -253,6 +255,6 @@ class Admin extends Authenticatable
      */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \App\Notifications\AdminResetPassword($token));
+        $this->notify(new AdminResetPassword($token));
     }
 }

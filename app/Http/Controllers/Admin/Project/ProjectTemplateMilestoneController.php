@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectTemplateMilestoneRequest;
+use App\Http\Requests\Project\ProjectTemplateMilestoneRequest;
 use App\Models\ProjectTemplate;
 use App\Models\ProjectTemplateMilestone;
 use Inertia\Inertia;

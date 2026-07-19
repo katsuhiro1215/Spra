@@ -17,26 +17,20 @@ use App\Http\Controllers\Admin\Company\CompanyController;
 use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\AnalyticsController;
-
 use App\Http\Controllers\Admin\OnboardingController;
-
 use App\Http\Controllers\Admin\PaymentController;
-
 use App\Http\Controllers\Admin\Document\DocumentController;
 use App\Http\Controllers\Admin\Document\DocumentCategoryController;
 use App\Http\Controllers\Admin\Document\UserAcceptanceController;
-
 use App\Http\Controllers\Admin\AppointmentSlotController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\Batch\ReminderExecutionController;
-
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\Website\OrganizationHistoryController;
-
 use Inertia\Inertia;
 
 // ログイン・登録・パスワードリセットなど、ダッシュボード用の認証ミドルウェアより前に
@@ -183,11 +177,7 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * ポイント特典・紹介
      **************************************/
-    require __DIR__ . '/admin/point-reward.php';
-    require __DIR__ . '/admin/referral.php';
-    require __DIR__ . '/admin/membership-rank.php';
-    require __DIR__ . '/admin/point-catalog-item.php';
-    require __DIR__ . '/admin/point-redemption.php';
+    require __DIR__ . '/admin/point.php';
 
     // オンボーディング管理
     Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {

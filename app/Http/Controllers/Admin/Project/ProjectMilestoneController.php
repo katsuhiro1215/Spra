@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectMilestoneRequest;
+use App\Http\Requests\Project\ProjectMilestoneRequest;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\ProjectMilestone;

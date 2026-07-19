@@ -122,6 +122,34 @@ export default function QuoteItemForm({
             };
         });
 
+        // 各ServiceItemは定価のまま明細に並べ、プラン価格(base_price)との差額は
+        // 「プラン割引」の明細行として追加することで、合計がプラン価格と一致するようにする
+        const itemsTotal = newItems.reduce(
+            (sum, item) => sum + item.amount,
+            0,
+        );
+        const planPrice = parseFloat(servicePlan.base_price) || 0;
+        const priceDifference = itemsTotal - planPrice;
+
+        if (Math.round(priceDifference) !== 0) {
+            newItems.push({
+                service_id: servicePlan.service_id,
+                service_item_id: null,
+                name:
+                    priceDifference > 0
+                        ? `${servicePlan.name} プラン割引`
+                        : `${servicePlan.name} プラン追加料金`,
+                description: "プラン選択による価格調整",
+                item_type: "custom",
+                billing_type: "one_time",
+                quantity: 1,
+                unit_price: -priceDifference,
+                amount: -priceDifference,
+                estimated_days: 0,
+                sort_order: items.length + newItems.length,
+            });
+        }
+
         setItems([...items, ...newItems]);
         setShowServicePlanModal(false);
     };
@@ -416,7 +444,6 @@ export default function QuoteItemForm({
                                                 id={`items[${index}].unit_price`}
                                                 type="number"
                                                 step="0.01"
-                                                min="0"
                                                 value={item.unit_price}
                                                 onChange={(e) =>
                                                     handleItemChange(

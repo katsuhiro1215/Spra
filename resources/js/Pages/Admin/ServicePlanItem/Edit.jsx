@@ -23,7 +23,7 @@ export default function Edit({
         sort_order: item.sort_order || 0,
     }));
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, transform, processing, errors } = useForm({
         items: initialItems,
         discount_amount: 0,
     });
@@ -57,18 +57,20 @@ export default function Edit({
         const discountAmount = Math.max(0, itemsTotal - basePrice);
 
         // transform を使って送信データを整形
-        put(route("admin.service.plan.items.update", servicePlan.id), {
-            transform: (data) => ({
-                items: data.items.map((item) => ({
-                    id: item.id || null,
-                    service_item_id: item.service_item_id,
-                    quantity: item.quantity || 1,
-                    estimated_days: item.estimated_days || 0,
-                    sort_order: item.sort_order || 0,
-                })),
-                discount_amount: discountAmount,
-            }),
-        });
+        // ※ put() のオプションではなく、useForm() の transform() メソッドとして
+        //   呼び出す必要がある（put()のオプションに渡しても無視される）
+        transform((data) => ({
+            items: data.items.map((item) => ({
+                id: item.id || null,
+                service_item_id: item.service_item_id,
+                quantity: item.quantity || 1,
+                estimated_days: item.estimated_days || 0,
+                sort_order: item.sort_order || 0,
+            })),
+            discount_amount: discountAmount,
+        }));
+
+        put(route("admin.service.plan.items.update", servicePlan.id));
     };
 
     return (

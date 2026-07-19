@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectVersionRequest;
+use App\Http\Requests\Project\ProjectVersionRequest;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Repositories\ProjectVersionRepository;

@@ -81,3 +81,17 @@ export const getRoleBadge = (role) => {
 export const getGenderBadge = (gender) => {
     return GENDER_BADGES[gender] || { text: gender, variant: "default" };
 };
+
+/**
+ * お問い合わせステータスのバッジ情報を取得
+ */
+export const getContactStatusBadge = (status) => {
+    const statusMap = {
+        new: { text: "新規", variant: "info" },
+        in_progress: { text: "対応中", variant: "warning" },
+        replied: { text: "返信済み", variant: "success" },
+        resolved: { text: "解決済み", variant: "success" },
+        closed: { text: "クローズ", variant: "secondary" },
+    };
+    return statusMap[status] || { text: status, variant: "default" };
+}

@@ -4,6 +4,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import PortfolioForm from "./_components/Form";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ services, mediaList }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -21,21 +22,40 @@ export default function Create({ services, mediaList }) {
         post(route("admin.portfolio.store"));
     };
 
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
     const headerActions = [
         {
-            label: "一覧に戻る",
+            label: PageConfig.portfolios.actions.back,
             icon: ArrowLeftIcon,
             variant: "default",
             route: route("admin.portfolio.index"),
         },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.portfolios.breadcrumbs,
+        PageConfig.portfolios.pages.create.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
-            header={<PageHeader title="実績の作成" actions={headerActions} />}
+            header={
+                <PageHeader
+                    title={PageConfig.portfolios.pages.create.title}
+                    description={PageConfig.portfolios.pages.create.description}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
         >
-            <Head title="実績の作成" />
+            <Head title={PageConfig.portfolios.pages.create.title} />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-4xl">

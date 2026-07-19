@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreMediaVariantRequest;
-use App\Http\Requests\UpdateMediaVariantRequest;
 use App\Models\MediaVariant;
+use Illuminate\Http\Request;
 
 class MediaVariantController extends Controller
 {
@@ -27,7 +26,7 @@ class MediaVariantController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMediaVariantRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -51,7 +50,7 @@ class MediaVariantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMediaVariantRequest $request, MediaVariant $mediaVariant)
+    public function update(Request $request, MediaVariant $mediaVariant)
     {
         //
     }

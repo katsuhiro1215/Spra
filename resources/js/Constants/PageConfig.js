@@ -349,6 +349,29 @@ export const PageConfig = {
         },
     },
 
+    // ポートフォリオ管理
+    portfolios: {
+        title: "🖼️ ポートフォリオ管理",
+        description: "過去の制作物を管理します",
+        documentTitle: "ポートフォリオ管理",
+        breadcrumbs: ["ホーム", "ポートフォリオ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("ポートフォリオ"),
+        form: createFormTemplates("ポートフォリオ"),
+        ui: createIndexPageUITemplates(
+            "ポートフォリオ",
+            "タイトルまたは説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+        },
+    },
+
     /**
      * スケジュール管理
      */

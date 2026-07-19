@@ -36,11 +36,16 @@ class AdminSeeder extends Seeder
             [
                 'email' => 'kakoi102@smartsprouts.jp',
                 'role' => 'admin',
-                'status' => 'active',
+                'status' => 'inactive',
             ],
             [
                 'email' => 'kakoi103@smartsprouts.jp',
                 'role' => 'editor',
+                'status' => 'active',
+            ],
+            [
+                'email' => 'kakoi104@smartsprouts.jp',
+                'role' => 'viewer',
                 'status' => 'active',
             ],
         ];

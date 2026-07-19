@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Project;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProjectUpdateRequest extends FormRequest
+class ProjectMilestoneRequest extends FormRequest
 {
   /**
    * Determine if the user is authorized to make this request.
@@ -21,9 +21,9 @@ class ProjectUpdateRequest extends FormRequest
   {
     return [
       'title' => ['required', 'string', 'max:255'],
-      'content' => ['required', 'string'],
-      'type' => ['required', 'in:progress,issue,milestone,general'],
-      'is_client_visible' => ['boolean'],
+      'description' => ['nullable', 'string'],
+      'target_date' => ['required', 'date'],
+      'order' => ['nullable', 'integer', 'min:0'],
     ];
   }
 
@@ -34,9 +34,9 @@ class ProjectUpdateRequest extends FormRequest
   {
     return [
       'title' => 'タイトル',
-      'content' => '内容',
-      'type' => 'タイプ',
-      'is_client_visible' => 'クライアント閲覧可否',
+      'description' => '説明',
+      'target_date' => '目標日',
+      'order' => '順序',
     ];
   }
 }

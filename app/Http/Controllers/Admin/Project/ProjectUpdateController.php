@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectUpdateRequest;
+use App\Http\Requests\Project\ProjectUpdateRequest;
 use App\Models\Project;
 use App\Models\ProjectUpdate;
 use Illuminate\Http\RedirectResponse;

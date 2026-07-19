@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreContactRequest;
 use App\Services\ContactService;
 use App\Services\ContactCategoryService;

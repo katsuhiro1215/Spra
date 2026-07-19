@@ -25,7 +25,7 @@ export default function Create({ roles }) {
     };
 
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
@@ -36,6 +36,9 @@ export default function Create({ roles }) {
         },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
     const breadcrumbs = [
         ...PageConfig.admins.breadcrumbs,
         PageConfig.admins.pages.create.breadcrumb,

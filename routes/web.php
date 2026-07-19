@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Public\AppointmentController;
 use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
@@ -15,6 +14,8 @@ use App\Http\Controllers\Public\FaqController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\DocumentController;
 use App\Http\Controllers\Public\PostController;
+use App\Http\Controllers\Public\ContactController as PublicContactController;
+// User用コントローラー
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
 use App\Http\Controllers\User\NotificationController;
@@ -48,7 +49,7 @@ Route::get('/company', function () {
         'histories' => \App\Models\OrganizationHistory::published()->ordered()->get(),
     ]);
 })->name('company');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
 Route::get('/privacy-policy', [DocumentController::class, 'privacyPolicy'])->name('privacy.policy');
 Route::get('/terms', [DocumentController::class, 'terms'])->name('terms');
 Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
@@ -59,7 +60,7 @@ Route::get('/lp-minimal', fn() => Inertia::render('Public/LandingPageMinimal'))-
 Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative'))->name('landing.creative');
 
 // Contact 送信
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
 // 無料相談予約（Public - ログイン不要、一般クライアント向け）
 Route::get('/consultation', [AppointmentController::class, 'create'])->name('consultation');
@@ -188,8 +189,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::post('/{appointment}/cancel', [UserAppointmentController::class, 'cancel'])->name('cancel');
     });
 
-    // お問い合わせ
-    Route::prefix('contact')->name('contact.')->group(function () {
+    // お問い合わせ（公開用の /contact とURIが衝突しないよう /my プレフィックスを付与）
+    Route::prefix('my/contact')->name('contact.')->group(function () {
         Route::get('/', [UserContactController::class, 'index'])->name('index');
         Route::post('/', [UserContactController::class, 'send'])->name('send');
     });

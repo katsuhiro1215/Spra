@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Contract;
 use App\Models\Admin;
+use App\Models\User;
+use App\Models\Company;
 use App\Services\ProjectTemplateService;
 use App\Services\ProjectService;
-use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\Project\StoreProjectRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -41,16 +43,16 @@ class ProjectController extends Controller
     {
         $templates = $this->templateService->getAll();
         $admins = Admin::select('id', 'email')->with('profile')->get();
-        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
-        $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+        $users = User::select('id', 'email')->with('profile')->get();
+        $companies = Company::all();
+        $contracts = Contract::select('id', 'contract_number', 'title', 'service_plan_id')
             ->with('servicePlan.service.technologies')
             ->get();
         $contract = null;
 
         // URLパラメータから contract_id を取得
         if (request()->has('contract_id')) {
-            $contract = \App\Models\Contract::with('user', 'company')
+            $contract = Contract::with('user', 'company')
                 ->findOrFail(request()->input('contract_id'));
         }
 
@@ -117,9 +119,9 @@ class ProjectController extends Controller
     public function edit(Project $project): Response
     {
         $admins = Admin::select('id', 'email')->with('profile')->get();
-        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
-        $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+        $users = User::select('id', 'email')->with('profile')->get();
+        $companies = Company::all();
+        $contracts = Contract::select('id', 'contract_number', 'title', 'service_plan_id')
             ->with('servicePlan.service.technologies')
             ->get();
 
