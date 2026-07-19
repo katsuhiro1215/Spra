@@ -21,6 +21,8 @@ class Appointment extends Model
     'user_id',
     'company_id',
     'project_id',
+    'source',
+    'external_reference',
     'guest_name',
     'guest_email',
     'guest_phone',

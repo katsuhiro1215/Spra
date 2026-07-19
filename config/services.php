@@ -43,4 +43,12 @@ return [
         'credentials_path' => env('SEARCH_CONSOLE_CREDENTIALS_PATH'),
     ],
 
+    'instagram' => [
+        'app_id' => env('INSTAGRAM_APP_ID'),
+        'app_secret' => env('INSTAGRAM_APP_SECRET'),
+        'page_access_token' => env('INSTAGRAM_PAGE_ACCESS_TOKEN'),
+        // Webhook購読設定時にMeta側で指定する検証用トークン
+        'verify_token' => env('INSTAGRAM_VERIFY_TOKEN'),
+    ],
+
 ];

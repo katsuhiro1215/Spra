@@ -477,6 +477,11 @@ export default function Index({
                                                                 一般クライアント
                                                             </span>
                                                         )}
+                                                        {appointment.source === "instagram" && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200 mt-1 ml-1">
+                                                                Instagram
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="text-sm text-gray-900 dark:text-gray-100">

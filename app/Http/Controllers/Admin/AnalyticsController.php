@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AnalyticsDaily;
 use App\Models\AnalyticsDimension;
 use App\Models\AnalyticsKpi;
+use App\Models\Appointment;
 use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class AnalyticsController extends Controller
             'traffic' => $this->getTrafficData($startDate, $endDate),
             'referrers' => $this->getReferrerData($startDate, $endDate),
             'devices' => $this->getDeviceData($startDate, $endDate),
+            'appointmentSources' => $this->getAppointmentSourceData($startDate, $endDate),
             'keywords' => $this->getKeywordData($startDate, $endDate),
             'business' => $this->getBusinessData($startDate, $endDate),
             'isSearchConsoleLive' => config('services.search_console.driver') === 'google',
@@ -131,6 +133,22 @@ class AnalyticsController extends Controller
             ->limit(10)
             ->get()
             ->map(fn ($row) => ['referrer' => $row->referrer, 'views' => (float) $row->views])
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * 無料相談予約の予約経路別の内訳（Webフォーム/Instagram等）
+     */
+    private function getAppointmentSourceData(Carbon $startDate, Carbon $endDate): array
+    {
+        return Appointment::query()
+            ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+            ->select('source', DB::raw('COUNT(*) as count'))
+            ->groupBy('source')
+            ->orderByDesc('count')
+            ->get()
+            ->map(fn ($row) => ['source' => $row->source, 'count' => (int) $row->count])
             ->values()
             ->toArray();
     }

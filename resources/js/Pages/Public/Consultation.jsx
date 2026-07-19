@@ -8,7 +8,12 @@ import {
     PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Consultation({ auth, availableSlots = [] }) {
+export default function Consultation({
+    auth,
+    availableSlots = [],
+    source = "web",
+    ref = null,
+}) {
     const breadcrumbs = [{ label: "無料相談" }];
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_slot_id: "",
@@ -17,6 +22,8 @@ export default function Consultation({ auth, availableSlots = [] }) {
         guest_phone: "",
         description: "",
         website: "", // ハニーポット（人間には見えない欄）
+        source, // 予約経路（SNS等の外部導線から流入した場合に設定される）
+        ref, // 外部プラットフォームのユーザー識別子
     });
 
     const handleSubmit = (e) => {

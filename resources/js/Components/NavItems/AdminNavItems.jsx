@@ -136,6 +136,10 @@ export const getAdminNavigationItems = () => {
                 },
                 { name: "祝日", href: "admin.schedules.holidays.index" },
                 {
+                    name: "変更履歴",
+                    href: "admin.schedules.history",
+                },
+                {
                     name: "リマインダー実行状況",
                     href: "admin.batch.reminders.index",
                 },

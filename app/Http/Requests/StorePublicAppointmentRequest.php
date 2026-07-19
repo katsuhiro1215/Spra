@@ -28,6 +28,9 @@ class StorePublicAppointmentRequest extends FormRequest
       'guest_email' => ['required', 'email', 'max:255'],
       'guest_phone' => ['required', 'string', 'max:30'],
       'description' => ['nullable', 'string', 'max:2000'],
+      // 予約経路（SNS等の外部導線から流入した場合に設定される）
+      'source' => ['nullable', 'string', 'in:web,instagram'],
+      'ref' => ['nullable', 'string', 'max:255'],
       // ハニーポット（人間には見えない欄。埋まっていればスパムとみなす）
       'website' => ['nullable', 'string'],
     ];

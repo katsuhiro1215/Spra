@@ -10,6 +10,7 @@ import TabNavigation from "@/Components/TabNavigation";
 import LineChart, { CHART_COLORS } from "@/Components/Charts/LineChart";
 import BarChart from "@/Components/Charts/BarChart";
 import PrefectureContractsMap from "./_components/PrefectureContractsMap";
+import { APPOINTMENT_SOURCE_OPTIONS } from "@/Constants/SelectOptions";
 // Icons
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
@@ -72,6 +73,7 @@ export default function Index({
     traffic,
     referrers,
     devices,
+    appointmentSources,
     keywords,
     business,
     isSearchConsoleLive,
@@ -200,7 +202,7 @@ export default function Index({
 
             case "referrers":
                 return (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <Card>
                             <CardHeader>流入元</CardHeader>
                             <CardBody>
@@ -222,6 +224,21 @@ export default function Index({
                                         value: d.views,
                                     }))}
                                     color={CHART_COLORS.aqua.light}
+                                />
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardHeader>予約経路</CardHeader>
+                            <CardBody>
+                                <BarChart
+                                    data={appointmentSources.map((s) => ({
+                                        label:
+                                            APPOINTMENT_SOURCE_OPTIONS.find(
+                                                (o) => o.value === s.source,
+                                            )?.label || s.source,
+                                        value: s.count,
+                                    }))}
+                                    color={CHART_COLORS.green.light}
                                 />
                             </CardBody>
                         </Card>

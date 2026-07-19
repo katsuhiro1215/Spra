@@ -103,6 +103,11 @@ class UserActivityLog extends Model
         return $query->whereBetween('performed_at', [$startDate, $endDate]);
     }
 
+    public function scopeByRoutePrefix($query, string $prefix)
+    {
+        return $query->where('route_name', 'like', $prefix . '%');
+    }
+
     public function scopeRecent($query, $days = 30)
     {
         return $query->where('performed_at', '>=', Carbon::now()->subDays($days));

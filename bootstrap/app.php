@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'auth' => \App\Http\Middleware\Authenticate::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'contact.api_key' => \App\Http\Middleware\VerifyContactApiKey::class,
+        'instagram.signature' => \App\Http\Middleware\VerifyInstagramSignature::class,
         'admin.permission' => \App\Http\Middleware\EnsureAdminPermission::class,
         ]);
     })

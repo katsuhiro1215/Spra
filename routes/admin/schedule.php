@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Schedule\HolidayController;
 use App\Http\Controllers\Admin\Schedule\ScheduleController;
 use App\Http\Controllers\Admin\Schedule\ScheduleDefaultController;
 use App\Http\Controllers\Admin\Schedule\ScheduleExceptionController;
+use App\Http\Controllers\Admin\Schedule\ScheduleHistoryController;
 
 // 認証・権限ミドルウェアは admin.php 側の親グループで適用済みのためここでは付与しない
 
@@ -25,4 +26,7 @@ Route::prefix('schedules')->name('schedules.')->group(function () {
 
     // 例外スケジュール管理
     Route::resource('exceptions', ScheduleExceptionController::class);
+
+    // 営業時間管理の変更履歴
+    Route::get('/history', [ScheduleHistoryController::class, 'index'])->name('history');
 });

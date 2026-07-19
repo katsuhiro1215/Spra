@@ -1268,6 +1268,19 @@ export const PageConfig = {
     },
 
     /**
+     * 営業時間管理の変更履歴
+     */
+    scheduleHistory: {
+        title: "🕘 変更履歴",
+        description: "営業時間・例外日・祝日の変更履歴を確認します",
+        documentTitle: "営業時間の変更履歴",
+        breadcrumbs: ["ホーム", "スケジュール管理", "変更履歴"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+    },
+
+    /**
      * ログ管理
      */
     logs: {

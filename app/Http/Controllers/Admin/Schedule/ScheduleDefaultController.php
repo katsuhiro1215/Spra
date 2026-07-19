@@ -5,13 +5,19 @@ namespace App\Http\Controllers\Admin\Schedule;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ScheduleDefaultRequest;
 use App\Models\ScheduleDefault;
+use App\Services\ScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ScheduleDefaultController extends Controller
 {
+    public function __construct(
+        private ScheduleService $scheduleService,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -102,7 +108,7 @@ class ScheduleDefaultController extends Controller
      */
     public function bulkUpdate(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'schedules' => 'required|array',
             'schedules.*.day_of_week' => 'required|integer|between:0,6',
             'schedules.*.is_open' => 'required|boolean',
@@ -111,6 +117,24 @@ class ScheduleDefaultController extends Controller
             'schedules.*.break_start' => 'nullable|date_format:H:i',
             'schedules.*.break_end' => 'nullable|date_format:H:i',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            foreach ($request->input('schedules', []) as $index => $schedule) {
+                $error = $this->scheduleService->validateTimeConsistency(
+                    (bool) ($schedule['is_open'] ?? false),
+                    $schedule['open_time'] ?? null,
+                    $schedule['close_time'] ?? null,
+                    $schedule['break_start'] ?? null,
+                    $schedule['break_end'] ?? null,
+                );
+
+                if ($error) {
+                    $validator->errors()->add("schedules.$index.open_time", $error);
+                }
+            }
+        });
+
+        $validated = $validator->validate();
 
         foreach ($validated['schedules'] as $scheduleData) {
             ScheduleDefault::updateOrCreate(

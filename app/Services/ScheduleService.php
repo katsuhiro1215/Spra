@@ -277,6 +277,47 @@ class ScheduleService
   }
 
   /**
+   * 営業時間・休憩時間の整合性を検証する
+   *
+   * @return string|null 不整合があればエラーメッセージ、問題なければnull
+   */
+  public function validateTimeConsistency(
+    bool $isOpen,
+    ?string $openTime,
+    ?string $closeTime,
+    ?string $breakStart,
+    ?string $breakEnd
+  ): ?string {
+    if (!$isOpen) {
+      return null;
+    }
+
+    if (!$openTime || !$closeTime) {
+      return '営業日の場合、開店時間と閉店時間の両方を入力してください。';
+    }
+
+    if ($openTime >= $closeTime) {
+      return '開店時間は閉店時間より前である必要があります。';
+    }
+
+    if (($breakStart && !$breakEnd) || (!$breakStart && $breakEnd)) {
+      return '休憩開始時間と休憩終了時間は両方入力するか、両方空にしてください。';
+    }
+
+    if ($breakStart && $breakEnd) {
+      if ($breakStart >= $breakEnd) {
+        return '休憩開始時間は休憩終了時間より前である必要があります。';
+      }
+
+      if ($breakStart < $openTime || $breakEnd > $closeTime) {
+        return '休憩時間は営業時間内に設定してください。';
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * 次の営業日を取得
    *
    * @param Carbon $date

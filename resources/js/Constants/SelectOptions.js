@@ -184,6 +184,14 @@ export const CONTACT_SOURCE_OPTIONS = [
 ];
 
 /**
+ * 予約経路のセレクトオプション
+ */
+export const APPOINTMENT_SOURCE_OPTIONS = [
+    { value: "web", label: "Webフォーム" },
+    { value: "instagram", label: "Instagram" },
+];
+
+/**
  * お問い合わせステータスのセレクトオプション
  */
 export const CONTACT_STATUS_OPTIONS = [

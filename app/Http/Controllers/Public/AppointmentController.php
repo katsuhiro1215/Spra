@@ -7,6 +7,7 @@ use App\Http\Requests\StorePublicAppointmentRequest;
 use App\Services\AppointmentNotificationService;
 use App\Services\AppointmentService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,6 +29,11 @@ class AppointmentController extends Controller
    */
   private const BOOKABLE_WITHIN_DAYS = 14;
 
+  /**
+   * クエリパラメータ`source`として受け付ける予約経路
+   */
+  private const ALLOWED_SOURCES = ['web', 'instagram'];
+
   public function __construct(
     private AppointmentService $appointmentService,
     private AppointmentNotificationService $notificationService,
@@ -35,15 +41,23 @@ class AppointmentController extends Controller
 
   /**
    * 無料相談予約フォームを表示
+   *
+   * SNS等の外部導線からの流入は `?source=instagram&ref=<外部ユーザーID>` の形で
+   * アクセスされることを想定し、予約経路をフォームへ引き継ぐ
    */
-  public function create(): Response
+  public function create(Request $request): Response
   {
+    $source = $request->query('source');
+    $source = in_array($source, self::ALLOWED_SOURCES, true) ? $source : 'web';
+
     return Inertia::render('Public/Consultation', [
       'availableSlots' => $this->appointmentService->availableSlotOptions(
         null,
         self::SLOT_TYPE,
         self::BOOKABLE_WITHIN_DAYS,
       ),
+      'source' => $source,
+      'ref' => $request->query('ref'),
     ]);
   }
 
@@ -70,6 +84,8 @@ class AppointmentController extends Controller
         'description' => $validated['description'] ?? null,
         'location_type' => 'online',
         'send_reminder' => true,
+        'source' => $validated['source'] ?? 'web',
+        'external_reference' => $validated['ref'] ?? null,
       ]);
 
       $appointment->load(['appointmentSlot.assignedAdmin', 'company', 'project', 'user']);
