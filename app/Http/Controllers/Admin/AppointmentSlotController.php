@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentSlot;
 use App\Models\Admin;
+use App\Services\AttendanceService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,7 +22,10 @@ class AppointmentSlotController extends Controller
    */
   private const BULK_CREATE_MAX_DAYS = 31;
 
-  public function __construct(private ScheduleService $scheduleService)
+  public function __construct(
+    private ScheduleService $scheduleService,
+    private AttendanceService $attendanceService
+  )
   {
   }
 
@@ -115,6 +119,7 @@ class AppointmentSlotController extends Controller
       'statuses' => $statuses,
       'filters' => $filters,
       'sort' => $sort,
+      'attendanceStatuses' => $this->attendanceService->getStatusMap(),
     ]);
   }
 

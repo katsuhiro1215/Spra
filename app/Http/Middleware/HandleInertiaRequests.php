@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'admin' => $admin,
                 'adminPermissions' => fn() => $admin ? $admin->getEffectivePermissionNames() : [],
+                'todayAttendance' => fn() => $admin ? app(\App\Services\AttendanceService::class)->getTodayRecord($admin) : null,
             ],
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),

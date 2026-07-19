@@ -18,7 +18,7 @@ export default function Show({ category }) {
             label: "編集",
             icon: PencilIcon,
             variant: "primary",
-            route: route("admin.website.faq.category.edit", category.id),
+            route: route("admin.website.faq.category.edit", category.slug),
         },
     ];
 

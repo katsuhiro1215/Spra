@@ -15,11 +15,23 @@ class AppointmentService
    * 予約可能な予約枠を選択肢配列に整形して取得
    *
    * @param string|null $excludeSlotId 予約可能でなくても含めたい枠（編集中の現在の枠など）
+   * @param string|null $slotType 指定した種別の枠のみに絞り込む（公開フォーム等での利用を想定）
+   * @param int|null $withinDays 本日から指定日数以内の枠のみに絞り込む
    */
-  public function availableSlotOptions(?string $excludeSlotId = null): array
+  public function availableSlotOptions(?string $excludeSlotId = null, ?string $slotType = null, ?int $withinDays = null): array
   {
-    return AppointmentSlot::availableForBooking($excludeSlotId)
-      ->with('assignedAdmin.profile')
+    $query = AppointmentSlot::availableForBooking($excludeSlotId)
+      ->with('assignedAdmin.profile');
+
+    if ($slotType) {
+      $query->where('slot_type', $slotType);
+    }
+
+    if ($withinDays) {
+      $query->where('date', '<=', now()->addDays($withinDays)->format('Y-m-d'));
+    }
+
+    return $query
       ->orderBy('date')
       ->orderBy('start_time')
       ->get()

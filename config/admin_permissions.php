@@ -19,6 +19,10 @@ return [
         'notifications.read',
         'notifications.read-all',
         'content.index',
+        // 出退勤の打刻・自分の勤怠状況閲覧はロール・権限に関係なく全管理者が行える
+        'attendance.index',
+        'attendance.clock-in',
+        'attendance.clock-out',
         // 権限管理画面自体は isSuperAdmin() チェックで別途保護するため権限カタログの対象外にする
         'permissions.index',
         'permissions.update',

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
 use Illuminate\Http\Request;
@@ -9,7 +10,7 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PublicPostController extends Controller
+class PostController extends Controller
 {
     /**
      * ブログ一覧（news以外）

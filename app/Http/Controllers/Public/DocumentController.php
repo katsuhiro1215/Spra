@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Controller;
 use App\Models\Document;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class PublicDocumentController extends Controller
+class DocumentController extends Controller
 {
     /**
      * 公開サイトの規約・ポリシー文書(Document + 有効バージョン)

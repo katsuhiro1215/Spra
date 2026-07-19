@@ -2,18 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Public\AppointmentController;
 use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
-use App\Http\Controllers\PublicHomeController;
-use App\Http\Controllers\PublicServiceController;
-use App\Http\Controllers\PublicFaqController;
-use App\Http\Controllers\PublicPageController;
-use App\Http\Controllers\PublicDocumentController;
-use App\Http\Controllers\PublicPostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\ServiceController;
+use App\Http\Controllers\Public\FaqController;
+use App\Http\Controllers\Public\PageController;
+use App\Http\Controllers\Public\DocumentController;
+use App\Http\Controllers\Public\PostController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
 use App\Http\Controllers\User\NotificationController;
@@ -32,15 +33,15 @@ use App\Http\Controllers\User\CalendarController as UserCalendarController;
 use App\Http\Controllers\User\ContactController as UserContactController;
 use Inertia\Inertia;
 
-Route::get('/', [PublicHomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
-Route::get('/service', [PublicServiceController::class, 'index'])->name('service');
-Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('service.detail');
-Route::get('/blog', [PublicPostController::class, 'index'])->name('blog');
-Route::get('/blog/{slug}', [PublicPostController::class, 'show'])->name('blog.detail');
-Route::get('/news', [PublicPostController::class, 'newsIndex'])->name('news');
-Route::get('/news/{slug}', [PublicPostController::class, 'show'])->name('news.detail');
-Route::get('/faq', [PublicFaqController::class, 'show'])->name('faq');
+Route::get('/service', [ServiceController::class, 'index'])->name('service');
+Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('service.detail');
+Route::get('/blog', [PostController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [PostController::class, 'show'])->name('blog.detail');
+Route::get('/news', [PostController::class, 'newsIndex'])->name('news');
+Route::get('/news/{slug}', [PostController::class, 'show'])->name('news.detail');
+Route::get('/faq', [FaqController::class, 'show'])->name('faq');
 Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', function () {
     return Inertia::render('Public/Company', [
@@ -48,9 +49,9 @@ Route::get('/company', function () {
     ]);
 })->name('company');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::get('/privacy-policy', [PublicDocumentController::class, 'privacyPolicy'])->name('privacy.policy');
-Route::get('/terms', [PublicDocumentController::class, 'terms'])->name('terms');
-Route::get('/documents/{slug}', [PublicDocumentController::class, 'show'])->name('documents.show');
+Route::get('/privacy-policy', [DocumentController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/terms', [DocumentController::class, 'terms'])->name('terms');
+Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
 
 // // More public routes
 Route::get('/lp', fn() => Inertia::render('Public/LandingPage'))->name('landing.page');
@@ -59,6 +60,12 @@ Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative')
 
 // Contact 送信
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// 無料相談予約（Public - ログイン不要、一般クライアント向け）
+Route::get('/consultation', [AppointmentController::class, 'create'])->name('consultation');
+Route::post('/consultation', [AppointmentController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('consultation.store');
 // 見積もりシミュレーター
 Route::get('/estimate-simulator', [EstimateSimulatorController::class, 'index'])->name('estimate.simulator');
 
@@ -205,6 +212,6 @@ require __DIR__ . '/auth.php';
 
 // 汎用固定ページ(Page + ブロックエディタ content)。他の具体的なルートに一致しない場合のフォールバック
 // 必ず他の全ルート（特に auth.php の /login, /register 等）より後に定義すること
-Route::get('/{slug}', [PublicPageController::class, 'show'])
+Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('page.show');

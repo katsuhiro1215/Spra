@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AnalyticsDaily;
 use App\Models\AnalyticsDimension;
 use App\Models\AnalyticsKpi;
+use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,38 @@ class AnalyticsController extends Controller
             'keywords' => $this->getKeywordData($startDate, $endDate),
             'business' => $this->getBusinessData($startDate, $endDate),
             'isSearchConsoleLive' => config('services.search_console.driver') === 'google',
+            'prefectureContracts' => $this->getPrefectureData(),
         ]);
+    }
+
+    /**
+     * 契約実績のある企業を都道府県別に集計（地図の色分け表示用）
+     *
+     * 「契約した」とみなすのは実際に成立したことのある契約のみ
+     * （下書き・署名待ち・キャンセルは対象外）。企業の住所は
+     * デフォルト設定された有効な住所を使用する。
+     */
+    private function getPrefectureData(): array
+    {
+        $acquiredStatuses = ['active', 'suspended', 'completed'];
+
+        $counts = Company::query()
+            ->whereHas('contracts', fn ($q) => $q->whereIn('status', $acquiredStatuses))
+            ->join('addresses', function ($join) {
+                $join->on('addresses.addressable_id', '=', 'companies.id')
+                    ->where('addresses.addressable_type', Company::class)
+                    ->where('addresses.is_default', true)
+                    ->where('addresses.is_active', true);
+            })
+            ->whereNotNull('addresses.prefecture')
+            ->select('addresses.prefecture', DB::raw('COUNT(DISTINCT companies.id) as company_count'))
+            ->groupBy('addresses.prefecture')
+            ->pluck('company_count', 'addresses.prefecture');
+
+        return [
+            'counts' => $counts,
+            'totalCompanies' => (int) $counts->sum(),
+        ];
     }
 
     /**

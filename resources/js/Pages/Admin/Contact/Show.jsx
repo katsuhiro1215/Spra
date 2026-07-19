@@ -105,7 +105,7 @@ export default function Show() {
     const handleResendInvitation = (invitationId) => {
         if (confirm("この招待を再送信しますか？")) {
             router.post(
-                route("admin.invitations.resend", invitationId),
+                route("admin.invitation.resend", invitationId),
                 {},
                 {
                     preserveScroll: true,
@@ -121,7 +121,7 @@ export default function Show() {
             )
         ) {
             router.patch(
-                route("admin.invitations.revoke", invitationId),
+                route("admin.invitation.revoke", invitationId),
                 {},
                 {
                     preserveScroll: true,

@@ -33,7 +33,7 @@ export default function Edit({ category }) {
             return;
         }
 
-        put(route("admin.website.faq.category.update", category.id));
+        put(route("admin.website.faq.category.update", category.slug));
     };
 
     const headerActions = [

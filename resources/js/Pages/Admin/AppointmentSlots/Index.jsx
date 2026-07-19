@@ -23,6 +23,7 @@ export default function Index({
     slotTypes,
     statuses,
     filters,
+    attendanceStatuses = {},
 }) {
     const [isDeleting, setIsDeleting] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -191,6 +192,16 @@ export default function Index({
 
     const formatTime = (time) => {
         return time ? time.substring(0, 5) : "";
+    };
+
+    const attendanceDotClasses = {
+        working: "bg-green-500",
+        finished: "bg-gray-400",
+    };
+
+    const attendanceLabels = {
+        working: "出勤中",
+        finished: "退勤済み",
     };
 
     const formatDate = (dateStr) => {
@@ -442,7 +453,32 @@ export default function Index({
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900 dark:text-gray-100">
+                                                    <span className="inline-flex items-center gap-1.5 text-sm text-gray-900 dark:text-gray-100">
+                                                        {slot.assigned_admin_id &&
+                                                            attendanceStatuses[
+                                                                slot
+                                                                    .assigned_admin_id
+                                                            ] && (
+                                                                <span
+                                                                    className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                                                        attendanceDotClasses[
+                                                                            attendanceStatuses[
+                                                                                slot
+                                                                                    .assigned_admin_id
+                                                                            ]
+                                                                        ] ||
+                                                                        "bg-gray-300"
+                                                                    }`}
+                                                                    title={
+                                                                        attendanceLabels[
+                                                                            attendanceStatuses[
+                                                                                slot
+                                                                                    .assigned_admin_id
+                                                                            ]
+                                                                        ] || ""
+                                                                    }
+                                                                />
+                                                            )}
                                                         {slot.assigned_admin
                                                             ?.profile
                                                             ?.full_name ||

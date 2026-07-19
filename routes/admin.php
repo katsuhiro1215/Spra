@@ -229,6 +229,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      **************************************/
     require __DIR__ . '/admin/schedule.php';
 
+    /**************************************
+     * 勤怠管理
+     **************************************/
+    require __DIR__ . '/admin/attendance.php';
+
     // 予約枠管理
     Route::prefix('appointment-slots')->name('appointment-slots.')->group(function () {
         Route::get('/bulk-create', [AppointmentSlotController::class, 'bulkCreate'])->name('bulk-create');

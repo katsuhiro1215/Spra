@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Voice;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PublicHomeController extends Controller
+class HomeController extends Controller
 {
     public function __construct(
         private ServiceService $serviceService

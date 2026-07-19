@@ -175,17 +175,6 @@ export const getAdminNavigationItems = () => {
                     name: "サイト設定",
                     href: "admin.website.siteSetting.index",
                 },
-                { name: "一般設定", href: "admin.website.siteSetting.general" },
-                {
-                    name: "ナビゲーション設定",
-                    href: "admin.website.siteSetting.navigation",
-                },
-                {
-                    name: "フッター設定",
-                    href: "admin.website.siteSetting.footer",
-                },
-                { name: "SEO設定", href: "admin.website.siteSetting.seo" },
-                { name: "OGP設定", href: "admin.website.siteSetting.ogp" },
             ],
         },
 
@@ -254,7 +243,7 @@ export const getAdminNavigationItems = () => {
             name: "管理者",
             href: "admin.admin.index",
             icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z",
-            currentPath: "admin.admin.*",
+            currentPath: ["admin.admin.*", "admin.attendance.*"],
             children: [
                 { name: "管理者", href: "admin.admin.index" },
                 {
@@ -262,7 +251,9 @@ export const getAdminNavigationItems = () => {
                     href: "admin.permissions.index",
                     ownerOnly: true,
                 },
-                // 今後勤怠管理や給与管理などの管理者向け機能が追加される可能性があるため、子要素を追加する余地を残しておく
+                { name: "勤怠管理", href: "admin.attendance.index" },
+                { name: "シフト管理", href: "admin.attendance.shifts.index" },
+                // 今後給与管理などの管理者向け機能が追加される可能性があるため、子要素を追加する余地を残しておく
             ],
         },
         // システム管理

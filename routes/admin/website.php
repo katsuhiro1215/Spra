@@ -48,16 +48,16 @@ Route::prefix('website')->name('website.')->group(function () {
     });
     // FAQ管理
     Route::prefix('faq')->name('faq.')->group(function () {
+        Route::resource('category', FaqCategoryController::class)->parameters(['category' => 'faqCategory']);
+        Route::controller(FaqCategoryController::class)->name('category.')->group(function () {
+            Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
+            Route::post('/category/update-order', 'updateOrder')->name('update-order');
+        });
         Route::resource('', FaqController::class)->parameters(['' => 'faq']);
         Route::controller(FaqController::class)->group(function () {
             Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
             Route::patch('/{faq}/status', 'changeStatus')->name('change-status');
             Route::post('/upload-editor-image', 'uploadEditorImage')->name('upload-editor-image');
-        });
-        Route::resource('category', FaqCategoryController::class)->parameters(['category' => 'faqCategory']);
-        Route::controller(FaqCategoryController::class)->name('category.')->group(function () {
-            Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
-            Route::post('/category/update-order', 'updateOrder')->name('update-order');
         });
     });
     // お客様の声管理
@@ -75,14 +75,8 @@ Route::prefix('website')->name('website.')->group(function () {
     });
     // サイト設定管理
     Route::prefix('siteSetting')->name('siteSetting.')->group(function () {
-        // グループ別設定画面（表示・保存を同一ルートで受ける）
-        Route::controller(SiteSettingController::class)->group(function () {
-            Route::match(['get', 'post'], '/general', 'general')->name('general');
-            Route::match(['get', 'post'], '/navigation', 'navigation')->name('navigation');
-            Route::match(['get', 'post'], '/footer', 'footer')->name('footer');
-            Route::match(['get', 'post'], '/seo', 'seo')->name('seo');
-            Route::match(['get', 'post'], '/ogp', 'ogp')->name('ogp');
-        });
+        // プリセット設定（表示・保存を同一ルートで受け、1画面にまとめて管理）
+        Route::match(['get', 'post'], '/settings', [SiteSettingController::class, 'settings'])->name('settings');
         // 個別設定項目の汎用CRUD（プリセットにない項目向け）
         Route::resource('', SiteSettingController::class)->parameters(['' => 'siteSetting']);
     });

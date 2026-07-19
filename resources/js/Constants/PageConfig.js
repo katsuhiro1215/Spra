@@ -1241,6 +1241,20 @@ export const PageConfig = {
     },
 
     /**
+     * 勤怠管理
+     */
+    attendance: {
+        title: "🕒 勤怠管理",
+        description: "管理者の出退勤・シフト予定を管理します",
+        documentTitle: "勤怠管理",
+        breadcrumbs: ["ホーム", "勤怠管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("勤怠"),
+    },
+
+    /**
      * システム設定管理
      */
     systemSettings: {

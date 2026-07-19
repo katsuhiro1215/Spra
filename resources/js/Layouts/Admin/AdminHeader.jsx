@@ -10,6 +10,7 @@ import {
     SwatchIcon,
     DocumentTextIcon,
     MagnifyingGlassIcon,
+    ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const NOTIFICATION_DOT_CLASSES = {
@@ -37,10 +38,28 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     const admin = props.auth?.admin;
     const unreadCount = props.adminNotifications?.unreadCount || 0;
     const notificationItems = props.adminNotifications?.items || [];
+    const todayAttendance = props.auth?.todayAttendance;
+    const isWorking = todayAttendance?.status === "working";
 
     const handleReadAll = (e) => {
         e.preventDefault();
         router.post(route("admin.notifications.read-all"));
+    };
+
+    const handleClockIn = () => {
+        router.post(
+            route("admin.attendance.clock-in"),
+            {},
+            { preserveScroll: true },
+        );
+    };
+
+    const handleClockOut = () => {
+        router.post(
+            route("admin.attendance.clock-out"),
+            {},
+            { preserveScroll: true },
+        );
     };
 
     // 全体検索
@@ -358,6 +377,31 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                     )}
                                 </Dropdown.Content>
                             </Dropdown>
+
+                            {/* 出退勤 */}
+                            <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
+                                {isWorking ? (
+                                    <>
+                                        <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200">
+                                            <ClockIcon className="h-3.5 w-3.5" />
+                                            勤務中
+                                        </span>
+                                        <button
+                                            onClick={handleClockOut}
+                                            className="text-sm font-medium px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                        >
+                                            退勤
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={handleClockIn}
+                                        className="text-sm font-medium px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                                    >
+                                        出勤
+                                    </button>
+                                )}
+                            </div>
 
                             {/* 管理者情報 */}
                             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">

@@ -38,7 +38,7 @@ export default function Index({ categories, stats, filters }) {
     const handleDelete = (category) => {
         if (confirm(`カテゴリ「${category.name}」を削除しますか？`)) {
             router.delete(
-                route("admin.website.faq.category.destroy", category.id),
+                route("admin.website.faq.category.destroy", category.slug),
                 {
                     preserveScroll: true,
                 },

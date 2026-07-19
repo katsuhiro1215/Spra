@@ -9,6 +9,7 @@ import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import TabNavigation from "@/Components/TabNavigation";
 import LineChart, { CHART_COLORS } from "@/Components/Charts/LineChart";
 import BarChart from "@/Components/Charts/BarChart";
+import PrefectureContractsMap from "./_components/PrefectureContractsMap";
 // Icons
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
@@ -74,6 +75,7 @@ export default function Index({
     keywords,
     business,
     isSearchConsoleLive,
+    prefectureContracts,
 }) {
     const initialTab = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
@@ -424,6 +426,8 @@ export default function Index({
             <FlashMessage />
 
             <div className="space-y-4">
+                <PrefectureContractsMap data={prefectureContracts} />
+
                 <div className="flex justify-end">
                     <SegmentedButtons
                         options={dayOptions}

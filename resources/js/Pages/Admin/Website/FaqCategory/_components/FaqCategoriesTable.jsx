@@ -89,7 +89,7 @@ const FaqCategoriesTable = ({ categories, onDelete }) => {
                                         <Link
                                             href={route(
                                                 "admin.website.faq.category.show",
-                                                category.id,
+                                                category.slug,
                                             )}
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                                             title="詳細"
@@ -99,7 +99,7 @@ const FaqCategoriesTable = ({ categories, onDelete }) => {
                                         <Link
                                             href={route(
                                                 "admin.website.faq.category.edit",
-                                                category.id,
+                                                category.slug,
                                             )}
                                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"
                                             title="編集"
