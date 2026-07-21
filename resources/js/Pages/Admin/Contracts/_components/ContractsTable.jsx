@@ -239,11 +239,16 @@ const ContractsTable = ({
                                             variant="text"
                                             icon={DocumentArrowDownIcon}
                                             size="lg"
-                                            href={route(
-                                                "admin.contract.pdf",
-                                                contract.id,
-                                            )}
-                                            title="PDFダウンロード"
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "admin.contract.pdf.preview",
+                                                        contract.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                            title="PDFを確認・ダウンロード"
                                         />
 
                                         {/* 署名完了 & 未承認 → 承認ボタン */}

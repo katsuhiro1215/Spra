@@ -59,12 +59,15 @@ class ContractController extends Controller
             ? $contract->project
             : null;
 
+        $userSignature = $contract->getLatestSignature('user');
+
         return Inertia::render('User/Contracts/Show', [
             'contract' => $contract,
             'quote' => $quote,
             'invoices' => $invoices,
             'receipts' => $receipts,
             'project' => $project,
+            'signatureImage' => $userSignature?->signature_image,
         ]);
     }
 

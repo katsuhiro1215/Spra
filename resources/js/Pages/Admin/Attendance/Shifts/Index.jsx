@@ -17,6 +17,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
+const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString("ja-JP") : "-";
+
 export default function ShiftsIndex({ shifts, admins, filters }) {
     const { data, setData, get } = useForm({
         admin_id: filters.admin_id || "",
@@ -139,7 +142,7 @@ export default function ShiftsIndex({ shifts, admins, filters }) {
                             {shifts.data.length > 0 ? (
                                 shifts.data.map((shift) => (
                                     <Tr key={shift.id}>
-                                        <Td>{shift.shift_date}</Td>
+                                        <Td>{formatDate(shift.shift_date)}</Td>
                                         <Td>
                                             {shift.admin?.profile?.full_name ||
                                                 shift.admin?.email}

@@ -14,11 +14,9 @@ use App\Http\Controllers\User\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\User\Auth\VerifyEmailController;
 
 Route::middleware('guest:users')->group(function () {
-    // 新規登録
+    // 新規登録（招待経由のみ。招待なしの自己登録は廃止）
     Route::controller(RegisteredUserController::class)->group(function () {
-        Route::get('register', 'create')->name('user.register');
-        Route::post('register', 'store');
-        // 招待経由の登録
+        Route::post('register', 'store')->name('user.register.store');
         Route::get('register/invited/{token}', 'createWithInvitation')->name('user.register.invited');
     });
     // ログイン

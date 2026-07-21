@@ -31,48 +31,48 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        DB::table('point_catalog_items')->insert([
-            [
-                'id' => (string) Str::ulid(),
-                'name' => 'SEO簡易診断',
-                'points_cost' => 500,
-                'description' => '現在のサイトのSEO状況を簡易診断いたします。',
-                'is_active' => true,
-                'sort_order' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => (string) Str::ulid(),
-                'name' => 'ホームページ改善レポート',
-                'points_cost' => 1000,
-                'description' => '現状サイトの改善点をまとめたレポートを作成いたします。',
-                'is_active' => true,
-                'sort_order' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => (string) Str::ulid(),
-                'name' => 'オンライン相談30分',
-                'points_cost' => 300,
-                'description' => 'オンラインでのご相談を30分承ります。',
-                'is_active' => true,
-                'sort_order' => 3,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => (string) Str::ulid(),
-                'name' => '追加ページ制作',
-                'points_cost' => 2000,
-                'description' => 'サイトへ追加ページを1ページ制作いたします。',
-                'is_active' => true,
-                'sort_order' => 4,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        // DB::table('point_catalog_items')->insert([
+        //     [
+        //         'id' => (string) Str::ulid(),
+        //         'name' => 'SEO簡易診断',
+        //         'points_cost' => 500,
+        //         'description' => '現在のサイトのSEO状況を簡易診断いたします。',
+        //         'is_active' => true,
+        //         'sort_order' => 1,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'id' => (string) Str::ulid(),
+        //         'name' => 'ホームページ改善レポート',
+        //         'points_cost' => 1000,
+        //         'description' => '現状サイトの改善点をまとめたレポートを作成いたします。',
+        //         'is_active' => true,
+        //         'sort_order' => 2,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'id' => (string) Str::ulid(),
+        //         'name' => 'オンライン相談30分',
+        //         'points_cost' => 300,
+        //         'description' => 'オンラインでのご相談を30分承ります。',
+        //         'is_active' => true,
+        //         'sort_order' => 3,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'id' => (string) Str::ulid(),
+        //         'name' => '追加ページ制作',
+        //         'points_cost' => 2000,
+        //         'description' => 'サイトへ追加ページを1ページ制作いたします。',
+        //         'is_active' => true,
+        //         'sort_order' => 4,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        // ]);
     }
 
     /**

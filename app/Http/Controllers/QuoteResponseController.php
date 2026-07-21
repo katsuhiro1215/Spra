@@ -125,6 +125,9 @@ class QuoteResponseController extends Controller
                 'password' => 'required|string|min:8|confirmed',
                 'company_name' => 'required|string|max:255',
                 'company_type' => 'required|in:individual,corporate',
+                'agreed' => 'accepted',
+            ], [
+                'agreed.accepted' => 'プライバシーポリシーおよび利用規約への同意が必要です。',
             ]);
 
             \Illuminate\Support\Facades\DB::transaction(function () use ($quoteResponse, $validated) {

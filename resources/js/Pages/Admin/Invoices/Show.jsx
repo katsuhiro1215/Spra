@@ -254,11 +254,18 @@ export default function Show({ invoice, payments }) {
                     )}
                     {canDownloadPdf && (
                         <TextButton
-                            href={route("admin.invoice.pdf", invoice.id)}
-                            target="_blank"
+                            onClick={() =>
+                                window.open(
+                                    route(
+                                        "admin.invoice.pdf.preview",
+                                        invoice.id,
+                                    ),
+                                    "_blank",
+                                )
+                            }
                             variant="default"
                             size="sm"
-                            title="PDFダウンロード"
+                            title="PDFを確認・ダウンロード"
                         >
                             <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
                             PDFダウンロード

@@ -143,11 +143,9 @@ const MembershipRankForm = ({
                     href={cancelRoute}
                     disabled={processing}
                 >
-                    <ArrowLeftIcon className="h-4 w-4 mr-2" />
                     キャンセル
                 </SecondaryButton>
                 <PrimaryButton type="submit" disabled={processing}>
-                    <CheckIcon className="h-4 w-4 mr-2" />
                     {isEdit ? "更新" : "作成"}
                 </PrimaryButton>
             </div>

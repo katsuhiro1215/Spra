@@ -36,6 +36,7 @@ export const ROLE_BADGES = {
     subAdmin: { text: "副管理者", variant: "warning" },
     staff: { text: "スタッフ", variant: "info" },
     employee: { text: "従業員", variant: "info" },
+    member: { text: "メンバー", variant: "secondary" },
     intern: { text: "インターン", variant: "pink" },
 };
 

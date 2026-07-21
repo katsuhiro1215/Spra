@@ -97,18 +97,18 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                         className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-colors"
                         onClick={() => setSidebarOpen(false)}
                     ></div>
-                    <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800 dark:bg-gray-900 transition-colors">
+                    <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-900 transition-colors">
                         <div className="absolute top-0 right-0 -mr-12 pt-2">
                             <button
                                 type="button"
-                                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white dark:focus:ring-gray-400 transition-colors"
+                                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 dark:focus:ring-gray-400 transition-colors"
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <span className="sr-only">
                                     サイドバーを閉じる
                                 </span>
                                 <svg
-                                    className="h-6 w-6 text-white"
+                                    className="h-6 w-6 text-gray-700 dark:text-white"
                                     stroke="currentColor"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -124,8 +124,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                         </div>
                         <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
                             <div className="flex-shrink-0 flex items-center px-4">
-                                <ApplicationLogo className="h-8 w-auto fill-current text-white" />
-                                <span className="ml-2 text-white font-semibold text-lg">
+                                <ApplicationLogo className="h-8 w-auto fill-current text-gray-900 dark:text-white" />
+                                <span className="ml-2 text-gray-900 dark:text-white font-semibold text-lg">
                                     Admin Panel
                                 </span>
                             </div>
@@ -137,7 +137,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                         className={`group flex flex-col items-center px-2 py-3 text-xs font-medium rounded-md transition-all duration-200 ${
                                             item.current
                                                 ? "text-white shadow-lg"
-                                                : "text-gray-300 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
+                                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                                         }`}
                                         style={
                                             item.current
@@ -153,7 +153,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                             className={`h-6 w-6 mb-1 ${
                                                 item.current
                                                     ? "text-white"
-                                                    : "text-gray-400 dark:text-gray-500 group-hover:text-gray-300 dark:group-hover:text-gray-400"
+                                                    : "text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300"
                                             }`}
                                             fill="none"
                                             viewBox="0 0 24 24"
@@ -176,10 +176,10 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
             )}
 
             {/* デスクトップ用サイドバー */}
-            <div className="hidden md:flex md:w-20 md:flex-col fixed inset-y-0 left-0 z-50">
-                <div className="flex flex-col flex-grow bg-gray-800 dark:bg-gray-900 transition-colors">
-                    <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 bg-gray-900 dark:bg-gray-950 transition-colors">
-                        <ApplicationLogo className="h-8 w-auto fill-current text-white" />
+            <div className="hidden md:flex md:w-24 md:flex-col fixed inset-y-0 left-0 z-50">
+                <div className="flex flex-col flex-grow bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors">
+                    <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 transition-colors">
+                        <ApplicationLogo className="h-8 w-auto fill-current text-gray-900 dark:text-white" />
                     </div>
                     <nav className="mt-5 flex-1 px-2 space-y-1 overflow-y-auto max-h-[calc(100vh-100px)]">
                         {evaluatedNavItems.map((item, index) => (
@@ -197,8 +197,8 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                             ? "text-white shadow-lg"
                                             : hoveredItem === index &&
                                                 item.children?.length > 0
-                                              ? "bg-gray-700 dark:bg-gray-800 text-white"
-                                              : "text-gray-300 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
+                                              ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+                                              : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                                     }`}
                                     style={
                                         item.current
@@ -213,7 +213,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                         className={`h-6 w-6 mb-1 ${
                                             item.current
                                                 ? "text-white"
-                                                : "text-gray-400 dark:text-gray-500 group-hover:text-gray-300 dark:group-hover:text-gray-400"
+                                                : "text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300"
                                         }`}
                                         fill="none"
                                         viewBox="0 0 24 24"
@@ -247,7 +247,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
                                     createPortal(
                                         <div
                                             ref={submenuRef}
-                                            className="fixed left-20 ml-2 w-56 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 z-[9999] transform transition-all duration-200 ease-out opacity-100 scale-100 overflow-hidden"
+                                            className="fixed left-24 ml-2 w-56 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 z-[9999] transform transition-all duration-200 ease-out opacity-100 scale-100 overflow-hidden"
                                             onMouseEnter={() =>
                                                 handleMouseEnter(index)
                                             }

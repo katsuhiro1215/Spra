@@ -15,6 +15,7 @@ import {
     XMarkIcon,
     Squares2X2Icon,
 } from "@heroicons/react/24/outline";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({
@@ -94,13 +95,21 @@ export default function Index({
 
     // フィルタークリア
     const handleClearFilters = () => {
+        const now = new Date();
+        // タイムゾーンの影響を受けないようローカル日付から直接組み立てる
+        const toDateString = (date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         setData({
             search: "",
             slot_type: "",
             status: "",
             assigned_admin_id: "",
-            date_from: "",
-            date_to: "",
+            date_from: toDateString(
+                new Date(now.getFullYear(), now.getMonth(), 1),
+            ),
+            date_to: toDateString(
+                new Date(now.getFullYear(), now.getMonth() + 1, 0),
+            ),
         });
         setShowFilters(false);
         get(route("admin.appointment-slots.index"), {
@@ -249,7 +258,9 @@ export default function Index({
                             <div className="flex-1 max-w-md">
                                 <SearchBar
                                     value={data.search}
-                                    onChange={(value) => setData("search", value)}
+                                    onChange={(value) =>
+                                        setData("search", value)
+                                    }
                                     onSearch={handleSearch}
                                     placeholder={
                                         PageConfig.appointmentSlots.ui.search
@@ -401,111 +412,95 @@ export default function Index({
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-gray-50 dark:bg-gray-900">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                日時
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                タイプ
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                担当者
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                予約状況
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                ステータス
-                                            </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                操作
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {appointmentSlots.data.map((slot) => (
-                                            <tr
-                                                key={slot.id}
-                                                className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {formatDate(slot.date)}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {formatTime(
-                                                            slot.start_time,
-                                                        )}{" "}
-                                                        -{" "}
-                                                        {formatTime(
-                                                            slot.end_time,
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        <Th>日時</Th>
+                                        <Th>タイプ</Th>
+                                        <Th>担当者</Th>
+                                        <Th>予約状況</Th>
+                                        <Th>ステータス</Th>
+                                        <Th className="text-right tracking-wider">
+                                            操作
+                                        </Th>
+                                    </Tr>
+                                </THead>
+                                <TBody>
+                                    {appointmentSlots.data.map((slot) => (
+                                        <Tr key={slot.id}>
+                                            <Td>
+                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {formatDate(slot.date)}
+                                                </div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {formatTime(
+                                                        slot.start_time,
+                                                    )}{" "}
+                                                    -{" "}
+                                                    {formatTime(slot.end_time)}
+                                                </div>
+                                            </Td>
+                                            <Td>
+                                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                                    {getSlotTypeLabel(
+                                                        slot.slot_type,
+                                                    )}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <span className="inline-flex items-center gap-1.5 text-sm text-gray-900 dark:text-gray-100">
+                                                    {slot.assigned_admin_id &&
+                                                        attendanceStatuses[
+                                                            slot
+                                                                .assigned_admin_id
+                                                        ] && (
+                                                            <span
+                                                                className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                                                    attendanceDotClasses[
+                                                                        attendanceStatuses[
+                                                                            slot
+                                                                                .assigned_admin_id
+                                                                        ]
+                                                                    ] ||
+                                                                    "bg-gray-300"
+                                                                }`}
+                                                                title={
+                                                                    attendanceLabels[
+                                                                        attendanceStatuses[
+                                                                            slot
+                                                                                .assigned_admin_id
+                                                                        ]
+                                                                    ] || ""
+                                                                }
+                                                            />
                                                         )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900 dark:text-gray-100">
-                                                        {getSlotTypeLabel(
-                                                            slot.slot_type,
-                                                        )}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="inline-flex items-center gap-1.5 text-sm text-gray-900 dark:text-gray-100">
-                                                        {slot.assigned_admin_id &&
-                                                            attendanceStatuses[
-                                                                slot
-                                                                    .assigned_admin_id
-                                                            ] && (
-                                                                <span
-                                                                    className={`h-2 w-2 rounded-full flex-shrink-0 ${
-                                                                        attendanceDotClasses[
-                                                                            attendanceStatuses[
-                                                                                slot
-                                                                                    .assigned_admin_id
-                                                                            ]
-                                                                        ] ||
-                                                                        "bg-gray-300"
-                                                                    }`}
-                                                                    title={
-                                                                        attendanceLabels[
-                                                                            attendanceStatuses[
-                                                                                slot
-                                                                                    .assigned_admin_id
-                                                                            ]
-                                                                        ] || ""
-                                                                    }
-                                                                />
-                                                            )}
-                                                        {slot.assigned_admin
-                                                            ?.profile
-                                                            ?.full_name ||
-                                                            "未割り当て"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                                                        {slot.current_bookings}{" "}
-                                                        / {slot.max_capacity}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                        残り:{" "}
-                                                        {slot.max_capacity -
-                                                            slot.current_bookings}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(slot.status)}`}
-                                                    >
-                                                        {getStatusLabel(
-                                                            slot.status,
-                                                        )}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                                    {slot.assigned_admin
+                                                        ?.profile?.full_name ||
+                                                        "未割り当て"}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <div className="text-sm text-gray-900 dark:text-gray-100">
+                                                    {slot.current_bookings} /{" "}
+                                                    {slot.max_capacity}
+                                                </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                    残り:{" "}
+                                                    {slot.max_capacity -
+                                                        slot.current_bookings}
+                                                </div>
+                                            </Td>
+                                            <Td>
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(slot.status)}`}
+                                                >
+                                                    {getStatusLabel(
+                                                        slot.status,
+                                                    )}
+                                                </span>
+                                            </Td>
+                                            <Td className="text-right">
+                                                <div className="flex justify-end gap-2">
                                                     <Link
                                                         href={route(
                                                             "admin.appointment-slots.show",
@@ -538,17 +533,14 @@ export default function Index({
                                                             ? "削除中..."
                                                             : "削除"}
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                </div>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+                                </TBody>
+                            </Table>
 
-                            <Pagination
-                                links={appointmentSlots.links}
-                                meta={appointmentSlots.meta}
-                            />
+                            <Pagination paginationData={appointmentSlots} />
                         </>
                     )}
                 </Card>

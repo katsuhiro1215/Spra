@@ -131,10 +131,7 @@ const Form = ({ category = null, isEditing = false }) => {
                     </FormGroup>
 
                     {/* ボタン */}
-                    <div className="flex gap-3 pt-6">
-                        <PrimaryButton type="submit" disabled={processing}>
-                            {isEditing ? "更新" : "作成"}
-                        </PrimaryButton>
+                    <div className="flex items-center justify-end gap-3">
                         <SecondaryButton
                             type="button"
                             href={route("admin.contact.category.index")}
@@ -142,6 +139,9 @@ const Form = ({ category = null, isEditing = false }) => {
                         >
                             キャンセル
                         </SecondaryButton>
+                        <PrimaryButton type="submit" disabled={processing}>
+                            {isEditing ? "更新" : "作成"}
+                        </PrimaryButton>
                     </div>
                 </form>
             </CardBody>

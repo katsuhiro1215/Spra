@@ -70,7 +70,7 @@ class InvoiceController extends Controller
 
         // company_idパラメータがある場合、会社情報を取得
         if ($request->has('company_id')) {
-            $company = Company::with(['addresses', 'users'])->find($request->company_id);
+            $company = Company::with(['addresses', 'users.profile'])->find($request->company_id);
         }
 
         // user_idパラメータがある場合、ユーザー情報を取得
@@ -91,7 +91,7 @@ class InvoiceController extends Controller
         return Inertia::render('Admin/Invoices/Create', [
             'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
             'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-            'companies' => Company::orderBy('name')->get(['id', 'name']),
+            'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
             'statuses'  => Invoice::STATUSES,
             'company'   => $company,
             'user'      => $user,
@@ -132,7 +132,7 @@ class InvoiceController extends Controller
             'invoice'   => $invoice,
             'contracts' => Contract::where('status', 'active')->orderBy('created_at', 'desc')->get(['id', 'contract_number', 'title', 'user_id', 'company_id']),
             'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-            'companies' => Company::orderBy('name')->get(['id', 'name']),
+            'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
             'statuses'  => Invoice::STATUSES,
             'remainingAmount' => $remainingAmount,
         ]);

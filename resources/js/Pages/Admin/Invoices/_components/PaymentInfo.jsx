@@ -4,6 +4,7 @@ import { Card, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { Badge } from "@/Components/Badges";
+import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
 import { FormField, FormSelect, FormTextarea } from "@/Components/Forms";
 import {
     PAYMENT_METHOD_OPTIONS,
@@ -38,6 +39,11 @@ const getPaymentTypeLabel = (type) => {
 
 export default function PaymentInfo({ invoice, payments }) {
     const [showPaymentForm, setShowPaymentForm] = useState(false);
+    const [alertState, setAlertState] = useState({
+        type: null,
+        isOpen: false,
+        payment: null,
+    });
     const { data, setData, post, processing, errors, reset } = useForm({
         amount: "",
         payment_method: "bank_transfer",
@@ -58,12 +64,30 @@ export default function PaymentInfo({ invoice, payments }) {
     };
 
     const handleConfirmPayment = (payment) => {
-        if (!confirm(`${formatAmount(payment.amount)} の入金を確認しますか？`)) {
-            return;
-        }
-        router.post(route("admin.payment.confirm", payment.id), {}, {
-            preserveScroll: true,
-        });
+        setAlertState({ type: "confirm-payment", isOpen: true, payment });
+    };
+
+    const handleConfirmPaymentSubmit = () => {
+        const payment = alertState.payment;
+        router.post(
+            route("admin.payment.confirm", payment.id),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () =>
+                    setAlertState({
+                        type: "success",
+                        isOpen: true,
+                        payment: null,
+                    }),
+                onError: () =>
+                    setAlertState({
+                        type: "error",
+                        isOpen: true,
+                        payment: null,
+                    }),
+            },
+        );
     };
 
     const pendingPayments =
@@ -339,6 +363,49 @@ export default function PaymentInfo({ invoice, payments }) {
                     </p>
                 )}
             </CardBody>
+
+            <ConfirmAlert
+                isOpen={
+                    alertState.type === "confirm-payment" &&
+                    alertState.isOpen
+                }
+                onClose={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                onConfirm={handleConfirmPaymentSubmit}
+                title="入金確認"
+                message={
+                    alertState.payment
+                        ? `${formatAmount(alertState.payment.amount)} の入金を確認しますか？`
+                        : ""
+                }
+                confirmText="確認する"
+                type="confirm"
+            />
+
+            <SuccessAlert
+                isOpen={alertState.type === "success" && alertState.isOpen}
+                onClose={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                title="入金を確認しました"
+                message="入金確認が完了しました。"
+            />
+
+            <ConfirmAlert
+                isOpen={alertState.type === "error" && alertState.isOpen}
+                onClose={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                onConfirm={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                title="エラー"
+                message="入金確認に失敗しました。もう一度お試しください。"
+                confirmText="OK"
+                type="error"
+                showCancel={false}
+            />
         </Card>
     );
 }

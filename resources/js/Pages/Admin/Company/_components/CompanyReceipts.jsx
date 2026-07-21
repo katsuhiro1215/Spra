@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import {
@@ -41,15 +41,7 @@ export default function CompanyReceipts({ receipts = [], companyId }) {
     };
 
     const handleDownload = (receiptId) => {
-        router.get(
-            route("admin.receipt.pdf", receiptId),
-            {},
-            {
-                onSuccess: () => {
-                    // PDFダウンロード成功
-                },
-            },
-        );
+        window.open(route("admin.receipts.download", receiptId), "_blank");
     };
 
     const totalAmount = receipts.reduce(

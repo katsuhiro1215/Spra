@@ -89,13 +89,12 @@ export const getAdminNavigationItems = () => {
             currentPath: "admin.service.*",
             children: [
                 { name: "サービス一覧", href: "admin.service.index" },
-                { name: "新規サービス", href: "admin.service.create" },
-                { name: "サービス項目", href: "admin.service.item.index" },
-                { name: "サービスプラン", href: "admin.service.plan.index" },
                 {
                     name: "サービスカテゴリ",
                     href: "admin.service.category.index",
                 },
+                { name: "サービスプラン", href: "admin.service.plan.index" },
+                { name: "サービスアイテム", href: "admin.service.item.index" },
                 {
                     name: "使用技術",
                     href: "admin.service.technology.index",
@@ -216,9 +215,9 @@ export const getAdminNavigationItems = () => {
                 },
             ],
         },
-        // 外部サービス連携
+        // 外部連携
         {
-            name: "外部サービス連携",
+            name: "外部連携",
             href: "admin.external-service.index",
             icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244",
             currentPath: "admin.external-service.*",
@@ -280,6 +279,10 @@ export const getAdminNavigationItems = () => {
                 { name: "文書", href: "admin.documents.index" },
                 { name: "新規文書", href: "admin.documents.create" },
                 { name: "同意記録", href: "admin.documentAcceptances.index" },
+                {
+                    name: "契約書テンプレート",
+                    href: "admin.contract.template.index",
+                },
                 {
                     name: "お問い合わせ返信テンプレート",
                     href: "admin.response.template.index",

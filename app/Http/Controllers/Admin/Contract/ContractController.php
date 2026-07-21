@@ -387,7 +387,25 @@ class ContractController extends Controller
             'billing_day' => 'required|integer|min:1|max:31',
             'payment_due_days' => 'required|integer|min:1|max:90',
             'auto_invoice_generation' => 'required|boolean',
+            'billing_user_id' => 'nullable|uuid|exists:users,id',
         ]);
+
+        // フォームで選択解除（契約者と同じに戻す）した場合もbilling_user_idをnullで確実に更新する
+        $validated['billing_user_id'] = $validated['billing_user_id'] ?? null;
+
+        // 送付先ユーザーを指定する場合、契約に紐づく会社に所属しているユーザーである必要がある
+        if (!empty($validated['billing_user_id']) && $contract->company_id) {
+            $belongsToCompany = \App\Models\CompanyUser::query()
+                ->where('company_id', $contract->company_id)
+                ->where('user_id', $validated['billing_user_id'])
+                ->exists();
+
+            if (!$belongsToCompany) {
+                return back()
+                    ->with('error', '送付先ユーザーはこの契約の会社に所属しているユーザーから選択してください。')
+                    ->withInput();
+            }
+        }
 
         // 次回請求日を計算(calculateNextBillingDateはbilling_dayを参照するため、
         // 先にメモリ上の値を新しいbilling_dayへ更新してから計算する)

@@ -12,7 +12,7 @@ const formatCurrency = (amount) =>
 
 const MembershipRanksGrid = ({ membershipRanks, onDelete }) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {membershipRanks.data.map((rank) => (
                 <Card key={rank.id} className="h-full">
                     <div className="flex flex-col gap-3 h-full">

@@ -557,10 +557,18 @@ export default function Show({ contract }) {
                             )}
 
                             <TextButton
-                                href={route("admin.contract.pdf", contract.id)}
+                                onClick={() =>
+                                    window.open(
+                                        route(
+                                            "admin.contract.pdf.preview",
+                                            contract.id,
+                                        ),
+                                        "_blank",
+                                    )
+                                }
                                 variant="default"
                                 size="sm"
-                                title="PDFダウンロード"
+                                title="PDFを確認・ダウンロード"
                             >
                                 <DocumentTextIcon className="w-4 h-4 mr-1" />
                                 PDF

@@ -22,6 +22,7 @@ class Contract extends Model
         'quote_id',
         'service_plan_id',
         'user_id',
+        'billing_user_id',
         'company_id',
         'title',
         'description',
@@ -99,6 +100,22 @@ class Contract extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 請求書・領収書の送付先ユーザー（未設定の場合はuser()にフォールバック）
+     */
+    public function billingUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'billing_user_id');
+    }
+
+    /**
+     * 請求書・領収書の実際の送付先ユーザーを返す（billing_user_id未設定時はuserを返す）
+     */
+    public function getInvoiceRecipientAttribute(): ?User
+    {
+        return $this->billingUser ?? $this->user;
     }
 
     public function company(): BelongsTo

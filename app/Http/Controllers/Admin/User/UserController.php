@@ -74,12 +74,18 @@ class UserController extends Controller
      */
     public function show(User $user): Response
     {
-        $user->load(['profile.media', 'addresses']);
+        $user->load(['profile.media', 'addresses', 'companies.media']);
 
         // プロフィール画像URLを明示的に追加
         if ($user->profile && $user->profile->media) {
             $user->profile->media->makeVisible(['url', 'original_url']);
         }
+
+        // 契約情報を取得
+        $contracts = $user->contracts()
+            ->with(['company', 'currentVersion'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // テナントのメディア一覧を取得（画像選択用）
         $mediaList = Media::where('type', 'image')
@@ -96,6 +102,7 @@ class UserController extends Controller
 
         return Inertia::render('Admin/User/Show', [
             'user' => $user,
+            'contracts' => $contracts,
             'mediaList' => $mediaList,
         ]);
     }

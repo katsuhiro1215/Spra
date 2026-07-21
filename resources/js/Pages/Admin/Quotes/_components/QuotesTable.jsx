@@ -192,11 +192,16 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                             variant="text"
                                             icon={DocumentArrowDownIcon}
                                             size="lg"
-                                            href={route(
-                                                "admin.quote.pdf",
-                                                quote.id,
-                                            )}
-                                            title="PDFダウンロード"
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "admin.quote.pdf.preview",
+                                                        quote.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                            title="PDFを確認・ダウンロード"
                                         />
                                         {quote.status !== "approved" && (
                                             <IconButton

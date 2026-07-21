@@ -33,7 +33,7 @@ class PageTypeSeeder extends Seeder
                 'allowed_component_types' => [
                     'hero', 'heading', 'text', 'image', 'button', 'cta',
                     'stats', 'iconText', 'cardGroup', 'gallery',
-                    'video', 'logoCloud', 'quote', 'divider', 'accordion',
+                    'video', 'logoCloud', 'quote', 'divider', 'accordion', 'steps',
                 ],
                 'default_layout' => [
                     'sections' => [
@@ -55,7 +55,7 @@ class PageTypeSeeder extends Seeder
                 'allowed_component_types' => [
                     'heading', 'text', 'image', 'button', 'cta', 'quote',
                     'stats', 'iconText', 'card', 'cardGroup', 'gallery',
-                    'video', 'accordion', 'tabs', 'divider', 'logoCloud',
+                    'video', 'accordion', 'tabs', 'divider', 'logoCloud', 'steps',
                 ],
                 'default_layout' => [
                     'sections' => [
@@ -96,7 +96,7 @@ class PageTypeSeeder extends Seeder
                 'allowed_component_types' => [
                     'heading', 'text', 'image', 'button', 'cta',
                     'stats', 'iconText', 'card', 'cardGroup', 'quote',
-                    'video', 'accordion', 'divider', 'logoCloud',
+                    'video', 'accordion', 'divider', 'logoCloud', 'steps',
                 ],
                 'default_layout' => [
                     'sections' => [

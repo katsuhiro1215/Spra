@@ -117,7 +117,7 @@ class ReceiptController extends Controller
     return Inertia::render('Admin/Receipts/Create', [
       'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount', 'status', 'invoice_type']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
       'statuses'  => Receipt::STATUSES,
       'invoice'   => $invoice,
       'payment'   => $payment,
@@ -185,7 +185,7 @@ class ReceiptController extends Controller
       'receipt'   => $receipt,
       'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount', 'status', 'invoice_type']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
       'statuses'  => Receipt::STATUSES,
     ]);
   }

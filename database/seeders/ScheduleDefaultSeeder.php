@@ -67,7 +67,7 @@ class ScheduleDefaultSeeder extends Seeder
                 'break_start' => '12:00',
                 'break_end' => '13:00',
             ],
-            // 土曜日 - 定休日
+            // 土曜日 - 営業日
             [
                 'day_of_week' => 6,
                 'is_open' => true,

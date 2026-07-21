@@ -104,7 +104,7 @@ class InvoiceService
                 'invoice_number' => $this->generateInvoiceNumber(),
                 'invoice_type' => 'monthly',
                 'contract_id' => $contract->id,
-                'user_id' => $contract->user_id,
+                'user_id' => $contract->billing_user_id ?? $contract->user_id,
                 'company_id' => $contract->company_id,
                 'issue_date' => $issueDate,
                 'due_date' => $dueDate,

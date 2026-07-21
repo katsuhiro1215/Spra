@@ -31,6 +31,26 @@ export default function InvoiceForm({
         onSubmit();
     };
 
+    // 選択中の会社に所属するユーザーに絞り込む。会社未選択の場合は全ユーザーから選べるようにする
+    const selectedCompany = companies.find((c) => c.id === data.company_id);
+    const companyUsers = selectedCompany?.users || [];
+    const userChoices = companyUsers.length > 0 ? companyUsers : users;
+
+    const userLabel = (u) =>
+        (u.profile?.full_name || u.email) +
+        (u.pivot?.is_primary ? "（主担当）" : "");
+
+    // 会社を変更したら、その会社の主担当者をユーザーの初期値として設定する
+    const handleCompanyChange = (companyId) => {
+        const company = companies.find((c) => c.id === companyId);
+        const primaryUser = company?.users?.find((u) => u.pivot?.is_primary);
+        setData((prev) => ({
+            ...prev,
+            company_id: companyId,
+            user_id: primaryUser?.id || company?.users?.[0]?.id || "",
+        }));
+    };
+
     const formatAmount = (amount) => {
         return new Intl.NumberFormat("ja-JP", {
             style: "currency",
@@ -274,7 +294,32 @@ export default function InvoiceForm({
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormGroup
-                                label="ユーザー"
+                                label="会社"
+                                htmlFor="company_id"
+                                error={errors.company_id}
+                            >
+                                <SelectInput
+                                    id="company_id"
+                                    name="company_id"
+                                    value={data.company_id || ""}
+                                    onChange={(e) =>
+                                        handleCompanyChange(e.target.value)
+                                    }
+                                    options={[
+                                        {
+                                            value: "",
+                                            label: "選択してください",
+                                        },
+                                        ...companies.map((c) => ({
+                                            value: c.id,
+                                            label: c.name,
+                                        })),
+                                    ]}
+                                />
+                            </FormGroup>
+
+                            <FormGroup
+                                label="送付先ユーザー"
                                 htmlFor="user_id"
                                 required
                                 error={errors.user_id}
@@ -294,42 +339,17 @@ export default function InvoiceForm({
                                             value: "",
                                             label: "選択してください",
                                         },
-                                        ...users.map((u) => ({
+                                        ...userChoices.map((u) => ({
                                             value: u.id,
-                                            label:
-                                                u.profile?.full_name ||
-                                                u.email,
+                                            label: userLabel(u),
                                         })),
                                     ]}
                                 />
-                            </FormGroup>
-
-                            <FormGroup
-                                label="会社"
-                                htmlFor="company_id"
-                                error={errors.company_id}
-                            >
-                                <SelectInput
-                                    id="company_id"
-                                    name="company_id"
-                                    value={data.company_id || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "company_id",
-                                            e.target.value,
-                                        )
-                                    }
-                                    options={[
-                                        {
-                                            value: "",
-                                            label: "選択してください",
-                                        },
-                                        ...companies.map((c) => ({
-                                            value: c.id,
-                                            label: c.name,
-                                        })),
-                                    ]}
-                                />
+                                {companyUsers.length > 0 && (
+                                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                        この会社に所属するユーザーから選択できます
+                                    </p>
+                                )}
                             </FormGroup>
                         </div>
                     </div>

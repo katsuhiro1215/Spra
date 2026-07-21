@@ -48,7 +48,7 @@ export default function Index({ membershipRanks, filters = {}, stats = {} }) {
 
     const headerActions = [
         {
-            label: "会員ランク作成",
+            label: PageConfig.membershipRanks.actions.create,
             icon: PlusIcon,
             variant: "primary",
             route: route("admin.membership-rank.create"),
@@ -68,9 +68,22 @@ export default function Index({ membershipRanks, filters = {}, stats = {} }) {
         >
             <Head title={PageConfig.membershipRanks.documentTitle} />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
+                <div className="flex-1 max-w-md">
+                    <SearchBar
+                        value={data.search}
+                        onChange={(value) => setData("search", value)}
+                        onSearch={handleSearch}
+                        placeholder={
+                            PageConfig.membershipRanks.ui.search.placeholder
+                        }
+                        disabled={processing}
+                    />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                     <Card>
                         <div className="p-4 text-center">
@@ -94,18 +107,6 @@ export default function Index({ membershipRanks, filters = {}, stats = {} }) {
                     </Card>
                 </div>
 
-                <div className="flex-1 max-w-md">
-                    <SearchBar
-                        value={data.search}
-                        onChange={(value) => setData("search", value)}
-                        onSearch={handleSearch}
-                        placeholder={
-                            PageConfig.membershipRanks.ui.search.placeholder
-                        }
-                        disabled={processing}
-                    />
-                </div>
-
                 {/* 一覧ヘッダー（件数 + 表示切替） */}
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
@@ -121,9 +122,7 @@ export default function Index({ membershipRanks, filters = {}, stats = {} }) {
                             title="テーブル表示"
                         />
                         <IconButton
-                            variant={
-                                viewMode === "grid" ? "secondary" : "text"
-                            }
+                            variant={viewMode === "grid" ? "secondary" : "text"}
                             icon={Squares2X2Icon}
                             onClick={() => setViewMode("grid")}
                             title="グリッド表示"

@@ -41,7 +41,9 @@ export const INDUSTRY_OPTIONS = [
     { value: "金融・保険", label: "金融・保険" },
     { value: "運輸・物流", label: "運輸・物流" },
     { value: "医療・介護", label: "医療・介護" },
+    { value: "美容・健康", label: "美容・健康" },
     { value: "教育", label: "教育" },
+    { value: "スポーツ", label: "スポーツ" },
     { value: "飲食・宿泊", label: "飲食・宿泊" },
     { value: "コンサルティング", label: "コンサルティング" },
     { value: "マーケティング・広告", label: "マーケティング・広告" },
@@ -181,6 +183,24 @@ export const CONTACT_SOURCE_OPTIONS = [
     { value: "sns", label: "SNS" },
     { value: "referral", label: "紹介" },
     { value: "other", label: "その他" },
+];
+
+/**
+ * 契約書テンプレート種別のセレクトオプション
+ */
+export const CONTRACT_TEMPLATE_TYPE_OPTIONS = [
+    { value: "standard", label: "標準契約" },
+    { value: "monthly", label: "月額契約" },
+    { value: "annual", label: "年額契約" },
+    { value: "custom", label: "カスタム" },
+];
+
+/**
+ * 契約書テンプレートステータスのセレクトオプション
+ */
+export const CONTRACT_TEMPLATE_STATUS_OPTIONS = [
+    { value: "active", label: "アクティブ" },
+    { value: "inactive", label: "非アクティブ" },
 ];
 
 /**

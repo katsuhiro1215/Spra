@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 import { TextButton, DangerButton, PrimaryButton } from "@/Components/Buttons";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
+import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
@@ -27,6 +28,10 @@ const formatDate = (date) =>
 
 export default function Show({ payment }) {
     const [showDelete, setShowDelete] = useState(false);
+    const [alertState, setAlertState] = useState({
+        type: null,
+        isOpen: false,
+    });
 
     const handleConfirmDelete = () => {
         router.delete(route("admin.payment.destroy", payment.id), {
@@ -35,10 +40,20 @@ export default function Show({ payment }) {
     };
 
     const handleConfirmPayment = () => {
-        if (!confirm(`${formatAmount(payment.amount)} の入金を確認しますか？`)) {
-            return;
-        }
-        router.post(route("admin.payment.confirm", payment.id));
+        setAlertState({ type: "confirm-payment", isOpen: true });
+    };
+
+    const handleConfirmPaymentSubmit = () => {
+        router.post(
+            route("admin.payment.confirm", payment.id),
+            {},
+            {
+                onSuccess: () =>
+                    setAlertState({ type: "success", isOpen: true }),
+                onError: () =>
+                    setAlertState({ type: "error", isOpen: true }),
+            },
+        );
     };
 
     const headerActions = [
@@ -74,6 +89,39 @@ export default function Show({ payment }) {
                 onClose={() => setShowDelete(false)}
                 onConfirm={handleConfirmDelete}
                 customMessage="この入金記録を削除しますか？請求書のステータスが自動的に再計算されます。"
+            />
+
+            <ConfirmAlert
+                isOpen={
+                    alertState.type === "confirm-payment" &&
+                    alertState.isOpen
+                }
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                onConfirm={handleConfirmPaymentSubmit}
+                title="入金確認"
+                message={`${formatAmount(payment.amount)} の入金を確認しますか？`}
+                confirmText="確認する"
+                type="confirm"
+            />
+
+            <SuccessAlert
+                isOpen={alertState.type === "success" && alertState.isOpen}
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                title="入金を確認しました"
+                message="入金確認が完了しました。"
+            />
+
+            <ConfirmAlert
+                isOpen={alertState.type === "error" && alertState.isOpen}
+                onClose={() => setAlertState({ ...alertState, isOpen: false })}
+                onConfirm={() =>
+                    setAlertState({ ...alertState, isOpen: false })
+                }
+                title="エラー"
+                message="入金確認に失敗しました。もう一度お試しください。"
+                confirmText="OK"
+                type="error"
+                showCancel={false}
             />
 
             <div className="max-w-3xl space-y-6">

@@ -35,6 +35,9 @@ class AppointmentSlotController extends Controller
   public function index(Request $request): Response
   {
     $filters = $request->only(['search', 'slot_type', 'status', 'assigned_admin_id', 'date_from', 'date_to']);
+    // 未指定の場合は今月をデフォルト表示にする
+    $filters['date_from'] ??= now()->startOfMonth()->toDateString();
+    $filters['date_to'] ??= now()->endOfMonth()->toDateString();
     $sort = [
       'field' => $request->get('sort', 'date'),
       'direction' => $request->get('direction', 'asc')

@@ -725,6 +725,30 @@ export const PageConfig = {
     },
 
     /**
+     * 契約書テンプレート管理
+     */
+    contractTemplates: {
+        title: "📄 契約書テンプレート管理",
+        description: "契約条項・特別条項のテンプレートを管理します",
+        documentTitle: "契約書テンプレート管理",
+        breadcrumbs: ["ホーム", "契約書テンプレート管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約書テンプレート"),
+        ui: createIndexPageUITemplates(
+            "契約書テンプレート",
+            "テンプレート名、説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+        },
+    },
+
+    /**
      * プロジェクトテンプレート管理
      */
     projectTemplates: {

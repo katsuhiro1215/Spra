@@ -51,13 +51,13 @@ export default function Create({
     // コンテキストベースの初期化
     useEffect(() => {
         if (company) {
+            const primaryUser = company.users?.find(
+                (u) => u.pivot?.is_primary,
+            );
             setData((prev) => ({
                 ...prev,
                 company_id: company.id,
-                user_id:
-                    company.users && company.users.length > 0
-                        ? company.users[0].id
-                        : "",
+                user_id: primaryUser?.id || company.users?.[0]?.id || "",
             }));
         }
 

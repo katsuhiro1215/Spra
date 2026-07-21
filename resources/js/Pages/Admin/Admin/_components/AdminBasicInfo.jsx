@@ -50,8 +50,10 @@ export default function AdminBasicInfo({ admin }) {
                     </div>
                     <IconButton
                         icon={PencilIcon}
-                        variant="warning"
+                        variant="warning-text"
+                        size="lg"
                         href={route("admin.admin.edit", admin.id)}
+                        title="編集"
                     />
                 </CardHeader>
                 <CardBody>
@@ -87,14 +89,18 @@ export default function AdminBasicInfo({ admin }) {
                     {admin.profile ? (
                         <IconButton
                             icon={PencilIcon}
-                            variant="warning"
+                            variant="warning-text"
+                            size="lg"
+                            title="編集"
                             href={route("admin.admin.profile.edit", admin.id)}
                         />
                     ) : (
                         <IconButton
                             icon={PlusIcon}
-                            variant="indigo"
+                            variant="indigo-text"
+                            size="lg"
                             href={route("admin.admin.profile.create", admin.id)}
+                            title="作成"
                         />
                     )}
                 </CardHeader>
@@ -205,7 +211,9 @@ export default function AdminBasicInfo({ admin }) {
                     </div>
                     <IconButton
                         icon={PlusIcon}
-                        variant="indigo"
+                        variant="success-text"
+                        size="lg"
+                        title="作成"
                         href={route("admin.admin.address.create", admin.id)}
                     />
                 </CardHeader>

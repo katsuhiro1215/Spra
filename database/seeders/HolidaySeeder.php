@@ -18,21 +18,20 @@ class HolidaySeeder extends Seeder
 
         $holidays2022 = [
             ['date' => '2022-01-01', 'name' => '元旦'],
-            ['date' => '2022-01-03', 'name' => '振替休日'],
+            ['date' => '2022-01-10', 'name' => '成人の日'],
             ['date' => '2022-02-11', 'name' => '建国記念の日'],
             ['date' => '2022-02-23', 'name' => '天皇誕生日'],
             ['date' => '2022-03-21', 'name' => '春分の日'],
-            ['date' => '2022-04-05', 'name' => '昭和の日'],
-            ['date' => '2022-04-06', 'name' => 'みどりの日'],
-            ['date' => '2022-04-07', 'name' => '憲法記念日'],
-            ['date' => '2022-04-08', 'name' => 'こどもの日'],
-            ['date' => '2022-05-02', 'name' => 'ゴールデンウィークの休日'],
-            ['date' => '2022-06-03', 'name' => '銀行休日'],
-            ['date' => '2022-09-20', 'name' => '秋分の日'],
-            ['date' => '2022-10-03', 'name' => 'スポーツの日'],
-            ['date' => '2022-10-04', 'name' => '振替休日'],
+            ['date' => '2022-04-29', 'name' => '昭和の日'],
+            ['date' => '2022-05-03', 'name' => '憲法記念日'],
+            ['date' => '2022-05-04', 'name' => 'みどりの日'],
+            ['date' => '2022-05-05', 'name' => 'こどもの日'],
+            ['date' => '2022-07-18', 'name' => '振替休日'],
+            ['date' => '2022-08-11', 'name' => '山の日'],
+            ['date' => '2022-09-19', 'name' => '敬老の日'],
+            ['date' => '2022-09-23', 'name' => '秋分の日'],
+            ['date' => '2022-10-10', 'name' => 'スポーツの日'],
             ['date' => '2022-11-03', 'name' => '文化の日'],
-            ['date' => '2022-11-23', 'name' => '勤労感謝の日'],
         ];
 
         foreach ($holidays2022 as $holiday) {
@@ -130,7 +129,7 @@ class HolidaySeeder extends Seeder
             ['date' => '2025-02-11', 'name' => '建国記念の日'],
             ['date' => '2025-02-23', 'name' => '天皇誕生日'],
             ['date' => '2025-02-24', 'name' => '振替休日'],
-            ['date' => '2025-03-21', 'name' => '春分の日'],
+            ['date' => '2025-03-20', 'name' => '春分の日'],
             ['date' => '2025-04-29', 'name' => '昭和の日'],
             ['date' => '2025-05-03', 'name' => '憲法記念日'],
             ['date' => '2025-05-04', 'name' => 'みどりの日'],
@@ -194,6 +193,42 @@ class HolidaySeeder extends Seeder
 
         $this->command->info('Created ' . count($holidays2026) . ' Japanese national holidays for 2026.');
 
-        $this->command->info('Total holidays created: ' . (count($holidays2022) + count($holidays2023) + count($holidays2024) + count($holidays2025) + count($holidays2026)));
+        // 2027年の祝日を追加
+        $this->command->info('Creating Japanese national holidays for 2027...');
+
+        $holidays2027 = [
+            ['date' => '2027-01-01', 'name' => '元旦'],
+            ['date' => '2027-01-11', 'name' => '成人の日'],
+            ['date' => '2027-02-11', 'name' => '建国記念の日'],
+            ['date' => '2027-02-23', 'name' => '天皇誕生日'],
+            ['date' => '2027-03-21', 'name' => '春分の日'],
+            ['date' => '2027-03-22', 'name' => '振替休日'],
+            ['date' => '2027-04-29', 'name' => '昭和の日'],
+            ['date' => '2027-05-03', 'name' => '憲法記念日'],
+            ['date' => '2027-05-04', 'name' => 'みどりの日'],
+            ['date' => '2027-05-05', 'name' => 'こどもの日'],
+            ['date' => '2027-07-19', 'name' => '海の日'],
+            ['date' => '2027-08-11', 'name' => '山の日'],
+            ['date' => '2027-09-20', 'name' => '敬老の日'],
+            ['date' => '2027-09-21', 'name' => '振替休日'],
+            ['date' => '2027-09-23', 'name' => '秋分の日'],
+            ['date' => '2027-10-11', 'name' => 'スポーツの日'],
+            ['date' => '2027-11-03', 'name' => '文化の日'],
+            ['date' => '2027-11-23', 'name' => '勤労感謝の日'],
+        ];
+
+        foreach ($holidays2027 as $holiday) {
+            Holiday::create([
+                'date' => $holiday['date'],
+                'name' => $holiday['name'],
+                'type' => 'national',
+                'is_recurring' => false,
+                'description' => $holiday['name'] . ' is a national holiday in Japan.',
+            ]);
+        }
+
+        $this->command->info('Created ' . count($holidays2027) . ' Japanese national holidays for 2027.');
+
+        $this->command->info('Total holidays created: ' . (count($holidays2022) + count($holidays2023) + count($holidays2024) + count($holidays2025) + count($holidays2026) + count($holidays2027)));
     }
 }

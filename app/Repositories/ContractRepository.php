@@ -22,7 +22,8 @@ class ContractRepository implements ContractRepositoryInterface
     {
         return Contract::with([
             'user.profile',
-            'company',
+            'billingUser.profile',
+            'company.users.profile',
             'quote',
             'project',
             'contractGroup',
@@ -44,7 +45,7 @@ class ContractRepository implements ContractRepositoryInterface
         return Contract::where('id', $id)
             ->where('user_id', $userId)
             ->whereNotIn('status', ['draft'])
-            ->with(['project', 'documents', 'invoices'])
+            ->with(['project', 'documents', 'invoices', 'currentVersion'])
             ->first();
     }
 

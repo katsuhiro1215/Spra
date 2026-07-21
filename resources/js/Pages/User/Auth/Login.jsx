@@ -226,19 +226,6 @@ export default function Login({ status, canResetPassword }) {
                         管理画面を見る
                     </Link>
                 </div>
-
-                {/* Register Link */}
-                <div className="text-center pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600">
-                        アカウントをお持ちでない方は
-                        <Link
-                            href={route("user.register")}
-                            className="ml-1 text-green-600 hover:text-green-700 font-medium transition-colors duration-200"
-                        >
-                            新規登録
-                        </Link>
-                    </p>
-                </div>
             </form>
         </UserAuthLayout>
     );

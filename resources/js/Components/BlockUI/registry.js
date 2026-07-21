@@ -17,6 +17,7 @@ import {
     QuestionMarkCircleIcon,
     ViewColumnsIcon,
     FlagIcon,
+    ArrowRightCircleIcon,
 } from "@heroicons/react/24/outline";
 
 import HeadingBlock, {
@@ -64,6 +65,7 @@ import AccordionBlock, {
 } from "./blocks/AccordionBlock";
 import TabsBlock, { TABS_DEFAULT_DATA, TabsBlockPreview } from "./blocks/TabsBlock";
 import HeroBlock, { HERO_DEFAULT_DATA, HeroBlockPreview } from "./blocks/HeroBlock";
+import StepsBlock, { STEPS_DEFAULT_DATA, StepsBlockPreview } from "./blocks/StepsBlock";
 
 // ブロック種別レジストリ
 // 新しいブロックを追加する場合はここに登録する
@@ -211,6 +213,14 @@ export const BLOCK_REGISTRY = {
         defaultData: HERO_DEFAULT_DATA,
         Edit: HeroBlock,
         Preview: HeroBlockPreview,
+    },
+    steps: {
+        type: "steps",
+        label: "ステップ（流れ）",
+        icon: ArrowRightCircleIcon,
+        defaultData: STEPS_DEFAULT_DATA,
+        Edit: StepsBlock,
+        Preview: StepsBlockPreview,
     },
 };
 

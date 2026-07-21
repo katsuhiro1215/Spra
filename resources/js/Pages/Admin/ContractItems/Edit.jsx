@@ -65,6 +65,7 @@ export default function Edit({
         >
             <Head title="契約明細編集" />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="w-full">

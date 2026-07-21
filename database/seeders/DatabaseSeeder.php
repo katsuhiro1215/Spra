@@ -37,6 +37,10 @@ class DatabaseSeeder extends Seeder
             // メディア
             MediaSeeder::class,
 
+            // ポイント関連
+            MembershipRankSeeder::class,
+            PointCatalogItemSeeder::class,
+
             // アクセス解析（デモ用のpageviewイベント）
             AnalyticsEventSeeder::class,
 

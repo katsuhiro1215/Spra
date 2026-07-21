@@ -273,13 +273,16 @@ const InvoicesTable = ({
                                                         DocumentArrowDownIcon
                                                     }
                                                     size="lg"
-                                                    href={route(
-                                                        "admin.invoice.pdf",
-                                                        invoice.id,
-                                                    )}
-                                                    title="PDF"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    onClick={() =>
+                                                        window.open(
+                                                            route(
+                                                                "admin.invoice.pdf.preview",
+                                                                invoice.id,
+                                                            ),
+                                                            "_blank",
+                                                        )
+                                                    }
+                                                    title="PDFを確認・ダウンロード"
                                                 />
 
                                                 {/* 送付済み/期限超過の請求書は再送可能 */}

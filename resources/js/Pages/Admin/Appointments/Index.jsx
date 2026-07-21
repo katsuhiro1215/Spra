@@ -94,13 +94,21 @@ export default function Index({
 
     // フィルタークリア
     const handleClearFilters = () => {
+        const now = new Date();
+        // タイムゾーンの影響を受けないようローカル日付から直接組み立てる
+        const toDateString = (date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         setData({
             search: "",
             status: "",
             company_id: "",
             project_id: "",
-            date_from: "",
-            date_to: "",
+            date_from: toDateString(
+                new Date(now.getFullYear(), now.getMonth(), 1),
+            ),
+            date_to: toDateString(
+                new Date(now.getFullYear(), now.getMonth() + 1, 0),
+            ),
         });
         setShowFilters(false);
         get(route("admin.appointments.index"), {
@@ -595,10 +603,7 @@ export default function Index({
                                 </table>
                             </div>
 
-                            <Pagination
-                                links={appointments.links}
-                                meta={appointments.meta}
-                            />
+                            <Pagination paginationData={appointments} />
                         </>
                     )}
                 </Card>

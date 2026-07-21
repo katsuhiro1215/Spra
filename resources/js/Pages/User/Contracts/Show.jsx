@@ -22,6 +22,7 @@ import DigitalStamp from "@/Components/DigitalStamp";
 export default function Show({
     contract,
     quote = null,
+    signatureImage = null,
     invoices = [],
     receipts = [],
     project = null,
@@ -99,14 +100,7 @@ export default function Show({
         return new Intl.NumberFormat("ja-JP", {
             style: "currency",
             currency: "JPY",
-        }).format(amount);
-    };
-
-    // 税込合計計算
-    const getTotalWithTax = () => {
-        const amount = parseFloat(contract.amount) || 0;
-        const taxRate = parseFloat(contract.tax_rate) || 0;
-        return amount * (1 + taxRate / 100);
+        }).format(amount || 0);
     };
 
     // 署名を保存
@@ -249,48 +243,49 @@ export default function Show({
                             </UserCardBody>
                         </UserCard>
 
-                        {/* 契約書PDF表示 */}
+                        {/* 契約概要 */}
                         <UserCard>
                             <UserCardHeader>
-                                <UserCardTitle>契約書</UserCardTitle>
+                                <UserCardTitle>契約概要</UserCardTitle>
                             </UserCardHeader>
                             <UserCardBody>
-                                <div
-                                    style={{
-                                        height: "500px",
-                                        overflow: "auto",
-                                        backgroundColor: "#f5f5f5",
-                                        borderRadius: "8px",
-                                        marginBottom: "16px",
-                                    }}
-                                >
-                                    <iframe
-                                        key={`${contract.user_signed_at ?? ""}-${contract.admin_signed_at ?? ""}`}
-                                        src={route(
-                                            "user.contract.pdf.preview",
-                                            contract.id,
-                                        )}
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            border: "none",
-                                        }}
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <PrimaryButton
-                                        onClick={() => {
-                                            window.open(
-                                                route(
-                                                    "user.contract.pdf",
-                                                    contract.id,
-                                                ),
-                                            );
-                                        }}
-                                    >
-                                        <DocumentTextIcon className="h-5 w-5 mr-2" />
-                                        PDFダウンロード
-                                    </PrimaryButton>
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                                            契約条項
+                                        </h3>
+                                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-900">
+                                            {contract.current_version
+                                                ?.terms_and_conditions ||
+                                                "未記入"}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                                            特別条項
+                                        </h3>
+                                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-900">
+                                            {contract.current_version
+                                                ?.special_provisions ||
+                                                "未記入"}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <PrimaryButton
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "user.contract.pdf.preview",
+                                                        contract.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                        >
+                                            <DocumentTextIcon className="h-5 w-5 mr-2" />
+                                            PDFを確認・ダウンロード
+                                        </PrimaryButton>
+                                    </div>
                                 </div>
                             </UserCardBody>
                         </UserCard>
@@ -305,21 +300,40 @@ export default function Show({
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-base">
                                             <span className="text-gray-600">
-                                                契約金額:
+                                                小計:
                                             </span>
                                             <span className="font-semibold text-gray-900">
-                                                {formatAmount(contract.amount)}
+                                                {formatAmount(
+                                                    contract.current_version
+                                                        ?.base_amount,
+                                                )}
                                             </span>
                                         </div>
                                         <div className="flex justify-between text-base">
                                             <span className="text-gray-600">
-                                                消費税 ({contract.tax_rate}%):
+                                                割引:
+                                            </span>
+                                            <span className="font-semibold text-gray-900">
+                                                -
+                                                {formatAmount(
+                                                    contract.current_version
+                                                        ?.discount_amount,
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-base">
+                                            <span className="text-gray-600">
+                                                消費税 (
+                                                {
+                                                    contract.current_version
+                                                        ?.tax_rate
+                                                }
+                                                %):
                                             </span>
                                             <span className="font-semibold text-gray-900">
                                                 {formatAmount(
-                                                    contract.amount *
-                                                        (contract.tax_rate /
-                                                            100),
+                                                    contract.current_version
+                                                        ?.tax_amount,
                                                 )}
                                             </span>
                                         </div>
@@ -329,7 +343,8 @@ export default function Show({
                                             </span>
                                             <span className="text-blue-600">
                                                 {formatAmount(
-                                                    getTotalWithTax(),
+                                                    contract.current_version
+                                                        ?.total_amount,
                                                 )}
                                             </span>
                                         </div>
@@ -436,6 +451,18 @@ export default function Show({
                                                     </p>
                                                 </div>
                                             </div>
+                                            {signatureImage && (
+                                                <div className="mt-4">
+                                                    <p className="text-sm text-green-700 mb-2">
+                                                        署名画像:
+                                                    </p>
+                                                    <img
+                                                        src={signatureImage}
+                                                        alt="署名"
+                                                        className="max-w-xs border border-green-200 rounded-lg bg-white p-2"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">

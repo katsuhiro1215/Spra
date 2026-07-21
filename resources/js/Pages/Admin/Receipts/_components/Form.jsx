@@ -54,6 +54,26 @@ export default function ReceiptForm({
         label,
     }));
 
+    // 選択中の会社に所属するユーザーに絞り込む。会社未選択の場合は全ユーザーから選べるようにする
+    const selectedCompany = companies.find((c) => c.id === data.company_id);
+    const companyUsers = selectedCompany?.users || [];
+    const userChoices = companyUsers.length > 0 ? companyUsers : users;
+
+    const userLabel = (u) =>
+        (u.profile?.full_name || u.email) +
+        (u.pivot?.is_primary ? "（主担当）" : "");
+
+    // 会社を変更したら、その会社の主担当者をユーザーの初期値として設定する
+    const handleCompanyChange = (companyId) => {
+        const company = companies.find((c) => c.id === companyId);
+        const primaryUser = company?.users?.find((u) => u.pivot?.is_primary);
+        setData((prev) => ({
+            ...prev,
+            company_id: companyId || null,
+            user_id: primaryUser?.id || company?.users?.[0]?.id || prev.user_id,
+        }));
+    };
+
     return (
         <form onSubmit={onSubmit} className="space-y-6">
             {/* 基本情報 */}
@@ -88,28 +108,6 @@ export default function ReceiptForm({
 
                         <div className="grid grid-cols-2 gap-4">
                             <FormGroup
-                                label="ユーザー"
-                                htmlFor="user_id"
-                                error={errors.user_id}
-                                required
-                            >
-                                <SelectInput
-                                    id="user_id"
-                                    value={data.user_id}
-                                    onChange={(e) =>
-                                        setData("user_id", e.target.value)
-                                    }
-                                    options={[
-                                        { value: "", label: "ユーザーを選択" },
-                                        ...users.map((user) => ({
-                                            value: user.id,
-                                            label: user.email,
-                                        })),
-                                    ]}
-                                />
-                            </FormGroup>
-
-                            <FormGroup
                                 label="会社"
                                 htmlFor="company_id"
                                 error={errors.company_id}
@@ -118,10 +116,7 @@ export default function ReceiptForm({
                                     id="company_id"
                                     value={data.company_id || ""}
                                     onChange={(e) =>
-                                        setData(
-                                            "company_id",
-                                            e.target.value || null,
-                                        )
+                                        handleCompanyChange(e.target.value)
                                     }
                                     options={[
                                         {
@@ -134,6 +129,33 @@ export default function ReceiptForm({
                                         })),
                                     ]}
                                 />
+                            </FormGroup>
+
+                            <FormGroup
+                                label="送付先ユーザー"
+                                htmlFor="user_id"
+                                error={errors.user_id}
+                                required
+                            >
+                                <SelectInput
+                                    id="user_id"
+                                    value={data.user_id}
+                                    onChange={(e) =>
+                                        setData("user_id", e.target.value)
+                                    }
+                                    options={[
+                                        { value: "", label: "ユーザーを選択" },
+                                        ...userChoices.map((user) => ({
+                                            value: user.id,
+                                            label: userLabel(user),
+                                        })),
+                                    ]}
+                                />
+                                {companyUsers.length > 0 && (
+                                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                        この会社に所属するユーザーから選択できます
+                                    </p>
+                                )}
                             </FormGroup>
                         </div>
 

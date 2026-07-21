@@ -43,7 +43,6 @@ Route::get('/blog/{slug}', [PostController::class, 'show'])->name('blog.detail')
 Route::get('/news', [PostController::class, 'newsIndex'])->name('news');
 Route::get('/news/{slug}', [PostController::class, 'show'])->name('news.detail');
 Route::get('/faq', [FaqController::class, 'show'])->name('faq');
-Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/company', function () {
     return Inertia::render('Public/Company', [
         'histories' => \App\Models\OrganizationHistory::published()->ordered()->get(),

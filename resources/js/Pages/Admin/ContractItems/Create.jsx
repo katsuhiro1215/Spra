@@ -64,6 +64,7 @@ export default function Create({
         >
             <Head title="契約明細追加" />
 
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="w-full">
