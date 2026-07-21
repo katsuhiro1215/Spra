@@ -3,35 +3,90 @@ import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import SearchBar from "@/Components/SearchBar";
-import FilterSelect from "@/Components/FilterSelect";
+import { Card } from "@/Components/Card";
 import Pagination from "@/Components/Layout/Pagination";
-import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import FaqsFilterBar from "./_components/FaqsFilterBar";
 import FaqsTable from "./_components/FaqsTable";
 
+const DEFAULT_TRASHED = "without_trashed";
+
+const buildFilterState = (filters) => ({
+    search: filters.search || "",
+    faq_category_id: filters.faq_category_id || "",
+    is_published: filters.is_published || "",
+    is_featured: filters.is_featured || "",
+    trashed: filters.trashed || DEFAULT_TRASHED,
+});
+
 export default function Index({ faqs, stats, categories, filters }) {
+    const [activeTab, setActiveTab] = useState(
+        filters.trashed || DEFAULT_TRASHED,
+    );
     const [showFilters, setShowFilters] = useState(false);
 
-    const { data, setData, get, processing } = useForm({
-        search: filters.search || "",
-        faq_category_id: filters.faq_category_id || "",
-        is_published: filters.is_published || "",
-        is_featured: filters.is_featured || "",
-        trashed: filters.trashed || "without_trashed",
-    });
+    const { data, setData, get, processing } = useForm(
+        buildFilterState(filters),
+    );
 
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (data.search !== filters.search) {
-                handleFilter();
+        setActiveTab(filters.trashed || DEFAULT_TRASHED);
+        setData(buildFilterState(filters));
+    }, [filters.trashed]);
+
+    useEffect(() => {
+        if (data.faq_category_id || data.is_published || data.is_featured) {
+            setShowFilters(true);
+        }
+    }, [data.faq_category_id, data.is_published, data.is_featured]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (
+                data.faq_category_id !== filters.faq_category_id ||
+                data.is_published !== filters.is_published ||
+                data.is_featured !== filters.is_featured
+            ) {
+                handleSearch();
             }
-        }, 500);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [data.faq_category_id, data.is_published, data.is_featured]);
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [data.search]);
+    const handleTabChange = (tab) => {
+        router.get(
+            route("admin.website.faq.index"),
+            {
+                search: data.search,
+                faq_category_id: data.faq_category_id,
+                is_published: data.is_published,
+                is_featured: data.is_featured,
+                trashed: tab,
+            },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            },
+        );
+    };
 
-    const handleFilter = () => {
+    const handleSearch = () => {
         get(route("admin.website.faq.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClearFilters = () => {
+        setData({
+            search: "",
+            faq_category_id: "",
+            is_published: "",
+            is_featured: "",
+            trashed: activeTab,
+        });
+        setShowFilters(false);
+        get(route("admin.website.faq.index", { trashed: activeTab }), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -47,12 +102,6 @@ export default function Index({ faqs, stats, categories, filters }) {
 
     const headerActions = [
         {
-            label: showFilters ? "フィルターを閉じる" : "フィルター",
-            icon: FunnelIcon,
-            variant: "secondary",
-            onClick: () => setShowFilters(!showFilters),
-        },
-        {
             label: "FAQ作成",
             icon: PlusIcon,
             variant: "primary",
@@ -60,27 +109,24 @@ export default function Index({ faqs, stats, categories, filters }) {
         },
     ];
 
-    const CategoryOptions = [
-        { value: "", label: "すべてのカテゴリ" },
-        ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+    const tabs = [
+        { key: "with_trashed", label: "すべて", count: stats?.total ?? faqs.total },
+        {
+            key: "without_trashed",
+            label: "有効一覧",
+            count: (stats?.published ?? 0) + (stats?.draft ?? 0),
+        },
+        { key: "only_trashed", label: "削除済み", count: stats?.trashed ?? 0 },
     ];
 
-    const StatusOptions = [
-        { value: "", label: "すべて" },
-        { value: "1", label: "公開中" },
-        { value: "0", label: "非公開" },
-    ];
+    const hasActiveFilters =
+        data.search || data.faq_category_id || data.is_published || data.is_featured;
 
-    const FeaturedOptions = [
-        { value: "", label: "すべて" },
-        { value: "1", label: "よくある質問のみ" },
-    ];
-
-    const TrashedOptions = [
-        { value: "without_trashed", label: "削除済みを除く" },
-        { value: "with_trashed", label: "削除済みを含む" },
-        { value: "only_trashed", label: "削除済みのみ" },
-    ];
+    const activeFilterCount = [
+        data.faq_category_id,
+        data.is_published,
+        data.is_featured,
+    ].filter(Boolean).length;
 
     return (
         <AdminAuthenticatedLayout
@@ -95,102 +141,73 @@ export default function Index({ faqs, stats, categories, filters }) {
             <Head title="FAQ管理" />
             <FlashMessage />
 
-            <div className="space-y-4">
+            <div className="w-full flex flex-col gap-4">
                 {/* 統計情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            全FAQ
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {stats.total}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                全FAQ
+                            </div>
                         </div>
-                        <div className="mt-1 text-3xl font-semibold text-slate-900 dark:text-slate-100">
-                            {stats.total}
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                {stats.published}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                公開中
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            公開中
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {stats.draft}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                非公開
+                            </div>
                         </div>
-                        <div className="mt-1 text-3xl font-semibold text-green-600 dark:text-green-400">
-                            {stats.published}
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-400 dark:text-slate-500">
+                                {stats.trashed}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                削除済み
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            非公開
-                        </div>
-                        <div className="mt-1 text-3xl font-semibold text-orange-600 dark:text-orange-400">
-                            {stats.draft}
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            削除済み
-                        </div>
-                        <div className="mt-1 text-3xl font-semibold text-slate-400 dark:text-slate-500">
-                            {stats.trashed}
-                        </div>
-                    </div>
+                    </Card>
                 </div>
 
-                {/* 検索とフィルター */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
-                    <SearchBar
-                        value={data.search}
-                        onChange={(value) => setData("search", value)}
-                        placeholder="質問、回答で検索..."
-                        processing={processing}
-                    />
-
-                    {showFilters && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <FilterSelect
-                                label="カテゴリ"
-                                value={data.faq_category_id}
-                                onChange={(value) => {
-                                    setData("faq_category_id", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={CategoryOptions}
-                            />
-
-                            <FilterSelect
-                                label="ステータス"
-                                value={data.is_published}
-                                onChange={(value) => {
-                                    setData("is_published", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={StatusOptions}
-                            />
-
-                            <FilterSelect
-                                label="よくある質問"
-                                value={data.is_featured}
-                                onChange={(value) => {
-                                    setData("is_featured", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={FeaturedOptions}
-                            />
-
-                            <FilterSelect
-                                label="削除済み"
-                                value={data.trashed}
-                                onChange={(value) => {
-                                    setData("trashed", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={TrashedOptions}
-                            />
-                        </div>
-                    )}
-                </div>
+                {/* タブ + 検索 + フィルター（テーブルの上に集約） */}
+                <FaqsFilterBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    data={data}
+                    setData={setData}
+                    onSearch={handleSearch}
+                    searchDisabled={processing}
+                    categories={categories}
+                    showFilters={showFilters}
+                    onToggleFilters={() => setShowFilters(!showFilters)}
+                    activeFilterCount={activeFilterCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={handleClearFilters}
+                />
 
                 {/* FAQ一覧 */}
                 <FaqsTable faqs={faqs} onDelete={handleDelete} />
 
                 {/* ページネーション */}
-                <Pagination paginationData={faqs} />
+                {faqs?.last_page > 1 && <Pagination paginationData={faqs} />}
             </div>
         </AdminAuthenticatedLayout>
     );

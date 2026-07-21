@@ -50,6 +50,7 @@ class ContractController extends Controller
 
         // quote・契約特典・署名を含めて読み込む(quoteの金額はcurrentVersionにあるため合わせて読み込む)
         // 請求書タブ・領収書タブで使うため、請求書に紐づく入金・領収書も合わせて読み込む
+        // 契約履歴タブ用に、新しい順に並べ替えて操作者(Admin)情報も合わせて読み込む
         $contract->load([
             'quote.currentVersion',
             'benefits' => fn($q) => $q->orderBy('period_start'),
@@ -57,6 +58,8 @@ class ContractController extends Controller
             'invoices' => fn($q) => $q->orderBy('issue_date', 'desc'),
             'invoices.payments' => fn($q) => $q->orderBy('payment_date', 'desc'),
             'invoices.receipt',
+            'histories' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'histories.creator.profile',
         ]);
 
         return Inertia::render('Admin/Contracts/Show', [

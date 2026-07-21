@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import {
     EyeIcon,
     PencilIcon,
@@ -75,6 +76,7 @@ export default function ServiceItemsTable({
             <Table>
                 <THead>
                     <Tr hover={false}>
+                        <Th scope="col">順序</Th>
                         <Th scope="col">項目名</Th>
                         <Th scope="col">サービス</Th>
                         <Th scope="col">プラン</Th>
@@ -89,6 +91,11 @@ export default function ServiceItemsTable({
                 <TBody>
                     {serviceItems.map((item) => (
                         <Tr key={item.id}>
+                            <Td>
+                                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    {item.sort_order}
+                                </div>
+                            </Td>
                             <Td>
                                 <div className="flex items-center">
                                     <div>
@@ -119,7 +126,10 @@ export default function ServiceItemsTable({
                             <Td>{getItemTypeBadge(item.item_type)}</Td>
                             <Td>
                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                    ¥{Number(item.standard_price).toLocaleString()}
+                                    ¥
+                                    {Number(
+                                        item.standard_price,
+                                    ).toLocaleString()}
                                 </div>
                                 {item.estimated_days && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -129,32 +139,35 @@ export default function ServiceItemsTable({
                             </Td>
                             <Td>{getStatusBadge(item.status)}</Td>
                             <Td>
-                                <div className="flex items-center justify-end gap-2">
-                                    <Link
-                                        href={route(
-                                            "admin.service.item.show",
-                                            item.id,
-                                        )}
-                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                                    >
-                                        <EyeIcon className="h-5 w-5" />
-                                    </Link>
-                                    <Link
-                                        href={route(
-                                            "admin.service.item.edit",
-                                            item.id,
-                                        )}
-                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                    >
-                                        <PencilIcon className="h-5 w-5" />
-                                    </Link>
-                                    <button
-                                        onClick={() => onDelete(item)}
-                                        disabled={isDeleting === item.id}
-                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <TrashIcon className="h-5 w-5" />
-                                    </button>
+                                <div className="flex items-center justify-end gap-1">
+                                    <IconButton
+                                    variant="info-text"
+                                    icon={EyeIcon}
+                                    size="lg"
+                                    href={route(
+                                        "admin.service.item.show",
+                                        item.id,
+                                    )}
+                                    title="詳細"
+                                    />
+                                    <IconButton
+                                    variant="warning-text"
+                                    icon={PencilIcon}
+                                    size="lg"
+                                    href={route(
+                                        "admin.service.item.edit",
+                                        item.id,
+                                    )}
+                                    title="編集"
+                                    />
+                                    <IconButton
+                                    variant="danger-text"
+                                    icon={TrashIcon}
+                                    size="lg"
+                                    onClick={() => onDelete(item)}
+                                    disabled={isDeleting === item.id}
+                                    title="削除"
+                                    />
                                 </div>
                             </Td>
                         </Tr>

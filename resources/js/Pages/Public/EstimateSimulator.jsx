@@ -79,15 +79,26 @@ export default function EstimateSimulator({
         return servicePlans[selectedService.id] || [];
     };
 
-    const getAvailableAddons = () => {
+    // 追加オプション（プラン固有オプション + 全プラン共通オプション）を取得
+    // プラン固有オプション(optional)の方がそのサービスに合わせた選択肢として意味があるため、先に表示する
+    const getAvailableOptions = () => {
         if (!selectedService) return [];
         const items = serviceItems[selectedService.id] || [];
-        return items.filter((item) => item.item_type === "addon");
+        const typeOrder = { optional: 0, addon: 1 };
+        return items
+            .filter((item) => item.item_type === "optional" || item.item_type === "addon")
+            .sort((a, b) => (typeOrder[a.item_type] ?? 99) - (typeOrder[b.item_type] ?? 99));
     };
 
     // プランに含まれる項目を取得（service_plan_items 中間テーブル経由）
     const getPlanIncludedItems = (planId) => {
         return servicePlanItems[planId] || [];
+    };
+
+    // 選択中のプランに、そのオプションが既に含まれているか（service_item_id で突合）
+    const getIncludedItemIds = () => {
+        if (!selectedPlan) return new Set();
+        return new Set(getPlanIncludedItems(selectedPlan.id).map((item) => item.id));
     };
 
     // 納期を計算
@@ -96,6 +107,9 @@ export default function EstimateSimulator({
 
         // プランの納期
         if (selectedPlan) {
+            // プラン自体の標準納期（プランに含まれる項目の制作期間を織り込んだ目安日数）
+            totalDays += parseInt(selectedPlan.estimated_delivery_days) || 0;
+
             const planItems = getPlanIncludedItems(selectedPlan.id);
             planItems.forEach((item) => {
                 totalDays += parseInt(item.estimated_days) || 0;
@@ -146,6 +160,9 @@ export default function EstimateSimulator({
     // ハンドラー - 追加機能選択（複数選択可能）
     // ========================================
     const handleToggleAddon = (addon) => {
+        // プランに既に含まれているオプションは選択対象外（誤って二重計上させない）
+        if (getIncludedItemIds().has(addon.id)) return;
+
         const isSelected = selectedAddons.some((a) => a.id === addon.id);
         if (isSelected) {
             setSelectedAddons(selectedAddons.filter((a) => a.id !== addon.id));
@@ -312,7 +329,7 @@ export default function EstimateSimulator({
                                 {addonPrice > 0 && (
                                     <div className="flex justify-between text-base">
                                         <span className="text-gray-600">
-                                            追加機能:
+                                            オプション:
                                         </span>
                                         <span className="font-medium text-gray-900">
                                             {formatAmount(addonPrice)}
@@ -439,7 +456,7 @@ export default function EstimateSimulator({
                                         <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                                         <div>
                                             <span className="font-semibold text-gray-700">
-                                                追加機能:
+                                                オプション:
                                             </span>
                                             <br />
                                             <span className="text-gray-600">
@@ -783,27 +800,65 @@ export default function EstimateSimulator({
             );
         }
 
-        // ステップ3: 追加機能選択
+        // ステップ3: オプション選択
         if (currentStep === 3) {
-            const availableAddons = getAvailableAddons();
+            const availableOptions = getAvailableOptions();
+            const includedItemIds = getIncludedItemIds();
             return (
                 <div className="step-container">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
-                        追加機能を選択してください（複数選択可）
+                        オプションを選択してください（複数選択可）
                     </h2>
                     <p className="text-gray-600 text-center mb-8">
-                        必要な追加機能を選択してください（スキップも可能）
+                        必要なオプションを選択してください（スキップも可能）
                     </p>
-                    {availableAddons.length > 0 ? (
+                    {availableOptions.length > 0 ? (
                         <div className="grid md:grid-cols-2 gap-4 mb-8">
-                            {availableAddons.map((addon) => {
-                                const isSelected = selectedAddons.some(
-                                    (a) => a.id === addon.id,
+                            {availableOptions.map((option) => {
+                                const isIncluded = includedItemIds.has(
+                                    option.id,
                                 );
+                                const isSelected = selectedAddons.some(
+                                    (a) => a.id === option.id,
+                                );
+                                const typeLabel =
+                                    option.item_type === "optional"
+                                        ? "このサービス限定"
+                                        : "共通オプション";
+
+                                if (isIncluded) {
+                                    return (
+                                        <div
+                                            key={option.id}
+                                            className="relative p-6 rounded-xl border-2 border-green-200 bg-green-50 text-left"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-lg font-bold text-gray-900">
+                                                    {option.name}
+                                                </h3>
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-600 text-white whitespace-nowrap">
+                                                    <CheckIcon className="w-3.5 h-3.5" />
+                                                    含まれています
+                                                </span>
+                                            </div>
+                                            {option.description && (
+                                                <p className="text-sm text-gray-600 mb-3">
+                                                    {option.description}
+                                                </p>
+                                            )}
+                                            <p className="text-sm text-green-700 font-medium">
+                                                選択中のプランの料金に含まれているため、追加料金はかかりません
+                                            </p>
+                                        </div>
+                                    );
+                                }
+
                                 return (
                                     <button
-                                        key={addon.id}
-                                        onClick={() => handleToggleAddon(addon)}
+                                        key={option.id}
+                                        onClick={() =>
+                                            handleToggleAddon(option)
+                                        }
                                         className={`group relative p-6 rounded-xl border-2 transition-all transform hover:-translate-y-1 text-left ${
                                             isSelected
                                                 ? "border-purple-600 bg-purple-50 shadow-lg"
@@ -815,22 +870,27 @@ export default function EstimateSimulator({
                                                 <CheckIcon className="w-4 h-4 text-white" />
                                             </div>
                                         )}
-                                        <h3
-                                            className={`text-lg font-bold mb-2 ${
-                                                isSelected
-                                                    ? "text-purple-600"
-                                                    : "text-gray-900"
-                                            }`}
-                                        >
-                                            {addon.name}
-                                        </h3>
-                                        {addon.description && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3
+                                                className={`text-lg font-bold ${
+                                                    isSelected
+                                                        ? "text-purple-600"
+                                                        : "text-gray-900"
+                                                }`}
+                                            >
+                                                {option.name}
+                                            </h3>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                {typeLabel}
+                                            </span>
+                                        </div>
+                                        {option.description && (
                                             <p className="text-sm text-gray-600 mb-3">
-                                                {addon.description}
+                                                {option.description}
                                             </p>
                                         )}
                                         <p className="text-lg font-bold text-blue-600">
-                                            +{formatAmount(addon.standard_price)}
+                                            +{formatAmount(option.standard_price)}
                                         </p>
                                     </button>
                                 );
@@ -838,7 +898,7 @@ export default function EstimateSimulator({
                         </div>
                     ) : (
                         <div className="text-center py-12 text-gray-500 mb-8">
-                            <p>このサービスには追加機能がありません</p>
+                            <p>このサービスには追加オプションがありません</p>
                         </div>
                     )}
                     <div className="text-center">

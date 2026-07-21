@@ -40,6 +40,7 @@ class Contract extends Model
         'termination_reason',
         'auto_renewal',
         'renewal_notice_days',
+        'renewal_notice_sent_at',
         'billing_day',
         'payment_due_days',
         'auto_invoice_generation',
@@ -58,6 +59,7 @@ class Contract extends Model
         'terminated_at'          => 'datetime',
         'next_billing_date'      => 'datetime',
         'last_invoiced_at'       => 'datetime',
+        'renewal_notice_sent_at' => 'datetime',
         'auto_renewal'           => 'boolean',
         'auto_invoice_generation' => 'boolean',
     ];

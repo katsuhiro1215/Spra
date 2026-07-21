@@ -3,34 +3,80 @@ import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import SearchBar from "@/Components/SearchBar";
-import FilterSelect from "@/Components/FilterSelect";
+import { Card } from "@/Components/Card";
 import Pagination from "@/Components/Layout/Pagination";
-import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import PostCategoriesFilterBar from "./_components/PostCategoriesFilterBar";
 import PostCategoriesTable from "./_components/PostCategoriesTable";
 
-export default function Index({ categories, stats, allCategories, filters }) {
+const DEFAULT_TRASHED = "without";
+
+const buildFilterState = (filters) => ({
+    search: filters.search || "",
+    is_active: filters.is_active || "",
+    trashed: filters.trashed || DEFAULT_TRASHED,
+});
+
+export default function Index({ categories, stats, filters }) {
+    const [activeTab, setActiveTab] = useState(
+        filters.trashed || DEFAULT_TRASHED,
+    );
     const [showFilters, setShowFilters] = useState(false);
 
-    const { data, setData, get, processing } = useForm({
-        search: filters.search || "",
-        parent_id: filters.parent_id || "",
-        is_active: filters.is_active || "",
-        trashed: filters.trashed || "without",
-    });
+    const { data, setData, get, processing } = useForm(
+        buildFilterState(filters),
+    );
 
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (data.search !== filters.search) {
-                handleFilter();
+        setActiveTab(filters.trashed || DEFAULT_TRASHED);
+        setData(buildFilterState(filters));
+    }, [filters.trashed]);
+
+    useEffect(() => {
+        if (data.is_active) {
+            setShowFilters(true);
+        }
+    }, [data.is_active]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (data.is_active !== filters.is_active) {
+                handleSearch();
             }
-        }, 500);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [data.is_active]);
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [data.search]);
+    const handleTabChange = (tab) => {
+        router.get(
+            route("admin.website.post.category.index"),
+            {
+                search: data.search,
+                is_active: data.is_active,
+                trashed: tab,
+            },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            },
+        );
+    };
 
-    const handleFilter = () => {
+    const handleSearch = () => {
         get(route("admin.website.post.category.index"), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClearFilters = () => {
+        setData({
+            search: "",
+            is_active: "",
+            trashed: activeTab,
+        });
+        setShowFilters(false);
+        get(route("admin.website.post.category.index", { trashed: activeTab }), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -40,20 +86,12 @@ export default function Index({ categories, stats, allCategories, filters }) {
         if (confirm(`カテゴリ「${category.name}」を削除しますか？`)) {
             router.delete(
                 route("admin.website.post.category.destroy", category.id),
-                {
-                    preserveScroll: true,
-                },
+                { preserveScroll: true },
             );
         }
     };
 
     const headerActions = [
-        {
-            label: showFilters ? "フィルターを閉じる" : "フィルター",
-            icon: FunnelIcon,
-            variant: "secondary",
-            onClick: () => setShowFilters(!showFilters),
-        },
         {
             label: "カテゴリ作成",
             icon: PlusIcon,
@@ -62,26 +100,18 @@ export default function Index({ categories, stats, allCategories, filters }) {
         },
     ];
 
-    const ParentOptions = [
-        { value: "", label: "すべてのカテゴリ" },
-        { value: "null", label: "親カテゴリのみ" },
-        ...allCategories.map((cat) => ({
-            value: cat.id,
-            label: cat.name,
-        })),
+    const tabs = [
+        { key: "with", label: "すべて", count: stats?.total ?? categories.total },
+        {
+            key: "without",
+            label: "有効一覧",
+            count: stats?.active ?? categories.total,
+        },
+        { key: "only", label: "削除済み", count: stats?.trashed ?? 0 },
     ];
 
-    const StatusOptions = [
-        { value: "", label: "すべて" },
-        { value: "1", label: "有効" },
-        { value: "0", label: "無効" },
-    ];
-
-    const TrashedOptions = [
-        { value: "without", label: "削除済みを除く" },
-        { value: "with", label: "削除済みを含む" },
-        { value: "only", label: "削除済みのみ" },
-    ];
+    const hasActiveFilters = data.search || data.is_active;
+    const activeFilterCount = [data.is_active].filter(Boolean).length;
 
     return (
         <AdminAuthenticatedLayout
@@ -96,86 +126,66 @@ export default function Index({ categories, stats, allCategories, filters }) {
             <Head title="投稿カテゴリ管理" />
             <FlashMessage />
 
-            <div className="space-y-4">
+            <div className="w-full flex flex-col gap-4">
                 {/* 統計情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            全カテゴリ
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {stats?.total ?? categories.total}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                全カテゴリ
+                            </div>
                         </div>
-                        <div className="mt-1 text-3xl font-semibold text-slate-900 dark:text-slate-100">
-                            {stats.total}
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                {stats?.active ?? 0}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                有効
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            有効
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {stats?.inactive ?? 0}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                無効
+                            </div>
                         </div>
-                        <div className="mt-1 text-3xl font-semibold text-green-600 dark:text-green-400">
-                            {stats.active}
+                    </Card>
+                    <Card>
+                        <div className="p-4 text-center">
+                            <div className="text-2xl font-bold text-slate-400 dark:text-slate-500">
+                                {stats?.trashed ?? 0}
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                                削除済み
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            無効
-                        </div>
-                        <div className="mt-1 text-3xl font-semibold text-orange-600 dark:text-orange-400">
-                            {stats.inactive}
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                            削除済み
-                        </div>
-                        <div className="mt-1 text-3xl font-semibold text-slate-400 dark:text-slate-500">
-                            {stats.trashed}
-                        </div>
-                    </div>
+                    </Card>
                 </div>
 
-                {/* 検索とフィルター */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
-                    <SearchBar
-                        value={data.search}
-                        onChange={(value) => setData("search", value)}
-                        placeholder="カテゴリ名、スラッグ、説明で検索..."
-                        processing={processing}
-                    />
-
-                    {showFilters && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <FilterSelect
-                                label="親カテゴリ"
-                                value={data.parent_id}
-                                onChange={(value) => {
-                                    setData("parent_id", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={ParentOptions}
-                            />
-
-                            <FilterSelect
-                                label="ステータス"
-                                value={data.is_active}
-                                onChange={(value) => {
-                                    setData("is_active", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={StatusOptions}
-                            />
-
-                            <FilterSelect
-                                label="削除済み"
-                                value={data.trashed}
-                                onChange={(value) => {
-                                    setData("trashed", value);
-                                    setTimeout(() => handleFilter(), 0);
-                                }}
-                                options={TrashedOptions}
-                            />
-                        </div>
-                    )}
-                </div>
+                {/* タブ + 検索 + フィルター（テーブルの上に集約） */}
+                <PostCategoriesFilterBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    data={data}
+                    setData={setData}
+                    onSearch={handleSearch}
+                    searchDisabled={processing}
+                    showFilters={showFilters}
+                    onToggleFilters={() => setShowFilters(!showFilters)}
+                    activeFilterCount={activeFilterCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onClearFilters={handleClearFilters}
+                />
 
                 {/* カテゴリ一覧 */}
                 <PostCategoriesTable
@@ -184,7 +194,9 @@ export default function Index({ categories, stats, allCategories, filters }) {
                 />
 
                 {/* ページネーション */}
-                <Pagination paginationData={categories} />
+                {categories?.last_page > 1 && (
+                    <Pagination paginationData={categories} />
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

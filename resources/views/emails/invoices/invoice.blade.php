@@ -117,7 +117,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <p>{{ $invoice->user->name }} 様</p>
+            <p>{{ $invoice->user->profile?->full_name ?? $invoice->user->email }} 様</p>
             <p>いつも大変お世話になっております。{{ config('app.name') }}です。</p>
         </div>
 

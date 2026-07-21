@@ -102,7 +102,9 @@ class GenerateInvoiceJob implements ShouldQueue
       'created_by' => null,
     ]);
 
-    // 請求書メール送付ジョブをディスパッチ（自動送付）
-    SendInvoiceJob::dispatch($invoice);
+    // 請求書を送付
+    // sendInvoice()はPDF生成・メール送信・ステータス更新(sent)までを一体で行うため、
+    // 「送付済みのはずなのにdraftのまま残る」状態を防げる
+    $invoiceService->sendInvoice($invoice);
   }
 }

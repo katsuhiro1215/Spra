@@ -35,11 +35,8 @@ Route::prefix('website')->name('website.')->group(function () {
         // カテゴリ関連ルートは post/{post} などの動的ルートに
         // 食われないよう、Postリソースルートより先に登録する
         Route::resource('category', PostCategoryController::class)->parameters(['category' => 'postCategory']);
-        Route::controller(PostCategoryController::class)->name('category.')->group(function () {
-            Route::post('/category/bulk-action', 'bulkAction')->name('bulk-action');
-            Route::post('/category/update-order', 'updateOrder')->name('update-order');
-        });
         Route::resource('', PostController::class)->parameters(['' => 'post']);
+        Route::post('/{post}/restore', [PostController::class, 'restore'])->name('restore')->withTrashed();
         Route::controller(PostController::class)->group(function () {
             Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
             Route::patch('/{post}/status', 'changeStatus')->name('change-status');

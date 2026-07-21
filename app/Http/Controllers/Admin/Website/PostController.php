@@ -49,7 +49,12 @@ class PostController extends Controller
         $stats = $this->postService->getStats();
         // フィルター用データ
         $categories = PostCategory::active()->ordered()->get(['id', 'name']);
-        $authors = Admin::select('id', 'name')->get();
+        $authors = Admin::with('profile')
+            ->get()
+            ->map(fn (Admin $admin) => [
+                'id' => $admin->id,
+                'name' => $admin->profile?->full_name ?? $admin->email,
+            ]);
 
         return Inertia::render('Admin/Website/Post/Index', [
             'posts' => $posts,

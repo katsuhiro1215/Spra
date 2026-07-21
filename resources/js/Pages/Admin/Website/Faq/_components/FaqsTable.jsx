@@ -1,8 +1,8 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const FaqsTable = ({ faqs, onDelete }) => {
@@ -12,11 +12,11 @@ const FaqsTable = ({ faqs, onDelete }) => {
             <Table>
                 <THead>
                     <Tr hover={false}>
+                        <Th>表示順</Th>
                         <Th>質問</Th>
                         <Th>カテゴリ</Th>
                         <Th>よくある質問</Th>
                         <Th>ステータス</Th>
-                        <Th>表示順</Th>
                         <Th className="text-right">アクション</Th>
                     </Tr>
                 </THead>
@@ -24,6 +24,11 @@ const FaqsTable = ({ faqs, onDelete }) => {
                     {faqs.data && faqs.data.length > 0 ? (
                         faqs.data.map((faq) => (
                             <Tr key={faq.id}>
+                                <Td>
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                        {faq.sort_order || "-"}
+                                    </span>
+                                </Td>
                                 <Td>
                                     <div className="text-sm font-medium text-slate-900 dark:text-slate-100 max-w-md truncate">
                                         {faq.question}
@@ -77,40 +82,35 @@ const FaqsTable = ({ faqs, onDelete }) => {
                                             : "非公開"}
                                     </Badge>
                                 </Td>
-                                <Td>
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                                        {faq.sort_order || "-"}
-                                    </span>
-                                </Td>
                                 <Td className="text-right">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.faq.show",
                                                 faq.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="warning-text"
+                                            icon={PencilIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.faq.edit",
                                                 faq.id,
                                             )}
-                                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"
                                             title="編集"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </Link>
-                                        <button
+                                        />
+                                        <IconButton
+                                            variant="danger-text"
+                                            icon={TrashIcon}
+                                            size="lg"
                                             onClick={() => onDelete(faq)}
-                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
                                             title="削除"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                        />
                                     </div>
                                 </Td>
                             </Tr>

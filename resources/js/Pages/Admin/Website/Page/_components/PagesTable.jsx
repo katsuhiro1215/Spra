@@ -1,10 +1,21 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import Badge from "@/Components/Badge";
+import { IconButton } from "@/Components/Buttons";
 import { PencilIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
+
+const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
 
 const PagesTable = ({ pages, onDelete }) => {
     const getStatusBadge = (isPublished) => {
@@ -58,10 +69,10 @@ const PagesTable = ({ pages, onDelete }) => {
             <Table>
                 <THead>
                     <Tr>
+                        <Th>{PageConfig.pages.table.headers.sortOrder}</Th>
                         <Th>{PageConfig.pages.table.headers.page}</Th>
                         <Th>{PageConfig.pages.table.headers.template}</Th>
                         <Th>{PageConfig.pages.table.headers.status}</Th>
-                        <Th>{PageConfig.pages.table.headers.sortOrder}</Th>
                         <Th>{PageConfig.pages.table.headers.updatedAt}</Th>
                         <Th className="text-right">
                             {PageConfig.pages.table.headers.actions}
@@ -72,6 +83,7 @@ const PagesTable = ({ pages, onDelete }) => {
                     {pages.data && pages.data.length > 0 ? (
                         pages.data.map((page) => (
                             <Tr key={page.id} className="hover:bg-gray-50">
+                                <Td>{page.sort_order}</Td>
                                 <Td>
                                     <div>
                                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -84,37 +96,36 @@ const PagesTable = ({ pages, onDelete }) => {
                                 </Td>
                                 <Td>{getTemplateBadge(page.template)}</Td>
                                 <Td>{getStatusBadge(page.is_published)}</Td>
-                                <Td>{page.sort_order}</Td>
-                                <Td>{page.updated_at}</Td>
+                                <Td>{formatDateTime(page.updated_at)}</Td>
                                 <Td className="text-right">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.page.show",
                                                 page.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-900 p-1"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="warning-text"
+                                            icon={PencilIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.page.edit",
                                                 page.id,
                                             )}
-                                            className="text-indigo-600 hover:text-indigo-900 p-1"
                                             title="編集"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </Link>
-                                        <button
+                                        />
+                                        <IconButton
+                                            variant="danger-text"
+                                            icon={TrashIcon}
+                                            size="lg"
                                             onClick={() => onDelete(page)}
-                                            className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
                                             title="削除"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                        />
                                     </div>
                                 </Td>
                             </Tr>

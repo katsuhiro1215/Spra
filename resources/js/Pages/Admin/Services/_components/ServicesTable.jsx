@@ -22,10 +22,10 @@ const ServicesTable = ({ services, onDelete, isDeleting }) => {
             <Table>
                 <THead>
                     <Tr hover={false}>
+                        <Th>順序</Th>
                         <Th>サービス名</Th>
                         <Th>カテゴリ</Th>
                         <Th>ステータス</Th>
-                        <Th>表示順</Th>
                         <Th>作成日</Th>
                         <Th className="text-right">アクション</Th>
                     </Tr>
@@ -34,6 +34,11 @@ const ServicesTable = ({ services, onDelete, isDeleting }) => {
                     {services.data && services.data.length > 0 ? (
                         services.data.map((service) => (
                             <Tr key={service.id}>
+                                <Td>
+                                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                        {service.sort_order}
+                                    </div>
+                                </Td>
                                 <Td>
                                     <div className="flex items-center gap-2">
                                         <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -68,16 +73,14 @@ const ServicesTable = ({ services, onDelete, isDeleting }) => {
                                             }
                                         </Badge>
                                         {!service.is_displayed && (
-                                            <Badge variant="secondary" size="xs">
+                                            <Badge
+                                                variant="secondary"
+                                                size="xs"
+                                            >
                                                 非公開
                                             </Badge>
                                         )}
                                     </div>
-                                </Td>
-                                <Td>
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                                        {service.sort_order}
-                                    </span>
                                 </Td>
                                 <Td>
                                     <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -108,9 +111,7 @@ const ServicesTable = ({ services, onDelete, isDeleting }) => {
                                         </Link>
                                         <button
                                             onClick={() => onDelete(service)}
-                                            disabled={
-                                                isDeleting === service.id
-                                            }
+                                            disabled={isDeleting === service.id}
                                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="削除"
                                         >

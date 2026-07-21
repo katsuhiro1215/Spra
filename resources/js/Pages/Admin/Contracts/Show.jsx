@@ -35,6 +35,7 @@ import ContractClientInfo from "./_components/ContractClientInfo";
 import BillingInfo from "./_components/BillingInfo";
 import ContractInvoices from "./_components/ContractInvoices";
 import ContractReceipts from "./_components/ContractReceipts";
+import ContractHistories from "./_components/ContractHistories";
 
 export default function Show({ contract }) {
     const { flash } = usePage().props;
@@ -76,6 +77,7 @@ export default function Show({ contract }) {
         { id: "quote", label: "見積書", icon: "📑" },
         { id: "invoices", label: "請求書", icon: "💵" },
         { id: "receipts", label: "領収書", icon: "🧾" },
+        { id: "histories", label: "契約履歴", icon: "🕒" },
     ];
 
     const STATUSES = {
@@ -687,6 +689,9 @@ export default function Show({ contract }) {
                         )}
                         {activeTab === "receipts" && (
                             <ContractReceipts contract={contract} />
+                        )}
+                        {activeTab === "histories" && (
+                            <ContractHistories contract={contract} />
                         )}
                     </CardBody>
                 </Card>

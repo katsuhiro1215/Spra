@@ -23,13 +23,14 @@
 | phpMyAdmin | 起動している | 本番では起動しない、または外部公開しない（SSHポートフォワード経由のみ） |
 | `.env` | `APP_ENV=local`, `APP_DEBUG=true` | `APP_ENV=production`, `APP_DEBUG=false` |
 | SSL/リバースプロキシ | なし（localhost） | nginx（またはCaddy）コンテナ + Let's Encryptで HTTPS終端 |
-| キューワーカー | 手動で`sail artisan queue:work` | 常駐コンテナ（`restart: always`）として稼働 |
+| キュー | Redis導入済み（`compose.yaml`の`redis`サービス）。ワーカーは手動で`sail artisan horizon` | Horizonを常駐コンテナ（`restart: always`）として稼働。監視は`/admin/horizon`（owner/super_admin限定） |
 | スケジューラ | 未実行 | `schedule:run`を毎分実行するcron（ホスト側 or 専用コンテナ） |
+| バッチ失敗通知 | `MAIL_ADMIN_ADDRESS`宛にメール送信（`routes/console.php`で全コマンドに設定済み） | 本番でも同様。実際に届く宛先を`.env`の`MAIL_ADMIN_ADDRESS`に設定すること |
 
 ## 🔧 本番投入までに用意すべきもの（未着手・今後作成）
 
 - [ ] 本番用 `Dockerfile.prod`（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）
-- [ ] 本番用 `compose.prod.yaml`（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、キューワーカー/スケジューラ用サービス追加）
+- [ ] 本番用 `compose.prod.yaml`（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon/スケジューラ用サービス追加。Redisは`compose.yaml`に追加済みのものを流用可）
 - [ ] Lightsailインスタンスの作成・初期設定（後述）
 - [ ] バックアップ方式の決定（DBダンプの定期取得・保存先）
 

@@ -6,14 +6,15 @@ use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Illuminate\Console\Command;
 
-class SendPendingInvoices extends Command
+class SendOverdueInvoiceReminders extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'invoices:send-pending
+    protected $signature = 'invoices:send-overdue-reminders
+                            {--interval-days=3 : 前回の督促から最短で何日空けるか}
                             {--dry-run : ドライランモード（実際には送信しない）}';
 
     /**
@@ -21,7 +22,7 @@ class SendPendingInvoices extends Command
      *
      * @var string
      */
-    protected $description = 'ドラフト状態の請求書を送信する';
+    protected $description = '支払期限を過ぎた請求書に督促（リマインダー）メールを送信する';
 
     /**
      * Execute the console command.
@@ -29,24 +30,26 @@ class SendPendingInvoices extends Command
     public function handle(InvoiceService $invoiceService)
     {
         $isDryRun = $this->option('dry-run');
+        $intervalDays = (int) $this->option('interval-days');
 
-        $this->info('未送信請求書の送信を開始します...');
+        $this->info('延滞請求書の督促送信を開始します...');
         if ($isDryRun) {
             $this->warn('[ドライランモード] 実際には送信しません');
         }
 
-        // ドラフト状態の請求書を取得
-        $invoices = Invoice::where('status', 'draft')
-            ->whereNotNull('pdf_path') // PDFが生成済みのもののみ
-            ->with(['user.profile', 'company', 'contract'])
-            ->get();
+        // 支払期限を過ぎている、かつ前回督促(または初回送付)から一定期間空いているものが対象
+        $invoices = $invoiceService->getOverdueInvoices()
+            ->filter(function (Invoice $invoice) use ($intervalDays) {
+                $lastContact = $invoice->last_resent_at ?? $invoice->sent_at;
+                return !$lastContact || $lastContact->lt(now()->subDays($intervalDays));
+            });
 
         if ($invoices->isEmpty()) {
-            $this->info('送信対象の請求書がありません。');
+            $this->info('督促対象の請求書がありません。');
             return Command::SUCCESS;
         }
 
-        $this->info("送信対象: {$invoices->count()}件の請求書");
+        $this->info("督促対象: {$invoices->count()}件の請求書");
         $this->newLine();
 
         $progressBar = $this->output->createProgressBar($invoices->count());
@@ -59,12 +62,12 @@ class SendPendingInvoices extends Command
         foreach ($invoices as $invoice) {
             try {
                 if (!$isDryRun) {
-                    $invoiceService->sendInvoice($invoice);
+                    $invoiceService->resendInvoice($invoice);
                     $this->newLine();
-                    $this->line("✓ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 送信完了");
+                    $this->line("✓ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 督促送信完了");
                 } else {
                     $this->newLine();
-                    $this->line("○ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 送信対象 (ドライラン)");
+                    $this->line("○ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 督促対象 (ドライラン)");
                 }
                 $successCount++;
             } catch (\Exception $e) {

@@ -131,7 +131,9 @@ class InvoiceService
             ]);
 
             // バッチ生成→自動送信まで一気通貫にする
-            \App\Jobs\SendInvoiceJob::dispatch($invoice);
+            // sendInvoice()はPDF生成・メール送信・ステータス更新(sent)までを一体で行うため、
+            // 「送付済みのはずなのにdraftのまま残る」状態を防げる
+            $this->sendInvoice($invoice);
 
             return $invoice;
         });
@@ -184,24 +186,49 @@ class InvoiceService
      */
     public function sendInvoice(Invoice $invoice): bool
     {
-        return DB::transaction(function () use ($invoice) {
-            // PDFがまだ生成されていなければ生成
-            if (!$invoice->pdf_path) {
-                $this->generateAndSavePdf($invoice);
-                $invoice->refresh();
-            }
+        try {
+            return DB::transaction(function () use ($invoice) {
+                // PDFがまだ生成されていなければ生成
+                if (!$invoice->pdf_path) {
+                    $this->generateAndSavePdf($invoice);
+                    $invoice->refresh();
+                }
 
-            // メール送信
-            Mail::to($invoice->user->email)->send(new InvoiceMail($invoice));
+                // メール送信
+                Mail::to($invoice->user->email)->send(new InvoiceMail($invoice));
 
-            // ステータスを送付済みに更新
-            $this->invoiceRepository->update($invoice, [
-                'status' => 'sent',
-                'sent_at' => now(),
+                // ステータスを送付済みに更新
+                $this->invoiceRepository->update($invoice, [
+                    'status' => 'sent',
+                    'sent_at' => now(),
+                ]);
+
+                // 契約履歴に送付記録を残す
+                $invoice->contract->histories()->create([
+                    'action' => 'invoice_sent',
+                    'recipient_email' => $invoice->user->email,
+                    'subject' => "請求書送付: {$invoice->invoice_number}",
+                    'message' => "請求書が送付されました: {$invoice->invoice_number}",
+                    'status' => 'sent',
+                    'sent_at' => now(),
+                    'created_by' => null,
+                ]);
+
+                return true;
+            });
+        } catch (\Exception $e) {
+            // トランザクション外で記録する(ロールバックに巻き込まれて消えないようにするため)
+            $invoice->contract->histories()->create([
+                'action' => 'invoice_send_failed',
+                'recipient_email' => $invoice->user?->email ?? 'unknown',
+                'subject' => "請求書送付失敗: {$invoice->invoice_number}",
+                'message' => $e->getMessage(),
+                'status' => 'failed',
+                'created_by' => null,
             ]);
 
-            return true;
-        });
+            throw $e;
+        }
     }
 
     /**
@@ -209,18 +236,43 @@ class InvoiceService
      */
     public function resendInvoice(Invoice $invoice): bool
     {
-        return DB::transaction(function () use ($invoice) {
-            // メール再送信
-            Mail::to($invoice->user->email)->send(new InvoiceReminderMail($invoice));
+        try {
+            return DB::transaction(function () use ($invoice) {
+                // メール再送信
+                Mail::to($invoice->user->email)->send(new InvoiceReminderMail($invoice));
 
-            // 再送カウントと最終再送日時を更新
-            $this->invoiceRepository->update($invoice, [
-                'resend_count' => $invoice->resend_count + 1,
-                'last_resent_at' => now(),
+                // 再送カウントと最終再送日時を更新
+                $this->invoiceRepository->update($invoice, [
+                    'resend_count' => $invoice->resend_count + 1,
+                    'last_resent_at' => now(),
+                ]);
+
+                // 契約履歴に督促記録を残す
+                $invoice->contract->histories()->create([
+                    'action' => 'invoice_reminder_sent',
+                    'recipient_email' => $invoice->user->email,
+                    'subject' => "請求書督促: {$invoice->invoice_number}",
+                    'message' => "支払期限を過ぎた請求書の督促メールを送付しました: {$invoice->invoice_number}",
+                    'status' => 'sent',
+                    'sent_at' => now(),
+                    'created_by' => null,
+                ]);
+
+                return true;
+            });
+        } catch (\Exception $e) {
+            // トランザクション外で記録する(ロールバックに巻き込まれて消えないようにするため)
+            $invoice->contract->histories()->create([
+                'action' => 'invoice_reminder_failed',
+                'recipient_email' => $invoice->user?->email ?? 'unknown',
+                'subject' => "請求書督促失敗: {$invoice->invoice_number}",
+                'message' => $e->getMessage(),
+                'status' => 'failed',
+                'created_by' => null,
             ]);
 
-            return true;
-        });
+            throw $e;
+        }
     }
 
     /**
