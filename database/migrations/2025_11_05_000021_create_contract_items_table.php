@@ -20,9 +20,10 @@ return new class extends Migration
             $table->foreign('contract_version_id')->references('id')->on('contract_versions')->cascadeOnDelete();
 
             // サービス参照（スナップショット）
-            $table->ulid('service_id');
+            // ServicePlan選択時のプラン割引行など、特定のServiceItemに紐付かない明細行も保存できるようnullable
+            $table->ulid('service_id')->nullable();
             $table->foreign('service_id')->references('id')->on('services')->onDelete('restrict');
-            $table->ulid('service_item_id');
+            $table->ulid('service_item_id')->nullable();
             $table->foreign('service_item_id')->references('id')->on('service_items')->onDelete('restrict');
 
             // 明細情報（QuoteItemからコピー）

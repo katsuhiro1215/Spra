@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('title', 200)->comment('ページタイトル');
             $table->string('slug', 150)->unique()->comment('URLスラッグ');
             $table->string('template', 100)->default('default')->comment('使用テンプレート');
-            $table->json('content')->nullable()->comment('ページコンテンツ(ブロックエディタ)');
             $table->string('meta_title', 200)->nullable()->comment('メタタイトル');
             $table->text('meta_description')->nullable()->comment('メタディスクリプション');
             $table->boolean('is_published')->default(false)->comment('公開状態');

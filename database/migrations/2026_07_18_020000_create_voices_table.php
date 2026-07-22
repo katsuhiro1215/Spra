@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('voices', function (Blueprint $table) {
             $table->ulid('id')->primary();
 
-            $table->foreignUlid('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('声を寄せたクライアント（登録アカウント）');
+            $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('声を寄せたクライアント（登録アカウント）');
             $table->foreignUlid('service_id')->nullable()->constrained('services')->nullOnDelete()->comment('対象サービス');
             $table->foreignUlid('avatar_id')->nullable()->constrained('media')->nullOnDelete()->comment('表示用アバター画像');
 

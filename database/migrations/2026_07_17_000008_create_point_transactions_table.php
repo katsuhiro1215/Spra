@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
 
             $table->integer('points')->comment('符号あり。付与は正、将来のポイント利用は負');
-            $table->enum('type', ['purchase', 'bonus', 'referral', 'adjustment']);
+            $table->enum('type', ['purchase', 'bonus', 'referral', 'adjustment', 'redemption']);
 
             $table->ulid('point_reward_id')->nullable();
             $table->foreign('point_reward_id')->references('id')->on('point_rewards')->onDelete('set null');
@@ -28,6 +28,9 @@ return new class extends Migration
 
             $table->ulid('referral_id')->nullable();
             $table->foreign('referral_id')->references('id')->on('referrals')->onDelete('set null');
+
+            $table->ulid('redemption_id')->nullable();
+            $table->foreign('redemption_id')->references('id')->on('point_redemptions')->onDelete('set null');
 
             $table->string('description');
             $table->integer('balance_after')->comment('このトランザクション後の残高スナップショット');

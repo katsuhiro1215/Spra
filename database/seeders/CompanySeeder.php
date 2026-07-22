@@ -4,8 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Address;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class CompanySeeder extends Seeder
 {
@@ -18,6 +21,7 @@ class CompanySeeder extends Seeder
             [
                 // 実際のデータ
                 [
+                    'id' => (string) Str::ulid(),
                     'media_id' => null,
                     'name' => 'サンサン農園',
                     'company_type' => 'corporate',
@@ -39,11 +43,11 @@ class CompanySeeder extends Seeder
                     'established_date' => null,
                     'status' => true,
                     'notes' => null,
-                    'sort_order' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
+                    'id' => (string) Str::ulid(),
                     'media_id' => null,
                     'name' => 'ピラティス整体・治療院WellSIA',
                     'company_type' => 'corporate',
@@ -65,11 +69,11 @@ class CompanySeeder extends Seeder
                     'established_date' => '2023-03-14',
                     'status' => true,
                     'notes' => null,
-                    'sort_order' => 2,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
+                    'id' => (string) Str::ulid(),
                     'media_id' => null,
                     'name' => 'ケンコー社',
                     'company_type' => 'corporate',
@@ -91,11 +95,11 @@ class CompanySeeder extends Seeder
                     'established_date' => '1979-08-01',
                     'status' => true,
                     'notes' => null,
-                    'sort_order' => 3,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
+                    'id' => (string) Str::ulid(),
                     'media_id' => null,
                     'name' => 'エフォート体操クラブ',
                     'company_type' => 'individual',
@@ -117,13 +121,43 @@ class CompanySeeder extends Seeder
                     'established_date' => '2023-10-01',
                     'status' => true,
                     'notes' => null,
-                    'sort_order' => 4,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
             ]
         );
 
+
+        // 実際のデータの会社（ピラティス整体・治療院WellSIA）に、動作確認用の
+        // ダミーUser・会社住所（is_default）を紐付けておく。見積〜契約〜請求の
+        // 一連のテストや、Analytics（都道府県別契約分布）の動作確認にそのまま使える。
+        $wellsia = Company::where('email', 'wellsia.pi@gmail.com')->first();
+
+        if ($wellsia) {
+            $wellsiaUser = User::updateOrCreate(
+                ['email' => 'wellsia-test@example.com'],
+                ['password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()]
+            );
+
+            DB::table('company_user')->updateOrInsert(
+                ['user_id' => $wellsiaUser->id, 'company_id' => $wellsia->id],
+                [
+                    'id' => (string) Str::ulid(),
+                    'role' => 'owner',
+                    'is_primary' => true,
+                    'joined_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            if (!$wellsia->addresses()->where('type', 'office')->exists()) {
+                Address::factory()->forCompany($wellsia)->office()->default()->create([
+                    'label' => '本社',
+                    'prefecture' => '大阪府',
+                ]);
+            }
+        }
 
         $this->command->info('Creating companies with addresses...');
 

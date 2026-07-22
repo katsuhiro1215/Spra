@@ -31,10 +31,15 @@ return new class extends Migration
             // ServicePlan参照（契約特典の算出に使用）
             $table->ulid('service_plan_id')->nullable()->comment('この契約の元になったServicePlan（契約特典の算出に使用）');
             $table->foreign('service_plan_id')->references('id')->on('service_plans')->onDelete('set null');
+            $table->ulid('campaign_id')->nullable()->comment('見積もりから引き継いだ適用キャンペーン');
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('set null');
 
             // クライアント情報
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict');
+            $table->uuid('billing_user_id')->nullable()
+                ->comment('請求書・領収書の送付先ユーザー（未設定時はuser_idにフォールバック）');
+            $table->foreign('billing_user_id')->references('id')->on('users')->onDelete('set null');
             $table->ulid('company_id')->nullable();
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
 
@@ -81,6 +86,7 @@ return new class extends Migration
             // 自動更新設定
             $table->boolean('auto_renewal')->default(false)->comment('自動更新フラグ');
             $table->integer('renewal_notice_days')->default(30)->comment('更新通知日数');
+            $table->timestamp('renewal_notice_sent_at')->nullable()->comment('自動更新の事前通知を送付した日時');
 
             // 管理情報
             $table->uuid('created_by');

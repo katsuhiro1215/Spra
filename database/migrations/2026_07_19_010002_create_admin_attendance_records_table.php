@@ -14,7 +14,9 @@ return new class extends Migration
             $table->date('work_date')->comment('対象勤務日');
             $table->dateTime('clocked_in_at')->nullable()->comment('出勤打刻時刻');
             $table->dateTime('clocked_out_at')->nullable()->comment('退勤打刻時刻');
-            $table->enum('status', ['working', 'finished'])->default('working')->comment('working=勤務中, finished=退勤済み');
+            $table->dateTime('break_started_at')->nullable()->comment('現在進行中の休憩の開始時刻（休憩中でなければnull）');
+            $table->unsignedInteger('break_minutes')->default(0)->comment('その日の休憩合計時間（分）');
+            $table->enum('status', ['working', 'on_break', 'finished'])->default('working')->comment('working=勤務中, on_break=休憩中, finished=退勤済み');
             $table->text('notes')->nullable()->comment('手動修正時の備考');
             // 監査用カラム
             $table->foreignUuid('created_by')->nullable()->constrained('admins')->nullOnDelete()->comment('作成者');

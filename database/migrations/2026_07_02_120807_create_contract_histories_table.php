@@ -23,7 +23,9 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             // アクションタイプ
-            $table->enum('action', ['created', 'sent', 'signed', 'archived', 'cancelled', 'note_added']);
+            // ENUMだと以後action値が随時追加される(signature_notification/invoice_sent/reminder_sent等)
+            // 前提に対応できないため、可変長文字列にしている
+            $table->string('action', 50);
 
             // メール関連
             $table->string('recipient_email')->nullable();

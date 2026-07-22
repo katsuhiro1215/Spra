@@ -20,6 +20,11 @@ return new class extends Migration
             $table->integer('points_balance')->default(0)->comment('現在の利用可能ポイント残高');
             $table->integer('lifetime_points')->default(0)->comment('累計獲得ポイント（参考値）');
 
+            $table->ulid('current_rank_id')->nullable();
+            $table->foreign('current_rank_id')->references('id')->on('membership_ranks')->onDelete('set null');
+            $table->decimal('annual_usage_amount', 12, 2)->default(0)->comment('直近バッチで計算した当年（暦年）の利用額');
+            $table->dateTime('rank_calculated_at')->nullable();
+
             $table->timestamps();
         });
     }
