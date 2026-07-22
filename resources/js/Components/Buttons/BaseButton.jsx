@@ -110,6 +110,50 @@ export default function BaseButton({
                 focus:ring-slate-500
                 dark:text-slate-300 dark:hover:bg-slate-800
             `,
+            // outline
+            "outline-primary": `
+                bg-transparent text-slate-700
+                border border-slate-300
+                hover:bg-slate-50
+                focus:ring-indigo-500
+                dark:text-slate-100 dark:border-slate-600 dark:hover:bg-slate-700
+            `,
+            "outline-secondary": `
+                bg-transparent text-slate-700
+                border border-slate-300
+                hover:bg-slate-50
+                focus:ring-indigo-500
+                dark:text-slate-100 dark:border-slate-600 dark:hover:bg-slate-700
+            `,
+            "outline-danger": `
+                bg-transparent text-red-600
+                border border-red-600
+                hover:bg-red-50
+                focus:ring-red-500
+                dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20
+            `,
+            "outline-success": `
+                bg-transparent text-green-600
+                border border-green-600
+                hover:bg-green-50
+                focus:ring-green-500
+                dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20
+            `,
+            "outline-warning": `
+                bg-transparent text-yellow-600
+                border border-yellow-600
+                hover:bg-yellow-50
+                focus:ring-yellow-500
+                dark:text-yellow-400 dark:border-yellow-400 dark:hover:bg-yellow-900/20
+            `,
+            "outline-info": `
+                bg-transparent text-cyan-600
+                border border-cyan-600
+                hover:bg-cyan-50
+                focus:ring-cyan-500
+                dark:text-cyan-400 dark:border-cyan-400 dark:hover:bg-cyan-900/20
+            `,
+            // text variants
             "info-text": `
                 bg-transparent text-cyan-600
                 hover:text-cyan-900 hover:bg-cyan-50

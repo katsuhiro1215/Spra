@@ -232,6 +232,16 @@ export const PageConfig = {
     },
 
     /**
+     * メディア設定
+     */
+    mediaSettings: {
+        title: "⚙️ メディア設定",
+        description: "アップロード制限・自動圧縮・バリアント自動生成のルールを設定します",
+        documentTitle: "メディア設定",
+        breadcrumbs: ["ホーム", "メディア管理", "メディア設定"],
+    },
+
+    /**
      * サービスカテゴリ管理
      */
     serviceCategories: {

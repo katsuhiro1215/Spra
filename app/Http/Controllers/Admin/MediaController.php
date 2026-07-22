@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Media\StoreMediaRequest;
 use App\Http\Requests\Media\UpdateMediaRequest;
 use App\Models\Media;
+use App\Models\MediaVariant;
 use App\Repositories\MediaRepository;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
@@ -188,6 +189,22 @@ class MediaController extends Controller
             return back()->with('success', __('messages.created', ['attribute' => 'カスタムバリアント']));
         } catch (\Exception $e) {
             return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'バリアントの作成', 'message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * バリアント削除
+     */
+    public function destroyVariant(Media $media, MediaVariant $variant)
+    {
+        abort_unless($variant->media_id === $media->id, 404);
+
+        try {
+            $this->mediaService->deleteVariant($variant);
+
+            return back()->with('success', __('messages.deleted', ['attribute' => 'バリアント']));
+        } catch (\Exception $e) {
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'バリアントの削除', 'message' => $e->getMessage()]));
         }
     }
 }

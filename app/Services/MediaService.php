@@ -88,6 +88,7 @@ class MediaService
 
             // 2. バリデーション
             $this->validateFileSize($file, $settings);
+            $this->validateTotalStorage($file, $settings);
 
             // 3. 重複チェック（ハッシュ）
             $hash = hash_file('sha256', $file->getRealPath());
@@ -248,6 +249,18 @@ class MediaService
     }
 
     /**
+     * バリアント削除（ファイルも削除）
+     */
+    public function deleteVariant(MediaVariant $variant): bool
+    {
+        if (Storage::disk('public')->exists($variant->path)) {
+            Storage::disk('public')->delete($variant->path);
+        }
+
+        return $this->variantRepository->delete($variant);
+    }
+
+    /**
      * メディア削除（ファイルも削除）
      */
     public function deleteMedia(Media $media): bool
@@ -289,6 +302,22 @@ class MediaService
             throw new \Exception(sprintf(
                 'ファイルサイズが上限（%dMB）を超えています。',
                 $settings->max_file_size_kb / 1024
+            ));
+        }
+    }
+
+    /**
+     * 総容量制限バリデーション（既存メディアの合計 + アップロード対象が上限を超えないか）
+     */
+    private function validateTotalStorage(UploadedFile $file, $settings): void
+    {
+        $currentTotalMb = $this->mediaRepository->getTotalSize() / 1024 / 1024;
+        $fileMb = $file->getSize() / 1024 / 1024;
+
+        if ($currentTotalMb + $fileMb > $settings->max_total_storage_mb) {
+            throw new \Exception(sprintf(
+                'メディアの総容量上限（%dMB）に達するため、これ以上アップロードできません。',
+                $settings->max_total_storage_mb
             ));
         }
     }

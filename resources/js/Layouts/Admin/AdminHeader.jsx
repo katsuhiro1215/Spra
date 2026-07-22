@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { usePage, Link, router } from "@inertiajs/react";
 // Components
+import { PrimaryButton } from "@/Components/Buttons";
 import Dropdown from "@/Components/Layout/Dropdown";
 // Icons
 import {
@@ -203,6 +204,10 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                     />
                                 </svg>
                             </button>
+                            {/* 公開サイトリンク */}
+                            <PrimaryButton variant="outline-info" href={route("home")} target="_blank">
+                                公開サイトへ
+                            </PrimaryButton>
                         </div>
 
                         {/* 全体検索バー */}

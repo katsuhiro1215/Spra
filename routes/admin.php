@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\User\UserAddressController;
 use App\Http\Controllers\Admin\Company\CompanyController;
 use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\MediaSettingController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -146,8 +147,13 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      **************************************/
     // メディア管理
     Route::resource('media', MediaController::class);
-    Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
-    Route::delete('/media/bulk-destroy', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
+    Route::post('/media/{media}/variant', [MediaController::class, 'createVariant'])->name('media.variant.store');
+    Route::delete('/media/{media}/variant/{variant}', [MediaController::class, 'destroyVariant'])->name('media.variant.destroy');
+    // メディア設定（グローバル1件のみのため単数リソース）
+    Route::controller(MediaSettingController::class)->prefix('media-settings')->name('mediaSettings.')->group(function () {
+        Route::get('/', 'edit')->name('edit');
+        Route::put('/', 'update')->name('update');
+    });
 
     /**************************************
      * サービス
