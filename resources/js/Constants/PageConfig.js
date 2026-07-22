@@ -232,6 +232,16 @@ export const PageConfig = {
     },
 
     /**
+     * メディア設定
+     */
+    mediaSettings: {
+        title: "⚙️ メディア設定",
+        description: "アップロード制限・自動圧縮・バリアント自動生成のルールを設定します",
+        documentTitle: "メディア設定",
+        breadcrumbs: ["ホーム", "メディア管理", "メディア設定"],
+    },
+
+    /**
      * サービスカテゴリ管理
      */
     serviceCategories: {
@@ -1299,6 +1309,16 @@ export const PageConfig = {
             ...CommonUIConstants.actions,
         },
         pages: createPageTemplates("勤怠"),
+    },
+
+    /**
+     * 給与計算
+     */
+    payroll: {
+        title: "💰 給与計算",
+        description: "勤怠実績から月次の支給額を概算します（税・社会保険料は未対応）",
+        documentTitle: "給与計算",
+        breadcrumbs: ["ホーム", "給与計算"],
     },
 
     /**

@@ -1,17 +1,36 @@
-import { Head, Link, router } from "@inertiajs/react";
+import { useState } from "react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import { SecondaryButton } from "@/Components/Buttons";
+import { SecondaryButton, PrimaryButton } from "@/Components/Buttons";
+import Modal from "@/Components/Layout/Modal";
+import { FormGroup, TextInput } from "@/Components/Forms";
 import {
     PencilIcon,
     TrashIcon,
     ArrowDownTrayIcon,
     ArrowsPointingOutIcon,
     ClockIcon,
+    Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
+const VARIANT_SIZE_LABELS = {
+    large: "Large",
+    medium: "Medium",
+    small: "Small",
+};
+
 export default function Show({ media }) {
+    const [showVariantModal, setShowVariantModal] = useState(false);
+
+    const variantForm = useForm({
+        custom_name: "",
+        target_width: "",
+        target_height: "",
+        quality: "",
+    });
+
     const handleDelete = () => {
         if (
             confirm(
@@ -19,6 +38,28 @@ export default function Show({ media }) {
             )
         ) {
             router.delete(route("admin.media.destroy", media.id));
+        }
+    };
+
+    const handleCreateVariant = (e) => {
+        e.preventDefault();
+        variantForm.post(route("admin.media.variant.store", media.id), {
+            onSuccess: () => {
+                setShowVariantModal(false);
+                variantForm.reset();
+            },
+        });
+    };
+
+    const handleDeleteVariant = (variant) => {
+        const label =
+            variant.size === "custom"
+                ? variant.custom_name
+                : VARIANT_SIZE_LABELS[variant.size] || variant.size;
+        if (confirm(`バリアント「${label}」を削除してもよろしいですか？`)) {
+            router.delete(
+                route("admin.media.variant.destroy", [media.id, variant.id]),
+            );
         }
     };
 
@@ -129,44 +170,96 @@ export default function Show({ media }) {
                         </div>
                     </div>
 
-                    {/* バリアント（TODO: 実装予定） */}
+                    {/* バリアント */}
                     <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                                 バリアント
                             </h3>
-                            <SecondaryButton
-                                onClick={() =>
-                                    alert(
-                                        "バリアント追加機能は近日実装予定です",
-                                    )
-                                }
-                            >
-                                バリアントを追加
-                            </SecondaryButton>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href={route("admin.mediaSettings.edit")}
+                                    className="inline-flex items-center px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                >
+                                    <Cog6ToothIcon className="h-4 w-4 mr-1" />
+                                    自動生成の設定
+                                </Link>
+                                <SecondaryButton
+                                    onClick={() => setShowVariantModal(true)}
+                                >
+                                    カスタムバリアントを追加
+                                </SecondaryButton>
+                            </div>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            異なるサイズや形式のバリアント画像を生成・管理できます（近日実装予定）
-                        </p>
-                    </div>
 
-                    {/* 設定（TODO: 実装予定） */}
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                                メディア設定
-                            </h3>
-                            <SecondaryButton
-                                onClick={() =>
-                                    alert("設定追加機能は近日実装予定です")
-                                }
-                            >
-                                設定を追加
-                            </SecondaryButton>
-                        </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            このメディアに関連する設定を管理できます（近日実装予定）
-                        </p>
+                        {media.is_processing && (
+                            <p className="text-sm text-amber-600 dark:text-amber-400 mb-3">
+                                Large/Medium/Smallのバリアントを生成中です。しばらくしてから再読み込みしてください。
+                            </p>
+                        )}
+
+                        {media.variants && media.variants.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {media.variants.map((variant) => (
+                                    <div
+                                        key={variant.id}
+                                        className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
+                                    >
+                                        <div className="bg-slate-50 dark:bg-slate-800 aspect-video flex items-center justify-center">
+                                            <img
+                                                src={variant.url}
+                                                alt={
+                                                    variant.custom_name ||
+                                                    variant.size
+                                                }
+                                                className="max-w-full max-h-full object-contain"
+                                            />
+                                        </div>
+                                        <div className="p-3">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-medium text-slate-900 dark:text-white">
+                                                    {variant.size === "custom"
+                                                        ? variant.custom_name
+                                                        : VARIANT_SIZE_LABELS[
+                                                              variant.size
+                                                          ] || variant.size}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteVariant(
+                                                            variant,
+                                                        )
+                                                    }
+                                                    className="text-red-600 dark:text-red-400 hover:text-red-800"
+                                                    title="削除"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                {variant.width} ×{" "}
+                                                {variant.height} px
+                                            </p>
+                                            <a
+                                                href={variant.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                                            >
+                                                開く
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            !media.is_processing && (
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    バリアントはまだありません。
+                                </p>
+                            )
+                        )}
                     </div>
                 </div>
 
@@ -358,6 +451,111 @@ export default function Show({ media }) {
                     </div>
                 </div>
             </div>
+
+            {/* カスタムバリアント追加モーダル */}
+            <Modal show={showVariantModal} onClose={() => setShowVariantModal(false)}>
+                <form onSubmit={handleCreateVariant} className="p-6 space-y-4">
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                        カスタムバリアントを追加
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        幅・高さを指定してオリジナル画像から新しいバリアントを生成します（トリミングは現在未対応です）。
+                    </p>
+
+                    <FormGroup
+                        label="識別名"
+                        htmlFor="custom_name"
+                        required
+                        error={variantForm.errors.custom_name}
+                    >
+                        <TextInput
+                            id="custom_name"
+                            type="text"
+                            value={variantForm.data.custom_name}
+                            onChange={(e) =>
+                                variantForm.setData(
+                                    "custom_name",
+                                    e.target.value,
+                                )
+                            }
+                            placeholder="例: banner, thumbnail-square"
+                        />
+                    </FormGroup>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormGroup
+                            label="幅（px）"
+                            htmlFor="target_width"
+                            error={variantForm.errors.target_width}
+                        >
+                            <TextInput
+                                id="target_width"
+                                type="number"
+                                min="1"
+                                max="5000"
+                                value={variantForm.data.target_width}
+                                onChange={(e) =>
+                                    variantForm.setData(
+                                        "target_width",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                        </FormGroup>
+                        <FormGroup
+                            label="高さ（px）"
+                            htmlFor="target_height"
+                            error={variantForm.errors.target_height}
+                        >
+                            <TextInput
+                                id="target_height"
+                                type="number"
+                                min="1"
+                                max="5000"
+                                value={variantForm.data.target_height}
+                                onChange={(e) =>
+                                    variantForm.setData(
+                                        "target_height",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                        </FormGroup>
+                    </div>
+
+                    <FormGroup
+                        label="品質（1-100、未指定なら全体設定に従う）"
+                        htmlFor="quality"
+                        error={variantForm.errors.quality}
+                    >
+                        <TextInput
+                            id="quality"
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={variantForm.data.quality}
+                            onChange={(e) =>
+                                variantForm.setData("quality", e.target.value)
+                            }
+                        />
+                    </FormGroup>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <SecondaryButton
+                            type="button"
+                            onClick={() => setShowVariantModal(false)}
+                        >
+                            キャンセル
+                        </SecondaryButton>
+                        <PrimaryButton
+                            type="submit"
+                            disabled={variantForm.processing}
+                        >
+                            {variantForm.processing ? "生成中..." : "生成する"}
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </Modal>
         </AdminAuthenticatedLayout>
     );
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Contract;
 
+use App\Exports\ContractExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContractRequest;
 use App\Jobs\ContractMailJob;
@@ -20,6 +21,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ContractController extends Controller
 {
@@ -41,6 +43,20 @@ class ContractController extends Controller
             'stats'     => $stats,
             'statuses'  => \App\Models\Contract::STATUSES,
         ]);
+    }
+
+    /**
+     * 契約一覧をエクスポート（一覧画面と同じ絞り込み条件を使用）
+     */
+    public function export(Request $request)
+    {
+        $filters = $request->only(['search', 'status', 'type', 'user_id', 'company_id']);
+        $format = $request->input('format') === 'csv' ? 'csv' : 'xlsx';
+
+        $filename = 'contracts_' . now()->format('Y_m_d_H_i_s') . '.' . $format;
+        $writerType = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
+
+        return Excel::download(new ContractExport($filters), $filename, $writerType);
     }
 
     public function show(Contract $contract): Response

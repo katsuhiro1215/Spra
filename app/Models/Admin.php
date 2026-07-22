@@ -123,6 +123,11 @@ class Admin extends Authenticatable
         return $this->morphOne(Profile::class, 'profilable');
     }
 
+    public function employment(): HasOne
+    {
+        return $this->hasOne(AdminEmployment::class);
+    }
+
     public function addresses(): MorphMany
     {
         return $this->morphMany(Address::class, 'addressable');

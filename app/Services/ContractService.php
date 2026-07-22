@@ -24,6 +24,14 @@ class ContractService
         return $this->repository->paginate($perPage, $filters);
     }
 
+    /**
+     * エクスポート用にフィルタ条件を適用したクエリを取得（一覧画面と同じ条件を使い回す）
+     */
+    public function getForExport(array $filters = []): \Illuminate\Database\Eloquent\Builder
+    {
+        return $this->repository->findWithFilters($filters);
+    }
+
     public function getPaginatedForClient(string $userId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return $this->repository->paginateForClient($userId, $perPage, $filters);

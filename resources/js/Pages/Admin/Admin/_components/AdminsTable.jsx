@@ -1,13 +1,10 @@
 import React from "react";
-// Components
 import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { IconButton } from "@/Components/Buttons";
 import Avatar from "@/Components/Avatar";
-// Icons
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-// Constants
 import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
 import { getFullName, formatDate } from "./adminDisplay";
 

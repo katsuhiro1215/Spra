@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\User;
 
+use App\Exports\UserExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
@@ -13,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -47,6 +49,24 @@ class UserController extends Controller
             'stats' => $stats,
             'statuses' => $this->userService->getStatuses(),
         ]);
+    }
+
+    /**
+     * ユーザー一覧をエクスポート（一覧画面と同じ絞り込み条件を使用）
+     */
+    public function export(Request $request)
+    {
+        $filters = [
+            'search' => $request->input('search'),
+            'status' => $request->input('status'),
+            'trashed' => $request->input('trashed', 'without_trashed'),
+        ];
+        $format = $request->input('format') === 'csv' ? 'csv' : 'xlsx';
+
+        $filename = 'users_' . now()->format('Y_m_d_H_i_s') . '.' . $format;
+        $writerType = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
+
+        return Excel::download(new UserExport($filters), $filename, $writerType);
     }
 
     /**

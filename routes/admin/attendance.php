@@ -14,6 +14,8 @@ Route::prefix('attendance')->name('attendance.')->group(function () {
     // 出退勤打刻（全管理者が利用可能・config/admin_permissions.php でホワイトリスト）
     Route::post('/clock-in', [AttendanceController::class, 'clockIn'])->name('clock-in');
     Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('clock-out');
+    Route::post('/break-start', [AttendanceController::class, 'breakStart'])->name('break-start');
+    Route::post('/break-end', [AttendanceController::class, 'breakEnd'])->name('break-end');
 
     // シフト予定管理
     Route::get('/shifts-bulk-create', [AdminShiftController::class, 'bulkCreate'])->name('shifts.bulk-create');

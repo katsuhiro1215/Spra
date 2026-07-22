@@ -34,8 +34,16 @@ class UserService extends BaseService
     }
 
     /**
+     * エクスポート用にフィルタ条件を適用したクエリを取得（一覧画面と同じ条件を使い回す）
+     */
+    public function getForExport(array $filters = []): \Illuminate\Database\Eloquent\Builder
+    {
+        return $this->repository->findWithFilters($filters);
+    }
+
+    /**
      * 新しいユーザーを作成（ランダムパスワード自動生成）
-     * 
+     *
      * @param array $data
      * @return array
      * @throws \Exception

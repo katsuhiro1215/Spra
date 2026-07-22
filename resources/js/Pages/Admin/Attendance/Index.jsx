@@ -69,8 +69,14 @@ export default function AttendanceIndex({
                                             key={entry.admin_id}
                                             className="flex items-center justify-between"
                                         >
-                                            <span className="text-sm text-gray-900 dark:text-gray-100">
+                                            <span className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
                                                 {entry.admin_name}
+                                                {entry.status ===
+                                                    "on_break" && (
+                                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                                                        休憩中
+                                                    </span>
+                                                )}
                                             </span>
                                             <span className="text-xs text-gray-500 dark:text-gray-400">
                                                 {entry.clocked_in_at}〜

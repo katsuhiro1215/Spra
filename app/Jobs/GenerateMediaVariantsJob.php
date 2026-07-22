@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Media;
-use App\Models\MediaSetting;
+use App\Repositories\MediaSettingsRepository;
 use App\Repositories\MediaVariantRepository;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -33,25 +33,7 @@ class GenerateMediaVariantsJob implements ShouldQueue
             return;
         }
 
-        $settings = MediaSetting::first() ?? MediaSetting::create([
-            'max_file_size_kb' => 5120,
-            'max_total_storage_mb' => 1024,
-            'auto_compress' => true,
-            'compression_quality' => 85,
-            'output_format' => 'webp',
-            'large_width' => 1024,
-            'large_height' => 1024,
-            'medium_width' => 768,
-            'medium_height' => 768,
-            'small_width' => 300,
-            'small_height' => 300,
-            'generate_large' => true,
-            'generate_medium' => true,
-            'generate_small' => true,
-            'allow_video_upload' => false,
-            'max_video_size_mb' => 50,
-            'max_video_duration_seconds' => 60,
-        ]);
+        $settings = app(MediaSettingsRepository::class)->get();
         $variantRepository = app(MediaVariantRepository::class);
 
         try {

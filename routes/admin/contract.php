@@ -13,6 +13,8 @@ Route::prefix('contract')->name('contract.')->group(function () {
     // 契約書テンプレート管理（契約条項・特別条項のひな形）
     Route::resource('template', ContractTemplateController::class)
         ->parameters(['template' => 'contractTemplate']);
+    // 契約一覧のエクスポート（resourceのshowルートと競合しないよう先に登録する）
+    Route::get('/export', [ContractController::class, 'export'])->name('export');
     // 契約管理
     Route::resource('', ContractController::class)->parameters(['' => 'contract']);
     Route::controller(ContractController::class)->group(function () {

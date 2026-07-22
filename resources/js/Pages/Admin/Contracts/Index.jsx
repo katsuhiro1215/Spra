@@ -8,6 +8,7 @@ import { Card } from "@/Components/Card";
 import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
+import ExportMenu from "@/Components/ExportMenu";
 import {
     PlusIcon,
     FunnelIcon,
@@ -171,6 +172,14 @@ export default function Index({ contracts, filters = {}, stats = {} }) {
                                 </span>
                             )}
                         </SecondaryButton>
+                    </div>
+
+                    {/* エクスポート（現在の絞り込み条件を引き継ぐ） */}
+                    <div className="flex-shrink-0">
+                        <ExportMenu
+                            routeName="admin.contract.export"
+                            filters={data}
+                        />
                     </div>
                 </div>
 
