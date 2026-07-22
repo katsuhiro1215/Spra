@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import BasicButton from "@/Components/Buttons/BasicButton";
 import DeleteAlert from "@/Components/Alerts/DeleteAlert";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import {
     MagnifyingGlassIcon,
     PlusIcon,
@@ -19,7 +16,6 @@ import {
     AdjustmentsHorizontalIcon,
     TagIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({ categories, filters, flash }) {

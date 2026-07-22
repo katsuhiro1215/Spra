@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuid;
+use App\Models\Concerns\HasLoginLockout;
+use App\Models\Concerns\HasTwoFactorAuthentication;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class User extends Authenticatable
 {
-    use HasUuid, HasFactory, Notifiable, SoftDeletes;
+    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasLoginLockout, HasTwoFactorAuthentication;
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +39,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -45,6 +49,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at'     => 'datetime',
+        'locked_until'      => 'datetime',
+        'two_factor_secret' => 'encrypted',
+        'two_factor_recovery_codes' => 'encrypted:array',
+        'two_factor_confirmed_at' => 'datetime',
         'password'          => 'hashed',
     ];
 
@@ -67,6 +75,11 @@ class User extends Authenticatable
         return $this->morphOne(Address::class, 'addressable')
             ->where('is_default', true)
             ->where('is_active', true);
+    }
+
+    public function voices(): HasMany
+    {
+        return $this->hasMany(Voice::class);
     }
 
     public function companies(): BelongsToMany

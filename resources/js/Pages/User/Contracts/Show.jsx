@@ -1,14 +1,18 @@
 import React, { useState, useRef } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import PageHeader from "@/Components/Layout/PageHeader";
-import { Card, CardHeader, CardBody, CardTitle } from "@/Components/Card";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardBody,
+    UserCardTitle,
+} from "@/Components/User";
 import Badge from "@/Components/Badge";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { SuccessAlert, ConfirmAlert } from "@/Components/Alerts";
 import {
-    ArrowLeftIcon,
     DocumentTextIcon,
     CheckCircleIcon,
     PencilIcon,
@@ -18,6 +22,7 @@ import DigitalStamp from "@/Components/DigitalStamp";
 export default function Show({
     contract,
     quote = null,
+    signatureImage = null,
     invoices = [],
     receipts = [],
     project = null,
@@ -63,20 +68,20 @@ export default function Show({
     // ステータスカラー
     const getStatusColor = (status) => {
         const colors = {
-            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100",
+            draft: "bg-gray-100 text-gray-800",
             pending_signature:
-                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-            active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+                "bg-yellow-100 text-yellow-800",
+            active: "bg-green-100 text-green-800",
             suspended:
-                "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
+                "bg-orange-100 text-orange-800",
             completed:
-                "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+                "bg-blue-100 text-blue-800",
             cancelled:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+                "bg-red-100 text-red-800",
         };
         return (
             colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+            "bg-gray-100 text-gray-800"
         );
     };
 
@@ -95,14 +100,7 @@ export default function Show({
         return new Intl.NumberFormat("ja-JP", {
             style: "currency",
             currency: "JPY",
-        }).format(amount);
-    };
-
-    // 税込合計計算
-    const getTotalWithTax = () => {
-        const amount = parseFloat(contract.amount) || 0;
-        const taxRate = parseFloat(contract.tax_rate) || 0;
-        return amount * (1 + taxRate / 100);
+        }).format(amount || 0);
     };
 
     // 署名を保存
@@ -145,26 +143,38 @@ export default function Show({
         router.visit(route("user.contract.index"));
     };
 
+    const breadcrumbs = [
+        { label: "ダッシュボード", href: "/dashboard" },
+        { label: "契約一覧", href: route("user.contract.index") },
+        { label: contract.title, href: null },
+    ];
+
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <UserPageHeader
+                    title={contract.title}
+                    description={`契約番号: ${contract.contract_number || "-"}`}
+                    breadcrumbs={breadcrumbs}
+                    actions={[
+                        {
+                            label: "戻る",
+                            variant: "default",
+                            onClick: handleBack,
+                        },
+                    ]}
+                />
+            }
+        >
             <Head title={`${contract.title} - 契約詳細`} />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between mb-6">
-                    <button
-                        onClick={handleBack}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    >
-                        <ArrowLeftIcon className="h-5 w-5" />
-                        <span>戻る</span>
-                    </button>
-                </div>
-
                 {/* タブナビゲーション */}
-                <Card>
-                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                <UserCard>
+                    <div className="flex items-center justify-between border-b border-gray-200">
                         <div className="flex flex-wrap">
                             {tabs.map((tab) => (
                                 <button
@@ -172,8 +182,8 @@ export default function Show({
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
                                         activeTab === tab.id
-                                            ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                                            : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                                            ? "border-blue-500 text-blue-600 bg-blue-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                     }`}
                                 >
                                     <span className="mr-2">{tab.icon}</span>
@@ -182,16 +192,16 @@ export default function Show({
                             ))}
                         </div>
                     </div>
-                </Card>
+                </UserCard>
 
                 {/* Contract タブ */}
                 {activeTab === "contract" && (
                     <div className="space-y-6">
                         {/* 基本情報 */}
-                        <Card>
-                            <CardHeader>
+                        <UserCard>
+                            <UserCardHeader>
                                 <div className="flex justify-between items-center">
-                                    <CardTitle>基本情報</CardTitle>
+                                    <UserCardTitle>基本情報</UserCardTitle>
                                     <Badge
                                         className={getStatusColor(
                                             contract.status,
@@ -200,181 +210,202 @@ export default function Show({
                                         {getStatusLabel(contract.status)}
                                     </Badge>
                                 </div>
-                            </CardHeader>
-                            <CardBody>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <dt className="text-sm font-medium text-gray-500">
                                             契約番号
                                         </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 font-mono">
+                                        <dd className="mt-1 text-sm text-gray-900 font-mono">
                                             {contract.contract_number || "-"}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <dt className="text-sm font-medium text-gray-500">
                                             タイトル
                                         </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                        <dd className="mt-1 text-sm text-gray-900">
                                             {contract.title}
                                         </dd>
                                     </div>
                                     {contract.description && (
                                         <div className="md:col-span-2">
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 契約内容
                                             </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                            <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
                                                 {contract.description}
                                             </dd>
                                         </div>
                                     )}
                                 </dl>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
 
-                        {/* 契約書PDF表示 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>契約書</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <div
-                                    style={{
-                                        height: "500px",
-                                        overflow: "auto",
-                                        backgroundColor: "#f5f5f5",
-                                        borderRadius: "8px",
-                                        marginBottom: "16px",
-                                    }}
-                                >
-                                    <iframe
-                                        key={`${contract.user_signed_at ?? ""}-${contract.admin_signed_at ?? ""}`}
-                                        src={route(
-                                            "user.contract.pdf.preview",
-                                            contract.id,
-                                        )}
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            border: "none",
-                                        }}
-                                    />
+                        {/* 契約概要 */}
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>契約概要</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                                            契約条項
+                                        </h3>
+                                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-900">
+                                            {contract.current_version
+                                                ?.terms_and_conditions ||
+                                                "未記入"}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                                            特別条項
+                                        </h3>
+                                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-900">
+                                            {contract.current_version
+                                                ?.special_provisions ||
+                                                "未記入"}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <PrimaryButton
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "user.contract.pdf.preview",
+                                                        contract.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                        >
+                                            <DocumentTextIcon className="h-5 w-5 mr-2" />
+                                            PDFを確認・ダウンロード
+                                        </PrimaryButton>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <PrimaryButton
-                                        onClick={() => {
-                                            window.open(
-                                                route(
-                                                    "user.contract.pdf",
-                                                    contract.id,
-                                                ),
-                                            );
-                                        }}
-                                    >
-                                        <DocumentTextIcon className="h-5 w-5 mr-2" />
-                                        PDFダウンロード
-                                    </PrimaryButton>
-                                </div>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
 
                         {/* 契約金額 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>契約金額</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>契約金額</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
+                                <div className="bg-blue-50 p-6 rounded-lg">
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-base">
-                                            <span className="text-gray-600 dark:text-gray-300">
-                                                契約金額:
+                                            <span className="text-gray-600">
+                                                小計:
                                             </span>
-                                            <span className="font-semibold text-gray-900 dark:text-gray-100">
-                                                {formatAmount(contract.amount)}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-base">
-                                            <span className="text-gray-600 dark:text-gray-300">
-                                                消費税 ({contract.tax_rate}%):
-                                            </span>
-                                            <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                            <span className="font-semibold text-gray-900">
                                                 {formatAmount(
-                                                    contract.amount *
-                                                        (contract.tax_rate /
-                                                            100),
+                                                    contract.current_version
+                                                        ?.base_amount,
                                                 )}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between text-xl font-bold pt-3 border-t border-blue-200 dark:border-blue-800">
-                                            <span className="text-gray-900 dark:text-gray-100">
+                                        <div className="flex justify-between text-base">
+                                            <span className="text-gray-600">
+                                                割引:
+                                            </span>
+                                            <span className="font-semibold text-gray-900">
+                                                -
+                                                {formatAmount(
+                                                    contract.current_version
+                                                        ?.discount_amount,
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-base">
+                                            <span className="text-gray-600">
+                                                消費税 (
+                                                {
+                                                    contract.current_version
+                                                        ?.tax_rate
+                                                }
+                                                %):
+                                            </span>
+                                            <span className="font-semibold text-gray-900">
+                                                {formatAmount(
+                                                    contract.current_version
+                                                        ?.tax_amount,
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-xl font-bold pt-3 border-t border-blue-200">
+                                            <span className="text-gray-900">
                                                 税込合計:
                                             </span>
-                                            <span className="text-blue-600 dark:text-blue-400">
+                                            <span className="text-blue-600">
                                                 {formatAmount(
-                                                    getTotalWithTax(),
+                                                    contract.current_version
+                                                        ?.total_amount,
                                                 )}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
 
                         {/* 契約期間 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>契約期間</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>契約期間</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <dt className="text-sm font-medium text-gray-500">
                                             開始日
                                         </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                        <dd className="mt-1 text-sm text-gray-900">
                                             {formatDate(contract.start_date)}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <dt className="text-sm font-medium text-gray-500">
                                             終了日
                                         </dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                        <dd className="mt-1 text-sm text-gray-900">
                                             {formatDate(contract.end_date)}
                                         </dd>
                                     </div>
                                 </dl>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
 
                         {/* 詳細設定 */}
                         {(contract.payment_terms ||
                             contract.terms_and_conditions ||
                             contract.notes) && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>詳細設定</CardTitle>
-                                </CardHeader>
-                                <CardBody>
+                            <UserCard>
+                                <UserCardHeader>
+                                    <UserCardTitle>詳細設定</UserCardTitle>
+                                </UserCardHeader>
+                                <UserCardBody>
                                     <dl className="space-y-6">
                                         {contract.payment_terms && (
                                             <div>
-                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                <dt className="text-sm font-medium text-gray-500">
                                                     支払い条件
                                                 </dt>
-                                                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
                                                     {contract.payment_terms}
                                                 </dd>
                                             </div>
                                         )}
                                         {contract.terms_and_conditions && (
                                             <div>
-                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                <dt className="text-sm font-medium text-gray-500">
                                                     利用規約
                                                 </dt>
-                                                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded">
+                                                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded">
                                                     {
                                                         contract.terms_and_conditions
                                                     }
@@ -383,35 +414,35 @@ export default function Show({
                                         )}
                                         {contract.notes && (
                                             <div>
-                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                <dt className="text-sm font-medium text-gray-500">
                                                     備考
                                                 </dt>
-                                                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
                                                     {contract.notes}
                                                 </dd>
                                             </div>
                                         )}
                                     </dl>
-                                </CardBody>
-                            </Card>
+                                </UserCardBody>
+                            </UserCard>
                         )}
 
                         {/* 署名ステータス */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>署名ステータス</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>署名ステータス</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 <div className="space-y-4">
                                     {signatureStatus === "signed" ? (
-                                        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                                             <div className="flex items-center gap-3">
                                                 <CheckCircleIcon className="h-6 w-6 text-green-600" />
                                                 <div>
-                                                    <p className="font-medium text-green-800 dark:text-green-200">
+                                                    <p className="font-medium text-green-800">
                                                         署名済み
                                                     </p>
-                                                    <p className="text-sm text-green-700 dark:text-green-300">
+                                                    <p className="text-sm text-green-700">
                                                         {contract.user_signed_at
                                                             ? `署名日時: ${formatDate(
                                                                   contract.user_signed_at,
@@ -420,24 +451,36 @@ export default function Show({
                                                     </p>
                                                 </div>
                                             </div>
+                                            {signatureImage && (
+                                                <div className="mt-4">
+                                                    <p className="text-sm text-green-700 mb-2">
+                                                        署名画像:
+                                                    </p>
+                                                    <img
+                                                        src={signatureImage}
+                                                        alt="署名"
+                                                        className="max-w-xs border border-green-200 rounded-lg bg-white p-2"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
-                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                                            <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                            <p className="font-medium text-yellow-800">
                                                 署名待ち
                                             </p>
-                                            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                            <p className="text-sm text-yellow-700 mt-1">
                                                 下記のボタンから署名を行ってください。
                                             </p>
                                         </div>
                                     )}
                                 </div>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
 
                         {/* アクションボタン */}
-                        <Card>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardBody>
                                 <div className="flex gap-3">
                                     {signatureStatus !== "signed" &&
                                         contract.status ===
@@ -455,8 +498,8 @@ export default function Show({
                                         戻る
                                     </SecondaryButton>
                                 </div>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     </div>
                 )}
 
@@ -464,69 +507,70 @@ export default function Show({
                 {activeTab === "quote" && (
                     <div className="space-y-6">
                         {quote ? (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>見積書情報</CardTitle>
-                                </CardHeader>
-                                <CardBody>
+                            <UserCard>
+                                <UserCardHeader>
+                                    <UserCardTitle>見積書情報</UserCardTitle>
+                                </UserCardHeader>
+                                <UserCardBody>
                                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 見積書番号
                                             </dt>
-                                            <dd className="mt-1 text-sm font-mono text-gray-900 dark:text-gray-100">
+                                            <dd className="mt-1 text-sm font-mono text-gray-900">
                                                 {quote.quote_number}
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 タイトル
                                             </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                            <dd className="mt-1 text-sm text-gray-900">
                                                 {quote.title}
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 金額
                                             </dt>
-                                            <dd className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                            <dd className="mt-1 text-sm font-semibold text-blue-600">
                                                 {formatAmount(
-                                                    quote.total_amount || 0,
+                                                    quote.current_version
+                                                        ?.total_amount || 0,
                                                 )}
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 ステータス
                                             </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                            <dd className="mt-1 text-sm text-gray-900">
                                                 {quote.status}
                                             </dd>
                                         </div>
                                     </dl>
                                     {quote.description && (
                                         <div className="mt-6">
-                                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            <dt className="text-sm font-medium text-gray-500">
                                                 説明
                                             </dt>
-                                            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                            <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
                                                 {quote.description}
                                             </dd>
                                         </div>
                                     )}
-                                </CardBody>
-                            </Card>
+                                </UserCardBody>
+                            </UserCard>
                         ) : (
-                            <Card>
-                                <CardBody>
+                            <UserCard>
+                                <UserCardBody>
                                     <div className="text-center py-8">
-                                        <p className="text-gray-500 dark:text-gray-400">
+                                        <p className="text-gray-500">
                                             この契約に関連する見積書はありません。
                                         </p>
                                     </div>
-                                </CardBody>
-                            </Card>
+                                </UserCardBody>
+                            </UserCard>
                         )}
                     </div>
                 )}
@@ -534,23 +578,23 @@ export default function Show({
                 {/* Invoice タブ */}
                 {activeTab === "invoices" && (
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>請求書一覧</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>請求書一覧</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 {invoices && invoices.length > 0 ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
-                                            <thead className="border-b border-gray-200 dark:border-gray-700">
+                                            <thead className="border-b border-gray-200">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         請求書番号
                                                     </th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         金額
                                                     </th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         状態
                                                     </th>
                                                 </tr>
@@ -559,7 +603,7 @@ export default function Show({
                                                 {invoices.map((invoice) => (
                                                     <tr
                                                         key={invoice.id}
-                                                        className="border-b border-gray-100 dark:border-gray-700"
+                                                        className="border-b border-gray-100"
                                                     >
                                                         <td className="px-4 py-3">
                                                             <a
@@ -567,20 +611,20 @@ export default function Show({
                                                                     "user.invoice.show",
                                                                     invoice.id,
                                                                 )}
-                                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                                                className="text-blue-600 hover:text-blue-800"
                                                             >
                                                                 {
                                                                     invoice.invoice_number
                                                                 }
                                                             </a>
                                                         </td>
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                        <td className="px-4 py-3 text-gray-900">
                                                             {formatAmount(
                                                                 invoice.total_amount ||
                                                                     0,
                                                             )}
                                                         </td>
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                        <td className="px-4 py-3 text-gray-900">
                                                             {invoice.status_name ||
                                                                 invoice.status}
                                                         </td>
@@ -591,36 +635,36 @@ export default function Show({
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
-                                        <p className="text-gray-500 dark:text-gray-400">
+                                        <p className="text-gray-500">
                                             請求書はまだ作成されていません。
                                         </p>
                                     </div>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     </div>
                 )}
 
                 {/* Receipt タブ */}
                 {activeTab === "receipts" && (
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>領収書一覧</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>領収書一覧</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 {receipts && receipts.length > 0 ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
-                                            <thead className="border-b border-gray-200 dark:border-gray-700">
+                                            <thead className="border-b border-gray-200">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         領収書番号
                                                     </th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         金額
                                                     </th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         発行日
                                                     </th>
                                                 </tr>
@@ -629,20 +673,20 @@ export default function Show({
                                                 {receipts.map((receipt) => (
                                                     <tr
                                                         key={receipt.id}
-                                                        className="border-b border-gray-100 dark:border-gray-700"
+                                                        className="border-b border-gray-100"
                                                     >
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                        <td className="px-4 py-3 text-gray-900">
                                                             {
                                                                 receipt.receipt_number
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                        <td className="px-4 py-3 text-gray-900">
                                                             {formatAmount(
                                                                 receipt.amount ||
                                                                     0,
                                                             )}
                                                         </td>
-                                                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                                        <td className="px-4 py-3 text-gray-900">
                                                             {formatDate(
                                                                 receipt.issued_at,
                                                             )}
@@ -654,31 +698,31 @@ export default function Show({
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
-                                        <p className="text-gray-500 dark:text-gray-400">
+                                        <p className="text-gray-500">
                                             領収書はまだ発行されていません。
                                         </p>
                                     </div>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     </div>
                 )}
 
                 {/* Project タブ */}
                 {activeTab === "project" && (
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>プロジェクト</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>プロジェクト</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 {project ? (
                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                         <div>
-                                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                            <p className="text-lg font-semibold text-gray-900">
                                                 {project.title}
                                             </p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            <p className="text-sm text-gray-600 mt-1">
                                                 {project.description ||
                                                     "説明なし"}
                                             </p>
@@ -695,13 +739,13 @@ export default function Show({
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
-                                        <p className="text-gray-500 dark:text-gray-400">
+                                        <p className="text-gray-500">
                                             この契約に関連するプロジェクトはまだありません。
                                         </p>
                                     </div>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     </div>
                 )}
             </div>
@@ -709,11 +753,11 @@ export default function Show({
             {/* 署名モーダル */}
             {showSignatureModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <Card className="w-full max-w-md max-h-screen overflow-y-auto">
-                        <CardHeader>
-                            <CardTitle>デジタル署名</CardTitle>
-                        </CardHeader>
-                        <CardBody>
+                    <UserCard className="w-full max-w-md max-h-screen overflow-y-auto">
+                        <UserCardHeader>
+                            <UserCardTitle>デジタル署名</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <form
                                 onSubmit={handleSignSubmit}
                                 className="space-y-4"
@@ -724,7 +768,7 @@ export default function Show({
                                     />
                                 </div>
 
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-800 dark:text-blue-200">
+                                <div className="bg-blue-50 p-3 rounded text-sm text-blue-800">
                                     <p>
                                         この契約に同意し、デジタル署名を行うことで、契約の効力が生じます。
                                     </p>
@@ -751,8 +795,8 @@ export default function Show({
                                     </SecondaryButton>
                                 </div>
                             </form>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 </div>
             )}
 

@@ -30,11 +30,9 @@ export default function CompanyEmployees({ users = [] }) {
                         <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
                             従業員一覧
                         </h2>
-                        <Badge
-                            text={`${users.length}名`}
-                            variant="neutral"
-                            size="sm"
-                        />
+                        <Badge variant="secondary" size="sm">
+                            {users.length}名
+                        </Badge>
                     </div>
                 </div>
             </CardHeader>
@@ -125,8 +123,18 @@ export default function CompanyEmployees({ users = [] }) {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <Badge
-                                                {...getStatusBadge(user.status)}
-                                            />
+                                                variant={
+                                                    getStatusBadge(
+                                                        user.status,
+                                                    ).variant
+                                                }
+                                            >
+                                                {
+                                                    getStatusBadge(
+                                                        user.status,
+                                                    ).text
+                                                }
+                                            </Badge>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                                             {formatDate(user.created_at)}

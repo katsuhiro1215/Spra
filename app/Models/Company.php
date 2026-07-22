@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Company extends Model
@@ -113,6 +114,26 @@ class Company extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function membership(): HasOne
+    {
+        return $this->hasOne(CompanyMembership::class);
+    }
+
+    public function pointTransactions(): HasMany
+    {
+        return $this->hasMany(PointTransaction::class)->latest();
+    }
+
+    public function referralsMade(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_company_id');
+    }
+
+    public function pointRedemptions(): HasMany
+    {
+        return $this->hasMany(PointRedemption::class);
     }
 
     // -------------------------

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContractBenefit;
 use App\Models\ServiceItem;
 use App\Services\ServiceItemService;
 use App\Services\ServiceService;
@@ -54,7 +55,7 @@ class ServiceItemController extends Controller
             $services = $this->serviceService->getActiveForSelect();
             $servicePlans = $this->servicePlanService->getActiveForSelect();
 
-            return Inertia::render('Admin/Service/ServiceItems/Index', [
+            return Inertia::render('Admin/ServiceItems/Index', [
                 'serviceItems' => $serviceItems,
                 'statuses' => $statuses,
                 'itemTypes' => $itemTypes,
@@ -64,7 +65,7 @@ class ServiceItemController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServiceItem index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/ServiceItems/Index', [
+            return Inertia::render('Admin/ServiceItems/Index', [
                 'serviceItems' => ['data' => []],
                 'statuses' => [],
                 'itemTypes' => [],
@@ -85,10 +86,11 @@ class ServiceItemController extends Controller
         $itemTypes = $this->serviceItemService->getItemTypes();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServiceItems/Create', [
+        return Inertia::render('Admin/ServiceItems/Create', [
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,
             'services' => $services,
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
             'service_id' => $request->query('service_id'),
         ]);
     }
@@ -102,12 +104,12 @@ class ServiceItemController extends Controller
             $this->serviceItemService->createServiceItem($request->validated());
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービス項目の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービス項目']));
         }
     }
 
@@ -116,8 +118,14 @@ class ServiceItemController extends Controller
      */
     public function show(ServiceItem $serviceItem): Response
     {
-        return Inertia::render('Admin/Service/ServiceItems/Show', [
-            'serviceItem' => $serviceItem->load(['service.serviceCategory', 'servicePlans', 'creator', 'updater']),
+        return Inertia::render('Admin/ServiceItems/Show', [
+            'serviceItem' => $serviceItem->load([
+                'service.serviceCategory',
+                'servicePlans',
+                'creator.profile',
+                'updater.profile',
+            ]),
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
         ]);
     }
 
@@ -130,11 +138,12 @@ class ServiceItemController extends Controller
         $itemTypes = $this->serviceItemService->getItemTypes();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServiceItems/Edit', [
+        return Inertia::render('Admin/ServiceItems/Edit', [
             'serviceItem' => $serviceItem,
             'statuses' => $statuses,
             'itemTypes' => $itemTypes,
             'services' => $services,
+            'benefitTypes' => ContractBenefit::BENEFIT_TYPES,
         ]);
     }
 
@@ -147,12 +156,12 @@ class ServiceItemController extends Controller
             $this->serviceItemService->updateServiceItem($serviceItem, $request->validated());
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービス項目の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービス項目']));
         }
     }
 
@@ -165,7 +174,7 @@ class ServiceItemController extends Controller
             $this->serviceItemService->deleteServiceItem($serviceItem);
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem destroy error: ' . $e->getMessage());
             return redirect()->back()

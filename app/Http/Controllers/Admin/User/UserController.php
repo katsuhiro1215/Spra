@@ -66,7 +66,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.user.show', $result['user'])
-            ->with('success', 'ユーザーを作成しました。初期パスワード: ' . $result['password']);
+            ->with('success', __('messages.user.created_with_password', ['password' => $result['password']]));
     }
 
     /**
@@ -74,12 +74,18 @@ class UserController extends Controller
      */
     public function show(User $user): Response
     {
-        $user->load(['profile.media', 'addresses']);
+        $user->load(['profile.media', 'addresses', 'companies.media']);
 
         // プロフィール画像URLを明示的に追加
         if ($user->profile && $user->profile->media) {
             $user->profile->media->makeVisible(['url', 'original_url']);
         }
+
+        // 契約情報を取得
+        $contracts = $user->contracts()
+            ->with(['company', 'currentVersion'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // テナントのメディア一覧を取得（画像選択用）
         $mediaList = Media::where('type', 'image')
@@ -96,6 +102,7 @@ class UserController extends Controller
 
         return Inertia::render('Admin/User/Show', [
             'user' => $user,
+            'contracts' => $contracts,
             'mediaList' => $mediaList,
         ]);
     }
@@ -122,7 +129,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.user.show', $user)
-            ->with('success', 'ユーザー情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'ユーザー情報']));
     }
 
     /**
@@ -135,12 +142,12 @@ class UserController extends Controller
 
             return redirect()
                 ->route('admin.user.index')
-                ->with('success', 'ユーザーを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ユーザー']));
         } catch (\Exception $e) {
             Log::error('User delete error: ' . $e->getMessage());
             return redirect()
                 ->route('admin.user.index')
-                ->with('error', 'ユーザーの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'ユーザー']));
         }
     }
 }

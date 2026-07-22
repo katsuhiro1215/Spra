@@ -1,12 +1,9 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// ProjectTemplate Components
 import Form from "./_components/Form";
 
 export default function Edit({ template }) {

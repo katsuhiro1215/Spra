@@ -1,8 +1,6 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-// Layout
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -13,7 +11,6 @@ import {
     ChartBarIcon,
     EyeIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogCategoryShow = ({ category }) => {

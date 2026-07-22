@@ -35,7 +35,7 @@ class QuoteResponseController extends Controller
 
         $quoteResponses = $this->quoteResponseService->getPaginated($filters, $sort, $request->get('per_page', 20));
 
-        return Inertia::render('Admin/Quotes/QuoteResponse/Index', [
+        return Inertia::render('Admin/QuoteResponses/Index', [
             'quoteResponses' => $quoteResponses,
             'filters' => $filters,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,
@@ -65,7 +65,7 @@ class QuoteResponseController extends Controller
             $quoteResponse->load(['user.profile', 'user.companies', 'company.addresses']);
         }
 
-        return Inertia::render('Admin/Quotes/QuoteResponse/Show', [
+        return Inertia::render('Admin/QuoteResponses/Show', [
             'quoteResponse' => $quoteResponse,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,
         ]);
@@ -88,9 +88,9 @@ class QuoteResponseController extends Controller
 
         try {
             $this->quoteResponseService->sendInvitationEmail($quoteResponse);
-            return back()->with('success', '招待メールを送信しました。');
+            return back()->with('success', __('messages.sent', ['attribute' => '招待メール']));
         } catch (\Exception $e) {
-            return back()->with('error', '招待メール送信に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '招待メール送信', 'message' => $e->getMessage()]));
         }
     }
 
@@ -114,7 +114,7 @@ class QuoteResponseController extends Controller
                 $validated['note'] ?? null
             );
 
-            return back()->with('success', '未回答の見積を見送り(NG)として記録しました。');
+            return back()->with('success', __('messages.quote.no_response_recorded'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

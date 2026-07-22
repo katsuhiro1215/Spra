@@ -20,7 +20,7 @@ class QuoteController extends Controller
     $user = Auth::user();
 
     $quotes = Quote::where('user_id', $user->id)
-      ->with(['items', 'contact'])
+      ->with(['currentVersion.items', 'contact'])
       ->orderBy('created_at', 'desc')
       ->paginate($request->input('per_page', 20));
 
@@ -39,7 +39,7 @@ class QuoteController extends Controller
       abort(403, 'アクセス権限がありません。');
     }
 
-    $quote->load('items', 'contact');
+    $quote->load('currentVersion.items', 'contact');
 
     return Inertia::render('User/Quote/Show', [
       'quote' => $quote,
@@ -56,7 +56,7 @@ class QuoteController extends Controller
       abort(403, 'アクセス権限がありません。');
     }
 
-    $quote->load('items', 'contact');
+    $quote->load('currentVersion.items', 'contact');
 
     // PDFの生成（簡易版）
     $pdf = Pdf::loadView('user.quote.pdf', [

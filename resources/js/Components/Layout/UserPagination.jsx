@@ -35,7 +35,7 @@ export default function UserPagination({ links, meta }) {
             {/* ページネーションボタン */}
             <div className="flex gap-2">
                 {links.map((link, index) => {
-                    if (link.label === "&laquo; Previous") {
+                    if (link.label.includes("&laquo;")) {
                         return (
                             <Link
                                 key={index}
@@ -52,7 +52,7 @@ export default function UserPagination({ links, meta }) {
                         );
                     }
 
-                    if (link.label === "Next &raquo;") {
+                    if (link.label.includes("&raquo;")) {
                         return (
                             <Link
                                 key={index}

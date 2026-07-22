@@ -1,14 +1,12 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Project Components
 import ProjectForm from "./_components/ProjectForm";
 
 export default function Create({
@@ -17,6 +15,7 @@ export default function Create({
     users = [],
     companies = [],
     admins = [],
+    technologiesByContract = {},
 }) {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
@@ -26,13 +25,16 @@ export default function Create({
         contract_id: contract?.id || "",
         user_id: contract?.user_id || "",
         company_id: contract?.company_id || "",
-        admin_id: "",
+        repository_url: "",
+        production_url: "",
+        admins: [{ admin_id: "", role: "leader" }],
         start_date: new Date().toISOString().split("T")[0],
         estimated_end_date: "",
         actual_end_date: "",
         is_client_visible: true,
         client_visible_notes: "",
         internal_notes: "",
+        technology_ids: [],
     });
 
     const submit = (e) => {
@@ -44,7 +46,7 @@ export default function Create({
         {
             label: "戻る",
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.project.index"),
         },
     ];
@@ -55,18 +57,21 @@ export default function Create({
     ];
 
     return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="プロジェクト新規作成"
+                    description="新しいプロジェクトを作成"
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title="プロジェクト新規作成" />
-
-            <PageHeader
-                title="プロジェクト新規作成"
-                description="新しいプロジェクトを作成"
-                actions={headerActions}
-            />
 
             <FlashMessage />
 
-            <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl py-6 px-4 sm:px-6 lg:px-8">
                 <form onSubmit={submit} className="space-y-6">
                     {/* 契約情報（表示用） */}
                     {contract && (
@@ -109,6 +114,9 @@ export default function Create({
                                 users={users}
                                 companies={companies}
                                 admins={admins}
+                                technologiesByContract={
+                                    technologiesByContract
+                                }
                                 isEditMode={false}
                             />
                         </div>

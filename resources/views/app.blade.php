@@ -11,21 +11,27 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-    <!-- ダークモード初期化スクリプト（flashを防ぐ） -->
-    <script>
-        (function() {
-            try {
-                const darkMode = localStorage.getItem('admin-dark-mode');
-                if (darkMode === 'true') {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
+    {{-- ダークモードはAdmin側専用機能。User側は常にlightモードのみで表示するため、
+         Admin側ルート以外ではこの初期化スクリプト自体を出力しない。
+         (localStorageはオリジン単位で共有されるため、Admin側で一度ダークモードを
+         有効にすると、スクリプトを常時実行した場合User側にも'dark'クラスが漏れてしまう) --}}
+    @if (request()->is('admin*'))
+        <!-- ダークモード初期化スクリプト（flashを防ぐ） -->
+        <script>
+            (function() {
+                try {
+                    const darkMode = localStorage.getItem('admin-dark-mode');
+                    if (darkMode === 'true') {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                } catch (e) {
+                    console.error('Dark mode initialization error:', e);
                 }
-            } catch (e) {
-                console.error('Dark mode initialization error:', e);
-            }
-        })();
-    </script>
+            })();
+        </script>
+    @endif
 
     <!-- Scripts -->
     @routes

@@ -1,6 +1,5 @@
 import React from "react";
 import { useForm } from "@inertiajs/react";
-// Components
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { FormGroup, TextInput, InputError } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";

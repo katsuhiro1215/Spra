@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Address;
 use App\Models\Company;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CompanySeeder extends Seeder
 {
@@ -13,6 +14,117 @@ class CompanySeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table('companies')->insert(
+            [
+                // 実際のデータ
+                [
+                    'media_id' => null,
+                    'name' => 'サンサン農園',
+                    'company_type' => 'corporate',
+                    'legal_name' => 'サンサン農園株式会社',
+                    'registration_number' => null,
+                    'tax_number' => null,
+                    'phone' => '090-3177-7743',
+                    'fax' => null,
+                    'email' => 's-kato@package-f.jp',
+                    'website' => 'https://sunsunfarm-fukui.com',
+                    'representative_name' => '加藤 修一',
+                    'representative_title' => '代表取締役',
+                    'representative_email' => 's-kato@package-f.jp',
+                    'representative_phone' => '090-3177-7743',
+                    'business_description' => '野菜の生産・販売を行う農園です。新鮮な野菜をお届けすることを目指しています。',
+                    'industry' => null,
+                    'employee_count' => 5,
+                    'capital' => null,
+                    'established_date' => null,
+                    'status' => true,
+                    'notes' => null,
+                    'sort_order' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'media_id' => null,
+                    'name' => 'ピラティス整体・治療院WellSIA',
+                    'company_type' => 'corporate',
+                    'legal_name' => 'ピラティス整体・治療院WellSIA合同会社',
+                    'registration_number' => null,
+                    'tax_number' => null,
+                    'phone' => '070-8482-5102',
+                    'fax' => null,
+                    'email' => 'wellsia.pi@gmail.com',
+                    'website' => 'https://pilates-wellsia.com/',
+                    'representative_name' => '柿野 良太',
+                    'representative_title' => '代表',
+                    'representative_email' => 'wellsia.pi@gmail.com',
+                    'representative_phone' => '070-8482-5102',
+                    'business_description' => 'ピラティス整体・治療院WellSIAは、ピラティスを取り入れた整体・治療を提供する治療院です。身体の不調や痛みを改善し、健康な生活をサポートします。',
+                    'industry' => '美容・健康',
+                    'employee_count' => 2,
+                    'capital' => null,
+                    'established_date' => '2023-03-14',
+                    'status' => true,
+                    'notes' => null,
+                    'sort_order' => 2,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'media_id' => null,
+                    'name' => 'ケンコー社',
+                    'company_type' => 'corporate',
+                    'legal_name' => '株式会社ケンコー社',
+                    'registration_number' => null,
+                    'tax_number' => null,
+                    'phone' => '06-6374-2788',
+                    'fax' => '06-6374-2256',
+                    'email' => '',
+                    'website' => 'https://kenkosya.com',
+                    'representative_name' => '中村 英史',
+                    'representative_title' => '代表取締役',
+                    'representative_email' => 'nakamura@kenkosya.com',
+                    'representative_phone' => '090-3177-7743',
+                    'business_description' => 'ケンコー社は、アウトドア用品の輸入・販売を行う企業です。 キャンプ用品や登山用品など、アウトドア活動に必要な製品を提供しています。',
+                    'industry' => '小売・卸売',
+                    'employee_count' => 20,
+                    'capital' => 20000000,
+                    'established_date' => '1979-08-01',
+                    'status' => true,
+                    'notes' => null,
+                    'sort_order' => 3,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'media_id' => null,
+                    'name' => 'エフォート体操クラブ',
+                    'company_type' => 'individual',
+                    'legal_name' => 'エフォート体操クラブ',
+                    'registration_number' => null,
+                    'tax_number' => null,
+                    'phone' => '06-4967-3161',
+                    'fax' => null,
+                    'email' => 'info@effortgym.jp',
+                    'website' => 'https://effortgym.jp/',
+                    'representative_name' => '藤岡 修',
+                    'representative_title' => '代表',
+                    'representative_email' => 'effortgc@gmail.com',
+                    'representative_phone' => '06-4967-3161',
+                    'business_description' => 'エフォート体操クラブは、体操教室を運営する個人事業主です。子どもから大人まで幅広い年齢層に体操指導を行っています。',
+                    'industry' => 'スポーツ',
+                    'employee_count' => 4,
+                    'capital' => null,
+                    'established_date' => '2023-10-01',
+                    'status' => true,
+                    'notes' => null,
+                    'sort_order' => 4,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]
+        );
+
+
         $this->command->info('Creating companies with addresses...');
 
         // =============================================

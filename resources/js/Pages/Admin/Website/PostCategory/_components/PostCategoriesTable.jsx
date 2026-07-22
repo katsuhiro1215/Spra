@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const PostCategoriesTable = ({ categories, onDelete }) => {
@@ -12,11 +13,11 @@ const PostCategoriesTable = ({ categories, onDelete }) => {
             <Table>
                 <THead>
                     <Tr hover={false}>
+                        <Th>表示順</Th>
                         <Th>カテゴリ名</Th>
                         <Th>スラッグ</Th>
                         <Th>親カテゴリ</Th>
                         <Th>ステータス</Th>
-                        <Th>表示順</Th>
                         <Th>作成日</Th>
                         <Th className="text-right">アクション</Th>
                     </Tr>
@@ -25,6 +26,11 @@ const PostCategoriesTable = ({ categories, onDelete }) => {
                     {categories.data && categories.data.length > 0 ? (
                         categories.data.map((category) => (
                             <Tr key={category.id}>
+                                <Td>
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                        {category.sort_order || "-"}
+                                    </span>
+                                </Td>
                                 <Td>
                                     <div>
                                         <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -73,45 +79,40 @@ const PostCategoriesTable = ({ categories, onDelete }) => {
                                 </Td>
                                 <Td>
                                     <span className="text-sm text-slate-500 dark:text-slate-400">
-                                        {category.sort_order || "-"}
-                                    </span>
-                                </Td>
-                                <Td>
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">
                                         {new Date(
                                             category.created_at,
                                         ).toLocaleDateString("ja-JP")}
                                     </span>
                                 </Td>
                                 <Td className="text-right">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.post.category.show",
                                                 category.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="warning-text"
+                                            icon={PencilIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.post.category.edit",
                                                 category.id,
                                             )}
-                                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"
                                             title="編集"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </Link>
-                                        <button
+                                        />
+                                        <IconButton
+                                            variant="danger-text"
+                                            icon={TrashIcon}
+                                            size="lg"
                                             onClick={() => onDelete(category)}
-                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
                                             title="削除"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                        />
                                     </div>
                                 </Td>
                             </Tr>

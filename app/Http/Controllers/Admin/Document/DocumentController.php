@@ -62,7 +62,7 @@ class DocumentController extends Controller
         ]);
 
         return redirect()->route('admin.documents.edit', $document)
-            ->with('success', '文書を作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '文書']));
     }
 
     /**
@@ -85,7 +85,7 @@ class DocumentController extends Controller
         $document->update($request->validated());
 
         return redirect()->route('admin.documents.edit', $document)
-            ->with('success', '文書情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '文書情報']));
     }
 
     /**
@@ -97,7 +97,7 @@ class DocumentController extends Controller
         $document->delete();
 
         return redirect()->route('admin.documents.index')
-            ->with('success', '文書を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '文書']));
     }
 
     /**
@@ -124,7 +124,7 @@ class DocumentController extends Controller
             ]);
 
         return redirect()->route('admin.documents.edit', $document)
-            ->with('success', '新しいバージョンを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '新しいバージョン']));
     }
 
     /**
@@ -133,7 +133,7 @@ class DocumentController extends Controller
     public function updateVersion(Request $request, Document $document, DocumentVersion $version)
     {
         if ($version->status !== 'draft') {
-            return back()->withErrors(['content' => 'ドラフト状態のバージョンのみ編集できます。']);
+            return back()->withErrors(['content' => __('messages.draft_version_only_editable')]);
         }
 
         $validated = $request->validate([
@@ -143,7 +143,7 @@ class DocumentController extends Controller
         $version->update($validated);
 
         return redirect()->route('admin.documents.edit', $document)
-            ->with('success', '内容を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '内容']));
     }
 
     /**
@@ -153,7 +153,7 @@ class DocumentController extends Controller
     {
         $version->activate();
 
-        return back()->with('success', 'バージョンを有効化しました。');
+        return back()->with('success', __('messages.activated', ['attribute' => 'バージョン']));
     }
 
     /**
@@ -167,6 +167,6 @@ class DocumentController extends Controller
 
         $version->revertToDraft();
 
-        return back()->with('success', 'ドラフト状態に戻しました。');
+        return back()->with('success', __('messages.document.reverted_to_draft'));
     }
 }

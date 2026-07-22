@@ -1,22 +1,20 @@
 import BaseButton from "./BaseButton";
 
 /**
- * PrimaryButton - プライマリボタン
+ * PrimaryButton - プライマリボタン（後方互換性のため残存）
+ * 新規実装では Button コンポーネントの使用を推奨
  */
-export default function PrimaryButton({ className = "", ...props }) {
-    const colorClasses = `
-        bg-indigo-600 text-white
-        hover:bg-indigo-700
-        focus:ring-indigo-500
-        dark:bg-indigo-500 dark:hover:bg-indigo-600
-        active:scale-95 shadow-md hover:shadow-lg
-    `
-        .trim()
-        .replace(/\s+/g, " ");
-
+export default function PrimaryButton({
+    className = "",
+    icon = null,
+    iconPosition = "left",
+    ...props
+}) {
     return (
         <BaseButton
-            colorClasses={colorClasses}
+            variant="primary"
+            icon={icon}
+            iconPosition={iconPosition}
             className={className}
             {...props}
         />

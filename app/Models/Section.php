@@ -16,8 +16,13 @@ class Section extends Model
         'name',
         'role',
         'sort_order',
+        'content',
         'created_by',
         'updated_by',
+    ];
+
+    protected $casts = [
+        'content' => 'array', // JSON for block editor
     ];
 
     public function page(): BelongsTo
@@ -33,5 +38,22 @@ class Section extends Model
     public function updatedBy()
     {
         return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    /**
+     * content.blocks の中から指定タイプの最初のブロックの data を取得
+     * （公開サイト側でブロック内容を個別のpropsに変換する際に使用）
+     */
+    public function getBlockData(string $type): ?array
+    {
+        $blocks = $this->content['blocks'] ?? [];
+
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? null) === $type) {
+                return $block['data'] ?? [];
+            }
+        }
+
+        return null;
     }
 }

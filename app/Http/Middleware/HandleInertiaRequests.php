@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Menu;
+use App\Models\Organization;
 use App\Models\QuoteResponse;
 use App\Services\ContactService;
 use Illuminate\Http\Request;
@@ -39,11 +41,18 @@ class HandleInertiaRequests extends Middleware
             $admin->load('profile');
         }
 
+        // user に profile リレーションを含める（アバター表示用）
+        if ($user) {
+            $user->load('profile.media');
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
                 'admin' => $admin,
+                'adminPermissions' => fn() => $admin ? $admin->getEffectivePermissionNames() : [],
+                'todayAttendance' => fn() => $admin ? app(\App\Services\AttendanceService::class)->getTodayRecord($admin) : null,
             ],
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
@@ -69,6 +78,20 @@ class HandleInertiaRequests extends Middleware
                     ? $admin->notifications()->latest()->limit(10)->get(['id', 'data', 'read_at', 'created_at'])
                     : [],
             ],
+            'headerMenu' => fn() => Menu::query()
+                ->where('location', 'header')
+                ->with(['menuItems' => function ($query) {
+                    $query->whereNull('parent_id')
+                        ->active()
+                        ->ordered()
+                        ->with(['page:id,slug', 'children' => function ($query) {
+                            $query->active()->ordered()->with('page:id,slug');
+                        }]);
+                }])
+                ->first(),
+            'organization' => fn() => Organization::query()
+                ->with(['defaultAddress'])
+                ->first(),
         ];
     }
 }

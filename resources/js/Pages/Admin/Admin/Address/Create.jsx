@@ -1,13 +1,11 @@
 import { Head, useForm, router } from "@inertiajs/react";
 import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Address Component
+import { PageConfig } from "@/Constants/PageConfig";
 import AddressForm from "./_components/Form";
 
 export default function Create({ admin, types, isOtherAdmin }) {
@@ -47,7 +45,7 @@ export default function Create({ admin, types, isOtherAdmin }) {
     // ========================================
     const headerActions = [
         {
-            label: "管理者詳細に戻る",
+            label: PageConfig.admins.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.admin.show", admin.id),
@@ -55,17 +53,16 @@ export default function Create({ admin, types, isOtherAdmin }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "管理者一覧", href: route("admin.admin.index") },
-        { label: "管理者詳細", href: route("admin.admin.show", admin.id) },
-        { label: "住所追加", href: null },
+        ...PageConfig.admins.breadcrumbs,
+        PageConfig.admins.pages.show.breadcrumb,
+        PageConfig.adminAddresses.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="住所追加"
+                    title={PageConfig.adminAddresses.pages.create.title}
                     description={`${admin.email} の住所を追加します`}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}

@@ -6,152 +6,155 @@ use App\Models\Admin;
 use App\Models\Contract;
 use App\Models\ContractSignature;
 use App\Models\Quote;
-use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class ContractSeeder extends Seeder
 {
-  /**
-   * Run the database seeds.
-   */
-  public function run(): void
-  {
-    $quotes = Quote::where('status', 'approved')->limit(10)->get();
-    $admin = Admin::first();
-    $service = Service::first();
+    private const SIGNATURE_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
-    if ($quotes->isEmpty() || !$admin || !$service) {
-      echo "Prerequisites not found for contract seeding. Skipping contract seeding.\n";
-      return;
-    }
+    /**
+     * 承認済みの見積から契約を作成する。
+     * 直近数件は「署名待ち」の状態にし、ダッシュボードの対応キューを確認できるようにする。
+     */
+    public function run(): void
+    {
+        $quotes = Quote::whereIn('status', ['approved', 'contracted'])
+            ->with('currentVersion.items')
+            ->orderBy('created_at')
+            ->get();
+        $admin = Admin::first();
 
-    $createdCount = 0;
-    $contractStates = [
-      // State 1: Just created, needs to be sent
-      [
-        'status' => 'draft',
-        'signature_status' => 'pending',
-        'signature_required_from' => 'user',
-        'user_signed_at' => null,
-        'admin_signed_at' => null,
-      ],
-      // State 2: Sent to user, awaiting signature
-      [
-        'status' => 'pending_signature',
-        'signature_status' => 'pending',
-        'signature_required_from' => 'user',
-        'user_signed_at' => null,
-        'admin_signed_at' => null,
-      ],
-      // State 3: User signed, awaiting admin approval
-      [
-        'status' => 'pending_signature',
-        'signature_status' => 'user_signed',
-        'signature_required_from' => 'admin',
-        'user_signed_at' => now()->subDays(2),
-        'admin_signed_at' => null,
-      ],
-      // State 4: Both signed, ready for admin approval
-      [
-        'status' => 'pending_signature',
-        'signature_status' => 'fully_signed',
-        'signature_required_from' => 'admin',
-        'user_signed_at' => now()->subDays(3),
-        'admin_signed_at' => now()->subDays(2),
-      ],
-      // State 5: Approved and active
-      [
-        'status' => 'active',
-        'signature_status' => 'fully_signed',
-        'signature_required_from' => 'admin',
-        'user_signed_at' => now()->subDays(5),
-        'admin_signed_at' => now()->subDays(4),
-      ],
-      // State 6: Cancelled
-      [
-        'status' => 'cancelled',
-        'signature_status' => 'rejected',
-        'signature_required_from' => 'user',
-        'user_signed_at' => null,
-        'admin_signed_at' => null,
-      ],
-      // State 7: Completed
-      [
-        'status' => 'completed',
-        'signature_status' => 'fully_signed',
-        'signature_required_from' => 'admin',
-        'user_signed_at' => now()->subDays(30),
-        'admin_signed_at' => now()->subDays(29),
-      ],
-    ];
-
-    foreach ($quotes as $index => $quote) {
-      $state = $contractStates[$index % count($contractStates)];
-
-      try {
-        $contract = Contract::create([
-          'id' => \Illuminate\Support\Str::ulid(),
-          'quote_id' => $quote->id,
-          'user_id' => $quote->user_id,
-          'company_id' => $quote->company_id,
-          'service_id' => $service->id,
-          'created_by' => $admin->id,
-          'title' => $quote->title . ' - 契約書',
-          'contract_number' => 'CTR-' . now()->format('Ym') . '-' . str_pad($index + 1, 5, '0', STR_PAD_LEFT),
-          'description' => $quote->title . 'の詳細な契約内容を記載します。',
-          'amount' => $quote->base_amount,
-          'tax_rate' => $quote->tax_rate,
-          'start_date' => now(),
-          'end_date' => now()->addMonths(12),
-          'status' => $state['status'],
-          'signature_status' => $state['signature_status'],
-          'signature_required_from' => $state['signature_required_from'],
-          'user_signed_at' => $state['user_signed_at'],
-          'admin_signed_at' => $state['admin_signed_at'],
-        ]);
-
-        // Create signatures if they exist
-        if ($state['user_signed_at']) {
-          ContractSignature::create([
-            'id' => \Illuminate\Support\Str::ulid(),
-            'contract_id' => $contract->id,
-            'signed_by_user' => $contract->user_id,
-            'signature_type' => 'user',
-            'signature_image' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-            'method' => 'canvas',
-            'signed_at' => $state['user_signed_at'],
-            'status' => 'signed',
-          ]);
+        if ($quotes->isEmpty() || !$admin) {
+            $this->command?->warn('ContractSeeder: 前提データ（承認済みQuote/Admin）が不足しているためスキップします。');
+            return;
         }
 
-        if ($state['admin_signed_at']) {
-          ContractSignature::create([
-            'id' => \Illuminate\Support\Str::ulid(),
-            'contract_id' => $contract->id,
-            'signed_by_admin' => $admin->id,
-            'signature_type' => 'admin',
-            'signature_image' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-            'method' => 'canvas',
-            'signed_at' => $state['admin_signed_at'],
-            'status' => 'signed',
-          ]);
+        // 契約の状態パターン（案件が進むにつれて進捗するイメージ）
+        $states = [
+            ['status' => 'active', 'signature_status' => 'fully_signed', 'signature_required_from' => 'admin'],
+            ['status' => 'completed', 'signature_status' => 'fully_signed', 'signature_required_from' => 'admin'],
+            ['status' => 'active', 'signature_status' => 'fully_signed', 'signature_required_from' => 'admin'],
+            ['status' => 'cancelled', 'signature_status' => 'rejected', 'signature_required_from' => 'user'],
+            ['status' => 'active', 'signature_status' => 'fully_signed', 'signature_required_from' => 'admin'],
+        ];
+
+        $total = $quotes->count();
+        $counter = 1;
+        $created = 0;
+
+        foreach ($quotes as $index => $quote) {
+            $quoteVersion = $quote->currentVersion;
+            if (!$quoteVersion) {
+                continue;
+            }
+
+            $date = $quote->created_at->copy()->addDays(rand(3, 10));
+
+            // 直近3件は「署名待ち」にする（ダッシュボード確認用）
+            $isRecentPending = $index >= $total - 3;
+
+            if ($isRecentPending) {
+                // 交互に「送付直後（未署名）」「ユーザー署名済み（管理者確認待ち）」にする
+                $state = $index % 2 === 0
+                    ? ['status' => 'pending_signature', 'signature_status' => 'pending', 'signature_required_from' => 'admin']
+                    : ['status' => 'pending_signature', 'signature_status' => 'user_signed', 'signature_required_from' => 'admin'];
+            } else {
+                $state = $states[$index % count($states)];
+            }
+
+            $contractNumber = 'CTR-' . $date->format('Ym') . '-' . str_pad($counter++, 4, '0', STR_PAD_LEFT);
+
+            $contract = Contract::create([
+                'contract_number' => $contractNumber,
+                'quote_id' => $quote->id,
+                'user_id' => $quote->user_id,
+                'company_id' => $quote->company_id,
+                'title' => "{$quote->title} - 契約",
+                'description' => $quote->requirements,
+                'type' => 'one_time',
+                'start_date' => $date->toDateString(),
+                'end_date' => $date->copy()->addMonths(12)->toDateString(),
+                'status' => $state['status'],
+                'signature_status' => $state['signature_status'],
+                'signature_required_from' => $state['signature_required_from'],
+                'user_signed_at' => in_array($state['signature_status'], ['user_signed', 'fully_signed'], true) ? $date->copy()->addDay() : null,
+                'admin_signed_at' => $state['signature_status'] === 'fully_signed' ? $date->copy()->addDays(2) : null,
+                'signed_at' => $state['signature_status'] === 'fully_signed' ? $date->copy()->addDays(2) : null,
+                'terminated_at' => $state['status'] === 'cancelled' ? $date->copy()->addDays(5) : null,
+                'termination_reason' => $state['status'] === 'cancelled' ? 'クライアントの都合によるキャンセル' : null,
+                'created_by' => $admin->id,
+            ]);
+            $contract->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
+
+            $versionStatus = match ($state['status']) {
+                'active', 'completed' => 'active',
+                'cancelled' => 'cancelled',
+                default => 'sent',
+            };
+
+            $version = $contract->versions()->create([
+                'version' => 1,
+                'terms_and_conditions' => "本契約は「{$quote->title}」に基づくサービス提供契約です。詳細な条項は別途契約書PDFをご確認ください。",
+                'base_amount' => $quoteVersion->base_amount,
+                'discount_amount' => $quoteVersion->discount_amount,
+                'tax_rate' => $quoteVersion->tax_rate,
+                'tax_amount' => $quoteVersion->tax_amount,
+                'total_amount' => $quoteVersion->total_amount,
+                'status' => $versionStatus,
+                'approved_at' => $state['signature_status'] === 'fully_signed' ? $date->copy()->addDays(2) : null,
+                'sent_at' => $date->copy()->addHour(),
+                'signed_at' => $state['signature_status'] === 'fully_signed' ? $date->copy()->addDays(2) : null,
+                'is_current' => true,
+                'created_by' => $admin->id,
+            ]);
+            $version->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
+
+            $contract->update(['current_version_id' => $version->id]);
+
+            foreach ($quoteVersion->items as $itemIndex => $quoteItem) {
+                $version->items()->create([
+                    'service_id' => $quoteItem->service_id,
+                    'service_item_id' => $quoteItem->service_item_id,
+                    'name' => $quoteItem->name,
+                    'description' => $quoteItem->description,
+                    'item_type' => $quoteItem->item_type,
+                    'billing_type' => $quoteItem->billing_type,
+                    'quantity' => $quoteItem->quantity,
+                    'unit_price' => $quoteItem->unit_price,
+                    'amount' => $quoteItem->amount,
+                    'estimated_days' => $quoteItem->estimated_days,
+                    'sort_order' => $itemIndex + 1,
+                ]);
+            }
+
+            // 署名記録
+            if ($contract->user_signed_at) {
+                ContractSignature::create([
+                    'contract_id' => $contract->id,
+                    'signed_by_user' => $contract->user_id,
+                    'signature_type' => 'user',
+                    'signature_image' => self::SIGNATURE_IMAGE,
+                    'method' => 'canvas',
+                    'signed_at' => $contract->user_signed_at,
+                    'status' => 'signed',
+                ])->forceFill(['created_at' => $contract->user_signed_at])->save();
+            }
+
+            if ($contract->admin_signed_at) {
+                ContractSignature::create([
+                    'contract_id' => $contract->id,
+                    'signed_by_admin' => $admin->id,
+                    'signature_type' => 'admin',
+                    'signature_image' => self::SIGNATURE_IMAGE,
+                    'method' => 'canvas',
+                    'signed_at' => $contract->admin_signed_at,
+                    'status' => 'signed',
+                ])->forceFill(['created_at' => $contract->admin_signed_at])->save();
+            }
+
+            $created++;
         }
 
-        $createdCount++;
-      } catch (\Exception $e) {
-        echo "Error creating contract for quote {$quote->id}: " . $e->getMessage() . "\n";
-      }
+        $this->command?->info("ContractSeeder: {$created}件の契約を作成しました。");
     }
-
-    echo "=== ContractSeeder Summary ===\n";
-    echo "Total contracts created: {$createdCount}\n";
-    echo "\nContract States:\n";
-    echo "- Draft (needs to be sent): 1\n";
-    echo "- Pending signature (awaiting user): 1\n";
-    echo "- User signed (awaiting admin): 1\n";
-    echo "- Fully signed (ready for approval): 1\n";
-    echo "- Active (approved): 1\n";
-    echo "- Cancelled: 1\n";
-    echo "- Completed: 1+\n";
-  }
 }

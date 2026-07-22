@@ -67,6 +67,14 @@ class CompanyRepository extends SoftDeletableRepository implements CompanyReposi
         // 親クラスの基本フィルタを適用
         $query = parent::findWithFilters($filters);
 
+        if (!empty($filters['company_type'])) {
+            $query->where('company_type', $filters['company_type']);
+        }
+
+        if (!empty($filters['industry'])) {
+            $query->where('industry', $filters['industry']);
+        }
+
         return $query;
     }
 

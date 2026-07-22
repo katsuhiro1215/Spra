@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Head, useForm, Link } from "@inertiajs/react";
+import { Head, useForm, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
+import MediaSelectModal from "@/Components/Media/MediaSelectModal";
 import TextInput from "@/Components/Forms/TextInput";
 import InputLabel from "@/Components/Forms/InputLabel";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import InputError from "@/Components/Forms/InputError";
+import { CameraIcon } from "@heroicons/react/24/outline";
 
 export default function ProfileForm({
     profile,
@@ -24,20 +27,96 @@ export default function ProfileForm({
         gender: profile?.gender || "",
     });
 
+    const [showMediaModal, setShowMediaModal] = useState(false);
+    const [mediaListState, setMediaListState] = useState(
+        profile?.media ? [profile.media] : [],
+    );
+
+    const avatarLabel =
+        [data.last_name, data.first_name].filter(Boolean).join("") || "?";
+
     const handleSubmit = (e) => {
         e.preventDefault();
         post(submitRoute);
     };
 
+    const handleMediaSelect = (mediaId) => {
+        router.post(
+            route("user.settings.profile.attach-media"),
+            { media_id: mediaId },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => setShowMediaModal(false),
+            },
+        );
+    };
+
+    const handleMediaUploaded = (newMedia) => {
+        setMediaListState((prev) => [newMedia, ...prev]);
+    };
+
+    const handleDetachMedia = () => {
+        if (confirm("プロフィール画像を削除しますか？")) {
+            router.delete(route("user.settings.profile.detach-media"), {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
+    };
+
     return (
-        <AuthenticatedLayout header="プロフィール情報">
+        <AuthenticatedLayout>
             <Head title="プロフィール情報 | Smart Sprouts" />
 
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto space-y-6">
+                <UserPageHeader
+                    title="プロフィール情報"
+                    description="あなたの個人情報を入力してください"
+                    breadcrumbs={[
+                        {
+                            label: "ダッシュボード",
+                            href: route("user.dashboard"),
+                        },
+                        { label: "プロフィール情報", href: "#" },
+                    ]}
+                />
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        プロフィール情報を入力してください
-                    </h2>
+                    {/* プロフィール画像 */}
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="relative">
+                            {profile?.media ? (
+                                <img
+                                    src={profile.media.url}
+                                    alt={avatarLabel}
+                                    className="w-28 h-28 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-28 h-28 rounded-full bg-indigo-600 flex items-center justify-center">
+                                    <span className="text-white text-3xl font-medium">
+                                        {avatarLabel.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setShowMediaModal(true)}
+                                className="absolute bottom-0 right-0 p-2 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-50 transition-colors"
+                                title="画像を変更"
+                            >
+                                <CameraIcon className="h-4 w-4 text-gray-600" />
+                            </button>
+                        </div>
+                        {profile?.media && (
+                            <button
+                                type="button"
+                                onClick={handleDetachMedia}
+                                className="mt-3 text-xs text-red-600 hover:text-red-800"
+                            >
+                                画像を削除
+                            </button>
+                        )}
+                    </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* 名前 */}
@@ -248,6 +327,16 @@ export default function ProfileForm({
                     </form>
                 </div>
             </div>
+
+            <MediaSelectModal
+                show={showMediaModal}
+                mediaList={mediaListState}
+                multiple={false}
+                uploadRoute={route("user.media.store")}
+                onClose={() => setShowMediaModal(false)}
+                onSelect={handleMediaSelect}
+                onMediaUploaded={handleMediaUploaded}
+            />
         </AuthenticatedLayout>
     );
 }

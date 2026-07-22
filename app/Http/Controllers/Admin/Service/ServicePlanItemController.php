@@ -15,65 +15,13 @@ use Inertia\Response;
 class ServicePlanItemController extends Controller
 {
     /**
-     * ServicePlanItemを追加する画面を表示
-     */
-    public function addItems(ServicePlan $servicePlan): Response
-    {
-        // 利用可能なServiceItem（既に追加されているものは除外）
-        $existingItemIds = $servicePlan->serviceItems()->pluck('service_item_id')->toArray();
-        $available_items = ServiceItem::where('status', 'active')
-            ->whereNotIn('id', $existingItemIds)
-            ->orderBy('sort_order')
-            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
-            ->toArray();
-
-        return Inertia::render('Admin/Service/ServicePlanItem/Create', [
-            'servicePlan' => $servicePlan->load(['service'])->toArray(),
-            'available_items' => $available_items,
-        ]);
-    }
-
-    /**
-     * ServicePlanItemを保存
-     */
-    public function storeItems(ServicePlanItemRequest $request, ServicePlan $servicePlan)
-    {
-        try {
-            $validated = $request->validated();
-
-            foreach ($validated['items'] as $index => $itemData) {
-                ServicePlanItem::create([
-                    'service_plan_id' => $servicePlan->id,
-                    'service_item_id' => $itemData['service_item_id'],
-                    'quantity' => $itemData['quantity'] ?? 1,
-                    'estimated_days' => $itemData['estimated_days'] ?? null,
-                    'sort_order' => $itemData['sort_order'] ?? $index,
-                ]);
-            }
-
-            // discount_amount をServicePlanに保存
-            if (isset($validated['discount_amount'])) {
-                $servicePlan->update(['discount_amount' => $validated['discount_amount']]);
-            }
-
-            return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスアイテムが追加されました。');
-        } catch (\Exception $e) {
-            Log::error('ServicePlanItem store error: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'アイテムの追加に失敗しました。');
-        }
-    }
-
-    /**
      * ServicePlanItemを編集する画面を表示
      */
     public function editItems(ServicePlan $servicePlan): Response
     {
         // servicePlanItemsをロードしてデータを構築
         $servicePlanItemsRaw = $servicePlan->servicePlanItems()
-            ->with('serviceItem:id,name,item_type,standard_price,internal_cost,service_id')
+            ->with('serviceItem:id,name,slug,item_type,standard_price,internal_cost,service_id')
             ->get();
 
         // 明示的に配列化してリレーション情報を含める
@@ -87,6 +35,7 @@ class ServicePlanItemController extends Controller
                 'serviceItem' => $item->serviceItem ? [
                     'id' => $item->serviceItem->id,
                     'name' => $item->serviceItem->name,
+                    'slug' => $item->serviceItem->slug,
                     'item_type' => $item->serviceItem->item_type,
                     'standard_price' => $item->serviceItem->standard_price,
                     'internal_cost' => $item->serviceItem->internal_cost,
@@ -95,18 +44,20 @@ class ServicePlanItemController extends Controller
             ];
         })->toArray();
 
-        // 利用可能なServiceItem（既に追加されているものは除外）
-        $existingItemIds = $servicePlan->serviceItems()->pluck('service_item_id')->toArray();
+        // 利用可能なServiceItem（このサービスのアクティブな項目を全て渡し、
+        // 現在割り当て済みかどうかはフロント側でリアルタイムに判定する。
+        // ここで除外してしまうと、編集画面でアイテムを外した際に
+        // 「利用可能」側に戻せなくなってしまうため）
         $available_items = ServiceItem::where('status', 'active')
-            ->whereNotIn('id', $existingItemIds)
+            ->where('service_id', $servicePlan->service_id)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
+            ->get(['id', 'name', 'slug', 'item_type', 'standard_price', 'internal_cost', 'service_id'])
             ->toArray();
 
         // servicePlanを配列化して必要なフィールドを明示的に含める
         $servicePlan->load(['service']);
 
-        return Inertia::render('Admin/Service/ServicePlanItem/Edit', [
+        return Inertia::render('Admin/ServicePlanItem/Edit', [
             'servicePlan' => $servicePlan->toArray(),
             'servicePlanItems' => $servicePlanItems,
             'available_items' => $available_items,
@@ -159,12 +110,12 @@ class ServicePlanItemController extends Controller
             }
 
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスアイテムが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービスアイテム']));
         } catch (\Exception $e) {
             Log::error('ServicePlanItem update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'アイテムの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'アイテム']));
         }
     }
 
@@ -176,17 +127,17 @@ class ServicePlanItemController extends Controller
         try {
             // 権限チェック：このアイテムがこのプランに属しているか確認
             if ($servicePlanItem->service_plan_id !== $servicePlan->id) {
-                return redirect()->back()->with('error', 'アイテムが見つかりません。');
+                return redirect()->back()->with('error', __('messages.not_found', ['attribute' => 'アイテム']));
             }
 
             $servicePlanItem->delete();
 
             return redirect()->back()
-                ->with('success', 'アイテムが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'アイテム']));
         } catch (\Exception $e) {
             Log::error('ServicePlanItem destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'アイテムの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'アイテム']));
         }
     }
 }

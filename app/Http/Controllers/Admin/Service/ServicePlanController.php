@@ -36,7 +36,7 @@ class ServicePlanController extends Controller
             $billingCycles = $this->servicePlanService->getBillingCycles();
             $services = $this->serviceService->getActiveForSelect();
 
-            return Inertia::render('Admin/Service/ServicePlans/Index', [
+            return Inertia::render('Admin/ServicePlans/Index', [
                 'servicePlans' => $servicePlans,
                 'statuses' => $statuses,
                 'billingCycles' => $billingCycles,
@@ -46,7 +46,7 @@ class ServicePlanController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServicePlan index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/ServicePlans/Index', [
+            return Inertia::render('Admin/ServicePlans/Index', [
                 'servicePlans' => [],
                 'statuses' => [],
                 'billingCycles' => [],
@@ -67,7 +67,7 @@ class ServicePlanController extends Controller
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServicePlans/Create', [
+        return Inertia::render('Admin/ServicePlans/Create', [
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
             'services' => $services,
@@ -86,12 +86,12 @@ class ServicePlanController extends Controller
 
             // ServicePlan詳細ページへリダイレクト
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスプランが作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスプランの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービスプラン']));
         }
     }
 
@@ -100,7 +100,7 @@ class ServicePlanController extends Controller
      */
     public function show(ServicePlan $servicePlan): Response
     {
-        return Inertia::render('Admin/Service/ServicePlans/Show', [
+        return Inertia::render('Admin/ServicePlans/Show', [
             'servicePlan' => $servicePlan->load([
                 'service.serviceCategory',
                 'servicePlanItems.serviceItem',
@@ -119,7 +119,7 @@ class ServicePlanController extends Controller
         $billingCycles = $this->servicePlanService->getBillingCycles();
         $services = $this->serviceService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/ServicePlans/Edit', [
+        return Inertia::render('Admin/ServicePlans/Edit', [
             'servicePlan' => $servicePlan,
             'statuses' => $statuses,
             'billingCycles' => $billingCycles,
@@ -138,12 +138,12 @@ class ServicePlanController extends Controller
 
             // ServicePlan詳細ページへリダイレクト
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスプランが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスプランの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービスプラン']));
         }
     }
 
@@ -157,7 +157,7 @@ class ServicePlanController extends Controller
             $service = $servicePlan->service_id;
 
             return redirect()->route('admin.service.show', $service)
-                ->with('success', 'サービスプランが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan destroy error: ' . $e->getMessage());
             return redirect()->back()

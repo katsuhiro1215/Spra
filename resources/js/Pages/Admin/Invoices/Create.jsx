@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import InvoiceForm from "./_components/Form";
 
 export default function Create({
@@ -13,6 +14,7 @@ export default function Create({
     company = null,
     user = null,
     contract = null,
+    remainingAmount = null,
 }) {
     const today = new Date().toISOString().split("T")[0];
     const [billingRate, setBillingRate] = useState(50); // 契約金額に対する請求割合(%)
@@ -37,7 +39,7 @@ export default function Create({
         due_date: "",
         status: "draft",
         subtotal: 0,
-        tax_rate: 0.1,
+        tax_rate: 10,
         tax_amount: 0,
         total_amount: 0,
         notes: "",
@@ -49,13 +51,13 @@ export default function Create({
     // コンテキストベースの初期化
     useEffect(() => {
         if (company) {
+            const primaryUser = company.users?.find(
+                (u) => u.pivot?.is_primary,
+            );
             setData((prev) => ({
                 ...prev,
                 company_id: company.id,
-                user_id:
-                    company.users && company.users.length > 0
-                        ? company.users[0].id
-                        : "",
+                user_id: primaryUser?.id || company.users?.[0]?.id || "",
             }));
         }
 
@@ -71,12 +73,27 @@ export default function Create({
         }
 
         if (contract) {
-            const contractAmount = contract.current_version?.total_amount || 0;
+            const currentVersion = contract.current_version;
+            const taxRate = currentVersion?.tax_rate ?? 10;
+            // 消費税は課税対象額（小計 - 割引）に対してかかるため、税込の総額ではなく
+            // 課税対象額を按分の基準にする（税込総額を基準にすると二重課税になる）
+            const taxableBase =
+                (currentVersion?.base_amount || 0) -
+                (currentVersion?.discount_amount || 0);
             const rate = isPartialBilling ? billingRate : 100;
-            const billedAmount = Math.round(contractAmount * (rate / 100));
-            const taxRate = 0.1;
-            const taxAmount = Math.round(billedAmount * taxRate);
-            const totalAmount = billedAmount + taxAmount;
+            let billedSubtotal = Math.round(taxableBase * (rate / 100));
+
+            // 契約の残金（税込）を超えないよう、税抜きに換算してキャップする。
+            // これにより「請求書作成を押すと残金以下になる」ことを構造的に保証する
+            if (remainingAmount !== null) {
+                const remainingSubtotal = Math.round(
+                    remainingAmount / (1 + taxRate / 100),
+                );
+                billedSubtotal = Math.max(
+                    0,
+                    Math.min(billedSubtotal, remainingSubtotal),
+                );
+            }
 
             setData((prev) => ({
                 ...prev,
@@ -85,21 +102,19 @@ export default function Create({
                 company_id: contract.company_id || "",
                 billing_period_start: contract.start_date || today,
                 billing_period_end: contract.end_date || "",
-                subtotal: billedAmount,
-                tax_amount: taxAmount,
-                total_amount: totalAmount,
+                subtotal: billedSubtotal,
+                tax_rate: taxRate,
             }));
         }
-    }, [company, user, contract, billingRate, isPartialBilling]);
+    }, [company, user, contract, billingRate, isPartialBilling, remainingAmount]);
 
     const handleSubmit = () => {
         post(route("admin.invoice.store"));
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        PageConfig.invoices.pages.create.breadcrumb,
     ];
 
     return (
@@ -203,19 +218,26 @@ export default function Create({
                                 <span className="font-semibold text-lg text-blue-900 dark:text-blue-100 ml-2">
                                     ¥
                                     {Math.round(
-                                        data.subtotal || 0,
+                                        data.total_amount || 0,
                                     ).toLocaleString()}
-                                </span>
-                                {isPartialBilling && (
-                                    <span className="text-blue-700 dark:text-blue-300 ml-4">
-                                        残金：¥
-                                        {Math.round(
-                                            (contract.current_version
-                                                ?.total_amount || 0) -
-                                                (data.subtotal || 0),
-                                        ).toLocaleString()}
+                                    <span className="text-xs font-normal ml-1">
+                                        （税込）
                                     </span>
-                                )}
+                                </span>
+                                {isPartialBilling &&
+                                    remainingAmount !== null && (
+                                        <span className="text-blue-700 dark:text-blue-300 ml-4">
+                                            この請求後の残金：¥
+                                            {Math.max(
+                                                0,
+                                                Math.round(
+                                                    remainingAmount -
+                                                        (data.total_amount ||
+                                                            0),
+                                                ),
+                                            ).toLocaleString()}
+                                        </span>
+                                    )}
                             </div>
                         </div>
                     </div>
@@ -235,6 +257,7 @@ export default function Create({
                     contracts={contracts}
                     users={users}
                     companies={companies}
+                    remainingAmount={remainingAmount}
                 />
             </div>
         </AdminAuthenticatedLayout>

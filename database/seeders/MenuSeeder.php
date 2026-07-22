@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Menu;
 use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
@@ -12,6 +12,13 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        Menu::updateOrCreate(
+            ['slug' => 'header'],
+            [
+                'name' => 'ヘッダーメニュー',
+                'description' => 'サイト共通ヘッダーに表示するメインナビゲーション',
+                'location' => 'header',
+            ],
+        );
     }
 }

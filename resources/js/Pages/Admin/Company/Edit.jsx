@@ -38,7 +38,7 @@ export default function Edit({ company, companyTypes, statuses }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("admin.companies.update", company.id));
+        put(route("admin.company.update", company.id));
     };
 
     // オプション変換
@@ -63,17 +63,14 @@ export default function Edit({ company, companyTypes, statuses }) {
             label: PageConfig.companies.actions.back,
             icon: ArrowLeftIcon,
             variant: "secondary",
-            route: route("admin.companies.show", company.id),
+            route: route("admin.company.show", company.id),
         },
     ];
 
     const breadcrumbs = [
-        { label: "企業管理", href: route("admin.companies.index") },
-        {
-            label: company.name,
-            href: route("admin.companies.show", company.id),
-        },
-        { label: "編集" },
+        ...PageConfig.companies.breadcrumbs,
+        company.name,
+        PageConfig.companies.pages.edit.breadcrumb,
     ];
 
     return (
@@ -88,12 +85,6 @@ export default function Edit({ company, companyTypes, statuses }) {
             }
         >
             <Head title={`${company.name} - 編集`} />
-
-            <PageHeader
-                title={PageConfig.companies.title}
-                description={PageConfig.companies.description}
-                actions={headerActions}
-            />
 
             <FlashMessage />
 
@@ -114,7 +105,7 @@ export default function Edit({ company, companyTypes, statuses }) {
                     <div className="flex items-center justify-end gap-4">
                         <SecondaryButton
                             type="button"
-                            href={route("admin.companies.show", company.id)}
+                            href={route("admin.company.show", company.id)}
                         >
                             キャンセル
                         </SecondaryButton>

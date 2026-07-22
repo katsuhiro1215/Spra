@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\PostCategory;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class PostCategorySeeder extends Seeder
 {
@@ -13,43 +12,24 @@ class PostCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('post_categories')->insert([
+        PostCategory::updateOrCreate(
+            ['slug' => 'news'],
             [
-                'id' => 1,
-                'name' => '未登録',
-                'slug' => 'unregistered',
-                'description' => 'デフォルトのカテゴリ',
-                'color' => '#6B7280',
-                'sort_order' => 1,
-                'is_active' => true,
-            ],
-            [
-                'id' => 2,
                 'name' => 'お知らせ',
-                'slug' => 'news',
                 'description' => '最新のお知らせや更新情報',
-                'color' => '#3B82F6',
+                'is_active' => true,
+                'sort_order' => 1,
+            ],
+        );
+
+        PostCategory::updateOrCreate(
+            ['slug' => 'blog'],
+            [
+                'name' => 'ブログ',
+                'description' => '技術ブログ・コラム記事',
+                'is_active' => true,
                 'sort_order' => 2,
-                'is_active' => true,
             ],
-            [
-                'id' => 3,
-                'name' => '技術ブログ',
-                'slug' => 'tech-blog',
-                'description' => '技術的な記事やチュートリアル',
-                'color' => '#10B981',
-                'sort_order' => 3,
-                'is_active' => true,
-            ],
-            [
-                'id' => 4,
-                'name' => 'イベント情報',
-                'slug' => 'event-info',
-                'description' => '開催予定のイベントやセミナー情報',
-                'color' => '#F59E0B',
-                'sort_order' => 4,
-                'is_active' => true,
-            ],
-        ]);
+        );
     }
 }

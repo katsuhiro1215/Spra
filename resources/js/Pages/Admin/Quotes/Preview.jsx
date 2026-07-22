@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
-// Icons
 import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function Preview({ quote, statuses }) {

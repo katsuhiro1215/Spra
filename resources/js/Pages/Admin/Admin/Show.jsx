@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -10,27 +9,19 @@ import { Badge } from "@/Components/Badges";
 import Avatar from "@/Components/Avatar";
 import MediaSelectModal from "@/Components/Media/MediaSelectModal";
 import TabNavigation from "@/Components/TabNavigation";
-// Icons
-import {
-    ArrowLeftIcon,
-    PencilIcon,
-    PlusIcon,
-    TrashIcon,
-    UserCircleIcon,
-    MapPinIcon,
-    CameraIcon,
-} from "@heroicons/react/24/outline";
-// Constants
+import { ArrowLeftIcon, CameraIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
-// タブコンポーネント
 import AdminBasicInfo from "./_components/AdminBasicInfo";
-import AdminCustomers from "./_components/AdminCustomers";
-import AdminProjects from "./_components/AdminProjects";
 import AdminLoginHistory from "./_components/AdminLoginHistory";
 import AdminSettings from "./_components/AdminSettings";
 
-export default function Show({ admin, mediaList = [] }) {
+export default function Show({
+    admin,
+    mediaList = [],
+    permissionOverride = null,
+    loginLogs = [],
+}) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
     const [activeTab, setActiveTab] = useState("basic");
@@ -41,19 +32,9 @@ export default function Show({ admin, mediaList = [] }) {
             label: "基本情報",
         },
         {
-            key: "customers",
-            label: "担当顧客",
-            count: admin.users?.length || 0,
-        },
-        {
-            key: "projects",
-            label: "担当プロジェクト",
-            count: admin.projects?.length || 0,
-        },
-        {
             key: "login-history",
             label: "ログイン履歴",
-            count: admin.login_histories?.length || 0,
+            count: loginLogs.length,
         },
         {
             key: "settings",
@@ -65,37 +46,21 @@ export default function Show({ admin, mediaList = [] }) {
         switch (activeTab) {
             case "basic":
                 return <AdminBasicInfo admin={admin} />;
-            case "customers":
-                return <AdminCustomers users={admin.users || []} />;
-            case "projects":
-                return <AdminProjects projects={admin.projects || []} />;
             case "login-history":
+                return <AdminLoginHistory loginLogs={loginLogs} />;
+            case "settings":
                 return (
-                    <AdminLoginHistory
-                        loginHistories={admin.login_histories || []}
+                    <AdminSettings
+                        admin={admin}
+                        permissionOverride={permissionOverride}
                     />
                 );
-            case "settings":
-                return <AdminSettings admin={admin} />;
             default:
                 return null;
         }
     };
 
-    const handleDeleteAddress = (addressId) => {
-        if (confirm(PageConfig.admins.addresses.deleteConfirmation)) {
-            router.delete(
-                route("admin.admin.address.destroy", {
-                    admin: admin.id,
-                    address: addressId,
-                }),
-            );
-        }
-    };
-
     const handleMediaSelect = (mediaId) => {
-        console.log("handleMediaSelect called with mediaId:", mediaId);
-
         // プロフィールにメディアを設定
         router.post(
             route("admin.admin.profile.attachMedia", admin.id),
@@ -115,7 +80,7 @@ export default function Show({ admin, mediaList = [] }) {
     };
 
     const handleDetachMedia = () => {
-        if (confirm(PageConfig.admins.profile.detachMediaConfirmation)) {
+        if (confirm(PageConfig.adminProfiles.detachMediaConfirmation)) {
             router.delete(route("admin.admin.profile.detachMedia", admin.id), {
                 preserveState: true,
                 preserveScroll: true,
@@ -123,19 +88,8 @@ export default function Show({ admin, mediaList = [] }) {
         }
     };
 
-    const getAddressTypeLabel = (type) => {
-        const labels = {
-            home: "自宅",
-            office: "オフィス",
-            billing: "請求先",
-            shipping: "配送先",
-            other: "その他",
-        };
-        return labels[type] || type;
-    };
-
     // ========================================
-    // Constants - Header Actions & Breadcrumbs
+    // Constants - Header Actions
     // ========================================
     const headerActions = [
         {
@@ -144,14 +98,11 @@ export default function Show({ admin, mediaList = [] }) {
             variant: "ghost",
             route: route("admin.admin.index"),
         },
-        {
-            label: PageConfig.admins.actions.edit,
-            icon: PencilIcon,
-            variant: "warning",
-            route: route("admin.admin.edit", admin.id),
-        },
     ];
 
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
     const breadcrumbs = [
         ...PageConfig.admins.breadcrumbs,
         PageConfig.admins.pages.show.breadcrumb,
@@ -294,15 +245,14 @@ export default function Show({ admin, mediaList = [] }) {
                 </Card>
                 {/* 右カラム: プロフィールと住所 */}
                 <div className="sm:col-span-2 lg:col-span-3 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow">
-                        <TabNavigation
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onChange={setActiveTab}
-                        />
-                        {/* タブコンテンツ */}
-                        <div className="p-6">{renderTabContent()}</div>
-                    </div>
+                    <TabNavigation
+                        tabs={tabs}
+                        activeTab={activeTab}
+                        onChange={setActiveTab}
+                    />
+                    {/* タブコンテンツ */}
+
+                    <div className="flex flex-col">{renderTabContent()}</div>
                 </div>
             </div>
             {/* メディア選択モーダル */}
@@ -314,7 +264,7 @@ export default function Show({ admin, mediaList = [] }) {
                 onClose={() => setShowMediaModal(false)}
                 onSelect={handleMediaSelect}
                 onMediaUploaded={handleMediaUploaded}
-            />{" "}
+            />
         </AdminAuthenticatedLayout>
     );
 }

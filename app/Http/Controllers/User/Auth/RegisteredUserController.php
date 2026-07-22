@@ -22,18 +22,9 @@ use Inertia\Response;
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
-     */
-    public function create(Request $request): Response
-    {
-        return Inertia::render('User/Auth/Register', [
-            'invitation' => null,
-            'requiredDocuments' => $this->requiredDocumentsForRegistration(),
-        ]);
-    }
-
-    /**
      * Display the registration view with invitation token.
+     *
+     * 招待なしの自己登録は廃止したため、登録画面は招待リンク経由でのみ表示する。
      */
     public function createWithInvitation(string $token): Response|RedirectResponse
     {
@@ -43,7 +34,7 @@ class RegisteredUserController extends Controller
 
         // 招待が存在しない、または無効な場合
         if (!$invitation) {
-            return redirect()->route('user.register')
+            return redirect()->route('user.login')
                 ->with('error', '無効な招待リンクです。');
         }
 
@@ -52,7 +43,7 @@ class RegisteredUserController extends Controller
                 ? '招待リンクの有効期限が切れています。'
                 : 'この招待は既に使用されています。';
 
-            return redirect()->route('user.register')
+            return redirect()->route('user.login')
                 ->with('error', $message);
         }
 
@@ -93,9 +84,9 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // 基本バリデーション
+        // 基本バリデーション（招待なしの自己登録は廃止したためinvitation_tokenは必須）
         $validated = $request->validate([
-            'invitation_token' => 'nullable|string',
+            'invitation_token' => 'required|string',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
 
@@ -122,21 +113,18 @@ class RegisteredUserController extends Controller
 
         DB::beginTransaction();
         try {
-            // 招待トークンがある場合は検証
-            $invitation = null;
-            if ($request->filled('invitation_token')) {
-                $invitation = UserInvitation::where('token', $request->invitation_token)
-                    ->valid()
-                    ->first();
+            // 招待トークンを検証
+            $invitation = UserInvitation::where('token', $request->invitation_token)
+                ->valid()
+                ->first();
 
-                if (!$invitation) {
-                    return back()->withErrors(['invitation_token' => '無効または期限切れの招待です。'])->withInput();
-                }
+            if (!$invitation) {
+                return back()->withErrors(['invitation_token' => '無効または期限切れの招待です。'])->withInput();
+            }
 
-                // 招待のメールアドレスと一致するか確認
-                if ($invitation->email !== $request->email) {
-                    return back()->withErrors(['email' => '招待されたメールアドレスと一致しません。'])->withInput();
-                }
+            // 招待のメールアドレスと一致するか確認
+            if ($invitation->email !== $request->email) {
+                return back()->withErrors(['email' => '招待されたメールアドレスと一致しません。'])->withInput();
             }
 
             // ユーザー作成
@@ -146,9 +134,11 @@ class RegisteredUserController extends Controller
                 'status' => 'active',
             ]);
 
-            // プロフィール作成（名前を保存）
+            // プロフィール作成（名前を姓名に分割して保存。UserService/AdminServiceと同じ簡易的な処理）
+            $nameParts = explode(' ', $invitation->contact->name, 2);
             $user->profile()->create([
-                'full_name' => $invitation ? $invitation->contact->name : $request->input('name', ''),
+                'last_name' => $nameParts[0] ?? null,
+                'first_name' => $nameParts[1] ?? null,
             ]);
 
             // 同意必須文書への同意を記録
@@ -189,21 +179,19 @@ class RegisteredUserController extends Controller
                 ]);
             }
 
-            // 招待がある場合は承認処理
-            if ($invitation) {
-                $invitation->markAsAccepted($user);
+            // 招待を承認済みにする
+            $invitation->markAsAccepted($user);
 
-                // Contactにuser_idを紐付け
-                $invitation->contact->update([
-                    'user_id' => $user->id,
-                ]);
+            // Contactにuser_idを紐付け
+            $invitation->contact->update([
+                'user_id' => $user->id,
+            ]);
 
-                // IPアドレスとユーザーエージェントを記録
-                $invitation->update([
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                ]);
-            }
+            // IPアドレスとユーザーエージェントを記録
+            $invitation->update([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
 
             event(new Registered($user));
 

@@ -32,7 +32,7 @@ class UserProfileController extends Controller
 
         return redirect()
             ->route('admin.user.show', $user)
-            ->with('success', 'プロフィールを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'プロフィール']));
     }
 
     /**
@@ -56,7 +56,7 @@ class UserProfileController extends Controller
 
         return redirect()
             ->route('admin.user.show', $user)
-            ->with('success', 'プロフィールを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'プロフィール']));
     }
 
     /**
@@ -86,7 +86,7 @@ class UserProfileController extends Controller
                 ]);
             }
 
-            return back()->with('success', 'プロフィール画像を設定しました。');
+            return back()->with('success', __('messages.set', ['attribute' => 'プロフィール画像']));
         } catch (\Exception $e) {
             Log::error('プロフィール画像設定エラー', [
                 'message' => $e->getMessage(),
@@ -94,7 +94,7 @@ class UserProfileController extends Controller
                 'media_id' => $validated['media_id'],
             ]);
 
-            return back()->with('error', '画像の設定に失敗しました。');
+            return back()->with('error', __('messages.set_failed', ['attribute' => '画像']));
         }
     }
 
@@ -110,14 +110,14 @@ class UserProfileController extends Controller
                 ]);
             }
 
-            return back()->with('success', 'プロフィール画像を削除しました。');
+            return back()->with('success', __('messages.deleted', ['attribute' => 'プロフィール画像']));
         } catch (\Exception $e) {
             Log::error('プロフィール画像削除エラー', [
                 'message' => $e->getMessage(),
                 'user_id' => $user->id,
             ]);
 
-            return back()->with('error', '画像の削除に失敗しました。');
+            return back()->with('error', __('messages.delete_failed', ['attribute' => '画像']));
         }
     }
 }

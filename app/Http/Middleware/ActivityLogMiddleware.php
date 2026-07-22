@@ -87,12 +87,41 @@ class ActivityLogMiddleware
     }
 
     /**
+     * 現在のリクエストの操作主体（Admin または User）を解決
+     *
+     * @return array{type: string, id: string}|null
+     */
+    private function resolveActor(Request $request): ?array
+    {
+        if (Auth::guard('admins')->check()) {
+            return ['type' => UserActivityLog::ACTOR_ADMIN, 'id' => Auth::guard('admins')->id()];
+        }
+
+        if (Auth::guard('users')->check()) {
+            return ['type' => UserActivityLog::ACTOR_USER, 'id' => Auth::guard('users')->id()];
+        }
+
+        return null;
+    }
+
+    /**
+     * Admin側のログイン・ログアウト関連ルートかどうか
+     * （認証イベントはLoginLogに別途記録されるため、操作ログでの重複記録を避ける）
+     */
+    private function isAdminAuthRoute(Request $request): bool
+    {
+        return Str::contains($request->path(), ['login', 'logout']);
+    }
+
+    /**
      * アクティビティを記録するかどうかを判定
      */
     private function shouldLog(Request $request, Response $response): bool
     {
+        $actor = $this->resolveActor($request);
+
         // 認証されていないユーザーはログインに関連するもの以外記録しない
-        if (!Auth::guard('users')->check() && !$this->isAuthRelated($request)) {
+        if (!$actor && !$this->isAuthRelated($request)) {
             return false;
         }
 
@@ -103,6 +132,11 @@ class ActivityLogMiddleware
 
         // 除外アクションをチェック
         if ($this->isExcludedAction($request)) {
+            return false;
+        }
+
+        // Adminのログイン・ログアウトはLoginLog側の「イベント」で記録済みのため対象外
+        if ($actor && $actor['type'] === UserActivityLog::ACTOR_ADMIN && $this->isAdminAuthRoute($request)) {
             return false;
         }
 
@@ -227,7 +261,7 @@ class ActivityLogMiddleware
     private function logActivity(Request $request, Response $response, float $startTime): void
     {
         try {
-            $user = Auth::guard('users')->user();
+            $actor = $this->resolveActor($request);
             $agent = new Agent();
             $agent->setUserAgent($request->userAgent());
 
@@ -249,10 +283,12 @@ class ActivityLogMiddleware
             ];
 
             // ステータスを決定
-            $status = $this->determineStatus($response);
+            $status = $this->determineStatus($response, $request, $action);
 
             $data = [
-                'user_id' => $user?->id,
+                'user_id' => $actor && $actor['type'] === UserActivityLog::ACTOR_USER ? $actor['id'] : null,
+                'admin_id' => $actor && $actor['type'] === UserActivityLog::ACTOR_ADMIN ? $actor['id'] : null,
+                'actor_type' => $actor['type'] ?? UserActivityLog::ACTOR_USER,
                 'action' => $action,
                 'method' => $request->method(),
                 'url' => $request->fullUrl(),
@@ -322,6 +358,15 @@ class ActivityLogMiddleware
             }
         }
 
+        // ルート名が無い場合はパスで判定
+        // （例: routes/auth.php の POST /login は ->name() が付与されていない）
+        if ($method === 'POST' && Str::is(['login', '*/login'], $path)) {
+            return UserActivityLog::ACTION_LOGIN;
+        }
+        if ($method === 'POST' && Str::is(['logout', '*/logout'], $path)) {
+            return UserActivityLog::ACTION_LOGOUT;
+        }
+
         // HTTPメソッドに基づく判定
         switch ($method) {
             case 'GET':
@@ -378,18 +423,31 @@ class ActivityLogMiddleware
 
     /**
      * ステータスを決定
+     *
+     * ログインはバリデーション失敗時もリダイレクト(2xx/3xx)で返るため、
+     * HTTPステータスコードだけでは失敗を判定できない。
+     * その場合はセッションに積まれたバリデーションエラーの有無で判定する。
      */
-    private function determineStatus(Response $response): string
+    private function determineStatus(Response $response, Request $request, string $action): string
     {
         $statusCode = $response->getStatusCode();
 
         if ($statusCode >= 500) {
             return UserActivityLog::STATUS_ERROR;
-        } elseif ($statusCode >= 400) {
-            return UserActivityLog::STATUS_WARNING;
-        } else {
-            return UserActivityLog::STATUS_SUCCESS;
         }
+
+        if ($statusCode >= 400) {
+            return UserActivityLog::STATUS_WARNING;
+        }
+
+        if ($action === UserActivityLog::ACTION_LOGIN) {
+            $errors = $request->session()->get('errors');
+            if ($errors && method_exists($errors, 'any') && $errors->any()) {
+                return UserActivityLog::STATUS_ERROR;
+            }
+        }
+
+        return UserActivityLog::STATUS_SUCCESS;
     }
 
     /**
@@ -400,6 +458,13 @@ class ActivityLogMiddleware
         $routeName = $request->route()?->getName();
         $method = $request->method();
         $statusCode = $response->getStatusCode();
+
+        if ($action === UserActivityLog::ACTION_LOGIN) {
+            $errors = $request->session()->get('errors');
+            if ($errors && method_exists($errors, 'any') && $errors->any()) {
+                return 'ユーザーのログインに失敗しました';
+            }
+        }
 
         $descriptions = [
             UserActivityLog::ACTION_LOGIN => 'ユーザーがログインしました',

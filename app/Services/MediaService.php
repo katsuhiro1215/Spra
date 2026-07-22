@@ -78,7 +78,7 @@ class MediaService
     /**
      * 画像アップロード＆自動バリアント生成
      */
-    public function uploadImage(UploadedFile $file, array $data, string $adminId): Media
+    public function uploadImage(UploadedFile $file, array $data, ?string $adminId = null): Media
     {
         DB::beginTransaction();
 

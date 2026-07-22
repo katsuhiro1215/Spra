@@ -5,13 +5,20 @@ namespace App\Models;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class ContactCategory extends Model
 {
     use HasUlid;
 
+    /**
+     * 見積依頼用カテゴリのslug。EstimateSimulatorからの送信先として使用する。
+     */
+    const SLUG_QUOTE_REQUEST = 'quote-request';
+
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'sort_order',
         'is_active',
@@ -37,5 +44,16 @@ class ContactCategory extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('name');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function (ContactCategory $model) {
+            if (empty($model->slug)) {
+                $model->slug = Str::slug($model->name);
+            }
+        });
     }
 }

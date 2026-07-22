@@ -1,19 +1,15 @@
 import { useState } from "react";
 import { Head } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import {
     ClockIcon,
     ExclamationTriangleIcon,
     SparklesIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const TABS = [
@@ -203,7 +199,15 @@ export default function AdminLogsIndex({ logs = {}, filters = {} }) {
                                                     {log.description ||
                                                         log.action_name}
                                                 </Td>
-                                                <Td>{log.user_name || "-"}</Td>
+                                                <Td>
+                                                    {log.actor_type ===
+                                                        "admin" && (
+                                                        <span className="mr-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                            Admin
+                                                        </span>
+                                                    )}
+                                                    {log.user_name || "-"}
+                                                </Td>
                                                 <Td>{log.ip_address || "-"}</Td>
                                                 <Td>
                                                     <span

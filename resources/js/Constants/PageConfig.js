@@ -130,6 +130,23 @@ export const PageConfig = {
         },
         pages: createPageTemplates("管理者プロフィール"),
         search: createSearchTemplate("管理者プロフィール"),
+        detachMediaConfirmation: "プロフィール画像を削除してもよろしいですか？",
+    },
+
+    /**
+     * 管理者住所管理
+     */
+    adminAddresses: {
+        title: "📍 管理者住所管理",
+        description: "管理者の住所を管理します",
+        documentTitle: "管理者住所管理",
+        breadcrumbs: ["ホーム", "管理者住所管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("管理者住所"),
+        search: createSearchTemplate("管理者住所"),
+        deleteConfirmation: "この住所を削除してもよろしいですか？",
     },
 
     /**
@@ -332,6 +349,29 @@ export const PageConfig = {
         },
     },
 
+    // ポートフォリオ管理
+    portfolios: {
+        title: "🖼️ ポートフォリオ管理",
+        description: "過去の制作物を管理します",
+        documentTitle: "ポートフォリオ管理",
+        breadcrumbs: ["ホーム", "ポートフォリオ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("ポートフォリオ"),
+        form: createFormTemplates("ポートフォリオ"),
+        ui: createIndexPageUITemplates(
+            "ポートフォリオ",
+            "タイトルまたは説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+        },
+    },
+
     /**
      * スケジュール管理
      */
@@ -356,6 +396,7 @@ export const PageConfig = {
         documentTitle: "デフォルトスケジュール設定",
         breadcrumbs: ["ホーム", "デフォルトスケジュール管理"],
         actions: {
+            ...CommonUIConstants.actions,
             save: "保存",
         },
         labels: {
@@ -414,11 +455,13 @@ export const PageConfig = {
         documentTitle: "予約枠管理",
         breadcrumbs: ["ホーム", "スケジュール管理", "予約枠管理"],
         actions: {
+            ...CommonUIConstants.actions,
             create: "予約枠を作成",
             edit: "予約枠を編集",
             delete: "予約枠を削除",
             view: "予約枠を表示",
         },
+        pages: createPageTemplates("予約枠"),
         ui: createIndexPageUITemplates("予約枠", "日付、時間、タイプで検索..."),
         filters: {
             slotType: {
@@ -481,6 +524,131 @@ export const PageConfig = {
         },
         pages: createPageTemplates("見積もり"),
         search: createSearchTemplate("見積もり"),
+        ui: createIndexPageUITemplates(
+            "見積もり",
+            "見積番号、タイトル、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 見積返信管理
+     */
+    quoteResponses: {
+        title: "💬 見積返信管理",
+        description: "クライアントからの見積返信内容を管理します",
+        documentTitle: "見積返信管理",
+        breadcrumbs: ["ホーム", "見積もり管理", "見積返信管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("見積もり返信"),
+        search: createSearchTemplate("見積もり返信"),
+        ui: createIndexPageUITemplates(
+            "見積もり返信",
+            "見積番号、タイトル、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * キャンペーン管理
+     */
+    campaigns: {
+        title: "🎁 キャンペーン管理",
+        description: "期間限定キャンペーンを管理します",
+        documentTitle: "キャンペーン管理",
+        breadcrumbs: ["ホーム", "キャンペーン管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("キャンペーン"),
+        search: createSearchTemplate("キャンペーン"),
+        ui: createIndexPageUITemplates(
+            "キャンペーン",
+            "キャンペーン名、コードで検索...",
+        ),
+    },
+
+    /**
+     * ポイント特典管理
+     */
+    pointRewards: {
+        title: "🏅 ポイント特典管理",
+        description: "ボーナスポイントの付与ルールを管理します",
+        documentTitle: "ポイント特典管理",
+        breadcrumbs: ["ホーム", "ポイント特典管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("ポイント特典"),
+        search: createSearchTemplate("ポイント特典"),
+        ui: createIndexPageUITemplates(
+            "ポイント特典",
+            "コード、特典名で検索...",
+        ),
+    },
+
+    /**
+     * 紹介管理
+     */
+    referrals: {
+        title: "🤝 紹介管理",
+        description: "既存顧客からの紹介を管理します",
+        documentTitle: "紹介管理",
+        breadcrumbs: ["ホーム", "紹介管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("紹介"),
+        search: createSearchTemplate("紹介"),
+        ui: createIndexPageUITemplates("紹介", "紹介コード、会社名で検索..."),
+    },
+
+    /**
+     * 会員ランク管理
+     */
+    membershipRanks: {
+        title: "🏆 会員ランク管理",
+        description: "年間利用額に基づく会員ランクを管理します",
+        documentTitle: "会員ランク管理",
+        breadcrumbs: ["ホーム", "会員ランク管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("会員ランク"),
+        search: createSearchTemplate("会員ランク"),
+        ui: createIndexPageUITemplates(
+            "会員ランク",
+            "ランク名、キーで検索...",
+        ),
+    },
+
+    /**
+     * ポイント交換カタログ管理
+     */
+    pointCatalogItems: {
+        title: "🎁 ポイント交換カタログ管理",
+        description: "ポイントと交換できる商品・サービスを管理します",
+        documentTitle: "ポイント交換カタログ管理",
+        breadcrumbs: ["ホーム", "ポイント交換カタログ管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("カタログ商品"),
+        search: createSearchTemplate("カタログ商品"),
+        ui: createIndexPageUITemplates(
+            "カタログ商品",
+            "商品名で検索...",
+        ),
+    },
+
+    /**
+     * ポイント交換申請管理
+     */
+    pointRedemptions: {
+        title: "🔄 ポイント交換申請管理",
+        description: "クライアントからのポイント交換申請を確認・承認します",
+        documentTitle: "ポイント交換申請管理",
+        breadcrumbs: ["ホーム", "ポイント交換申請管理"],
     },
 
     /**
@@ -496,6 +664,10 @@ export const PageConfig = {
         },
         pages: createPageTemplates("請求書"),
         search: createSearchTemplate("請求書"),
+        ui: createIndexPageUITemplates(
+            "請求書",
+            "請求書番号、クライアント名で検索...",
+        ),
     },
 
     /**
@@ -511,6 +683,69 @@ export const PageConfig = {
         },
         pages: createPageTemplates("領収書"),
         search: createSearchTemplate("領収書"),
+        ui: createIndexPageUITemplates(
+            "領収書",
+            "領収書番号、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 契約管理
+     */
+    contracts: {
+        title: "📄 契約管理",
+        description: "契約情報を管理します",
+        documentTitle: "契約管理",
+        breadcrumbs: ["ホーム", "契約管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約"),
+        search: createSearchTemplate("契約"),
+        ui: createIndexPageUITemplates(
+            "契約",
+            "契約番号、タイトル、クライアント名で検索...",
+        ),
+    },
+
+    /**
+     * 契約グループ管理
+     */
+    contractGroups: {
+        title: "🗂️ 契約グループ管理",
+        description: "契約グループを管理します",
+        documentTitle: "契約グループ管理",
+        breadcrumbs: ["ホーム", "契約管理", "契約グループ"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約グループ"),
+        search: createSearchTemplate("契約グループ"),
+        ui: createIndexPageUITemplates("契約グループ", "グループ名で検索..."),
+    },
+
+    /**
+     * 契約書テンプレート管理
+     */
+    contractTemplates: {
+        title: "📄 契約書テンプレート管理",
+        description: "契約条項・特別条項のテンプレートを管理します",
+        documentTitle: "契約書テンプレート管理",
+        breadcrumbs: ["ホーム", "契約書テンプレート管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("契約書テンプレート"),
+        ui: createIndexPageUITemplates(
+            "契約書テンプレート",
+            "テンプレート名、説明で検索...",
+        ),
+        filters: {
+            status: {
+                label: "ステータス",
+                placeholder: "すべて",
+            },
+        },
     },
 
     /**
@@ -812,6 +1047,23 @@ export const PageConfig = {
         ),
     },
 
+    // 返信管理（Contact横断の一覧）
+    responses: {
+        title: "💬 返信管理",
+        description: "全お問い合わせからの返信を一元管理します",
+        documentTitle: "返信管理",
+        breadcrumbs: ["ホーム", "お問い合わせ", "返信管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("返信"),
+        search: createSearchTemplate("返信"),
+        ui: createIndexPageUITemplates(
+            "返信",
+            "お問い合わせ者名またはメールアドレスで検索...",
+        ),
+    },
+
     // お問い合わせカテゴリ管理
     contactCategories: {
         title: "🏷️ カテゴリ管理",
@@ -826,12 +1078,30 @@ export const PageConfig = {
         ui: createIndexPageUITemplates("カテゴリ", "カテゴリ名で検索..."),
     },
 
+    // 返信テンプレート管理
+    responseTemplates: {
+        title: "📄 返信テンプレート管理",
+        description: "お問い合わせの返信テンプレートを管理します",
+        documentTitle: "返信テンプレート管理",
+        breadcrumbs: ["ホーム", "お問い合わせ", "返信テンプレート"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("返信テンプレート"),
+        search: createSearchTemplate("返信テンプレート"),
+        ui: createIndexPageUITemplates(
+            "返信テンプレート",
+            "返信テンプレート名で検索...",
+        ),
+    },
+
     /**
      * お問い合わせAPI連携クライアント管理
      */
     contactApiClients: {
         title: "🔌 API連携設定",
-        description: "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
+        description:
+            "外部サイト(WordPress等)からのお問い合わせAPI連携クライアントを管理します",
         documentTitle: "API連携設定",
         breadcrumbs: ["ホーム", "お問い合わせ", "API連携設定"],
         actions: {
@@ -840,6 +1110,26 @@ export const PageConfig = {
         pages: createPageTemplates("APIクライアント"),
         search: createSearchTemplate("APIクライアント"),
         ui: createIndexPageUITemplates("APIクライアント", "連携先名で検索..."),
+    },
+
+    /**
+     * 外部サービス連携（SaaS等へのリンク・APIデータ取得）
+     */
+    externalServices: {
+        title: "🔗 外部サービス連携",
+        description:
+            "外部で運用しているSaaS等のサービスへのリンクと、API経由で取得したデータを一元管理します",
+        documentTitle: "外部サービス連携",
+        breadcrumbs: ["ホーム", "外部サービス連携"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("外部サービス"),
+        search: createSearchTemplate("外部サービス"),
+        ui: createIndexPageUITemplates(
+            "外部サービス",
+            "サービス名・分類で検索...",
+        ),
     },
 
     /**
@@ -988,6 +1278,30 @@ export const PageConfig = {
     },
 
     /**
+     * 権限管理
+     */
+    permissions: {
+        title: "🔐 権限管理",
+        description: "ロールごとのデフォルト権限を管理します",
+        documentTitle: "権限管理",
+        breadcrumbs: ["ホーム", "権限管理"],
+    },
+
+    /**
+     * 勤怠管理
+     */
+    attendance: {
+        title: "🕒 勤怠管理",
+        description: "管理者の出退勤・シフト予定を管理します",
+        documentTitle: "勤怠管理",
+        breadcrumbs: ["ホーム", "勤怠管理"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+        pages: createPageTemplates("勤怠"),
+    },
+
+    /**
      * システム設定管理
      */
     systemSettings: {
@@ -995,6 +1309,19 @@ export const PageConfig = {
         description: "システム全体の設定を管理します",
         documentTitle: "システム設定管理",
         breadcrumbs: ["ホーム", "システム設定"],
+        actions: {
+            ...CommonUIConstants.actions,
+        },
+    },
+
+    /**
+     * 営業時間管理の変更履歴
+     */
+    scheduleHistory: {
+        title: "🕘 変更履歴",
+        description: "営業時間・例外日・祝日の変更履歴を確認します",
+        documentTitle: "営業時間の変更履歴",
+        breadcrumbs: ["ホーム", "スケジュール管理", "変更履歴"],
         actions: {
             ...CommonUIConstants.actions,
         },
@@ -1011,5 +1338,26 @@ export const PageConfig = {
         actions: {
             ...CommonUIConstants.actions,
         },
+    },
+
+    /**
+     * 全体検索
+     */
+    search: {
+        title: "🔍 検索結果",
+        description: "会社・顧客・プロジェクトなど全体を横断して検索します",
+        documentTitle: "検索結果",
+        breadcrumbs: ["ホーム", "検索結果"],
+    },
+
+    /**
+     * バッチ実行管理（リマインダー実行状況）
+     */
+    batchReminders: {
+        title: "🔔 リマインダー実行状況",
+        description:
+            "予約リマインダーの送信状況をクライアント・日付ごとに確認します",
+        documentTitle: "リマインダー実行状況",
+        breadcrumbs: ["ホーム", "バッチ実行管理", "リマインダー実行状況"],
     },
 };

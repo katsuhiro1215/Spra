@@ -1,23 +1,20 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Post Components
 import PostForm from "./_components/Form";
 
-export default function Edit({ post, categories }) {
-    const { data, setData, patch, processing, errors } = useForm({
+export default function Edit({ post, categories, mediaList }) {
+    const { data, setData, patch, transform, processing, errors } = useForm({
         post_category_id: post.post_category_id || "",
         title: post.title || "",
         slug: post.slug || "",
         thumbnail: post.thumbnail || "",
         excerpt: post.excerpt || "",
+        tags: (post.tags || []).join(", "),
         content: post.content || {},
         meta_title: post.meta_title || "",
         meta_description: post.meta_description || "",
@@ -26,6 +23,15 @@ export default function Edit({ post, categories }) {
     });
 
     const handleSubmit = () => {
+        transform((data) => ({
+            ...data,
+            tags: data.tags
+                ? data.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean)
+                : [],
+        }));
         patch(route("admin.website.post.update", post.id));
     };
 
@@ -66,6 +72,7 @@ export default function Edit({ post, categories }) {
                     onSubmit={handleSubmit}
                     cancelRoute={route("admin.website.post.index")}
                     categories={categories}
+                    mediaList={mediaList}
                     isEdit={true}
                 />
             </div>

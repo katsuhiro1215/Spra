@@ -38,7 +38,7 @@ export default function AdminAuthenticatedLayout({ header, children }) {
             />
 
             {/* メインコンテンツエリア全体 */}
-            <div className="md:ml-20 relative z-10">
+            <div className="md:ml-24 relative z-10">
                 {/* ヘッダー */}
                 <AdminHeader
                     sidebarOpen={sidebarOpen}

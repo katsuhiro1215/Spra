@@ -26,6 +26,8 @@ class SectionRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'role' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'content' => ['nullable', 'array'],
+            'content.blocks' => ['nullable', 'array'],
         ];
     }
 

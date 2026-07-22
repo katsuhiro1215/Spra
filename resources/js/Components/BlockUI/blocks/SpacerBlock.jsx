@@ -22,13 +22,5 @@ export default function SpacerBlock({ data, onChange }) {
 
 export function SpacerBlockPreview({ data }) {
     const value = { ...SPACER_DEFAULT_DATA, ...data };
-
-    return (
-        <div
-            style={{ height: `${Math.min(value.height, 120)}px` }}
-            className="w-full flex items-center justify-center text-xs text-slate-300 dark:text-slate-600 border border-dashed border-slate-200 dark:border-slate-700 rounded"
-        >
-            {value.height}px
-        </div>
-    );
+    return <div style={{ height: `${value.height}px` }} />;
 }

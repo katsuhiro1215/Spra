@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import {
     EyeIcon,
     PencilIcon,
@@ -13,6 +14,33 @@ import {
     ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
+const PURPLE_TEXT = `
+    bg-transparent text-purple-600
+    hover:text-purple-900 hover:bg-purple-50
+    focus:ring-purple-500
+    dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20
+`
+    .trim()
+    .replace(/\s+/g, " ");
+
+const ORANGE_TEXT = `
+    bg-transparent text-orange-600
+    hover:text-orange-900 hover:bg-orange-50
+    focus:ring-orange-500
+    dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-900/20
+`
+    .trim()
+    .replace(/\s+/g, " ");
+
+const EMERALD_TEXT = `
+    bg-transparent text-emerald-600
+    hover:text-emerald-900 hover:bg-emerald-50
+    focus:ring-emerald-500
+    dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-900/20
+`
+    .trim()
+    .replace(/\s+/g, " ");
+
 const InvoicesTable = ({
     invoices,
     onDelete,
@@ -20,22 +48,17 @@ const InvoicesTable = ({
     onConfirmPayment,
     onResend,
 }) => {
-    // ステータスのバッジカラーを取得
-    const getInvoiceStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-            sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-            viewed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-            paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
-            overdue:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-            cancelled:
-                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    // ステータスのバッジバリアントを取得
+    const getInvoiceStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            sent: "info",
+            viewed: "success",
+            paid: "success",
+            overdue: "danger",
+            cancelled: "secondary",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-        );
+        return variants[status] || "secondary";
     };
 
     // ステータスのラベルを取得
@@ -181,93 +204,102 @@ const InvoicesTable = ({
                                 <Td>
                                     <div className="flex flex-col gap-1">
                                         <Badge
-                                            className={getInvoiceStatusColor(
+                                            variant={getInvoiceStatusVariant(
                                                 invoice.status,
                                             )}
                                         >
                                             {getStatusLabel(invoice.status)}
                                         </Badge>
                                         {invoice.receipt && (
-                                            <Badge className="bg-green-100 text-green-800 text-xs">
+                                            <Badge variant="success" size="xs">
                                                 📄 領収書発行済
                                             </Badge>
                                         )}
                                     </div>
                                 </Td>
                                 <Td>
-                                    <div className="flex justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.invoice.show",
                                                 invoice.id,
                                             )}
-                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="h-5 w-5" />
-                                        </Link>
+                                        />
 
                                         {invoice.status === "draft" && (
                                             <>
-                                                <Link
+                                                <IconButton
+                                                    variant="warning-text"
+                                                    icon={PencilIcon}
+                                                    size="lg"
                                                     href={route(
                                                         "admin.invoice.edit",
                                                         invoice.id,
                                                     )}
-                                                    className="text-yellow-600 hover:text-yellow-800"
                                                     title="編集"
-                                                >
-                                                    <PencilIcon className="h-5 w-5" />
-                                                </Link>
-                                                <button
+                                                />
+                                                <IconButton
+                                                    variant="success-text"
+                                                    icon={PaperAirplaneIcon}
+                                                    size="lg"
                                                     onClick={() =>
                                                         onSend(invoice)
                                                     }
-                                                    className="text-green-600 hover:text-green-800"
                                                     title="送付"
-                                                >
-                                                    <PaperAirplaneIcon className="h-5 w-5" />
-                                                </button>
-                                                <button
+                                                />
+                                                <IconButton
+                                                    variant="danger-text"
+                                                    icon={TrashIcon}
+                                                    size="lg"
                                                     onClick={() =>
                                                         onDelete(invoice)
                                                     }
-                                                    className="text-red-600 hover:text-red-800"
                                                     title="削除"
-                                                >
-                                                    <TrashIcon className="h-5 w-5" />
-                                                </button>
+                                                />
                                             </>
                                         )}
 
                                         {invoice.status !== "draft" && (
                                             <>
-                                                <a
-                                                    href={route(
-                                                        "admin.invoice.pdf",
-                                                        invoice.id,
-                                                    )}
-                                                    className="text-purple-600 hover:text-purple-800"
-                                                    title="PDF"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    <DocumentArrowDownIcon className="h-5 w-5" />
-                                                </a>
+                                                <IconButton
+                                                    colorClasses={
+                                                        PURPLE_TEXT
+                                                    }
+                                                    icon={
+                                                        DocumentArrowDownIcon
+                                                    }
+                                                    size="lg"
+                                                    onClick={() =>
+                                                        window.open(
+                                                            route(
+                                                                "admin.invoice.pdf.preview",
+                                                                invoice.id,
+                                                            ),
+                                                            "_blank",
+                                                        )
+                                                    }
+                                                    title="PDFを確認・ダウンロード"
+                                                />
 
                                                 {/* 送付済み/期限超過の請求書は再送可能 */}
                                                 {(invoice.status === "sent" ||
                                                     invoice.status ===
                                                         "overdue") && (
-                                                    <button
+                                                    <IconButton
+                                                        colorClasses={
+                                                            ORANGE_TEXT
+                                                        }
+                                                        icon={ArrowPathIcon}
+                                                        size="lg"
                                                         onClick={() =>
                                                             onResend(invoice)
                                                         }
-                                                        className="text-orange-600 hover:text-orange-800"
                                                         title="再送信"
-                                                    >
-                                                        <ArrowPathIcon className="h-5 w-5" />
-                                                    </button>
+                                                    />
                                                 )}
 
                                                 {/* 送付済み/期限超過で未払いの請求書は入金確認可能 */}
@@ -275,17 +307,21 @@ const InvoicesTable = ({
                                                     invoice.status ===
                                                         "overdue") &&
                                                     !invoice.receipt && (
-                                                        <button
+                                                        <IconButton
+                                                            colorClasses={
+                                                                EMERALD_TEXT
+                                                            }
+                                                            icon={
+                                                                CheckCircleIcon
+                                                            }
+                                                            size="lg"
                                                             onClick={() =>
                                                                 onConfirmPayment(
                                                                     invoice,
                                                                 )
                                                             }
-                                                            className="text-emerald-600 hover:text-emerald-800"
                                                             title="入金確認"
-                                                        >
-                                                            <CheckCircleIcon className="h-5 w-5" />
-                                                        </button>
+                                                        />
                                                     )}
                                             </>
                                         )}

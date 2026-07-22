@@ -21,17 +21,27 @@ class ServiceRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:services,slug'],
             'service_category_id' => ['required', 'string', 'exists:service_categories,id'],
             'description' => ['required', 'string', 'max:1000'],
             'details' => ['nullable', 'string'],
             'icon' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'string', 'in:active,inactive,suspended'],
+            'is_displayed' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_featured' => ['boolean'],
+            'media_ids' => ['nullable', 'array'],
+            'media_ids.*' => ['string', 'exists:media,id'],
+            'technology_ids' => ['nullable', 'array'],
+            'technology_ids.*' => ['string', 'exists:technologies,id'],
         ];
+
+        if (!($this->isMethod('PUT') || $this->isMethod('PATCH'))) {
+            $rules['slug'] = ['required', 'string', 'max:255', 'unique:services,slug'];
+        }
+
+        return $rules;
     }
 
     /**
@@ -47,6 +57,7 @@ class ServiceRequest extends FormRequest
             'details' => '詳細説明',
             'icon' => 'アイコン',
             'status' => 'ステータス',
+            'is_displayed' => 'Web公開',
             'sort_order' => '表示順',
             'is_featured' => '注目サービス',
         ];

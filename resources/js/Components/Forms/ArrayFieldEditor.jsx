@@ -5,6 +5,7 @@ import TextArea from "./TextArea";
 import ColorInput from "./ColorInput";
 import NumberInput from "./NumberInput";
 import Checkbox from "./Checkbox";
+import SelectInput from "./SelectInput";
 
 // ドラッグ機能を追加する場合は @dnd-kit/core のインストールが必要です
 // npm install @dnd-kit/core @dnd-kit/sortable
@@ -68,7 +69,7 @@ export default function ArrayFieldEditor({
     // フィールドのコンポーネントを取得
     const renderField = (item, index, fieldKey, fieldConfig) => {
         const commonProps = {
-            value: item[fieldKey],
+            value: item[fieldKey] ?? (fieldConfig.type === "boolean" ? false : ""),
             onChange: (val) => updateItem(index, fieldKey, val),
         };
 
@@ -82,7 +83,8 @@ export default function ArrayFieldEditor({
                         required={fieldConfig.required}
                     >
                         <TextInput
-                            {...commonProps}
+                            value={commonProps.value}
+                            onChange={(e) => commonProps.onChange(e.target.value)}
                             placeholder={
                                 fieldConfig.default || fieldConfig.label
                             }
@@ -98,11 +100,26 @@ export default function ArrayFieldEditor({
                         required={fieldConfig.required}
                     >
                         <TextArea
-                            {...commonProps}
+                            value={commonProps.value}
+                            onChange={(e) => commonProps.onChange(e.target.value)}
                             placeholder={
                                 fieldConfig.default || fieldConfig.label
                             }
                             rows={3}
+                        />
+                    </FormGroup>
+                );
+
+            case "select":
+                return (
+                    <FormGroup
+                        label={fieldConfig.label || fieldKey}
+                        required={fieldConfig.required}
+                    >
+                        <SelectInput
+                            value={commonProps.value}
+                            onChange={(e) => commonProps.onChange(e.target.value)}
+                            options={fieldConfig.options || []}
                         />
                     </FormGroup>
                 );
@@ -135,7 +152,7 @@ export default function ArrayFieldEditor({
                 return (
                     <div className="flex items-center gap-2">
                         <Checkbox
-                            checked={item[fieldKey]}
+                            checked={!!item[fieldKey]}
                             onChange={(e) =>
                                 updateItem(index, fieldKey, e.target.checked)
                             }

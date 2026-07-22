@@ -1,11 +1,9 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardBody } from "@/Components/Card";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import {
     DocumentTextIcon,
     TagIcon,
@@ -16,7 +14,6 @@ import {
     Cog6ToothIcon,
     PlusIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({ stats = {} }) {

@@ -7,7 +7,12 @@ import {
 } from "@heroicons/react/24/outline";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
-import { Card, CardHeader, CardBody, CardTitle } from "@/Components/Card";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardBody,
+    UserCardTitle,
+} from "@/Components/User";
 import Badge from "@/Components/Badge";
 
 const formatAmount = (amount) =>
@@ -42,11 +47,8 @@ export default function Dashboard({
     ];
 
     return (
-        <AuthenticatedLayout>
-            <Head title="ダッシュボード" />
-
-            <div className="space-y-6">
-                {/* ページヘッダー */}
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="ダッシュボード"
                     description="契約情報と重要なタスク"
@@ -54,7 +56,11 @@ export default function Dashboard({
                         { label: "ホーム", href: route("user.dashboard") },
                     ]}
                 />
+            }
+        >
+            <Head title="ダッシュボード" />
 
+            <div className="space-y-6">
                 {/* 統計情報 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {stats.map((stat) => {
@@ -86,14 +92,14 @@ export default function Dashboard({
 
                 {/* 未払いの請求書 */}
                 {unpaidInvoices && unpaidInvoices.length > 0 && (
-                    <Card className="border-red-200 bg-red-50">
-                        <CardHeader>
+                    <UserCard className="border-red-200 bg-red-50">
+                        <UserCardHeader>
                             <div className="flex items-center gap-2">
                                 <BanknotesIcon className="h-6 w-6 text-red-600" />
-                                <CardTitle>未払いの請求書</CardTitle>
+                                <UserCardTitle>未払いの請求書</UserCardTitle>
                             </div>
-                        </CardHeader>
-                        <CardBody>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <div className="space-y-3">
                                 {unpaidInvoices.map((invoice) => (
                                     <Link
@@ -140,20 +146,20 @@ export default function Dashboard({
                             >
                                 すべての請求書を見る →
                             </Link>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 )}
 
                 {/* 署名待ちの契約 */}
                 {pendingContracts && pendingContracts.length > 0 && (
-                    <Card className="border-yellow-200 bg-yellow-50">
-                        <CardHeader>
+                    <UserCard className="border-yellow-200 bg-yellow-50">
+                        <UserCardHeader>
                             <div className="flex items-center gap-2">
                                 <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600" />
-                                <CardTitle>署名待ちの契約</CardTitle>
+                                <UserCardTitle>署名待ちの契約</UserCardTitle>
                             </div>
-                        </CardHeader>
-                        <CardBody>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <div className="space-y-3">
                                 {pendingContracts.map((contract) => (
                                     <Link
@@ -187,15 +193,15 @@ export default function Dashboard({
                             >
                                 すべての契約を見る →
                             </Link>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 )}
 
                 {/* 契約がない場合 */}
                 {!pendingContracts ||
                     (pendingContracts.length === 0 && (
-                        <Card>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardBody>
                                 <div className="text-center py-8">
                                     <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-3" />
                                     <p className="text-gray-600 font-medium">
@@ -208,8 +214,8 @@ export default function Dashboard({
                                         すべての契約を見る
                                     </Link>
                                 </div>
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     ))}
             </div>
         </AuthenticatedLayout>

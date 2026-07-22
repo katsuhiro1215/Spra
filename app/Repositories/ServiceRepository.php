@@ -41,11 +41,22 @@ class ServiceRepository extends SoftDeletableRepository implements ServiceReposi
     protected function getSortableFields(): array
     {
         return [
+            'sort_order',
             'created_at',
             'updated_at',
             'name',
             'status',
         ];
+    }
+
+    /**
+     * デフォルトのソートフィールドを返す
+     *
+     * @return string
+     */
+    protected function getDefaultSortField(): string
+    {
+        return 'sort_order';
     }
 
     /**

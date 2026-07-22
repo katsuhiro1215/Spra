@@ -1,15 +1,12 @@
 import React from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { InputLabel, TextInput, InputError } from "@/Components/Forms";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create({ admins, slotTypes }) {
@@ -34,28 +31,32 @@ export default function Create({ admins, slotTypes }) {
     // ========================================
     const headerActions = [
         {
-            label: "一覧に戻る",
+            label: PageConfig.appointmentSlots.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.appointment-slots.index"),
         },
     ];
 
+    const breadcrumbs = [
+        ...PageConfig.appointmentSlots.breadcrumbs,
+        PageConfig.appointmentSlots.pages.create.breadcrumb,
+    ];
+
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="予約枠を作成"
-                    description="新しい予約枠を作成します"
+                    title={PageConfig.appointmentSlots.pages.create.title}
+                    description={
+                        PageConfig.appointmentSlots.pages.create.description
+                    }
                     actions={headerActions}
-                    breadcrumbs={[
-                        ...PageConfig.appointmentSlots.breadcrumbs,
-                        "予約枠作成",
-                    ]}
+                    breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="予約枠作成" />
+            <Head title={PageConfig.appointmentSlots.pages.create.title} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
@@ -148,7 +149,7 @@ export default function Create({ admins, slotTypes }) {
                                 onChange={(e) =>
                                     setData("slot_type", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             >
                                 {slotTypes.map((type) => (
@@ -185,7 +186,7 @@ export default function Create({ admins, slotTypes }) {
                                 className="mt-1 block w-full"
                                 required
                             />
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 この時間枠で受け付ける予約の最大数を設定します（1〜100）
                             </p>
                             <InputError
@@ -209,7 +210,7 @@ export default function Create({ admins, slotTypes }) {
                                         e.target.value,
                                     )
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
                                 <option value="">未割り当て</option>
                                 {admins.map((admin) => (
@@ -240,13 +241,13 @@ export default function Create({ admins, slotTypes }) {
                                 onChange={(e) =>
                                     setData("status", e.target.value)
                                 }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             >
                                 <option value="available">予約可能</option>
                                 <option value="blocked">ブロック中</option>
                             </select>
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 ブロック中の枠は予約受付されません
                             </p>
                             <InputError
@@ -265,7 +266,7 @@ export default function Create({ admins, slotTypes }) {
                                     setData("notes", e.target.value)
                                 }
                                 rows="4"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 placeholder="この時間枠に関する補足事項があれば記入してください"
                             />
                             <InputError
@@ -275,7 +276,7 @@ export default function Create({ admins, slotTypes }) {
                         </div>
 
                         {/* アクションボタン */}
-                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <Link
                                 href={route(
                                     "admin.appointment-slots.index",

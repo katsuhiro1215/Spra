@@ -40,10 +40,10 @@ class ContractController extends Controller
         $contract = $this->service->findByIdForClient($id, $userId);
         abort_unless($contract, 404);
 
-        // 関連データを取得
+        // 関連データを取得(金額はQuote自体ではなくcurrentVersionにあるため合わせて読み込む)
         $quote = null;
         if ($contract->quote_id) {
-            $quote = \App\Models\Quote::find($contract->quote_id);
+            $quote = \App\Models\Quote::with('currentVersion')->find($contract->quote_id);
         }
 
         $invoices = $contract->invoices()->orderBy('issue_date', 'desc')->get();
@@ -59,12 +59,15 @@ class ContractController extends Controller
             ? $contract->project
             : null;
 
+        $userSignature = $contract->getLatestSignature('user');
+
         return Inertia::render('User/Contracts/Show', [
             'contract' => $contract,
             'quote' => $quote,
             'invoices' => $invoices,
             'receipts' => $receipts,
             'project' => $project,
+            'signatureImage' => $userSignature?->signature_image,
         ]);
     }
 
@@ -143,7 +146,8 @@ class ContractController extends Controller
         $contract = $this->service->findByIdForClient($id, $userId);
         abort_unless($contract, 404);
 
-        $pdf = $this->pdfService->generate($contract);
+        // 4ページの完全なPDFを生成（Admin側と同一。契約条項・特約事項・署名ページを含む）
+        $pdf = $this->pdfService->generateFullContract($contract);
         $fileName = $this->pdfService->getFileName($contract);
 
         return response($pdf->Output($fileName, 'S'), 200, [
@@ -161,7 +165,8 @@ class ContractController extends Controller
         $contract = $this->service->findByIdForClient($id, $userId);
         abort_unless($contract, 404);
 
-        $pdf = $this->pdfService->generate($contract);
+        // 4ページの完全なPDFを生成（Admin側と同一。契約条項・特約事項・署名ページを含む）
+        $pdf = $this->pdfService->generateFullContract($contract);
 
         return response($pdf->Output('', 'S'), 200, [
             'Content-Type' => 'application/pdf',

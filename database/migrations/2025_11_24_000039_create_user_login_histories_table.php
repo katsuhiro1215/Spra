@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('failure_reason')->nullable();
             $table->timestamp('logged_in_at');
             $table->timestamp('logged_out_at')->nullable();
+            $table->integer('login_duration')->nullable()->comment('セッション滞在時間（秒）');
             $table->string('session_id')->nullable()->comment('セッションID');
             $table->timestamps();
 

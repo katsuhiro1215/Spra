@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\UserActivityLog;
 use App\Mail\AppointmentConfirmedMail;
 use App\Mail\AppointmentReminderMail;
 use App\Mail\AppointmentCancelledMail;
@@ -179,15 +180,36 @@ class AppointmentNotificationService
 
       // リマインダー送信日時を記録（宛先の有無にかかわらず再送を防ぐため必ず記録する）
       $appointment->reminder_sent_at = now();
+      $appointment->reminder_status = Appointment::REMINDER_STATUS_SENT;
+      $appointment->reminder_error = null;
       $appointment->save();
 
       Log::info('Appointment reminder sent', [
         'appointment_id' => $appointment->id,
       ]);
     } catch (\Exception $e) {
+      $appointment->reminder_status = Appointment::REMINDER_STATUS_FAILED;
+      $appointment->reminder_error = $e->getMessage();
+      $appointment->save();
+
       Log::error('Failed to send reminder notification', [
         'appointment_id' => $appointment->id,
         'error' => $e->getMessage(),
+      ]);
+
+      // Adminが気づけるよう、ログ管理画面の「警告」タブにも記録する
+      UserActivityLog::logActivity([
+        'action' => 'appointment_reminder_failed',
+        'actor_type' => UserActivityLog::ACTOR_SYSTEM,
+        'status' => UserActivityLog::STATUS_WARNING,
+        'description' => "予約リマインダーの送信に失敗しました（予約ID: {$appointment->id}）",
+        'model_type' => Appointment::class,
+        'model_id' => $appointment->id,
+        'additional_data' => [
+          'appointment_id' => $appointment->id,
+          'booker_name' => $appointment->booker_name,
+          'error' => $e->getMessage(),
+        ],
       ]);
     }
   }

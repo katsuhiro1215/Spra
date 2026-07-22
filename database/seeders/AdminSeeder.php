@@ -27,7 +27,7 @@ class AdminSeeder extends Seeder
                 'role' => 'super_admin',
                 'status' => 'active',
             ],
-            // Admin - 一般管理者（8名）
+            // Admin - 一般管理者（3名）
             [
                 'email' => 'kakoi101@smartsprouts.jp',
                 'role' => 'admin',
@@ -36,36 +36,16 @@ class AdminSeeder extends Seeder
             [
                 'email' => 'kakoi102@smartsprouts.jp',
                 'role' => 'admin',
-                'status' => 'active',
+                'status' => 'inactive',
             ],
             [
                 'email' => 'kakoi103@smartsprouts.jp',
-                'role' => 'admin',
+                'role' => 'editor',
                 'status' => 'active',
             ],
             [
                 'email' => 'kakoi104@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'inactive',
-            ],
-            [
-                'email' => 'kakoi105@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'suspended',
-            ],
-            [
-                'email' => 'kakoi106@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi107@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi108@smartsprouts.jp',
-                'role' => 'editor',
+                'role' => 'viewer',
                 'status' => 'active',
             ],
         ];

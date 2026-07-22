@@ -9,6 +9,8 @@ import {
     SunIcon,
     SwatchIcon,
     DocumentTextIcon,
+    MagnifyingGlassIcon,
+    ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const NOTIFICATION_DOT_CLASSES = {
@@ -36,10 +38,37 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     const admin = props.auth?.admin;
     const unreadCount = props.adminNotifications?.unreadCount || 0;
     const notificationItems = props.adminNotifications?.items || [];
+    const todayAttendance = props.auth?.todayAttendance;
+    const isWorking = todayAttendance?.status === "working";
 
     const handleReadAll = (e) => {
         e.preventDefault();
         router.post(route("admin.notifications.read-all"));
+    };
+
+    const handleClockIn = () => {
+        router.post(
+            route("admin.attendance.clock-in"),
+            {},
+            { preserveScroll: true },
+        );
+    };
+
+    const handleClockOut = () => {
+        router.post(
+            route("admin.attendance.clock-out"),
+            {},
+            { preserveScroll: true },
+        );
+    };
+
+    // 全体検索
+    const [searchKeyword, setSearchKeyword] = useState("");
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (!searchKeyword.trim()) return;
+        router.get(route("admin.search"), { q: searchKeyword });
     };
 
     // デバッグ: admin データを確認
@@ -135,7 +164,7 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
             {/* トップナビゲーション */}
             <nav className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                 <div className="px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
+                    <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 gap-4">
                         <div className="flex items-center">
                             <button
                                 type="button"
@@ -159,7 +188,37 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                             </button>
                         </div>
 
-                        <div className="flex items-center">
+                        {/* 全体検索バー */}
+                        <div className="hidden md:flex justify-center">
+                            <form
+                                onSubmit={handleSearchSubmit}
+                                className="w-full max-w-md"
+                            >
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={searchKeyword}
+                                        onChange={(e) =>
+                                            setSearchKeyword(e.target.value)
+                                        }
+                                        placeholder="会社・顧客・プロジェクトなどを検索..."
+                                        className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 transition-colors"
+                                    />
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="flex items-center justify-end">
+                            {/* モバイル用検索リンク */}
+                            <Link
+                                href={route("admin.search")}
+                                className="md:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                                title="検索"
+                            >
+                                <MagnifyingGlassIcon className="h-6 w-6" />
+                            </Link>
+
                             {/* カラーテーマ切替 */}
                             <Dropdown>
                                 <Dropdown.Trigger>
@@ -208,26 +267,14 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                 </Dropdown.Content>
                             </Dropdown>
 
-                            {/* ログメニュー */}
-                            <Dropdown>
-                                <Dropdown.Trigger>
-                                    <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
-                                        <DocumentTextIcon className="h-6 w-6" />
-                                    </button>
-                                </Dropdown.Trigger>
-                                <Dropdown.Content align="right" width="64">
-                                    <div className="px-4 py-3 border-b dark:border-gray-700">
-                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            システムログ
-                                        </p>
-                                    </div>
-                                    <div className="p-3">
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                                            ログ機能は近日実装予定です
-                                        </p>
-                                    </div>
-                                </Dropdown.Content>
-                            </Dropdown>
+                            {/* システムログ */}
+                            <Link
+                                href={route("admin.logs.index")}
+                                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                                title="システムログ"
+                            >
+                                <DocumentTextIcon className="h-6 w-6" />
+                            </Link>
 
                             {/* ダークモード切替 */}
                             <button
@@ -330,6 +377,31 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                     )}
                                 </Dropdown.Content>
                             </Dropdown>
+
+                            {/* 出退勤 */}
+                            <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
+                                {isWorking ? (
+                                    <>
+                                        <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200">
+                                            <ClockIcon className="h-3.5 w-3.5" />
+                                            勤務中
+                                        </span>
+                                        <button
+                                            onClick={handleClockOut}
+                                            className="text-sm font-medium px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                        >
+                                            退勤
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={handleClockIn}
+                                        className="text-sm font-medium px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                                    >
+                                        出勤
+                                    </button>
+                                )}
+                            </div>
 
                             {/* 管理者情報 */}
                             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">

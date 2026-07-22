@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CompanyRequest;
 use App\Models\Address;
 use App\Models\Company;
+use App\Models\CompanyMembership;
 use App\Models\Media;
+use App\Models\PointReward;
 use App\Services\CompanyService;
+use App\Services\PointService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +20,8 @@ use Inertia\Response;
 class CompanyController extends Controller
 {
     public function __construct(
-        private CompanyService $companyService
+        private CompanyService $companyService,
+        private PointService $pointService,
     ) {}
 
     /**
@@ -29,6 +33,8 @@ class CompanyController extends Controller
         $filters = [
             'search' => $request->input('search'),
             'status' => $request->input('status'),
+            'company_type' => $request->input('company_type'),
+            'industry' => $request->input('industry'),
             'trashed' => $request->input('trashed', 'without_trashed'), // デフォルトは削除されていないもの
         ];
         // ソート
@@ -70,12 +76,12 @@ class CompanyController extends Controller
             $this->companyService->create($request->validated());
 
             return redirect()->route('admin.company.index')
-                ->with('success', '会社情報を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => '会社情報']));
         } catch (\Exception $e) {
             Log::error('Service store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '会社情報の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => '会社情報']));
         }
     }
 
@@ -87,7 +93,7 @@ class CompanyController extends Controller
         $company->load(['addresses', 'users.profile', 'media']);
         // 見積もりを取得
         $quotes = $company->quotes()
-            ->with(['user.profile', 'contact'])
+            ->with(['user.profile', 'contact', 'currentVersion'])
             ->orderBy('created_at', 'desc')
             ->get();
         // 請求書を取得
@@ -123,15 +129,30 @@ class CompanyController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
+        // ポイント残高・履歴を取得
+        $membership = $company->membership()->with('currentRank')->first() ?: new CompanyMembership([
+            'points_balance' => 0,
+            'lifetime_points' => 0,
+            'annual_usage_amount' => 0,
+        ]);
+        $pointTransactions = $company->pointTransactions()
+            ->with(['pointReward', 'receipt', 'referral'])
+            ->limit(100)
+            ->get();
+        $activePointRewards = PointReward::active()->orderBy('name')->get(['id', 'code', 'name', 'points']);
+
         return Inertia::render('Admin/Company/Show', [
-            'company'      => $company,
-            'addressTypes' => Address::TYPES,
-            'quotes'       => $quotes,
-            'invoices'     => $invoices,
-            'receipts'     => $receipts,
-            'payments'     => $payments,
-            'stats'        => $stats,
-            'mediaList'    => $mediaList,
+            'company'            => $company,
+            'addressTypes'       => Address::TYPES,
+            'quotes'             => $quotes,
+            'invoices'           => $invoices,
+            'receipts'           => $receipts,
+            'payments'           => $payments,
+            'stats'              => $stats,
+            'mediaList'          => $mediaList,
+            'membership'         => $membership,
+            'pointTransactions'  => $pointTransactions,
+            'activePointRewards' => $activePointRewards,
         ]);
     }
 
@@ -160,12 +181,12 @@ class CompanyController extends Controller
             $this->companyService->update($company, $request->validated());
 
             return redirect()->route('admin.company.index')
-                ->with('success', '会社情報を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '会社情報']));
         } catch (\Exception $e) {
             Log::error('Service update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '会社情報の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => '会社情報']));
         }
     }
 
@@ -177,18 +198,18 @@ class CompanyController extends Controller
         // 関連するユーザーが存在する場合は削除できないようにする
         if ($company->users()->exists()) {
             return redirect()->route('admin.company.index')
-                ->with('error', 'この会社には関連するユーザーが存在するため削除できません。');
+                ->with('error', __('messages.company.has_users'));
         }
         // 削除処理
         try {
             $this->companyService->delete($company);
 
             return redirect()->route('admin.company.index')
-                ->with('success', '会社情報を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '会社情報']));
         } catch (\Exception $e) {
             Log::error('Company delete error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', '会社情報の削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => '会社情報']));
         }
     }
 
@@ -206,7 +227,7 @@ class CompanyController extends Controller
 
         if (Company::whereIn('id', $ids)->whereHas('users')->exists()) {
             return redirect()->route('admin.company.index')
-                ->with('error', '選択した会社の中に関連するユーザーが存在するものがあるため削除できません。');
+                ->with('error', __('messages.company.has_users_selected'));
         }
 
         $count = $this->companyService->bulkDelete($ids);
@@ -309,7 +330,7 @@ class CompanyController extends Controller
         try {
             $company->update(['media_id' => $validated['media_id']]);
 
-            return back()->with('success', '会社画像を設定しました。');
+            return back()->with('success', __('messages.set', ['attribute' => '会社画像']));
         } catch (\Exception $e) {
             Log::error('会社画像設定エラー', [
                 'message' => $e->getMessage(),
@@ -317,7 +338,7 @@ class CompanyController extends Controller
                 'media_id' => $validated['media_id'],
             ]);
 
-            return back()->with('error', '画像の設定に失敗しました。');
+            return back()->with('error', __('messages.set_failed', ['attribute' => '画像']));
         }
     }
 
@@ -329,14 +350,32 @@ class CompanyController extends Controller
         try {
             $company->update(['media_id' => null]);
 
-            return back()->with('success', '会社画像を削除しました。');
+            return back()->with('success', __('messages.deleted', ['attribute' => '会社画像']));
         } catch (\Exception $e) {
             Log::error('会社画像削除エラー', [
                 'message' => $e->getMessage(),
                 'company_id' => $company->id,
             ]);
 
-            return back()->with('error', '画像の削除に失敗しました。');
+            return back()->with('error', __('messages.delete_failed', ['attribute' => '画像']));
         }
+    }
+
+    /**
+     * ポイントを手動付与（PointRewardマスタのルールに基づく）
+     */
+    public function grantPoints(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reward_code' => ['required', 'exists:point_rewards,code'],
+        ]);
+
+        $transaction = $this->pointService->grantReward($company->id, $validated['reward_code']);
+
+        if (!$transaction) {
+            return back()->with('error', __('messages.company.point_grant_failed'));
+        }
+
+        return back()->with('success', "{$transaction->points}ポイントを付与しました。");
     }
 }

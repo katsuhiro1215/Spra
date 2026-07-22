@@ -1,13 +1,11 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Icons
 import {
     Cog6ToothIcon,
     Bars3Icon,
@@ -18,7 +16,6 @@ import {
     PencilIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const GROUP_LINKS = [
@@ -27,35 +24,30 @@ const GROUP_LINKS = [
         label: "一般",
         description: "サイト名や連絡先などの基本設定",
         icon: Cog6ToothIcon,
-        route: "admin.website.siteSetting.general",
     },
     {
         group: "navigation",
         label: "ナビゲーション",
         description: "ヘッダーのロゴ・CTAボタン設定",
         icon: Bars3Icon,
-        route: "admin.website.siteSetting.navigation",
     },
     {
         group: "footer",
         label: "フッター",
         description: "フッターテキスト・SNSリンク設定",
         icon: RectangleGroupIcon,
-        route: "admin.website.siteSetting.footer",
     },
     {
         group: "seo",
         label: "SEO",
         description: "デフォルトのメタ情報設定",
         icon: MagnifyingGlassIcon,
-        route: "admin.website.siteSetting.seo",
     },
     {
         group: "ogp",
         label: "OGP",
         description: "SNSシェア時の表示設定",
         icon: ShareIcon,
-        route: "admin.website.siteSetting.ogp",
     },
 ];
 
@@ -87,7 +79,7 @@ export default function Index({ customSettings = [] }) {
                     {GROUP_LINKS.map((item) => (
                         <Link
                             key={item.group}
-                            href={route(item.route)}
+                            href={`${route("admin.website.siteSetting.settings")}#${item.group}`}
                             className="block"
                         >
                             <Card className="h-full hover:ring-2 hover:ring-indigo-500 transition-shadow">

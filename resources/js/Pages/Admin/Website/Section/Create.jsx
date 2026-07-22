@@ -1,23 +1,21 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-// Icons
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
-// Section Components
 import SectionForm from "./_components/SectionForm";
 import * as validation from "./_components/validation";
 
-export default function Create({ pages }) {
+export default function Create({ pages, mediaList }) {
     const { data, setData, post, processing, errors } = useForm({
         page_id: "",
         name: "",
         role: "",
         sort_order: 0,
+        content: { blocks: [] },
     });
 
     const [localErrors, setLocalErrors] = useState({});
@@ -69,6 +67,7 @@ export default function Create({ pages }) {
                         setLocalErrors={setLocalErrors}
                         processing={processing}
                         pages={pages}
+                        mediaList={mediaList}
                     />
 
                     {/* アクションボタン */}

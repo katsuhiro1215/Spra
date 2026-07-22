@@ -18,6 +18,7 @@ return new class extends Migration
       $table->string('question');
       $table->longText('answer');
       $table->boolean('is_published')->default(false);
+      $table->boolean('is_featured')->default(false);
       $table->integer('sort_order')->default(0);
       $table->timestamps();
       $table->softDeletes();

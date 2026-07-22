@@ -1,14 +1,12 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Project Components
 import ProjectForm from "./_components/ProjectForm";
 
 export default function Edit({
@@ -17,6 +15,7 @@ export default function Edit({
     users = [],
     companies = [],
     admins = [],
+    technologiesByContract = {},
 }) {
     const { data, setData, put, processing, errors } = useForm({
         project_code: project.project_code || "",
@@ -27,17 +26,26 @@ export default function Edit({
         contract_id: project.contract_id || "",
         user_id: project.user_id || "",
         company_id: project.company_id || "",
-        admin_id: project.admin_id || "",
-        start_date: project.start_date ? project.start_date.split(" ")[0] : "",
+        repository_url: project.repository_url || "",
+        production_url: project.production_url || "",
+        admins:
+            (project.admins || []).map((admin) => ({
+                admin_id: admin.id,
+                role: admin.pivot.role,
+            })) || [],
+        start_date: project.start_date ? project.start_date.slice(0, 10) : "",
         estimated_end_date: project.estimated_end_date
-            ? project.estimated_end_date.split(" ")[0]
+            ? project.estimated_end_date.slice(0, 10)
             : "",
         actual_end_date: project.actual_end_date
-            ? project.actual_end_date.split(" ")[0]
+            ? project.actual_end_date.slice(0, 10)
             : "",
         is_client_visible: project.is_client_visible || false,
         client_visible_notes: project.client_visible_notes || "",
         internal_notes: project.internal_notes || "",
+        technology_ids: (project.technologies || []).map(
+            (technology) => technology.id,
+        ),
     });
 
     const submit = (e) => {
@@ -91,6 +99,9 @@ export default function Edit({
                                 users={users}
                                 companies={companies}
                                 admins={admins}
+                                technologiesByContract={
+                                    technologiesByContract
+                                }
                                 isEditMode={true}
                             />
                         </div>

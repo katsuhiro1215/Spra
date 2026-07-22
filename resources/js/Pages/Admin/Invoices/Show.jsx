@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
+import { Card } from "@/Components/Card";
+import { TextButton } from "@/Components/Buttons";
 import { Badge } from "@/Components/Badges";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
+import { PageConfig } from "@/Constants/PageConfig";
 import {
     PencilIcon,
     TrashIcon,
@@ -74,21 +77,16 @@ export default function Show({ invoice, payments }) {
         return labels[status] || status;
     };
 
-    const getStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-            sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-            viewed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-            paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
-            overdue:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-            cancelled:
-                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    const getStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            sent: "info",
+            viewed: "success",
+            paid: "success",
+            overdue: "danger",
+            cancelled: "secondary",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-        );
+        return variants[status] || "secondary";
     };
 
     const formatDate = (date) => {
@@ -143,6 +141,8 @@ export default function Show({ invoice, payments }) {
     // ========================================
     // Header & Breadcrumbs
     // ========================================
+    // PageHeader には「戻る」のみを置き、送付・編集・削除・PDF等の操作は
+    // タブ行のツールバーに配置する（他のShowページと同じレイアウトに統一）
     const headerActions = [
         {
             label: "戻る",
@@ -150,45 +150,16 @@ export default function Show({ invoice, payments }) {
             variant: "ghost",
             route: route("admin.invoice.index"),
         },
-        ...(invoice.status === "draft"
-            ? [
-                  {
-                      label: "送付",
-                      icon: PaperAirplaneIcon,
-                      variant: "primary",
-                      onClick: handleSendClick,
-                  },
-                  {
-                      label: "編集",
-                      icon: PencilIcon,
-                      variant: "secondary",
-                      route: route("admin.invoice.edit", invoice.id),
-                  },
-                  {
-                      label: "削除",
-                      icon: TrashIcon,
-                      variant: "danger",
-                      onClick: handleDeleteClick,
-                  },
-              ]
-            : []),
-        ...(["sent", "viewed", "overdue"].includes(invoice.status)
-            ? [
-                  {
-                      label: "PDF",
-                      icon: DocumentArrowDownIcon,
-                      variant: "secondary",
-                      href: route("admin.invoice.pdf", invoice.id),
-                      target: "_blank",
-                  },
-              ]
-            : []),
     ];
 
+    const isDraft = invoice.status === "draft";
+    const canDownloadPdf = ["sent", "viewed", "paid", "overdue"].includes(
+        invoice.status,
+    );
+
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: invoice.invoice_number || "請求書詳細", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        invoice.invoice_number || "請求書詳細",
     ];
 
     const confirmMessage = getConfirmMessage();
@@ -246,6 +217,62 @@ export default function Show({ invoice, payments }) {
                     </div>
                 </div>
             )}
+
+            {/* アクションツールバー - 送付・編集・削除・PDFはここに集約 */}
+            <Card className="mb-6">
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                    {isDraft && (
+                        <>
+                            <TextButton
+                                onClick={handleSendClick}
+                                variant="skyblue"
+                                size="sm"
+                                title="送付"
+                            >
+                                <PaperAirplaneIcon className="w-4 h-4 mr-1" />
+                                送付
+                            </TextButton>
+                            <TextButton
+                                href={route("admin.invoice.edit", invoice.id)}
+                                variant="primary"
+                                size="sm"
+                                title="編集"
+                            >
+                                <PencilIcon className="w-4 h-4 mr-1" />
+                                編集
+                            </TextButton>
+                            <TextButton
+                                onClick={handleDeleteClick}
+                                variant="danger"
+                                size="sm"
+                                title="削除"
+                            >
+                                <TrashIcon className="w-4 h-4 mr-1" />
+                                削除
+                            </TextButton>
+                        </>
+                    )}
+                    {canDownloadPdf && (
+                        <TextButton
+                            onClick={() =>
+                                window.open(
+                                    route(
+                                        "admin.invoice.pdf.preview",
+                                        invoice.id,
+                                    ),
+                                    "_blank",
+                                )
+                            }
+                            variant="default"
+                            size="sm"
+                            title="PDFを確認・ダウンロード"
+                        >
+                            <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
+                            PDFダウンロード
+                        </TextButton>
+                    )}
+                </div>
+            </Card>
 
             {/* メインレイアウト - 2カラム */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -327,7 +354,7 @@ export default function Show({ invoice, payments }) {
                                 </p>
                                 <div className="mt-2 inline-block">
                                     <Badge
-                                        className={getStatusColor(
+                                        variant={getStatusVariant(
                                             invoice.status,
                                         )}
                                     >
@@ -357,21 +384,6 @@ export default function Show({ invoice, payments }) {
                                 </p>
                             </div>
 
-                            {/* PDF ダウンロード */}
-                            {invoice.status !== "draft" && (
-                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                                    <a
-                                        href={route(
-                                            "admin.invoice.pdf",
-                                            invoice.id,
-                                        )}
-                                        download
-                                        className="w-full inline-block text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
-                                    >
-                                        PDF をダウンロード
-                                    </a>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

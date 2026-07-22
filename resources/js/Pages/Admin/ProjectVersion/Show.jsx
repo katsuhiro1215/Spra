@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badge";
-import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { TextButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
@@ -82,24 +82,6 @@ export default function Show({ project, version, milestones, items }) {
                     description={`${project.title} のバージョン詳細`}
                     actions={[
                         {
-                            label: "ガントチャート",
-                            icon: ChartBarIcon,
-                            variant: "primary",
-                            route: route(
-                                "admin.project.gantt.show",
-                                project.id,
-                            ),
-                        },
-                        {
-                            label: "編集",
-                            icon: PencilIcon,
-                            variant: "secondary",
-                            route: route("admin.project.versions.edit", {
-                                project: project.id,
-                                version: version.id,
-                            }),
-                        },
-                        {
                             label: "バージョン一覧へ戻る",
                             icon: ArrowLeftIcon,
                             variant: "ghost",
@@ -144,23 +126,54 @@ export default function Show({ project, version, milestones, items }) {
                                 バージョン情報
                             </h2>
                             <div className="flex gap-2">
+                                <TextButton
+                                    href={route(
+                                        "admin.project.gantt.show",
+                                        project.id,
+                                    )}
+                                    variant="primary"
+                                    size="sm"
+                                    title="ガントチャート"
+                                >
+                                    <ChartBarIcon className="w-4 h-4 mr-1" />
+                                    ガントチャート
+                                </TextButton>
+                                <TextButton
+                                    href={route(
+                                        "admin.project.versions.edit",
+                                        {
+                                            project: project.id,
+                                            version: version.id,
+                                        },
+                                    )}
+                                    variant="default"
+                                    size="sm"
+                                    title="編集"
+                                >
+                                    <PencilIcon className="w-4 h-4 mr-1" />
+                                    編集
+                                </TextButton>
                                 {!version.is_current && (
-                                    <button
+                                    <TextButton
                                         onClick={handleSetCurrent}
-                                        className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                                        variant="success"
+                                        size="sm"
+                                        title="現在に設定"
                                     >
-                                        <CheckIcon className="w-4 h-4" />
+                                        <CheckIcon className="w-4 h-4 mr-1" />
                                         現在に設定
-                                    </button>
+                                    </TextButton>
                                 )}
                                 {!version.is_current && (
-                                    <button
+                                    <TextButton
                                         onClick={handleDelete}
-                                        className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                        variant="danger"
+                                        size="sm"
+                                        title="削除"
                                     >
-                                        <TrashIcon className="w-4 h-4" />
+                                        <TrashIcon className="w-4 h-4 mr-1" />
                                         削除
-                                    </button>
+                                    </TextButton>
                                 )}
                             </div>
                         </div>
@@ -270,7 +283,7 @@ export default function Show({ project, version, milestones, items }) {
                             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                                 マイルストーン ({milestones?.length || 0})
                             </h2>
-                            <Link
+                            <TextButton
                                 href={route(
                                     "admin.project.versions.milestones.create",
                                     {
@@ -278,11 +291,13 @@ export default function Show({ project, version, milestones, items }) {
                                         version: version.id,
                                     },
                                 )}
-                                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                variant="primary"
+                                size="sm"
+                                title="マイルストーンを追加"
                             >
-                                <PlusIcon className="w-4 h-4" />
+                                <PlusIcon className="w-4 h-4 mr-1" />
                                 追加
-                            </Link>
+                            </TextButton>
                         </div>
                     </CardHeader>
                     <CardBody>
@@ -309,7 +324,7 @@ export default function Show({ project, version, milestones, items }) {
                                             </p>
                                         </div>
                                         <div className="flex gap-2 ml-4">
-                                            <Link
+                                            <TextButton
                                                 href={route(
                                                     "admin.project.versions.milestones.edit",
                                                     {
@@ -318,11 +333,13 @@ export default function Show({ project, version, milestones, items }) {
                                                         milestone: milestone.id,
                                                     },
                                                 )}
-                                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                                                variant="default"
+                                                size="xs"
+                                                title="編集"
                                             >
                                                 <PencilIcon className="w-3 h-3" />
-                                            </Link>
-                                            <button
+                                            </TextButton>
+                                            <TextButton
                                                 onClick={() => {
                                                     if (
                                                         confirm(
@@ -344,10 +361,12 @@ export default function Show({ project, version, milestones, items }) {
                                                         );
                                                     }
                                                 }}
-                                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                                                variant="danger"
+                                                size="xs"
+                                                title="削除"
                                             >
                                                 <TrashIcon className="w-3 h-3" />
-                                            </button>
+                                            </TextButton>
                                         </div>
                                     </div>
                                 ))}
@@ -367,7 +386,7 @@ export default function Show({ project, version, milestones, items }) {
                             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                                 プロジェクトアイテム ({items?.length || 0})
                             </h2>
-                            <Link
+                            <TextButton
                                 href={route(
                                     "admin.project.versions.items.create",
                                     {
@@ -375,11 +394,13 @@ export default function Show({ project, version, milestones, items }) {
                                         version: version.id,
                                     },
                                 )}
-                                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                variant="primary"
+                                size="sm"
+                                title="アイテムを追加"
                             >
-                                <PlusIcon className="w-4 h-4" />
+                                <PlusIcon className="w-4 h-4 mr-1" />
                                 追加
-                            </Link>
+                            </TextButton>
                         </div>
                     </CardHeader>
                     <CardBody>
@@ -434,7 +455,7 @@ export default function Show({ project, version, milestones, items }) {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2 ml-4">
-                                                <Link
+                                                <TextButton
                                                     href={route(
                                                         "admin.project.versions.items.edit",
                                                         {
@@ -443,11 +464,13 @@ export default function Show({ project, version, milestones, items }) {
                                                             item: item.id,
                                                         },
                                                     )}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                                                    variant="default"
+                                                    size="xs"
+                                                    title="編集"
                                                 >
                                                     <PencilIcon className="w-3 h-3" />
-                                                </Link>
-                                                <button
+                                                </TextButton>
+                                                <TextButton
                                                     onClick={() => {
                                                         if (
                                                             confirm(
@@ -468,10 +491,12 @@ export default function Show({ project, version, milestones, items }) {
                                                             );
                                                         }
                                                     }}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                                                    variant="danger"
+                                                    size="xs"
+                                                    title="削除"
                                                 >
                                                     <TrashIcon className="w-3 h-3" />
-                                                </button>
+                                                </TextButton>
                                             </div>
                                         </div>
                                     </div>

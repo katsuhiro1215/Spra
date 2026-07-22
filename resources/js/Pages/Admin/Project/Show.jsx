@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -17,7 +17,13 @@ import {
     ChatBubbleLeftRightIcon,
     ClipboardDocumentListIcon,
     ChartBarIcon,
+    ArchiveBoxIcon,
+    PlusIcon,
 } from "@heroicons/react/24/outline";
+import {
+    DOCUMENT_TYPE_LABELS,
+    DOCUMENT_STATUS_LABELS,
+} from "./Document/_shared/constants";
 
 const statusConfig = {
     planning: { variant: "default", label: "計画中" },
@@ -35,6 +41,14 @@ const priorityConfig = {
     medium: { variant: "info", label: "中" },
     high: { variant: "warning", label: "高" },
     urgent: { variant: "danger", label: "緊急" },
+};
+
+const ROLE_LABELS = {
+    leader: "リーダー",
+    designer: "デザイン担当",
+    developer: "開発担当",
+    manager: "マネージャー",
+    other: "その他",
 };
 
 export default function Show({ project, currentVersion, progress = 0 }) {
@@ -65,15 +79,9 @@ export default function Show({ project, currentVersion, progress = 0 }) {
 
     const headerActions = [
         {
-            label: "バージョン管理",
-            icon: FolderIcon,
-            variant: "primary",
-            route: route("admin.project.versions.index", project.id),
-        },
-        {
             label: "戻る",
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.project.index"),
         },
     ];
@@ -88,28 +96,39 @@ export default function Show({ project, currentVersion, progress = 0 }) {
         { id: "milestones", label: "マイルストーン", icon: FolderIcon },
         { id: "updates", label: "更新履歴", icon: ChatBubbleLeftRightIcon },
         { id: "gantt", label: "ガントチャート", icon: ChartBarIcon },
+        { id: "documents", label: "ドキュメント", icon: ArchiveBoxIcon },
         { id: "files", label: "ファイル", icon: DocumentTextIcon },
     ];
 
-    return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${project.title} - プロジェクト詳細`} />
+    const documentsByType = Object.fromEntries(
+        (project.documents || []).map((doc) => [doc.document_type, doc]),
+    );
 
-            <PageHeader
-                title="プロジェクト"
-                description="プロジェクトの詳細"
-                actions={headerActions}
-            />
+    const handleCreateDocument = (documentType) => {
+        router.post(route("admin.project.documents.store", project.id), {
+            document_type: documentType,
+        });
+    };
+
+    return (
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={`プロジェクト: ${project.title}`}
+                    description={project.project_code || "プロジェクトの詳細"}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
+            <Head title={`${project.title} - プロジェクト詳細`} />
 
             <FlashMessage />
 
-            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                            {project.title}
-                        </h1>
+            <div className="w-full space-y-6">
+                {/* ステータス・アクション */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
                         <Badge variant={getStatusBadge(project.status).variant}>
                             {getStatusBadge(project.status).label}
                         </Badge>
@@ -123,12 +142,23 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                         )}
                     </div>
 
-                    <SecondaryButton
-                        href={route("admin.project.edit", project.id)}
-                        icon={PencilIcon}
-                    >
-                        編集
-                    </SecondaryButton>
+                    <div className="flex gap-2">
+                        <SecondaryButton
+                            href={route(
+                                "admin.project.versions.index",
+                                project.id,
+                            )}
+                            icon={FolderIcon}
+                        >
+                            バージョン管理
+                        </SecondaryButton>
+                        <SecondaryButton
+                            href={route("admin.project.edit", project.id)}
+                            icon={PencilIcon}
+                        >
+                            編集
+                        </SecondaryButton>
+                    </div>
                 </div>
 
                 {/* プロジェクトコード */}
@@ -354,7 +384,7 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                             </Card>
 
                             {/* 関連情報 */}
-                            {project.contract && (
+                            {(project.contract || project.repository_url || project.production_url) && (
                                 <Card>
                                     <CardHeader>
                                         <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
@@ -372,6 +402,42 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                                         {project.contract
                                                             .contract_number ||
                                                             `契約 #${project.contract.id}`}
+                                                    </dd>
+                                                </div>
+                                            )}
+
+                                            {project.repository_url && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        リポジトリ
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm">
+                                                        <a
+                                                            href={project.repository_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                                                        >
+                                                            {project.repository_url}
+                                                        </a>
+                                                    </dd>
+                                                </div>
+                                            )}
+
+                                            {project.production_url && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        公開URL
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm">
+                                                        <a
+                                                            href={project.production_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                                                        >
+                                                            {project.production_url}
+                                                        </a>
                                                     </dd>
                                                 </div>
                                             )}
@@ -453,16 +519,53 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                             </div>
                                         )}
 
-                                        {project.admin && (
-                                            <div>
-                                                <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                                    担当管理者
-                                                </dt>
-                                                <dd className="mt-1 text-sm text-slate-900 dark:text-slate-100">
-                                                    {project.admin.name}
-                                                </dd>
-                                            </div>
-                                        )}
+                                        {project.admins &&
+                                            project.admins.length > 0 && (
+                                                <div>
+                                                    <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                                        担当管理者
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm text-slate-900 dark:text-slate-100 space-y-1">
+                                                        {project.admins.map(
+                                                            (admin) => (
+                                                                <div
+                                                                    key={
+                                                                        admin.id
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <span>
+                                                                        {admin
+                                                                            .profile
+                                                                            ?.full_name ||
+                                                                            admin.email}
+                                                                    </span>
+                                                                    <Badge
+                                                                        variant={
+                                                                            admin
+                                                                                .pivot
+                                                                                .role ===
+                                                                            "leader"
+                                                                                ? "primary"
+                                                                                : "secondary"
+                                                                        }
+                                                                        size="sm"
+                                                                    >
+                                                                        {ROLE_LABELS[
+                                                                            admin
+                                                                                .pivot
+                                                                                .role
+                                                                        ] ||
+                                                                            admin
+                                                                                .pivot
+                                                                                .role}
+                                                                    </Badge>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </dd>
+                                                </div>
+                                            )}
                                     </dl>
                                 </CardBody>
                             </Card>
@@ -520,6 +623,32 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                     </dl>
                                 </CardBody>
                             </Card>
+
+                            {/* 使用技術 */}
+                            {project.technologies &&
+                                project.technologies.length > 0 && (
+                                    <Card>
+                                        <CardHeader>
+                                            <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                                使用技術
+                                            </h2>
+                                        </CardHeader>
+                                        <CardBody>
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.technologies.map(
+                                                    (technology) => (
+                                                        <Badge
+                                                            key={technology.id}
+                                                            variant="primary"
+                                                        >
+                                                            {technology.name}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                )}
 
                             {/* カテゴリ */}
                             {project.categories &&
@@ -717,6 +846,57 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                 </CardBody>
                             </Card>
                         )}
+                    </div>
+                )}
+
+                {activeTab === "documents" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.entries(DOCUMENT_TYPE_LABELS).map(([type, label]) => {
+                            const doc = documentsByType[type];
+                            const currentDocVersion = doc?.current_version;
+                            return (
+                                <Card key={type}>
+                                    <CardBody>
+                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                            <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                                {label}
+                                            </h3>
+                                            {doc ? (
+                                                <Badge variant={doc.status === "confirmed" ? "success" : "info"}>
+                                                    {DOCUMENT_STATUS_LABELS[doc.status] || doc.status}
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="secondary">未作成</Badge>
+                                            )}
+                                        </div>
+
+                                        {doc ? (
+                                            <>
+                                                {currentDocVersion && (
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500 mb-3">
+                                                        現在の編集版: v{currentDocVersion.version}
+                                                    </p>
+                                                )}
+                                                <SecondaryButton
+                                                    href={route("admin.project.documents.show", [project.id, doc.id])}
+                                                    className="w-full"
+                                                >
+                                                    開く
+                                                </SecondaryButton>
+                                            </>
+                                        ) : (
+                                            <SecondaryButton
+                                                onClick={() => handleCreateDocument(type)}
+                                                icon={PlusIcon}
+                                                className="w-full"
+                                            >
+                                                作成する
+                                            </SecondaryButton>
+                                        )}
+                                    </CardBody>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
 

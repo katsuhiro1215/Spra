@@ -17,6 +17,11 @@ class ContractSignedNotificationJob implements ShouldQueue
     public ?string $reason = null;
 
     /**
+     * 'user_signed' 通知で実際にメールを送った管理者のアドレス(履歴記録用。カンマ区切り)
+     */
+    private ?string $resolvedAdminRecipientEmails = null;
+
+    /**
      * Create a new job instance.
      */
     public function __construct(Contract $contract, string $type, ?string $reason = null)
@@ -66,11 +71,21 @@ class ContractSignedNotificationJob implements ShouldQueue
     {
         $admins = \App\Models\Admin::whereIn('role', ['owner', 'super_admin', 'admin'])->get();
 
+        // 履歴には実際に送信した管理者のアドレスを記録する(固定のダミーアドレスは使わない)
+        $this->resolvedAdminRecipientEmails = $admins->isNotEmpty()
+            ? $admins->pluck('email')->implode(', ')
+            : '(該当する管理者なし)';
+
+        $userSignature = $this->contract->signatures()->where('signature_type', 'user')->latest()->first();
+
         foreach ($admins as $admin) {
             Mail::send('emails.admin-user-signed', [
                 'contract' => $this->contract,
-                'admin' => $admin,
-                'userSignature' => $this->contract->signatures()->where('signature_type', 'user')->latest()->first(),
+                // メール本文は「クライアントが署名した」ことを管理者に知らせる内容のため、
+                // $user は送信先の管理者ではなく契約のクライアント本人を渡す
+                'user' => $this->contract->user,
+                'signatureMethod' => $userSignature?->getMethodLabel() ?? '不明',
+                'signedAt' => $userSignature?->signed_at?->format('Y年m月d日 H:i') ?? '不明',
             ], function ($message) use ($admin) {
                 $message->to($admin->email)
                     ->subject("【署名待ち】{$this->contract->title}がユーザーにより署名されました");
@@ -121,7 +136,8 @@ class ContractSignedNotificationJob implements ShouldQueue
     private function getRecipientEmail(): string
     {
         if ($this->type === 'user_signed') {
-            return 'admin@example.com'; // 管理者向け
+            // notifyAdminOfUserSignature() 実行前(例外発生時など)は未解決のため、その旨を記録する
+            return $this->resolvedAdminRecipientEmails ?? '(未送信)';
         }
         return $this->contract->user?->email ?? 'unknown@example.com';
     }

@@ -1,7 +1,5 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import ApplicationLogo from "@/Components/ApplicationLogo";
-// Components
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 

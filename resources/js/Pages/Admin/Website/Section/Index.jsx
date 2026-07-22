@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -11,11 +10,8 @@ import { Badge } from "@/Components/Badges";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Section Components
 import SectionsTable from "./_components/SectionsTable";
 
 export default function Index({ sections, stats, pages, filters }) {

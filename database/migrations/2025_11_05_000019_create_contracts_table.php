@@ -28,6 +28,10 @@ return new class extends Migration
             $table->ulid('quote_id')->nullable();
             $table->foreign('quote_id')->references('id')->on('quotes')->onDelete('set null');
 
+            // ServicePlan参照（契約特典の算出に使用）
+            $table->ulid('service_plan_id')->nullable()->comment('この契約の元になったServicePlan（契約特典の算出に使用）');
+            $table->foreign('service_plan_id')->references('id')->on('service_plans')->onDelete('set null');
+
             // クライアント情報
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict');

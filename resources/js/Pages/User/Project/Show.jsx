@@ -2,7 +2,12 @@ import React, { useState, useMemo } from "react";
 import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
-import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardTitle,
+    UserCardBody,
+} from "@/Components/User";
 import { Badge } from "@/Components/Badge";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
 import GanttToolbar from "@/Components/GanttChart/GanttToolbar";
@@ -125,7 +130,7 @@ export default function Show({ project }) {
                 </div>
 
                 {/* タブナビゲーション */}
-                <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="mb-6 border-b border-gray-200">
                     <div className="flex gap-8 px-4">
                         {tabs.map((tab) => (
                             <button
@@ -133,8 +138,8 @@ export default function Show({ project }) {
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                                     activeTab === tab.id
-                                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                        ? "border-blue-500 text-blue-600"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
                             >
                                 {tab.label}
@@ -149,21 +154,21 @@ export default function Show({ project }) {
                     {activeTab === "overview" && (
                         <div className="grid gap-6 md:grid-cols-2">
                             {/* 基本情報 */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>基本情報</CardTitle>
-                                </CardHeader>
-                                <CardBody className="space-y-4">
+                            <UserCard>
+                                <UserCardHeader>
+                                    <UserCardTitle>基本情報</UserCardTitle>
+                                </UserCardHeader>
+                                <UserCardBody className="space-y-4">
                                     <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                        <label className="text-sm text-gray-500">
                                             プロジェクト名
                                         </label>
-                                        <p className="text-base font-medium text-gray-900 dark:text-white">
+                                        <p className="text-base font-medium text-gray-900">
                                             {project.title}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                        <label className="text-sm text-gray-500">
                                             ステータス
                                         </label>
                                         <p className="text-base">
@@ -175,36 +180,36 @@ export default function Show({ project }) {
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                        <label className="text-sm text-gray-500">
                                             説明
                                         </label>
-                                        <p className="text-base text-gray-900 dark:text-white whitespace-pre-wrap">
+                                        <p className="text-base text-gray-900 whitespace-pre-wrap">
                                             {project.description || "説明なし"}
                                         </p>
                                     </div>
-                                </CardBody>
-                            </Card>
+                                </UserCardBody>
+                            </UserCard>
 
                             {/* 日付情報 */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>スケジュール</CardTitle>
-                                </CardHeader>
-                                <CardBody className="space-y-4">
+                            <UserCard>
+                                <UserCardHeader>
+                                    <UserCardTitle>スケジュール</UserCardTitle>
+                                </UserCardHeader>
+                                <UserCardBody className="space-y-4">
                                     <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                        <label className="text-sm text-gray-500">
                                             開始日
                                         </label>
-                                        <p className="text-base font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                        <p className="text-base font-medium text-gray-900 flex items-center gap-2">
                                             <CalendarIcon className="w-5 h-5" />
                                             {formatDate(project.start_date)}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                        <label className="text-sm text-gray-500">
                                             予定終了日
                                         </label>
-                                        <p className="text-base font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                        <p className="text-base font-medium text-gray-900 flex items-center gap-2">
                                             <CalendarIcon className="w-5 h-5" />
                                             {formatDate(
                                                 project.estimated_end_date,
@@ -213,10 +218,10 @@ export default function Show({ project }) {
                                     </div>
                                     {project.actual_end_date && (
                                         <div>
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
+                                            <label className="text-sm text-gray-500">
                                                 実際の終了日
                                             </label>
-                                            <p className="text-base font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                            <p className="text-base font-medium text-gray-900 flex items-center gap-2">
                                                 <CalendarIcon className="w-5 h-5" />
                                                 {formatDate(
                                                     project.actual_end_date,
@@ -224,18 +229,97 @@ export default function Show({ project }) {
                                             </p>
                                         </div>
                                     )}
-                                </CardBody>
-                            </Card>
+                                </UserCardBody>
+                            </UserCard>
+
+                            {/* 担当チーム */}
+                            {project.team && project.team.length > 0 && (
+                                <UserCard>
+                                    <UserCardHeader>
+                                        <UserCardTitle>
+                                            担当チーム
+                                        </UserCardTitle>
+                                    </UserCardHeader>
+                                    <UserCardBody>
+                                        <div className="space-y-3">
+                                            {project.team.map(
+                                                (member, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center gap-3"
+                                                    >
+                                                        {member.avatar_url ? (
+                                                            <img
+                                                                src={
+                                                                    member.avatar_url
+                                                                }
+                                                                alt={
+                                                                    member.name
+                                                                }
+                                                                className="w-9 h-9 rounded-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-semibold">
+                                                                {member.name}
+                                                            </span>
+                                                        )}
+                                                        <div>
+                                                            {member.is_leader && (
+                                                                <p className="text-sm font-medium text-gray-900">
+                                                                    {
+                                                                        member.name
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            <p className="text-xs text-gray-500">
+                                                                {
+                                                                    member.role_label
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </UserCardBody>
+                                </UserCard>
+                            )}
+
+                            {/* 使用技術 */}
+                            {project.technologies &&
+                                project.technologies.length > 0 && (
+                                    <UserCard className="md:col-span-2">
+                                        <UserCardHeader>
+                                            <UserCardTitle>
+                                                使用技術
+                                            </UserCardTitle>
+                                        </UserCardHeader>
+                                        <UserCardBody>
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.technologies.map(
+                                                    (technology) => (
+                                                        <Badge
+                                                            key={technology.id}
+                                                            variant="info"
+                                                        >
+                                                            {technology.name}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </UserCardBody>
+                                    </UserCard>
+                                )}
                         </div>
                     )}
 
                     {/* マイルストーンタブ */}
                     {activeTab === "milestones" && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>マイルストーン</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>マイルストーン</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 {project.milestones &&
                                 project.milestones.length > 0 ? (
                                     <div className="space-y-4">
@@ -243,22 +327,22 @@ export default function Show({ project }) {
                                             (milestone, index) => (
                                                 <div
                                                     key={milestone.id}
-                                                    className="pb-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0"
+                                                    className="pb-4 border-b border-gray-200 last:border-b-0 last:pb-0"
                                                 >
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-sm font-medium">
+                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
                                                                     {index + 1}
                                                                 </span>
-                                                                <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                                                                <h4 className="text-base font-semibold text-gray-900">
                                                                     {
                                                                         milestone.title
                                                                     }
                                                                 </h4>
                                                             </div>
                                                             {milestone.description && (
-                                                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                                                <p className="mt-2 text-sm text-gray-600">
                                                                     {
                                                                         milestone.description
                                                                     }
@@ -266,10 +350,10 @@ export default function Show({ project }) {
                                                             )}
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                            <p className="text-sm text-gray-500">
                                                                 期限
                                                             </p>
-                                                            <p className="text-base font-medium text-gray-900 dark:text-white">
+                                                            <p className="text-base font-medium text-gray-900">
                                                                 {formatDate(
                                                                     milestone.due_date,
                                                                 )}
@@ -281,60 +365,60 @@ export default function Show({ project }) {
                                         )}
                                     </div>
                                 ) : (
-                                    <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    <p className="text-center py-8 text-gray-500">
                                         マイルストーンはまだありません
                                     </p>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     )}
 
                     {/* 進捗状況タブ */}
                     {activeTab === "updates" && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>進捗状況</CardTitle>
-                            </CardHeader>
-                            <CardBody>
+                        <UserCard>
+                            <UserCardHeader>
+                                <UserCardTitle>進捗状況</UserCardTitle>
+                            </UserCardHeader>
+                            <UserCardBody>
                                 {project.updates &&
                                 project.updates.length > 0 ? (
                                     <div className="space-y-6">
                                         {project.updates.map((update) => (
                                             <div
                                                 key={update.id}
-                                                className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0"
+                                                className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0"
                                             >
                                                 <div className="flex items-start justify-between mb-2">
-                                                    <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                                                    <h4 className="text-base font-semibold text-gray-900">
                                                         {update.title}
                                                     </h4>
-                                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    <span className="text-sm text-gray-500">
                                                         {formatDate(
                                                             update.created_at,
                                                         )}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                                                <p className="text-sm text-gray-600 whitespace-pre-wrap">
                                                     {update.content}
                                                 </p>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    <p className="text-center py-8 text-gray-500">
                                         進捗状況がまだ報告されていません
                                     </p>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     )}
 
                     {/* ガントチャートタブ（閲覧のみ） */}
                     {activeTab === "gantt" && (
-                        <Card>
-                            <CardBody className="p-0">
+                        <UserCard>
+                            <UserCardBody className="p-0">
                                 {!currentVersion || ganttTasks.length === 0 ? (
-                                    <p className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                    <p className="text-center py-12 text-gray-500">
                                         表示できるタスクがまだありません
                                     </p>
                                 ) : (
@@ -383,8 +467,8 @@ export default function Show({ project }) {
                                         </div>
                                     </div>
                                 )}
-                            </CardBody>
-                        </Card>
+                            </UserCardBody>
+                        </UserCard>
                     )}
                 </div>
             </div>

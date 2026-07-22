@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ServiceCategoryService;
 use App\Services\ServiceItemService;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -27,7 +28,7 @@ class QuoteSimulatorController extends Controller
       'serviceCategories' => $serviceCategories,
       'serviceItems' => $serviceItems,
       'canLogin' => route('user.login'),
-      'canRegister' => route('user.register'),
+      'canRegister' => Route::has('user.register') ? route('user.register') : null,
     ]);
   }
 }

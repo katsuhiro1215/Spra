@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreAdminRequest;
 use App\Http\Requests\Auth\UpdateAdminRequest;
 use App\Models\Admin;
+use App\Models\LoginLog;
 use App\Models\Media;
 use App\Services\AdminService;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,7 +18,8 @@ use Inertia\Response;
 class AdminController extends Controller
 {
     public function __construct(
-        private AdminService $adminService
+        private AdminService $adminService,
+        private PermissionService $permissionService
     ) {}
 
     /**
@@ -37,7 +40,7 @@ class AdminController extends Controller
             'direction' => $request->input('sort_direction', 'desc'),
         ];
         // 管理者のページネーション取得
-        $admins = $this->adminService->getPaginated($filters, $sort, 5);
+        $admins = $this->adminService->getPaginated($filters, $sort, 20);
         // 統計情報の取得
         $stats = $this->adminService->getStats();
 
@@ -69,13 +72,13 @@ class AdminController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $result['admin'])
-            ->with('success', '管理者を作成しました。初期パスワード: ' . $result['password']);
+            ->with('success', __('messages.admin.created_with_password', ['password' => $result['password']]));
     }
 
     /**
      * 管理者詳細画面
      */
-    public function show(Admin $admin): Response
+    public function show(Request $request, Admin $admin): Response
     {
         $admin->load(['profile.media', 'addresses']);
         // プロフィール画像URLを明示的に追加
@@ -95,9 +98,33 @@ class AdminController extends Controller
                 'file_size' => $media->original_file_size,
             ]);
 
+        // 権限制限編集データ（owner/super_adminが対象admin/editorを閲覧している場合のみ）
+        $permissionOverride = null;
+        if ($request->user('admins')?->isSuperAdmin() && $admin->isRestrictable()) {
+            $permissionOverride = $this->permissionService->getOverridesFor($admin);
+        }
+
+        // ログイン履歴（LoginLogはadmin/user両ガード共通の監査ログテーブル）
+        $loginLogs = LoginLog::where('user_type', LoginLog::USER_TYPE_ADMIN)
+            ->where('user_id', $admin->id)
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn(LoginLog $log) => [
+                'id' => $log->id,
+                'created_at' => $log->created_at,
+                'action' => $log->action,
+                'action_name' => $log->action_name,
+                'ip_address' => $log->ip_address,
+                'browser' => $log->browser,
+                'os' => $log->os,
+            ]);
+
         return Inertia::render('Admin/Admin/Show', [
             'admin' => $admin,
             'mediaList' => $mediaList,
+            'permissionOverride' => $permissionOverride,
+            'loginLogs' => $loginLogs,
         ]);
     }
 
@@ -124,7 +151,7 @@ class AdminController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $admin)
-            ->with('success', '管理者情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '管理者情報']));
     }
 
     /**
@@ -137,7 +164,7 @@ class AdminController extends Controller
 
             return redirect()
                 ->route('admin.admin.index')
-                ->with('success', '管理者を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '管理者']));
         } catch (\Exception $e) {
             return redirect()
                 ->route('admin.admin.index')

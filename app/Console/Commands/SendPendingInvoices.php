@@ -38,7 +38,7 @@ class SendPendingInvoices extends Command
         // ドラフト状態の請求書を取得
         $invoices = Invoice::where('status', 'draft')
             ->whereNotNull('pdf_path') // PDFが生成済みのもののみ
-            ->with(['user', 'company', 'contract'])
+            ->with(['user.profile', 'company', 'contract'])
             ->get();
 
         if ($invoices->isEmpty()) {
@@ -61,21 +61,21 @@ class SendPendingInvoices extends Command
                 if (!$isDryRun) {
                     $invoiceService->sendInvoice($invoice);
                     $this->newLine();
-                    $this->line("✓ [{$invoice->invoice_number}] {$invoice->user->name} - 送信完了");
+                    $this->line("✓ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 送信完了");
                 } else {
                     $this->newLine();
-                    $this->line("○ [{$invoice->invoice_number}] {$invoice->user->name} - 送信対象 (ドライラン)");
+                    $this->line("○ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - 送信対象 (ドライラン)");
                 }
                 $successCount++;
             } catch (\Exception $e) {
                 $errorCount++;
                 $errors[] = [
                     'invoice' => $invoice->invoice_number,
-                    'user' => $invoice->user->name,
+                    'user' => $this->clientName($invoice),
                     'error' => $e->getMessage(),
                 ];
                 $this->newLine();
-                $this->error("✗ [{$invoice->invoice_number}] {$invoice->user->name} - エラー: {$e->getMessage()}");
+                $this->error("✗ [{$invoice->invoice_number}] " . $this->clientName($invoice) . " - エラー: {$e->getMessage()}");
             }
             $progressBar->advance();
         }
@@ -104,5 +104,13 @@ class SendPendingInvoices extends Command
         }
 
         return $errorCount > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * クライアント表示名を取得(Userにnameカラムは無いためprofile経由で解決)
+     */
+    private function clientName(Invoice $invoice): string
+    {
+        return $invoice->user?->profile?->full_name ?? $invoice->user?->email ?? '(不明)';
     }
 }

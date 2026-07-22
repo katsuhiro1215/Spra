@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('color', 7)->default('#3B82F6');
             $table->string('icon')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->boolean('is_displayed')->default(true)->comment('Webサイト・シミュレーターへの表示フラグ');
             $table->integer('sort_order')->default(0);
             // 監査用カラム
             $table->foreignUuid('created_by')->nullable()->constrained('admins')->nullOnDelete()->comment('作成者');

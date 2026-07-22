@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentSlot;
 use App\Models\Admin;
+use App\Services\AttendanceService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,7 +22,10 @@ class AppointmentSlotController extends Controller
    */
   private const BULK_CREATE_MAX_DAYS = 31;
 
-  public function __construct(private ScheduleService $scheduleService)
+  public function __construct(
+    private ScheduleService $scheduleService,
+    private AttendanceService $attendanceService
+  )
   {
   }
 
@@ -31,6 +35,9 @@ class AppointmentSlotController extends Controller
   public function index(Request $request): Response
   {
     $filters = $request->only(['search', 'slot_type', 'status', 'assigned_admin_id', 'date_from', 'date_to']);
+    // 未指定の場合は今月をデフォルト表示にする
+    $filters['date_from'] ??= now()->startOfMonth()->toDateString();
+    $filters['date_to'] ??= now()->endOfMonth()->toDateString();
     $sort = [
       'field' => $request->get('sort', 'date'),
       'direction' => $request->get('direction', 'asc')
@@ -115,6 +122,7 @@ class AppointmentSlotController extends Controller
       'statuses' => $statuses,
       'filters' => $filters,
       'sort' => $sort,
+      'attendanceStatuses' => $this->attendanceService->getStatusMap(),
     ]);
   }
 
@@ -167,12 +175,12 @@ class AppointmentSlotController extends Controller
       $appointmentSlot = AppointmentSlot::create($validated);
 
       return redirect()->route('admin.appointment-slots.index')
-        ->with('success', '予約枠が作成されました。');
+        ->with('success', __('messages.created', ['attribute' => '予約枠']));
     } catch (\Exception $e) {
       Log::error('AppointmentSlot store error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', '予約枠の作成に失敗しました。');
+        ->with('error', __('messages.create_failed', ['attribute' => '予約枠']));
     }
   }
 
@@ -198,10 +206,10 @@ class AppointmentSlotController extends Controller
 
       AppointmentSlot::create($validated);
 
-      return redirect()->back()->with('success', '予約枠を作成しました。');
+      return redirect()->back()->with('success', __('messages.created', ['attribute' => '予約枠']));
     } catch (\Exception $e) {
       Log::error('AppointmentSlot quickStore error: ' . $e->getMessage());
-      return redirect()->back()->with('error', '予約枠の作成に失敗しました。');
+      return redirect()->back()->with('error', __('messages.create_failed', ['attribute' => '予約枠']));
     }
   }
 
@@ -248,7 +256,7 @@ class AppointmentSlotController extends Controller
     $rangeError = null;
 
     if ($startDate->diffInDays($endDate) + 1 > self::BULK_CREATE_MAX_DAYS) {
-      $rangeError = 'まとめて作成できる期間は最大' . self::BULK_CREATE_MAX_DAYS . '日間までです。';
+      $rangeError = __('messages.appointment_slot.bulk_create_period_max', ['days' => self::BULK_CREATE_MAX_DAYS]);
     } else {
       // 期間内の既存予約枠（担当者が同じものは重複判定に使う）
       $existingSlotsByDate = AppointmentSlot::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -336,7 +344,7 @@ class AppointmentSlotController extends Controller
       && Carbon::parse($dates->min())->diffInDays(Carbon::parse($dates->max())) + 1 > self::BULK_CREATE_MAX_DAYS) {
       return redirect()->back()
         ->withInput()
-        ->with('error', 'まとめて作成できる期間は最大' . self::BULK_CREATE_MAX_DAYS . '日間までです。');
+        ->with('error', __('messages.appointment_slot.bulk_create_period_max', ['days' => self::BULK_CREATE_MAX_DAYS]));
     }
 
     $createdBy = Auth::guard('admins')->id();
@@ -383,7 +391,7 @@ class AppointmentSlotController extends Controller
       Log::error('AppointmentSlot bulkStore error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', '予約枠の一括作成に失敗しました。');
+        ->with('error', __('messages.appointment_slot.bulk_create_failed'));
     }
   }
 
@@ -461,12 +469,12 @@ class AppointmentSlotController extends Controller
       $appointmentSlot->update($validated);
 
       return redirect()->route('admin.appointment-slots.index')
-        ->with('success', '予約枠が更新されました。');
+        ->with('success', __('messages.updated', ['attribute' => '予約枠']));
     } catch (\Exception $e) {
       Log::error('AppointmentSlot update error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', '予約枠の更新に失敗しました。');
+        ->with('error', __('messages.update_failed', ['attribute' => '予約枠']));
     }
   }
 
@@ -479,7 +487,7 @@ class AppointmentSlotController extends Controller
       // 予約がある場合は削除不可
       if ($appointmentSlot->appointments()->whereIn('status', ['pending', 'confirmed'])->exists()) {
         return redirect()->back()
-          ->with('error', '予約が入っている予約枠は削除できません。');
+          ->with('error', __('messages.appointment_slot.has_appointments'));
       }
 
       $appointmentSlot->deleted_by = Auth::guard('admins')->id();
@@ -487,11 +495,11 @@ class AppointmentSlotController extends Controller
       $appointmentSlot->delete();
 
       return redirect()->route('admin.appointment-slots.index')
-        ->with('success', '予約枠が削除されました。');
+        ->with('success', __('messages.deleted', ['attribute' => '予約枠']));
     } catch (\Exception $e) {
       Log::error('AppointmentSlot destroy error: ' . $e->getMessage());
       return redirect()->back()
-        ->with('error', '予約枠の削除に失敗しました。');
+        ->with('error', __('messages.delete_failed', ['attribute' => '予約枠']));
     }
   }
 }

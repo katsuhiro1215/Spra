@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreign('parent_id')->references('id')->on('menu_items')->nullOnDelete();
             $table->string('label', 200)->comment('メニューアイテムラベル');
             $table->string('url', 200)->comment('メニューアイテムURL');
+            $table->text('description')->nullable()->comment('説明文（メガメニュー表示用）');
+            $table->string('image_path', 500)->nullable()->comment('画像パス（メガメニュー表示用）');
             $table->ulid('page_id')->nullable();
             $table->foreign('page_id')->references('id')->on('pages')->nullOnDelete();
             $table->string('target', 20)->default('_self')->comment('リンクターゲット');

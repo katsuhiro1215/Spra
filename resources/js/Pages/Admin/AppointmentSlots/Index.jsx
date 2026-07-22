@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
@@ -10,14 +9,13 @@ import { CreateButton, SecondaryButton } from "@/Components/Buttons";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import {
     PlusIcon,
     FunnelIcon,
     XMarkIcon,
     Squares2X2Icon,
 } from "@heroicons/react/24/outline";
-// Constants
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({
@@ -26,6 +24,7 @@ export default function Index({
     slotTypes,
     statuses,
     filters,
+    attendanceStatuses = {},
 }) {
     const [isDeleting, setIsDeleting] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -96,13 +95,21 @@ export default function Index({
 
     // フィルタークリア
     const handleClearFilters = () => {
+        const now = new Date();
+        // タイムゾーンの影響を受けないようローカル日付から直接組み立てる
+        const toDateString = (date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         setData({
             search: "",
             slot_type: "",
             status: "",
             assigned_admin_id: "",
-            date_from: "",
-            date_to: "",
+            date_from: toDateString(
+                new Date(now.getFullYear(), now.getMonth(), 1),
+            ),
+            date_to: toDateString(
+                new Date(now.getFullYear(), now.getMonth() + 1, 0),
+            ),
         });
         setShowFilters(false);
         get(route("admin.appointment-slots.index"), {
@@ -177,13 +184,13 @@ export default function Index({
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "available":
-                return "bg-green-100 text-green-800";
+                return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
             case "blocked":
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
             case "full":
-                return "bg-red-100 text-red-800";
+                return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
         }
     };
 
@@ -194,6 +201,26 @@ export default function Index({
 
     const formatTime = (time) => {
         return time ? time.substring(0, 5) : "";
+    };
+
+    const attendanceDotClasses = {
+        working: "bg-green-500",
+        finished: "bg-gray-400",
+    };
+
+    const attendanceLabels = {
+        working: "出勤中",
+        finished: "退勤済み",
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "-";
+        return new Date(dateStr).toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "short",
+        });
     };
 
     return (
@@ -212,13 +239,14 @@ export default function Index({
             <FlashMessage />
             {/* Delete Confirmation Modal */}
             <DeleteAlert
-                isOpen={!!deleteTarget}
+                show={!!deleteTarget}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                title="予約枠を削除"
-                message={`${deleteTarget?.date} ${deleteTarget?.start_time ? deleteTarget.start_time.substring(0, 5) : ""} の予約枠を削除してもよろしいですか？`}
-                confirmText="削除"
-                cancelText="キャンセル"
+                itemName={
+                    deleteTarget
+                        ? `${formatDate(deleteTarget.date)} ${formatTime(deleteTarget.start_time)} の予約枠`
+                        : ""
+                }
             />
 
             <div className="w-full flex flex-col gap-4">
@@ -230,7 +258,9 @@ export default function Index({
                             <div className="flex-1 max-w-md">
                                 <SearchBar
                                     value={data.search}
-                                    onChange={(value) => setData("search", value)}
+                                    onChange={(value) =>
+                                        setData("search", value)
+                                    }
                                     onSearch={handleSearch}
                                     placeholder={
                                         PageConfig.appointmentSlots.ui.search
@@ -261,7 +291,7 @@ export default function Index({
                                     <button
                                         type="button"
                                         onClick={handleClearFilters}
-                                        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+                                        className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                                     >
                                         <XMarkIcon className="h-4 w-4 mr-1" />
                                         {
@@ -275,7 +305,7 @@ export default function Index({
 
                         {/* フィルターセクション */}
                         {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <FilterSelect
                                     label={
                                         PageConfig.appointmentSlots.filters
@@ -322,7 +352,7 @@ export default function Index({
                                     }
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         開始日
                                     </label>
                                     <input
@@ -331,11 +361,11 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_from", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         終了日
                                     </label>
                                     <input
@@ -344,7 +374,7 @@ export default function Index({
                                         onChange={(e) =>
                                             setData("date_to", e.target.value)
                                         }
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     />
                                 </div>
                             </div>
@@ -356,7 +386,7 @@ export default function Index({
                 <Card>
                     {appointmentSlots.data.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-gray-500">
+                            <p className="text-gray-500 dark:text-gray-400">
                                 {data.search || activeFilterCount > 0
                                     ? PageConfig.appointmentSlots.ui.empty
                                           .noResults
@@ -382,92 +412,110 @@ export default function Index({
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                日時
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                タイプ
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                担当者
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                予約状況
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                ステータス
-                                            </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                操作
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {appointmentSlots.data.map((slot) => (
-                                            <tr
-                                                key={slot.id}
-                                                className="hover:bg-gray-50"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {slot.date}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {formatTime(
-                                                            slot.start_time,
-                                                        )}{" "}
-                                                        -{" "}
-                                                        {formatTime(
-                                                            slot.end_time,
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        <Th>日時</Th>
+                                        <Th>タイプ</Th>
+                                        <Th>担当者</Th>
+                                        <Th>予約状況</Th>
+                                        <Th>ステータス</Th>
+                                        <Th className="text-right tracking-wider">
+                                            操作
+                                        </Th>
+                                    </Tr>
+                                </THead>
+                                <TBody>
+                                    {appointmentSlots.data.map((slot) => (
+                                        <Tr key={slot.id}>
+                                            <Td>
+                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {formatDate(slot.date)}
+                                                </div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {formatTime(
+                                                        slot.start_time,
+                                                    )}{" "}
+                                                    -{" "}
+                                                    {formatTime(slot.end_time)}
+                                                </div>
+                                            </Td>
+                                            <Td>
+                                                <span className="text-sm text-gray-900 dark:text-gray-100">
+                                                    {getSlotTypeLabel(
+                                                        slot.slot_type,
+                                                    )}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <span className="inline-flex items-center gap-1.5 text-sm text-gray-900 dark:text-gray-100">
+                                                    {slot.assigned_admin_id &&
+                                                        attendanceStatuses[
+                                                            slot
+                                                                .assigned_admin_id
+                                                        ] && (
+                                                            <span
+                                                                className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                                                    attendanceDotClasses[
+                                                                        attendanceStatuses[
+                                                                            slot
+                                                                                .assigned_admin_id
+                                                                        ]
+                                                                    ] ||
+                                                                    "bg-gray-300"
+                                                                }`}
+                                                                title={
+                                                                    attendanceLabels[
+                                                                        attendanceStatuses[
+                                                                            slot
+                                                                                .assigned_admin_id
+                                                                        ]
+                                                                    ] || ""
+                                                                }
+                                                            />
                                                         )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900">
-                                                        {getSlotTypeLabel(
-                                                            slot.slot_type,
+                                                    {slot.assigned_admin
+                                                        ?.profile?.full_name ||
+                                                        "未割り当て"}
+                                                </span>
+                                            </Td>
+                                            <Td>
+                                                <div className="text-sm text-gray-900 dark:text-gray-100">
+                                                    {slot.current_bookings} /{" "}
+                                                    {slot.max_capacity}
+                                                </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                    残り:{" "}
+                                                    {slot.max_capacity -
+                                                        slot.current_bookings}
+                                                </div>
+                                            </Td>
+                                            <Td>
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(slot.status)}`}
+                                                >
+                                                    {getStatusLabel(
+                                                        slot.status,
+                                                    )}
+                                                </span>
+                                            </Td>
+                                            <Td className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Link
+                                                        href={route(
+                                                            "admin.appointment-slots.show",
+                                                            slot.id,
                                                         )}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-900">
-                                                        {slot.assigned_admin
-                                                            ?.profile
-                                                            ?.full_name ||
-                                                            "未割り当て"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
-                                                        {slot.current_bookings}{" "}
-                                                        / {slot.max_capacity}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        残り:{" "}
-                                                        {slot.max_capacity -
-                                                            slot.current_bookings}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(slot.status)}`}
+                                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                                                     >
-                                                        {getStatusLabel(
-                                                            slot.status,
-                                                        )}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                                        詳細
+                                                    </Link>
                                                     <Link
                                                         href={route(
                                                             "admin.appointment-slots.edit",
                                                             slot.id,
                                                         )}
-                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                                                     >
                                                         編集
                                                     </Link>
@@ -475,7 +523,7 @@ export default function Index({
                                                         onClick={() =>
                                                             handleDelete(slot)
                                                         }
-                                                        className="text-red-600 hover:text-red-900"
+                                                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                         disabled={
                                                             isDeleting ===
                                                             slot.id
@@ -485,17 +533,14 @@ export default function Index({
                                                             ? "削除中..."
                                                             : "削除"}
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                </div>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+                                </TBody>
+                            </Table>
 
-                            <Pagination
-                                links={appointmentSlots.links}
-                                meta={appointmentSlots.meta}
-                            />
+                            <Pagination paginationData={appointmentSlots} />
                         </>
                     )}
                 </Card>

@@ -19,6 +19,7 @@ export default function SortableBlockItem({
     onMoveDown,
     isFirst,
     isLast,
+    mediaList,
 }) {
     const [collapsed, setCollapsed] = useState(false);
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -113,7 +114,11 @@ export default function SortableBlockItem({
 
             {!collapsed && (
                 <div className="p-4">
-                    <Edit data={block.data} onChange={(data) => onChange({ ...block, data })} />
+                    <Edit
+                        data={block.data}
+                        onChange={(data) => onChange({ ...block, data })}
+                        mediaList={mediaList}
+                    />
                 </div>
             )}
         </div>

@@ -1,23 +1,34 @@
 import BaseButton from "./BaseButton";
 
 /**
- * TextButton - テキスト/アイコンのみのボタン
+ * TextButton - テキスト/アイコンのみのボタン（後方互換性のため残存）
+ * 新規実装では Button コンポーネント（variant="text"）または IconButton の使用を推奨
  *
  * @param {string} variant - カラーバリアント (default, primary, danger, success, warning, info, skyblue)
+ * @param {React.ReactNode} icon - アイコン
+ * @param {string} iconPosition - アイコン位置 (left, right)
  * @param {string} className - 追加のCSSクラス
  */
 export default function TextButton({
     variant = "default",
+    icon = null,
+    iconPosition = "left",
     className = "",
     ...props
 }) {
+    // 旧variantを新しいvariantにマッピング
     const variantMap = {
-        default: `
-            bg-transparent text-slate-700
-            hover:bg-slate-100
-            focus:ring-slate-500
-            dark:text-slate-300 dark:hover:bg-slate-800
-        `,
+        default: "text",
+        primary: "text", // Note: BaseButtonのtext variantを使用
+        danger: "text",
+        success: "text",
+        warning: "text",
+        info: "text",
+        skyblue: "text",
+    };
+
+    // 旧カラーバリアントのカスタムクラス（BaseButtonのtextバリアントで表現できないもの）
+    const customColorClasses = {
         primary: `
             bg-transparent text-blue-600
             hover:bg-blue-50
@@ -56,13 +67,16 @@ export default function TextButton({
         `,
     };
 
-    const colorClasses = (variantMap[variant] || variantMap.default)
-        .trim()
-        .replace(/\s+/g, " ");
+    const colorClasses = customColorClasses[variant]
+        ? customColorClasses[variant].trim().replace(/\s+/g, " ")
+        : "";
 
     return (
         <BaseButton
+            variant={variantMap[variant] || "text"}
             colorClasses={colorClasses}
+            icon={icon}
+            iconPosition={iconPosition}
             className={className}
             {...props}
         />

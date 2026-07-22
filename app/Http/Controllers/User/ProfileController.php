@@ -40,7 +40,7 @@ class ProfileController extends Controller
     private function form(string $submitRoute, string $cancelRoute, string $submitLabel): Response
     {
         $user = auth('users')->user();
-        $profile = $user->profile;
+        $profile = $user->profile()->with('media')->first();
 
         return Inertia::render('User/Onboarding/ProfileForm', [
             'user' => $user,
@@ -53,11 +53,53 @@ class ProfileController extends Controller
                 'mobile' => $profile->mobile,
                 'birth_date' => $profile->birth_date,
                 'gender' => $profile->gender,
+                'media' => $profile->media,
             ] : [],
             'submitRoute' => $submitRoute,
             'cancelRoute' => $cancelRoute,
             'submitLabel' => $submitLabel,
         ]);
+    }
+
+    /**
+     * プロフィール画像を設定
+     */
+    public function attachMedia(Request $request): RedirectResponse
+    {
+        $user = auth('users')->user();
+
+        $validated = $request->validate([
+            'media_id' => ['required', 'exists:media,id'],
+        ]);
+
+        if (!$user->profile) {
+            $user->profile()->create([
+                'display_name' => explode('@', $user->email)[0],
+                'media_id' => $validated['media_id'],
+            ]);
+        } else {
+            $user->profile->update([
+                'media_id' => $validated['media_id'],
+            ]);
+        }
+
+        return back()->with('success', 'プロフィール画像を設定しました。');
+    }
+
+    /**
+     * プロフィール画像を削除
+     */
+    public function detachMedia(): RedirectResponse
+    {
+        $user = auth('users')->user();
+
+        if ($user->profile) {
+            $user->profile->update([
+                'media_id' => null,
+            ]);
+        }
+
+        return back()->with('success', 'プロフィール画像を削除しました。');
     }
 
     /**

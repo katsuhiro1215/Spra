@@ -25,18 +25,21 @@ export default function Security({ twoFactorEnabled }) {
     ];
 
     return (
-        <AuthenticatedLayout>
-            <Head title="セキュリティ設定" />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="セキュリティ"
                     description="ログイン時の二段階認証を設定します"
                     breadcrumbs={breadcrumbs}
                 />
+            }
+        >
+            <Head title="セキュリティ設定" />
 
-                <FlashMessage />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
+            <div className="space-y-6">
                 <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
                     <Card>
                         <CardBody>
@@ -77,9 +80,7 @@ export default function Security({ twoFactorEnabled }) {
                                             : "text-gray-500 dark:text-gray-400"
                                     }
                                 >
-                                    {data.two_factor_enabled
-                                        ? "有効"
-                                        : "無効"}
+                                    {data.two_factor_enabled ? "有効" : "無効"}
                                 </span>
                             </p>
                         </CardBody>

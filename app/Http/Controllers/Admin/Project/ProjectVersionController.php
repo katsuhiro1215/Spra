@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectVersionRequest;
+use App\Http\Requests\Project\ProjectVersionRequest;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Repositories\ProjectVersionRepository;
@@ -176,7 +176,7 @@ class ProjectVersionController extends Controller
 
         return redirect()
             ->route('admin.project.versions.show', [$project->id, $newVersion->id])
-            ->with('success', 'バージョンを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'バージョン']));
     }
 
     /**
@@ -256,7 +256,7 @@ class ProjectVersionController extends Controller
     {
         $this->repository->update($version, $request->validated());
 
-        return back()->with('success', 'バージョンを更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => 'バージョン']));
     }
 
     /**
@@ -266,7 +266,7 @@ class ProjectVersionController extends Controller
     {
         $this->repository->setCurrentVersion($project->id, $version->id);
 
-        return back()->with('success', 'このバージョンを現在のバージョンに設定しました。');
+        return back()->with('success', __('messages.project.version_set_as_current'));
     }
 
     /**
@@ -276,11 +276,11 @@ class ProjectVersionController extends Controller
     {
         // Prevent deleting the current version
         if ($version->is_current) {
-            return back()->with('error', 'アクティブなバージョンは削除できません。');
+            return back()->with('error', __('messages.project.active_version_cannot_delete'));
         }
 
         $this->repository->delete($version);
 
-        return back()->with('success', 'バージョンを削除しました。');
+        return back()->with('success', __('messages.deleted', ['attribute' => 'バージョン']));
     }
 }

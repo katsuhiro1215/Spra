@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\ScheduleService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class ScheduleExceptionRequest extends FormRequest
 {
@@ -40,6 +42,26 @@ class ScheduleExceptionRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    /**
+     * 営業時間・休憩時間の整合性を検証する
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $error = app(ScheduleService::class)->validateTimeConsistency(
+                (bool) $this->input('is_open'),
+                $this->input('open_time'),
+                $this->input('close_time'),
+                $this->input('break_start'),
+                $this->input('break_end'),
+            );
+
+            if ($error) {
+                $validator->errors()->add('open_time', $error);
+            }
+        });
     }
 
     /**

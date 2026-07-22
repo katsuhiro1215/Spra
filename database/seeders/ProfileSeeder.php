@@ -17,7 +17,7 @@ class ProfileSeeder extends Seeder
         $this->command->info('Creating profiles...');
 
         // =============================================
-        // 1. Admin用Profile作成（10名）
+        // 1. Admin用Profile作成（5名）
         // =============================================
         $adminProfiles = [
             'katsuhiro.k1215@gmail.com' => [
@@ -83,66 +83,6 @@ class ProfileSeeder extends Seeder
                 'phone' => '03-5678-9012',
                 'mobile' => '090-5678-9012',
                 'bio' => '営業とサポートを兼任しています。',
-            ],
-            'kakoi104@smartsprouts.jp' => [
-                'last_name' => '高橋',
-                'first_name' => '愛',
-                'last_name_kana' => 'タカハシ',
-                'first_name_kana' => 'アイ',
-                'display_name' => 'あいちゃん',
-                'birth_date' => '1995-02-14',
-                'gender' => 'female',
-                'phone' => '03-6789-0123',
-                'mobile' => '080-6789-0123',
-                'bio' => 'デザイン担当です。',
-            ],
-            'kakoi105@smartsprouts.jp' => [
-                'last_name' => '伊藤',
-                'first_name' => '博',
-                'last_name_kana' => 'イトウ',
-                'first_name_kana' => 'ヒロシ',
-                'display_name' => 'ひろくん',
-                'birth_date' => '1989-06-25',
-                'gender' => 'male',
-                'phone' => '03-7890-1234',
-                'mobile' => '090-7890-1234',
-                'bio' => '開発チームリーダー。',
-            ],
-            'kakoi106@smartsprouts.jp' => [
-                'last_name' => '中村',
-                'first_name' => '麻衣',
-                'last_name_kana' => 'ナカムラ',
-                'first_name_kana' => 'マイ',
-                'display_name' => 'まいちゃん',
-                'birth_date' => '1994-03-18',
-                'gender' => 'female',
-                'phone' => '03-8901-2345',
-                'mobile' => '080-8901-2345',
-                'bio' => 'エディターとしてコンテンツ編集を担当。',
-            ],
-            'kakoi107@smartsprouts.jp' => [
-                'last_name' => '小林',
-                'first_name' => '大輔',
-                'last_name_kana' => 'コバヤシ',
-                'first_name_kana' => 'ダイスケ',
-                'display_name' => 'だいちゃん',
-                'birth_date' => '1991-12-08',
-                'gender' => 'male',
-                'phone' => '03-9012-3456',
-                'mobile' => '090-9012-3456',
-                'bio' => 'エディターとしてブログ記事を執筆。',
-            ],
-            'kakoi108@smartsprouts.jp' => [
-                'last_name' => '加藤',
-                'first_name' => '優子',
-                'last_name_kana' => 'カトウ',
-                'first_name_kana' => 'ユウコ',
-                'display_name' => 'ゆうちゃん',
-                'birth_date' => '1993-05-22',
-                'gender' => 'female',
-                'phone' => '03-0123-4567',
-                'mobile' => '080-0123-4567',
-                'bio' => 'エディターとしてメディア管理を担当。',
             ],
         ];
 

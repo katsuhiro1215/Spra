@@ -18,6 +18,9 @@ return new class extends Migration
             $table->date('issue_date')->comment('発行日');
             $table->ulid('contract_id');
             $table->foreign('contract_id')->references('id')->on('contracts')->onDelete('restrict');
+            $table->enum('invoice_type', ['deposit', 'interim', 'final', 'full', 'monthly', 'other'])
+                ->default('full')
+                ->comment('着手金/中間金/完了金/一括/月額/その他');
             $table->ulid('invoice_template_id')->nullable()->comment('請求書テンプレート');
             $table->foreign('invoice_template_id')->references('id')->on('invoice_templates')->onDelete('set null');
             $table->uuid('user_id');

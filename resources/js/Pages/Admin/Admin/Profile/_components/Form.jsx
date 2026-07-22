@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import {
-    FormGroup,
-    TextInput,
-    SelectInput,
-    TextArea,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, SelectInput, TextArea } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
 import { GENDER_OPTIONS } from "@/Constants/SelectOptions";
 import * as validation from "./validation";
@@ -99,6 +93,10 @@ export default function ProfileForm({
                                     label="姓"
                                     htmlFor="last_name"
                                     required
+                                    error={
+                                        errors.last_name ||
+                                        localErrors.last_name
+                                    }
                                 >
                                     <TextInput
                                         id="last_name"
@@ -110,13 +108,6 @@ export default function ProfileForm({
                                         onBlur={() => handleBlur("last_name")}
                                         placeholder="山田"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.last_name ||
-                                            localErrors.last_name
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -126,6 +117,10 @@ export default function ProfileForm({
                                     label="名"
                                     htmlFor="first_name"
                                     required
+                                    error={
+                                        errors.first_name ||
+                                        localErrors.first_name
+                                    }
                                 >
                                     <TextInput
                                         id="first_name"
@@ -140,13 +135,6 @@ export default function ProfileForm({
                                         onBlur={() => handleBlur("first_name")}
                                         placeholder="太郎"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.first_name ||
-                                            localErrors.first_name
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -155,6 +143,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="姓（カナ）"
                                     htmlFor="last_name_kana"
+                                    error={
+                                        errors.last_name_kana ||
+                                        localErrors.last_name_kana
+                                    }
                                 >
                                     <TextInput
                                         id="last_name_kana"
@@ -171,13 +163,6 @@ export default function ProfileForm({
                                         }
                                         placeholder="ヤマダ"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.last_name_kana ||
-                                            localErrors.last_name_kana
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -186,6 +171,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="名（カナ）"
                                     htmlFor="first_name_kana"
+                                    error={
+                                        errors.first_name_kana ||
+                                        localErrors.first_name_kana
+                                    }
                                 >
                                     <TextInput
                                         id="first_name_kana"
@@ -202,13 +191,6 @@ export default function ProfileForm({
                                         }
                                         placeholder="タロウ"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.first_name_kana ||
-                                            localErrors.first_name_kana
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -217,6 +199,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="表示名"
                                     htmlFor="display_name"
+                                    error={
+                                        errors.display_name ||
+                                        localErrors.display_name
+                                    }
                                 >
                                     <TextInput
                                         id="display_name"
@@ -233,13 +219,6 @@ export default function ProfileForm({
                                         }
                                         placeholder="やまちゃん"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.display_name ||
-                                            localErrors.display_name
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -248,6 +227,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="生年月日"
                                     htmlFor="birth_date"
+                                    error={
+                                        errors.birth_date ||
+                                        localErrors.birth_date
+                                    }
                                 >
                                     <TextInput
                                         type="date"
@@ -262,19 +245,18 @@ export default function ProfileForm({
                                         }
                                         onBlur={() => handleBlur("birth_date")}
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.birth_date ||
-                                            localErrors.birth_date
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 性別 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="性別" htmlFor="gender">
+                                <FormGroup
+                                    label="性別"
+                                    htmlFor="gender"
+                                    error={
+                                        errors.gender || localErrors.gender
+                                    }
+                                >
                                     <SelectInput
                                         id="gender"
                                         name="gender"
@@ -285,18 +267,16 @@ export default function ProfileForm({
                                         onBlur={() => handleBlur("gender")}
                                         options={genderOptions}
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.gender || localErrors.gender
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 電話番号 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="電話番号" htmlFor="phone">
+                                <FormGroup
+                                    label="電話番号"
+                                    htmlFor="phone"
+                                    error={errors.phone || localErrors.phone}
+                                >
                                     <TextInput
                                         id="phone"
                                         name="phone"
@@ -307,18 +287,16 @@ export default function ProfileForm({
                                         onBlur={() => handleBlur("phone")}
                                         placeholder="03-1234-5678"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.phone || localErrors.phone
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 携帯電話 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="携帯電話" htmlFor="mobile">
+                                <FormGroup
+                                    label="携帯電話"
+                                    htmlFor="mobile"
+                                    error={errors.mobile || localErrors.mobile}
+                                >
                                     <TextInput
                                         id="mobile"
                                         name="mobile"
@@ -329,12 +307,6 @@ export default function ProfileForm({
                                         onBlur={() => handleBlur("mobile")}
                                         placeholder="090-1234-5678"
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.mobile || localErrors.mobile
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -343,6 +315,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="緊急連絡先氏名"
                                     htmlFor="emergency_contact_name"
+                                    error={
+                                        errors.emergency_contact_name ||
+                                        localErrors.emergency_contact_name
+                                    }
                                 >
                                     <TextInput
                                         id="emergency_contact_name"
@@ -360,13 +336,6 @@ export default function ProfileForm({
                                             handleBlur("emergency_contact_name")
                                         }
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.emergency_contact_name ||
-                                            localErrors.emergency_contact_name
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
@@ -375,6 +344,10 @@ export default function ProfileForm({
                                 <FormGroup
                                     label="緊急連絡先電話番号"
                                     htmlFor="emergency_contact_phone"
+                                    error={
+                                        errors.emergency_contact_phone ||
+                                        localErrors.emergency_contact_phone
+                                    }
                                 >
                                     <TextInput
                                         id="emergency_contact_phone"
@@ -394,19 +367,16 @@ export default function ProfileForm({
                                             )
                                         }
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={
-                                            errors.emergency_contact_phone ||
-                                            localErrors.emergency_contact_phone
-                                        }
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 自己紹介 */}
                             <div className="sm:col-span-6">
-                                <FormGroup label="自己紹介" htmlFor="bio">
+                                <FormGroup
+                                    label="自己紹介"
+                                    htmlFor="bio"
+                                    error={errors.bio || localErrors.bio}
+                                >
                                     <TextArea
                                         id="bio"
                                         name="bio"
@@ -416,10 +386,6 @@ export default function ProfileForm({
                                             setData("bio", e.target.value)
                                         }
                                         onBlur={() => handleBlur("bio")}
-                                    />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.bio || localErrors.bio}
                                     />
                                 </FormGroup>
                             </div>

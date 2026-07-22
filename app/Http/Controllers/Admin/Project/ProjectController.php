@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Contract;
 use App\Models\Admin;
+use App\Models\User;
+use App\Models\Company;
 use App\Services\ProjectTemplateService;
 use App\Services\ProjectService;
-use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\Project\StoreProjectRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +27,7 @@ class ProjectController extends Controller
      */
     public function index(): Response
     {
-        $projects = Project::with(['user', 'company', 'admin'])
+        $projects = Project::with(['user', 'company', 'admins.profile'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
@@ -41,14 +43,16 @@ class ProjectController extends Controller
     {
         $templates = $this->templateService->getAll();
         $admins = Admin::select('id', 'email')->with('profile')->get();
-        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
-        $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
+        $users = User::select('id', 'email')->with('profile')->get();
+        $companies = Company::all();
+        $contracts = Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+            ->with('servicePlan.service.technologies')
+            ->get();
         $contract = null;
 
         // URLパラメータから contract_id を取得
         if (request()->has('contract_id')) {
-            $contract = \App\Models\Contract::with('user', 'company')
+            $contract = Contract::with('user', 'company')
                 ->findOrFail(request()->input('contract_id'));
         }
 
@@ -58,6 +62,7 @@ class ProjectController extends Controller
             'users' => $users,
             'companies' => $companies,
             'admins' => $admins,
+            'technologiesByContract' => $this->buildTechnologiesByContract($contracts),
         ]);
     }
 
@@ -74,7 +79,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.show', $project->id)
-            ->with('success', 'プロジェクトを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'プロジェクト']));
     }
 
     /**
@@ -85,10 +90,12 @@ class ProjectController extends Controller
         $project->load([
             'user',
             'company',
-            'admin',
+            'admins.profile',
             'contract',
             'versions',
-            'updates'
+            'updates',
+            'technologies',
+            'documents.currentVersion',
         ]);
 
         $currentVersion = $project->versions()
@@ -112,9 +119,13 @@ class ProjectController extends Controller
     public function edit(Project $project): Response
     {
         $admins = Admin::select('id', 'email')->with('profile')->get();
-        $users = \App\Models\User::select('id', 'email')->with('profile')->get();
-        $companies = \App\Models\Company::all();
-        $contracts = \App\Models\Contract::select('id', 'contract_number', 'title')->get();
+        $users = User::select('id', 'email')->with('profile')->get();
+        $companies = Company::all();
+        $contracts = Contract::select('id', 'contract_number', 'title', 'service_plan_id')
+            ->with('servicePlan.service.technologies')
+            ->get();
+
+        $project->load(['technologies', 'admins.profile']);
 
         return Inertia::render('Admin/Project/Edit', [
             'project' => $project,
@@ -122,7 +133,29 @@ class ProjectController extends Controller
             'users' => $users,
             'companies' => $companies,
             'admins' => $admins,
+            'technologiesByContract' => $this->buildTechnologiesByContract($contracts),
         ]);
+    }
+
+    /**
+     * 契約ID => その契約のServicePlan→Serviceが持つ使用技術一覧、のマップを作る
+     * （Create/Edit画面で「契約先サービスの候補技術」から選ばせるため）
+     *
+     * @param \Illuminate\Support\Collection<int, \App\Models\Contract> $contracts
+     * @return array<string, array<int, array{id: string, name: string}>>
+     */
+    private function buildTechnologiesByContract($contracts): array
+    {
+        return $contracts->mapWithKeys(function ($contract) {
+            $technologies = $contract->servicePlan?->service?->technologies ?? collect();
+
+            return [
+                $contract->id => $technologies
+                    ->map(fn ($technology) => ['id' => $technology->id, 'name' => $technology->name])
+                    ->values()
+                    ->all(),
+            ];
+        })->all();
     }
 
     /**
@@ -141,7 +174,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.show', $project->id)
-            ->with('success', 'プロジェクトを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'プロジェクト']));
     }
 
     /**
@@ -153,6 +186,6 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.index')
-            ->with('success', 'プロジェクトを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'プロジェクト']));
     }
 }

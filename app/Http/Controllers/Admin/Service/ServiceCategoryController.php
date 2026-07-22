@@ -33,7 +33,7 @@ class ServiceCategoryController extends Controller
             $statuses = $this->serviceCategoryService->getStatuses();
             $stats = $this->serviceCategoryService->getServiceCategoryStats();
 
-            return Inertia::render('Admin/Service/Category/Index', [
+            return Inertia::render('Admin/ServiceCategories/Index', [
                 'serviceCategories' => $serviceCategories,
                 'statuses' => $statuses,
                 'filters' => $filters,
@@ -42,7 +42,7 @@ class ServiceCategoryController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('ServiceCategory index error: ' . $e->getMessage());
-            return Inertia::render('Admin/Service/Category/Index', [
+            return Inertia::render('Admin/ServiceCategories/Index', [
                 'serviceCategories' => [],
                 'statuses' => [],
                 'filters' => [],
@@ -59,7 +59,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Category/Create', [
+        return Inertia::render('Admin/ServiceCategories/Create', [
             'statuses' => $statuses,
         ]);
     }
@@ -73,12 +73,12 @@ class ServiceCategoryController extends Controller
             $this->serviceCategoryService->createServiceCategory($request->validated());
 
             return redirect()->route('admin.service.category.index')
-                ->with('success', 'サービスカテゴリが作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービスカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ServiceCategory store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスカテゴリの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービスカテゴリ']));
         }
     }
 
@@ -87,7 +87,7 @@ class ServiceCategoryController extends Controller
      */
     public function show(ServiceCategory $serviceCategory): Response
     {
-        return Inertia::render('Admin/Service/Category/Show', [
+        return Inertia::render('Admin/ServiceCategories/Show', [
             'serviceCategory' => $serviceCategory->load(['creator', 'updater']),
             'servicesCount' => $serviceCategory->services()->count(),
         ]);
@@ -100,7 +100,7 @@ class ServiceCategoryController extends Controller
     {
         $statuses = $this->serviceCategoryService->getStatuses();
 
-        return Inertia::render('Admin/Service/Category/Edit', [
+        return Inertia::render('Admin/ServiceCategories/Edit', [
             'serviceCategory' => $serviceCategory,
             'statuses' => $statuses,
         ]);
@@ -115,12 +115,12 @@ class ServiceCategoryController extends Controller
             $this->serviceCategoryService->updateServiceCategory($serviceCategory, $request->validated());
 
             return redirect()->route('admin.service.category.index')
-                ->with('success', 'サービスカテゴリが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービスカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ServiceCategory update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスカテゴリの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービスカテゴリ']));
         }
     }
 
@@ -133,7 +133,7 @@ class ServiceCategoryController extends Controller
             $this->serviceCategoryService->deleteServiceCategory($serviceCategory);
 
             return redirect()->route('admin.service.category.index')
-                ->with('success', 'サービスカテゴリが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービスカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ServiceCategory destroy error: ' . $e->getMessage());
             return redirect()->back()

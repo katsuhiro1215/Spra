@@ -46,6 +46,12 @@ class ProjectService
   public function create(array $data): Project
   {
     return DB::transaction(function () use ($data) {
+      $technologyIds = $data['technology_ids'] ?? null;
+      unset($data['technology_ids']);
+
+      $admins = $data['admins'] ?? [];
+      unset($data['admins']);
+
       // Generate unique project code if not provided
       if (empty($data['project_code'])) {
         $timestamp = time() % 10000; // Last 4 digits of timestamp
@@ -69,6 +75,9 @@ class ProjectService
 
       // Create project
       $project = $this->repository->create($data);
+
+      $this->syncTechnologies($project, $technologyIds);
+      $this->syncAdmins($project, $admins);
 
       // Create initial ProjectVersion (v1, is_current = true)
       $versionData = [
@@ -101,7 +110,6 @@ class ProjectService
       // Prepare project data
       $projectData = [
         'contract_id' => $data['contract_id'] ?? null,
-        'admin_id' => $data['admin_id'],
         'title' => $data['title'],
         'description' => $data['description'] ?? null,
         'status' => 'planning',
@@ -112,6 +120,8 @@ class ProjectService
 
       // Create project
       $project = $this->repository->create($projectData);
+
+      $this->syncAdmins($project, $data['admins'] ?? []);
 
       // Create initial ProjectVersion (v1, is_current = true)
       $versionData = [
@@ -200,7 +210,19 @@ class ProjectService
   public function update(Project $project, array $data, array $categoryIds = []): Project
   {
     return DB::transaction(function () use ($project, $data, $categoryIds) {
+      $technologyIds = $data['technology_ids'] ?? null;
+      unset($data['technology_ids']);
+
+      $admins = $data['admins'] ?? null;
+      unset($data['admins']);
+
       $updated = $this->repository->update($project, $data);
+
+      $this->syncTechnologies($updated, $technologyIds);
+
+      if ($admins !== null) {
+        $this->syncAdmins($updated, $admins);
+      }
 
       if ($categoryIds !== []) {
         $this->repository->syncCategories($updated, $categoryIds);
@@ -208,6 +230,39 @@ class ProjectService
 
       return $updated;
     });
+  }
+
+  /**
+   * 使用技術タグを同期する。project_technologyは複合主キーのため、
+   * service_technology/service_mediaのような明示的なULID採番は不要。
+   */
+  private function syncTechnologies(Project $project, ?array $technologyIds): void
+  {
+    if ($technologyIds === null) {
+      return;
+    }
+
+    $pivotData = [];
+    foreach (array_values($technologyIds) as $index => $technologyId) {
+      $pivotData[$technologyId] = ['sort_order' => $index];
+    }
+
+    $project->technologies()->sync($pivotData);
+  }
+
+  /**
+   * 担当管理者（複数人・役割付き）を同期する
+   *
+   * @param array<int, array{admin_id: string, role: string}> $admins
+   */
+  private function syncAdmins(Project $project, array $admins): void
+  {
+    $syncData = [];
+    foreach ($admins as $entry) {
+      $syncData[$entry['admin_id']] = ['role' => $entry['role']];
+    }
+
+    $project->admins()->sync($syncData);
   }
 
   public function delete(Project $project): bool

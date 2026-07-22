@@ -15,11 +15,23 @@ class AppointmentService
    * 予約可能な予約枠を選択肢配列に整形して取得
    *
    * @param string|null $excludeSlotId 予約可能でなくても含めたい枠（編集中の現在の枠など）
+   * @param string|null $slotType 指定した種別の枠のみに絞り込む（公開フォーム等での利用を想定）
+   * @param int|null $withinDays 本日から指定日数以内の枠のみに絞り込む
    */
-  public function availableSlotOptions(?string $excludeSlotId = null): array
+  public function availableSlotOptions(?string $excludeSlotId = null, ?string $slotType = null, ?int $withinDays = null): array
   {
-    return AppointmentSlot::availableForBooking($excludeSlotId)
-      ->with('assignedAdmin.profile')
+    $query = AppointmentSlot::availableForBooking($excludeSlotId)
+      ->with('assignedAdmin.profile');
+
+    if ($slotType) {
+      $query->where('slot_type', $slotType);
+    }
+
+    if ($withinDays) {
+      $query->where('date', '<=', now()->addDays($withinDays)->format('Y-m-d'));
+    }
+
+    return $query
       ->orderBy('date')
       ->orderBy('start_time')
       ->get()
@@ -74,7 +86,16 @@ class AppointmentService
   }
 
   /**
+   * 予約が枠の空き数に数えられる状態（＝有効な予約）かどうか
+   */
+  private const ACTIVE_STATUSES = ['pending', 'confirmed'];
+
+  /**
    * 予約枠を変更（必要であればロックして空き状況を確認）した上で予約を更新する
+   *
+   * ステータスを直接変更する経路（編集画面のステータス欄など）でも、専用の
+   * confirm()/cancel()/complete() アクションと同様に付随するタイムスタンプ・
+   * 予約枠の空き数の整合性を保つ。
    *
    * @throws \RuntimeException 変更先の予約枠が予約可能でない場合
    */
@@ -83,6 +104,9 @@ class AppointmentService
     return DB::transaction(function () use ($appointment, $newSlotId, $data) {
       $oldSlotId = $appointment->appointment_slot_id;
       $slotChanged = (string) $oldSlotId !== (string) $newSlotId;
+      $originalStatus = $appointment->status;
+      $newStatus = $data['status'] ?? $originalStatus;
+      $statusChanged = $newStatus !== $originalStatus;
 
       if ($slotChanged) {
         $newSlot = AppointmentSlot::lockForUpdate()->findOrFail($newSlotId);
@@ -90,6 +114,10 @@ class AppointmentService
         if (!$newSlot->isAvailable()) {
           throw new \RuntimeException('この予約枠は現在予約できません。');
         }
+      }
+
+      if ($statusChanged) {
+        $data = [...$data, ...$this->statusTransitionAttributes($appointment, $newStatus)];
       }
 
       $appointment->update([
@@ -101,9 +129,28 @@ class AppointmentService
         $oldSlot = AppointmentSlot::find($oldSlotId);
         $oldSlot?->updateBookingCount();
         $newSlot->updateBookingCount();
+      } elseif ($statusChanged
+        && in_array($originalStatus, self::ACTIVE_STATUSES, true) !== in_array($newStatus, self::ACTIVE_STATUSES, true)
+      ) {
+        // 枠は変わらないが有効/無効の状態が変わったため、空き数を再計算する
+        AppointmentSlot::find($newSlotId)?->updateBookingCount();
       }
 
       return $appointment;
     });
+  }
+
+  /**
+   * ステータス遷移に伴って併せて設定すべき属性を返す（confirm()/cancel()/complete()相当）
+   */
+  private function statusTransitionAttributes(Appointment $appointment, string $newStatus): array
+  {
+    return match ($newStatus) {
+      'confirmed' => ['confirmed_at' => $appointment->confirmed_at ?? now()],
+      'cancelled' => ['cancelled_at' => $appointment->cancelled_at ?? now()],
+      'completed' => ['attended' => true],
+      'no_show' => ['attended' => false],
+      default => [],
+    };
   }
 }

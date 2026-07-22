@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Website;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Website\SectionRequest;
+use App\Models\Media;
 use App\Models\Page;
 use App\Models\Section;
 use App\Services\SectionService;
@@ -56,6 +57,7 @@ class SectionController extends Controller
 
         return Inertia::render('Admin/Website/Section/Create', [
             'pages' => $pages,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -69,7 +71,7 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -101,6 +103,7 @@ class SectionController extends Controller
         return Inertia::render('Admin/Website/Section/Edit', [
             'section' => $section,
             'pages' => $pages,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -114,7 +117,7 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -133,11 +136,30 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
                 ->withErrors(['error' => 'セクションの削除に失敗しました。']);
+        }
+    }
+
+    /**
+     * セクションの並び順を一括更新（ページ編集画面のドラッグ&ドロップ用）
+     */
+    public function reorder(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'section_ids' => ['required', 'array'],
+            'section_ids.*' => ['string', 'exists:sections,id'],
+        ]);
+
+        try {
+            $this->sectionService->reorderSections($validated['section_ids']);
+
+            return back();
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'セクションの並び替えに失敗しました。']);
         }
     }
 }

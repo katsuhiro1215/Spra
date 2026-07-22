@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class FaqCategory extends Model
 {
-    use HasUlid, HasFactory;
+    use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -19,6 +20,9 @@ class FaqCategory extends Model
         'icon',
         'sort_order',
         'is_active',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -31,6 +35,16 @@ class FaqCategory extends Model
     public function faqs()
     {
         return $this->hasMany(Faq::class)->orderBy('sort_order');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
     }
 
     /**

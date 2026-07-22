@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-// Components
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import { TextInput, InputLabel, InputError } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Constants
 import { PREFECTURE_OPTIONS } from "@/Constants/SelectOptions";
 
 export default function AddressForm({
@@ -30,15 +29,22 @@ export default function AddressForm({
     };
 
     return (
-        <AuthenticatedLayout header={heading}>
+        <AuthenticatedLayout>
             <Head title={`${heading} | Smart Sprouts`} />
 
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto space-y-6">
+                <UserPageHeader
+                    title={heading}
+                    description={description}
+                    breadcrumbs={[
+                        {
+                            label: "ダッシュボード",
+                            href: route("user.dashboard"),
+                        },
+                        { label: heading, href: "#" },
+                    ]}
+                />
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        {description}
-                    </h2>
-
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* 郵便番号 */}
                         <div>

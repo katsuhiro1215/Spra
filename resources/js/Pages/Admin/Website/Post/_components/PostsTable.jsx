@@ -1,12 +1,18 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 // Components
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
-import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@/Components/Buttons";
+import {
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+    ArrowUturnLeftIcon,
+} from "@heroicons/react/24/outline";
 
-const PostsTable = ({ posts, onDelete }) => {
+const PostsTable = ({ posts, onDelete, onRestore, trashed }) => {
+    const isTrashedView = trashed === "only_trashed";
     const getStatusBadge = (isPublished) => {
         return isPublished
             ? { text: "公開", variant: "success" }
@@ -101,34 +107,50 @@ const PostsTable = ({ posts, onDelete }) => {
                                     </span>
                                 </Td>
                                 <Td className="text-right">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.post.show",
                                                 post.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
-                                            href={route(
-                                                "admin.website.post.edit",
-                                                post.id,
-                                            )}
-                                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"
-                                            title="編集"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </Link>
-                                        <button
-                                            onClick={() => onDelete(post)}
-                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
-                                            title="削除"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                        />
+                                        {isTrashedView ? (
+                                            <IconButton
+                                                variant="success-text"
+                                                icon={ArrowUturnLeftIcon}
+                                                size="lg"
+                                                onClick={() =>
+                                                    onRestore?.(post)
+                                                }
+                                                title="復元"
+                                            />
+                                        ) : (
+                                            <>
+                                                <IconButton
+                                                    variant="warning-text"
+                                                    icon={PencilIcon}
+                                                    size="lg"
+                                                    href={route(
+                                                        "admin.website.post.edit",
+                                                        post.id,
+                                                    )}
+                                                    title="編集"
+                                                />
+                                                <IconButton
+                                                    variant="danger-text"
+                                                    icon={TrashIcon}
+                                                    size="lg"
+                                                    onClick={() =>
+                                                        onDelete(post)
+                                                    }
+                                                    title="削除"
+                                                />
+                                            </>
+                                        )}
                                     </div>
                                 </Td>
                             </Tr>

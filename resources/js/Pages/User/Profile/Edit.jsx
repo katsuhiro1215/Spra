@@ -39,10 +39,8 @@ export default function Edit({ user }) {
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title="プロフィール編集" />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="プロフィール編集"
                     description="あなたの個人情報を管理します"
@@ -54,7 +52,11 @@ export default function Edit({ user }) {
                         { label: "プロフィール", href: "#" },
                     ]}
                 />
+            }
+        >
+            <Head title="プロフィール編集" />
 
+            <div className="space-y-6">
                 {/* アラート */}
                 <SuccessAlert
                     isOpen={alert.isOpen}

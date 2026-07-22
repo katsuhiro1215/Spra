@@ -60,7 +60,7 @@ class MenuController extends Controller
 
             return redirect()
                 ->route('admin.website.menu.index')
-                ->with('success', 'メニューを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'メニュー']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -101,7 +101,7 @@ class MenuController extends Controller
 
             return redirect()
                 ->route('admin.website.menu.index')
-                ->with('success', 'メニューを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'メニュー']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -120,7 +120,7 @@ class MenuController extends Controller
 
             return redirect()
                 ->route('admin.website.menu.index')
-                ->with('success', 'メニューを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'メニュー']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()

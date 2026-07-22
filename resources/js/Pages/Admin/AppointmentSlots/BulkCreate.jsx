@@ -303,7 +303,7 @@ export default function BulkCreate({
                                                 <div className="flex gap-3 text-xs">
                                                     <button
                                                         type="button"
-                                                        className="text-indigo-600 hover:underline"
+                                                        className="text-indigo-600 dark:text-indigo-400 hover:underline"
                                                         onClick={() =>
                                                             toggleDay(
                                                                 dateIndex,
@@ -315,7 +315,7 @@ export default function BulkCreate({
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="text-gray-500 hover:underline"
+                                                        className="text-gray-500 dark:text-gray-400 hover:underline"
                                                         onClick={() =>
                                                             toggleDay(
                                                                 dateIndex,
@@ -365,7 +365,7 @@ export default function BulkCreate({
                                                                 }
                                                                 className="w-24 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-xs"
                                                             />
-                                                            <span className="text-gray-400">
+                                                            <span className="text-gray-400 dark:text-gray-500">
                                                                 -
                                                             </span>
                                                             <input

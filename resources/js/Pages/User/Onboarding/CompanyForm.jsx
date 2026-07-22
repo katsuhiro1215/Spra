@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import TextInput from "@/Components/Forms/TextInput";
 import InputLabel from "@/Components/Forms/InputLabel";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
@@ -29,15 +30,22 @@ export default function CompanyForm({
     };
 
     return (
-        <AuthenticatedLayout header="会社情報">
+        <AuthenticatedLayout>
             <Head title="会社情報 | Smart Sprouts" />
 
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto space-y-6">
+                <UserPageHeader
+                    title="会社情報"
+                    description="会社の詳細情報を入力してください"
+                    breadcrumbs={[
+                        {
+                            label: "ダッシュボード",
+                            href: route("user.dashboard"),
+                        },
+                        { label: "会社情報", href: "#" },
+                    ]}
+                />
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        会社の詳細情報を入力してください
-                    </h2>
-
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* 法人名 */}
                         <div>

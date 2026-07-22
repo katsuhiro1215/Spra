@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('contact_categories', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('name')->unique();
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);

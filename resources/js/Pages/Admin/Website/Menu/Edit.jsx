@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-// Icons
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
-// Menu Components
 import MenuForm from "./_components/MenuForm";
 import * as validation from "./_components/validation";
 

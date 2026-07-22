@@ -43,10 +43,8 @@ export default function Index() {
     ];
 
     return (
-        <AuthenticatedLayout>
-            <Head title="設定" />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <UserPageHeader
                     title="設定"
                     description="アカウント設定を管理します"
@@ -58,7 +56,11 @@ export default function Index() {
                         { label: "設定", href: "#" },
                     ]}
                 />
+            }
+        >
+            <Head title="設定" />
 
+            <div className="space-y-6">
                 {/* 設定一覧 */}
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

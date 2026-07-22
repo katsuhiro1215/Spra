@@ -1,12 +1,10 @@
 import { Head, useForm, router } from "@inertiajs/react";
 import { useState } from "react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import ConfirmAlert from "@/Components/Alerts/ConfirmAlert";
 import AddressForm from "./_components/Form";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function Edit({ company, address, types }) {

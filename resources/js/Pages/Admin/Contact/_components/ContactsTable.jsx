@@ -4,12 +4,12 @@ import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { TextButton } from "@/Components/Buttons";
 import Avatar from "@/Components/Avatar";
-// Icons
 import {
     EyeIcon,
     TrashIcon,
     ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
+import { getContactStatusBadge } from "@/Constants/Badges";
 
 const ContactsTable = ({
     contacts,
@@ -18,17 +18,6 @@ const ContactsTable = ({
     onDelete,
     isDeleting,
 }) => {
-    const getContactStatusBadge = (status) => {
-        const statusMap = {
-            new: { text: "新規", variant: "info" },
-            in_progress: { text: "対応中", variant: "warning" },
-            replied: { text: "返信済み", variant: "success" },
-            resolved: { text: "解決済み", variant: "success" },
-            closed: { text: "クローズ", variant: "secondary" },
-        };
-        return statusMap[status] || { text: status, variant: "default" };
-    };
-
     const handleSelectChange = (contactId) => {
         if (onSelect) {
             onSelect(contactId);

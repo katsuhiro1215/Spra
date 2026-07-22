@@ -48,8 +48,19 @@ class ContractController extends Controller
         $contract = $this->service->findById($contract->id);
         abort_unless($contract, 404);
 
-        // quote・契約特典を含めて読み込む
-        $contract->load(['quote', 'benefits' => fn($q) => $q->orderBy('period_start')]);
+        // quote・契約特典・署名を含めて読み込む(quoteの金額はcurrentVersionにあるため合わせて読み込む)
+        // 請求書タブ・領収書タブで使うため、請求書に紐づく入金・領収書も合わせて読み込む
+        // 契約履歴タブ用に、新しい順に並べ替えて操作者(Admin)情報も合わせて読み込む
+        $contract->load([
+            'quote.currentVersion',
+            'benefits' => fn($q) => $q->orderBy('period_start'),
+            'signatures' => fn($q) => $q->latest('signed_at'),
+            'invoices' => fn($q) => $q->orderBy('issue_date', 'desc'),
+            'invoices.payments' => fn($q) => $q->orderBy('payment_date', 'desc'),
+            'invoices.receipt',
+            'histories' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'histories.creator.profile',
+        ]);
 
         return Inertia::render('Admin/Contracts/Show', [
             'contract' => $contract,
@@ -184,15 +195,20 @@ class ContractController extends Controller
                 'payment_due_days' => $validated['payment_due_days'] ?? 15,
                 'auto_invoice_generation' => $validated['auto_invoice_generation'] ?? true,
                 'auto_renewal' => $validated['auto_renewal'] ?? false,
+                'renewal_notice_days' => $validated['renewal_notice_days'] ?? 30,
+                'discount_amount' => $validated['discount_amount'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 10,
+                'notes' => $validated['notes'] ?? null,
+                'terms_and_conditions' => $validated['terms_and_conditions'] ?? null,
             ];
 
             // Contract作成（ContractVersion v1 も自動作成される）
             $contract = $this->service->createContract($contractData);
 
             return redirect()->route('admin.contract.show', $contract->id)
-                ->with('success', '契約を作成しました。契約明細を追加してください。');
+                ->with('success', __('messages.contract.created_add_items'));
         } catch (\Exception $e) {
-            return back()->with('error', '契約の作成に失敗しました: ' . $e->getMessage())->withInput();
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '契約の作成', 'message' => $e->getMessage()]))->withInput();
         }
     }
 
@@ -250,9 +266,9 @@ class ContractController extends Controller
             $this->service->updateContract($contract, $validated);
 
             return redirect()->route('admin.contract.show', $contract->id)
-                ->with('success', '契約を更新しました。新しいバージョンが作成されました。');
+                ->with('success', __('messages.contract.updated_new_version_created'));
         } catch (\Exception $e) {
-            return back()->with('error', '契約の更新に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '契約の更新', 'message' => $e->getMessage()]));
         }
     }
 
@@ -267,7 +283,7 @@ class ContractController extends Controller
 
         try {
             $this->service->activate($contract, $validated);
-            return back()->with('success', '契約を有効化しました。');
+            return back()->with('success', __('messages.activated', ['attribute' => '契約']));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -284,7 +300,7 @@ class ContractController extends Controller
 
         $this->service->cancel($contract, $validated['cancellation_reason'] ?? '');
 
-        return back()->with('success', '契約をキャンセルしました。');
+        return back()->with('success', __('messages.cancelled', ['attribute' => '契約']));
     }
 
     /**
@@ -297,7 +313,7 @@ class ContractController extends Controller
 
         // signature_status が fully_signed である必要がある
         if ($contract->signature_status !== 'fully_signed') {
-            return back()->with('error', '署名が完了していない契約は承認できません。');
+            return back()->with('error', __('messages.contract.signature_incomplete_cannot_approve'));
         }
 
         // status を active に更新
@@ -308,7 +324,7 @@ class ContractController extends Controller
         // Invoice自動生成をディスパッチ
         \App\Jobs\GenerateInvoiceJob::dispatch($contract);
 
-        return back()->with('success', '契約を承認し、有効化しました。請求書を自動生成しています。');
+        return back()->with('success', __('messages.contract.approved_and_activated'));
     }
 
     /**
@@ -321,17 +337,17 @@ class ContractController extends Controller
 
         // signature_status が pending である必要がある
         if ($contract->signature_status !== 'pending') {
-            return back()->with('error', 'このステータスではリマインダーを送信できません。');
+            return back()->with('error', __('messages.contract.reminder_not_allowed_status'));
         }
 
         if (!$contract->user || !$contract->user->email) {
-            return back()->with('error', 'ユーザーメールアドレスが登録されていません。');
+            return back()->with('error', __('messages.user.email_missing'));
         }
 
         // リマインダーメール送信ジョブをディスパッチ
         \App\Jobs\NotifyUserToSignContractJob::dispatch($contract);
 
-        return back()->with('success', 'リマインダーメールを送信しました。');
+        return back()->with('success', __('messages.sent', ['attribute' => 'リマインダーメール']));
     }
 
     public function uploadDocument(Request $request, string $id): RedirectResponse
@@ -354,7 +370,7 @@ class ContractController extends Controller
             'mime_type' => $request->file('file')->getMimeType(),
         ]);
 
-        return back()->with('success', '書類をアップロードしました。');
+        return back()->with('success', __('messages.uploaded', ['attribute' => '書類']));
     }
 
     /**
@@ -367,14 +383,32 @@ class ContractController extends Controller
 
         // 月額契約のみ請求設定を更新可能
         if ($contract->type !== 'monthly') {
-            return back()->with('error', '月額契約のみ請求設定を更新できます。');
+            return back()->with('error', __('messages.contract.monthly_only_billing_update'));
         }
 
         $validated = $request->validate([
             'billing_day' => 'required|integer|min:1|max:31',
             'payment_due_days' => 'required|integer|min:1|max:90',
             'auto_invoice_generation' => 'required|boolean',
+            'billing_user_id' => 'nullable|uuid|exists:users,id',
         ]);
+
+        // フォームで選択解除（契約者と同じに戻す）した場合もbilling_user_idをnullで確実に更新する
+        $validated['billing_user_id'] = $validated['billing_user_id'] ?? null;
+
+        // 送付先ユーザーを指定する場合、契約に紐づく会社に所属しているユーザーである必要がある
+        if (!empty($validated['billing_user_id']) && $contract->company_id) {
+            $belongsToCompany = \App\Models\CompanyUser::query()
+                ->where('company_id', $contract->company_id)
+                ->where('user_id', $validated['billing_user_id'])
+                ->exists();
+
+            if (!$belongsToCompany) {
+                return back()
+                    ->with('error', __('messages.contract.billing_user_must_belong_to_company'))
+                    ->withInput();
+            }
+        }
 
         // 次回請求日を計算(calculateNextBillingDateはbilling_dayを参照するため、
         // 先にメモリ上の値を新しいbilling_dayへ更新してから計算する)
@@ -387,7 +421,7 @@ class ContractController extends Controller
 
         $contract->update($validated);
 
-        return back()->with('success', '請求設定を更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => '請求設定']));
     }
 
     /**
@@ -403,13 +437,13 @@ class ContractController extends Controller
             $missing = $contract->getMissingRequirements();
             $missingLabels = array_map(fn($item) => $item['description'], $missing);
 
-            return back()->with('error', '契約書を送信できません。以下が必要です: ' . implode(', ', $missingLabels));
+            return back()->with('error', __('messages.contract.send_requirements_prefix', ['requirements' => implode(', ', $missingLabels)]));
         }
 
         // 送信メールアドレス
         $recipientEmail = $contract->user?->email;
         if (!$recipientEmail) {
-            return back()->with('error', 'クライアントのメールアドレスが登録されていません。');
+            return back()->with('error', __('messages.contract.client_email_missing'));
         }
 
         // キュージョブをディスパッチ
@@ -434,7 +468,7 @@ class ContractController extends Controller
             'created_by' => auth('admins')->id(),
         ]);
 
-        return back()->with('success', 'クライアントにメールを送信しました。');
+        return back()->with('success', __('messages.sent', ['attribute' => 'クライアントにメール']));
     }
 
     /**
@@ -505,12 +539,12 @@ class ContractController extends Controller
         try {
             $currentVersion = $contract->currentVersion;
             if (!$currentVersion) {
-                return back()->with('error', '現在のバージョンが見つかりません。');
+                return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
             }
 
             // ドラフト状態の場合のみ上書き保存可能
             if ($currentVersion->status !== 'draft') {
-                return back()->with('error', 'ドラフト状態のバージョンのみ編集できます。');
+                return back()->with('error', __('messages.draft_version_only_editable'));
             }
 
             $currentVersion->update([
@@ -520,9 +554,9 @@ class ContractController extends Controller
             ]);
 
             return redirect()->route('admin.contract.show', $id)
-                ->with('success', '契約条項を保存しました。');
+                ->with('success', __('messages.saved', ['attribute' => '契約条項']));
         } catch (\Exception $e) {
-            return back()->with('error', '契約条項の保存に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '契約条項の保存', 'message' => $e->getMessage()]));
         }
     }
 
@@ -548,15 +582,15 @@ class ContractController extends Controller
         abort_unless($contract, 404);
 
         if ($contract->status !== 'draft') {
-            return back()->with('error', '下書き状態の契約のみ削除できます。');
+            return back()->with('error', __('messages.contract.draft_only_deletable'));
         }
 
         try {
             $contract->delete();
             return redirect()->route('admin.contract.index')
-                ->with('success', '契約を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '契約']));
         } catch (\Exception $e) {
-            return back()->with('error', '契約の削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '契約の削除', 'message' => $e->getMessage()]));
         }
     }
 }

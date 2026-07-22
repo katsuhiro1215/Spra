@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
-
-const todayStr = () => new Date().toISOString().split("T")[0];
+import { todayDateKey } from "@/Utils/dateUtils";
 
 const statusChipClasses = {
     yellow: "bg-yellow-200 text-yellow-900 dark:bg-yellow-900/60 dark:text-yellow-200",
@@ -17,7 +16,7 @@ export default function MonthlyCalendar({
     calendar,
     appointments = {},
 }) {
-    const today = todayStr();
+    const today = todayDateKey();
     // 月表示用のカレンダーグリッドを生成
     const monthCalendarGrid = useMemo(() => {
         const firstDay = new Date(year, month - 1, 1);
@@ -142,7 +141,7 @@ export default function MonthlyCalendar({
                                 </div>
                                 {day.is_holiday && (
                                     <div className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">
-                                        休業日
+                                        {day.holiday_name || "休業日"}
                                     </div>
                                 )}
                                 {day.is_exception && (
@@ -162,7 +161,7 @@ export default function MonthlyCalendar({
                                 )}
                                 {day.hours && day.hours.open_time && (
                                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                                        {day.hours.open_time} -{" "}
+                                        営業: {day.hours.open_time} -{" "}
                                         {day.hours.close_time}
                                     </div>
                                 )}

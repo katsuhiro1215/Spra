@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectItemRequest;
+use App\Http\Requests\Project\ProjectItemRequest;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\ProjectItem;
@@ -127,7 +127,7 @@ class ProjectItemController extends Controller
 
         $item->update($data);
 
-        return back()->with('success', 'アイテムを更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => 'アイテム']));
     }
 
     /**
@@ -137,6 +137,6 @@ class ProjectItemController extends Controller
     {
         $item->delete();
 
-        return back()->with('success', 'アイテムを削除しました。');
+        return back()->with('success', __('messages.deleted', ['attribute' => 'アイテム']));
     }
 }

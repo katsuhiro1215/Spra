@@ -1,4 +1,4 @@
-{{ $user->name }}さんが契約書「{{ $contract->title }}」に署名しました。
+{{ $user->profile?->full_name ?? $user->email }}さんが契約書「{{ $contract->title }}」に署名しました。
 
 契約ID: {{ $contract->id }}
 署名方法: {{ $signatureMethod }}

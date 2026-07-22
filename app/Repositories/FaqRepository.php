@@ -4,103 +4,61 @@ namespace App\Repositories;
 
 use App\Models\Faq;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
-class FaqRepository
+class FaqRepository extends SoftDeletableRepository
 {
-    /**
-     * 基本的なクエリビルダーを取得
-     */
-    public function query(): Builder
+    protected function getModelClass(): string
     {
-        return Faq::query();
+        return Faq::class;
     }
 
-    /**
-     * リレーションを含むクエリを取得
-     */
-    public function queryWithRelations(): Builder
+    protected function getSearchableFields(): array
     {
-        return Faq::with(['faqCategory', 'createdBy', 'updatedBy']);
+        return ['question', 'answer'];
     }
 
-  /**
-   * 検索条件を適用したクエリを取得
-   */
-    public function buildSearchQuery(Builder $query, string $search): Builder
+    protected function getSortableFields(): array
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('question', 'like', '%' . $search . '%')
-              ->orWhere('answer', 'like', '%' . $search . '%');
-        });
+        return ['question', 'sort_order', 'created_at', 'updated_at'];
     }
 
-    /**
-     * カテゴリフィルターを適用
-     */
-    public function buildCategoryFilter(Builder $query, int $categoryId): Builder
+    protected function getDefaultSortField(): string
     {
-        return $query->where('faq_category_id', $categoryId);
+        return 'sort_order';
     }
 
-    /**
-     * ソートを適用
-     */
-    public function applySorting(Builder $query, string $field, string $direction): Builder
+    protected function getDefaultRelations(): array
     {
-        $allowedSortFields = ['question', 'created_at', 'updated_at', 'sort_order'];
-
-        if (in_array($field, $allowedSortFields)) {
-            return $query->orderBy($field, $direction);
-        }
-
-        return $query->orderBy('sort_order', 'asc');
+        return ['faqCategory'];
     }
 
-    /**
-     * 複数条件でのフィルタリング（Fluent Interface）
-     */
     public function findWithFilters(array $filters): Builder
     {
-        $query = $this->queryWithRelations();
+        $query = parent::findWithFilters($filters);
 
-        if (!empty($filters['search'])) {
-            $query = $this->buildSearchQuery($query, $filters['search']);
+        if (!empty($filters['faq_category_id'])) {
+            $query->where('faq_category_id', $filters['faq_category_id']);
         }
 
-        if (!empty($filters['category_id'])) {
-            $query = $this->buildCategoryFilter($query, $filters['category_id']);
+        if (isset($filters['is_published']) && $filters['is_published'] !== '') {
+            $query->where('is_published', filter_var($filters['is_published'], FILTER_VALIDATE_BOOLEAN));
+        }
+
+        if (isset($filters['is_featured']) && $filters['is_featured'] !== '') {
+            $query->where('is_featured', filter_var($filters['is_featured'], FILTER_VALIDATE_BOOLEAN));
         }
 
         return $query;
     }
 
-    /**
-     * 公開中のFAQを取得
-     */
-    public function findActive(): Collection
+    public function getStats(): array
     {
-        return Faq::where('is_published', true)
-            ->orderBy('sort_order')
-            ->get();
-    }
-
-    /**
-     * カテゴリ別で公開中のFAQを取得
-     */
-    public function findByCategory(int $categoryId): Collection
-    {
-        return Faq::where('faq_category_id', $categoryId)
-            ->where('is_published', true)
-            ->orderBy('sort_order')
-            ->get();
-    }
-
-    /**
-     * 最大ソート順序を取得
-     */
-    public function getMaxSortOrder(): int
-    {
-        return Faq::max('sort_order') ?? 0;
+        return [
+            'total' => Faq::withTrashed()->count(),
+            'active' => Faq::count(),
+            'published' => Faq::where('is_published', true)->count(),
+            'draft' => Faq::where('is_published', false)->count(),
+            'trashed' => Faq::onlyTrashed()->count(),
+        ];
     }
 }

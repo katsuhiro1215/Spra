@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
@@ -10,11 +9,8 @@ import { PrimaryButton, SecondaryButton, CreateButton } from "@/Components/Butto
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
-// Icons
 import { PlusIcon, FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// PageType Components
 import PageTypesTable from "./_components/PageTypesTable";
 
 export default function Index({ pageTypes, filters = {}, stats = {} }) {
@@ -124,85 +120,83 @@ export default function Index({ pageTypes, filters = {}, stats = {} }) {
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="ページタイプ管理"
-                    description="ページタイプの作成・編集・削除"
+                    title={PageConfig.pageTypes.title}
+                    description={PageConfig.pageTypes.description}
                     actions={headerActions}
                     breadcrumbs={PageConfig.pageTypes.breadcrumbs}
                 />
             }
         >
-            <Head title="ページタイプ管理" />
+            <Head title={PageConfig.pageTypes.title} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルター */}
-                <Card>
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                        <div className="flex-1 max-w-md">
-                            <SearchBar
-                                value={data.search}
-                                onChange={(value) => setData("search", value)}
-                                onSearch={handleSearch}
-                                placeholder="ページタイプ名、スラッグで検索..."
-                                disabled={processing}
-                            />
-                        </div>
-
-                        <div className="flex-shrink-0">
-                            <SecondaryButton
-                                onClick={() => setShowFilters(!showFilters)}
-                                size="sm"
-                                className="relative"
-                            >
-                                <FunnelIcon className="h-4 w-4 mr-2" />
-                                フィルター
-                                {activeFilterCount > 0 && (
-                                    <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </SecondaryButton>
-                        </div>
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="flex-1 max-w-md">
+                        <SearchBar
+                            value={data.search}
+                            onChange={(value) => setData("search", value)}
+                            onSearch={handleSearch}
+                            placeholder="ページタイプ名、スラッグで検索..."
+                            disabled={processing}
+                        />
                     </div>
 
-                    {showFilters && (
-                        <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <FilterSelect
-                                    label="システムページ"
-                                    value={data.is_system}
-                                    onChange={(value) =>
-                                        setData("is_system", value)
-                                    }
-                                    options={systemOptions}
-                                />
+                    <div className="flex-shrink-0">
+                        <SecondaryButton
+                            onClick={() => setShowFilters(!showFilters)}
+                            size="sm"
+                            className="relative"
+                        >
+                            <FunnelIcon className="h-4 w-4 mr-2" />
+                            フィルター
+                            {activeFilterCount > 0 && (
+                                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-500 text-white text-xs font-medium">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </SecondaryButton>
+                    </div>
+                </div>
 
-                                <FilterSelect
-                                    label="動的ページ"
-                                    value={data.is_dynamic}
-                                    onChange={(value) =>
-                                        setData("is_dynamic", value)
-                                    }
-                                    options={dynamicOptions}
-                                />
+                {showFilters && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <FilterSelect
+                                label="システムページ"
+                                value={data.is_system}
+                                onChange={(value) =>
+                                    setData("is_system", value)
+                                }
+                                options={systemOptions}
+                            />
 
-                                <div className="flex items-end">
-                                    <SecondaryButton
-                                        onClick={handleClearFilters}
-                                        disabled={!hasActiveFilters}
-                                        size="md"
-                                        className="w-full"
-                                    >
-                                        <XMarkIcon className="h-4 w-4 mr-2" />
-                                        クリア
-                                    </SecondaryButton>
-                                </div>
+                            <FilterSelect
+                                label="動的ページ"
+                                value={data.is_dynamic}
+                                onChange={(value) =>
+                                    setData("is_dynamic", value)
+                                }
+                                options={dynamicOptions}
+                            />
+
+                            <div className="flex items-end">
+                                <SecondaryButton
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    size="md"
+                                    className="w-full"
+                                >
+                                    <XMarkIcon className="h-4 w-4 mr-2" />
+                                    クリア
+                                </SecondaryButton>
                             </div>
                         </div>
-                    )}
-                </Card>
+                    </div>
+                )}
 
                 {/* テーブル */}
                 <PageTypesTable pageTypes={pageTypes} onDelete={handleDelete} />

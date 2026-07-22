@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Website;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Media\StoreMediaRequest;
 use App\Http\Requests\Website\PostRequest;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Admin;
@@ -48,7 +49,12 @@ class PostController extends Controller
         $stats = $this->postService->getStats();
         // フィルター用データ
         $categories = PostCategory::active()->ordered()->get(['id', 'name']);
-        $authors = Admin::select('id', 'name')->get();
+        $authors = Admin::with('profile')
+            ->get()
+            ->map(fn (Admin $admin) => [
+                'id' => $admin->id,
+                'name' => $admin->profile?->full_name ?? $admin->email,
+            ]);
 
         return Inertia::render('Admin/Website/Post/Index', [
             'posts' => $posts,
@@ -68,6 +74,7 @@ class PostController extends Controller
 
         return Inertia::render('Admin/Website/Post/Create', [
             'categories' => $categories,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -80,12 +87,12 @@ class PostController extends Controller
             $post = $this->postService->createPost($request->validated());
 
             return redirect()->route('admin.website.post.show', $post)
-                ->with('success', 'ブログを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'ブログ']));
         } catch (\Exception $e) {
             Log::error('Post store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ブログの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'ブログ']));
         }
     }
 
@@ -112,6 +119,7 @@ class PostController extends Controller
         return Inertia::render('Admin/Website/Post/Edit', [
             'post' => $post,
             'categories' => $categories,
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -124,12 +132,12 @@ class PostController extends Controller
             $this->postService->updatePost($post, $request->validated());
 
             return redirect()->route('admin.website.post.index')
-                ->with('success', 'ブログを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'ブログ']));
         } catch (\Exception $e) {
             Log::error('Post update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ブログの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'ブログ']));
         }
     }
 
@@ -142,11 +150,11 @@ class PostController extends Controller
             $this->postService->deletePost($post);
 
             return redirect()->route('admin.website.post.index')
-                ->with('success', 'ブログを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ブログ']));
         } catch (\Exception $e) {
             Log::error('Post destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ブログの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'ブログ']));
         }
     }
 
@@ -159,11 +167,11 @@ class PostController extends Controller
             $this->postService->restorePost($post);
 
             return redirect()->route('admin.website.post.index')
-                ->with('success', 'ブログを復元しました。');
+                ->with('success', __('messages.restored', ['attribute' => 'ブログ']));
         } catch (\Exception $e) {
             Log::error('Post restore error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ブログの復元に失敗しました。');
+                ->with('error', __('messages.restore_failed', ['attribute' => 'ブログ']));
         }
     }
 
@@ -184,10 +192,10 @@ class PostController extends Controller
                 $validated['published_at'] ?? null
             );
 
-            return redirect()->back()->with('success', 'ステータスを変更しました。');
+            return redirect()->back()->with('success', __('messages.status_changed'));
         } catch (\Exception $e) {
             Log::error('Post changeStatus error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'ステータスの変更に失敗しました。');
+            return redirect()->back()->with('error', __('messages.status_change_failed'));
         }
     }
 
@@ -208,7 +216,7 @@ class PostController extends Controller
             return redirect()->back()->with('success', "{$count}件のブログを更新しました。");
         } catch (\Exception $e) {
             Log::error('Post bulkAction error: ' . $e->getMessage());
-            return redirect()->back()->with('error', '一括操作に失敗しました。');
+            return redirect()->back()->with('error', __('messages.bulk_action_failed'));
         }
     }
 
@@ -231,7 +239,7 @@ class PostController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => '画像のアップロードに失敗しました: ' . $e->getMessage(),
+                'message' => __('messages.action_failed_detail', ['attribute' => '画像のアップロード', 'message' => $e->getMessage()]),
             ], 422);
         }
     }

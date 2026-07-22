@@ -1,24 +1,20 @@
 import BaseButton from "./BaseButton";
 
 /**
- * SecondaryButton - セカンダリボタン
+ * SecondaryButton - セカンダリボタン（後方互換性のため残存）
+ * 新規実装では Button コンポーネントの使用を推奨
  */
-export default function SecondaryButton({ className = "", ...props }) {
-    const colorClasses = `
-        bg-white text-slate-700
-        border border-slate-300
-        hover:bg-slate-50
-        focus:ring-indigo-500
-        dark:bg-slate-800 dark:text-slate-100
-        dark:border-slate-600 dark:hover:bg-slate-700
-        shadow-sm
-    `
-        .trim()
-        .replace(/\s+/g, " ");
-
+export default function SecondaryButton({
+    className = "",
+    icon = null,
+    iconPosition = "left",
+    ...props
+}) {
     return (
         <BaseButton
-            colorClasses={colorClasses}
+            variant="secondary"
+            icon={icon}
+            iconPosition={iconPosition}
             className={className}
             {...props}
         />

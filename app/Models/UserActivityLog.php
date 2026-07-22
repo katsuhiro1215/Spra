@@ -14,6 +14,8 @@ class UserActivityLog extends Model
 
     protected $fillable = [
         'user_id',
+        'actor_type',
+        'admin_id',
         'action',
         'method',
         'url',
@@ -59,6 +61,11 @@ class UserActivityLog extends Model
     const STATUS_ERROR = 'error';
     const STATUS_WARNING = 'warning';
 
+    // 操作主体タイプの定数
+    const ACTOR_USER = 'user';
+    const ACTOR_ADMIN = 'admin';
+    const ACTOR_SYSTEM = 'system';
+
     // デバイスタイプの定数
     const DEVICE_DESKTOP = 'desktop';
     const DEVICE_MOBILE = 'mobile';
@@ -68,6 +75,11 @@ class UserActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class);
     }
 
     // スコープ
@@ -89,6 +101,11 @@ class UserActivityLog extends Model
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('performed_at', [$startDate, $endDate]);
+    }
+
+    public function scopeByRoutePrefix($query, string $prefix)
+    {
+        return $query->where('route_name', 'like', $prefix . '%');
     }
 
     public function scopeRecent($query, $days = 30)
@@ -158,6 +175,27 @@ class UserActivityLog extends Model
 
         $data = array_merge([
             'user_id' => $userId,
+            'actor_type' => self::ACTOR_USER,
+            'action' => $action,
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+            'route_name' => $request->route()?->getName(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'session_id' => $request->session()?->getId(),
+            'status' => self::STATUS_SUCCESS,
+        ], $additionalData);
+
+        return self::logActivity($data);
+    }
+
+    public static function logAdminActivity($adminId, $action, array $additionalData = []): self
+    {
+        $request = request();
+
+        $data = array_merge([
+            'admin_id' => $adminId,
+            'actor_type' => self::ACTOR_ADMIN,
             'action' => $action,
             'method' => $request->method(),
             'url' => $request->fullUrl(),

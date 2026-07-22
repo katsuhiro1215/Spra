@@ -1,11 +1,9 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card } from "@/Components/Card";
 import BasicButton from "@/Components/Buttons/BasicButton";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -15,7 +13,6 @@ import {
     DocumentTextIcon,
     GlobeAltIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 import { BlockPreview } from "@/Components/BlockUI";
 
@@ -149,16 +146,23 @@ export default function Show({ page }) {
                                 </dl>
                             </Card.Body>
                         </Card>
-                        {/* コンテンツ */}
-                        <Card>
-                            <Card.Title className="border-b pb-2 flex items-center">
-                                <DocumentTextIcon className="h-5 w-5 mr-2" />
-                                コンテンツ
-                            </Card.Title>
-                            <Card.Body>
-                                <BlockPreview value={page.content} />
-                            </Card.Body>
-                        </Card>
+                        {/* セクション */}
+                        {(page.sections || []).map((section) => (
+                            <Card key={section.id}>
+                                <Card.Title className="border-b pb-2 flex items-center justify-between">
+                                    <span className="flex items-center">
+                                        <DocumentTextIcon className="h-5 w-5 mr-2" />
+                                        {section.name}
+                                    </span>
+                                    <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                                        {section.role}
+                                    </span>
+                                </Card.Title>
+                                <Card.Body>
+                                    <BlockPreview value={section.content} />
+                                </Card.Body>
+                            </Card>
+                        ))}
                         {/* SEO設定 */}
                         {(page.meta_title || page.meta_description) && (
                             <Card>

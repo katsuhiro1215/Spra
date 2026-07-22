@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
-// Icons
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
-// MenuItem Components
 import MenuItemForm from "./_components/MenuItemForm";
 import * as validation from "./_components/validation";
 
@@ -17,6 +14,8 @@ export default function Edit({ menu, menuItem, pages, menuItems }) {
         parent_id: menuItem.parent_id || "",
         label: menuItem.label || "",
         url: menuItem.url || "",
+        description: menuItem.description || "",
+        image_path: menuItem.image_path || "",
         page_id: menuItem.page_id || "",
         target: menuItem.target || "_self",
         is_active: menuItem.is_active ?? true,

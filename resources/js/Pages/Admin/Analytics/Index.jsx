@@ -9,6 +9,8 @@ import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import TabNavigation from "@/Components/TabNavigation";
 import LineChart, { CHART_COLORS } from "@/Components/Charts/LineChart";
 import BarChart from "@/Components/Charts/BarChart";
+import PrefectureContractsMap from "./_components/PrefectureContractsMap";
+import { APPOINTMENT_SOURCE_OPTIONS } from "@/Constants/SelectOptions";
 // Icons
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
@@ -20,6 +22,37 @@ const formatDate = (d) => {
     const date = new Date(d);
     return `${date.getMonth() + 1}/${date.getDate()}`;
 };
+const formatMonth = (d) => {
+    const [y, m] = d.split("-");
+    return `${y}/${parseInt(m, 10)}`;
+};
+const formatYear = (d) => `${d}年`;
+
+function SegmentedButtons({ options, value, onChange }) {
+    return (
+        <div className="inline-flex rounded-md shadow-sm">
+            {options.map((opt, idx) => (
+                <button
+                    key={opt.value}
+                    onClick={() => onChange(opt.value)}
+                    className={`px-3 py-1.5 text-sm font-medium border ${
+                        idx === 0
+                            ? "rounded-l-md"
+                            : idx === options.length - 1
+                              ? "rounded-r-md"
+                              : ""
+                    } ${
+                        value === opt.value
+                            ? "bg-indigo-500 text-white border-indigo-500"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    }`}
+                >
+                    {opt.label}
+                </button>
+            ))}
+        </div>
+    );
+}
 
 function StatTile({ label, value, sub }) {
     return (
@@ -40,9 +73,11 @@ export default function Index({
     traffic,
     referrers,
     devices,
+    appointmentSources,
     keywords,
     business,
     isSearchConsoleLive,
+    prefectureContracts,
 }) {
     const initialTab = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
@@ -52,6 +87,7 @@ export default function Index({
             : "overview";
     }, []);
     const [activeTab, setActiveTab] = useState(initialTab);
+    const [salesPeriod, setSalesPeriod] = useState("daily");
 
     const handleDaysChange = (newDays) => {
         router.get(
@@ -166,7 +202,7 @@ export default function Index({
 
             case "referrers":
                 return (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <Card>
                             <CardHeader>流入元</CardHeader>
                             <CardBody>
@@ -188,6 +224,21 @@ export default function Index({
                                         value: d.views,
                                     }))}
                                     color={CHART_COLORS.aqua.light}
+                                />
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardHeader>予約経路</CardHeader>
+                            <CardBody>
+                                <BarChart
+                                    data={appointmentSources.map((s) => ({
+                                        label:
+                                            APPOINTMENT_SOURCE_OPTIONS.find(
+                                                (o) => o.value === s.source,
+                                            )?.label || s.source,
+                                        value: s.count,
+                                    }))}
+                                    color={CHART_COLORS.green.light}
                                 />
                             </CardBody>
                         </Card>
@@ -244,7 +295,30 @@ export default function Index({
                     </div>
                 );
 
-            case "business":
+            case "business": {
+                const salesTrendData =
+                    salesPeriod === "monthly"
+                        ? business.monthlyTrend
+                        : salesPeriod === "yearly"
+                          ? business.yearlyTrend
+                          : business.trend;
+                const salesFormatDate =
+                    salesPeriod === "monthly"
+                        ? formatMonth
+                        : salesPeriod === "yearly"
+                          ? formatYear
+                          : formatDate;
+                const latestRevenue =
+                    salesTrendData[salesTrendData.length - 1]?.revenue ?? 0;
+                const previousRevenue =
+                    salesTrendData[salesTrendData.length - 2]?.revenue ?? 0;
+                const revenueChangePct =
+                    salesPeriod !== "daily" && previousRevenue > 0
+                        ? ((latestRevenue - previousRevenue) / previousRevenue) * 100
+                        : null;
+                const revenueChangeLabel =
+                    salesPeriod === "monthly" ? "前月比" : "前年比";
+
                 return (
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -278,10 +352,23 @@ export default function Index({
                             />
                         </div>
                         <Card>
-                            <CardHeader>売上推移</CardHeader>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <span>売上推移</span>
+                                    <SegmentedButtons
+                                        options={[
+                                            { value: "daily", label: "日次" },
+                                            { value: "monthly", label: "月次" },
+                                            { value: "yearly", label: "年次" },
+                                        ]}
+                                        value={salesPeriod}
+                                        onChange={setSalesPeriod}
+                                    />
+                                </div>
+                            </CardHeader>
                             <CardBody>
                                 <LineChart
-                                    data={business.trend}
+                                    data={salesTrendData}
                                     series={[
                                         {
                                             key: "revenue",
@@ -290,15 +377,27 @@ export default function Index({
                                         },
                                     ]}
                                     formatValue={formatCurrency}
-                                    formatDate={formatDate}
+                                    formatDate={salesFormatDate}
                                 />
+                                {revenueChangePct !== null && (
+                                    <div
+                                        className={`mt-2 text-xs font-medium ${
+                                            revenueChangePct >= 0
+                                                ? "text-emerald-600 dark:text-emerald-400"
+                                                : "text-red-600 dark:text-red-400"
+                                        }`}
+                                    >
+                                        {revenueChangeLabel}: {revenueChangePct >= 0 ? "+" : ""}
+                                        {revenueChangePct.toFixed(1)}%
+                                    </div>
+                                )}
                             </CardBody>
                         </Card>
                         <Card>
                             <CardHeader>問い合わせ・見積・契約件数の推移</CardHeader>
                             <CardBody>
                                 <LineChart
-                                    data={business.trend}
+                                    data={salesTrendData}
                                     series={[
                                         {
                                             key: "new_contacts",
@@ -316,12 +415,13 @@ export default function Index({
                                             color: CHART_COLORS.red.light,
                                         },
                                     ]}
-                                    formatDate={formatDate}
+                                    formatDate={salesFormatDate}
                                 />
                             </CardBody>
                         </Card>
                     </div>
                 );
+            }
 
             default:
                 return null;
@@ -343,28 +443,14 @@ export default function Index({
             <FlashMessage />
 
             <div className="space-y-4">
+                <PrefectureContractsMap data={prefectureContracts} />
+
                 <div className="flex justify-end">
-                    <div className="inline-flex rounded-md shadow-sm">
-                        {dayOptions.map((opt, idx) => (
-                            <button
-                                key={opt.value}
-                                onClick={() => handleDaysChange(opt.value)}
-                                className={`px-3 py-1.5 text-sm font-medium border ${
-                                    idx === 0
-                                        ? "rounded-l-md"
-                                        : idx === dayOptions.length - 1
-                                          ? "rounded-r-md"
-                                          : ""
-                                } ${
-                                    days === opt.value
-                                        ? "bg-indigo-500 text-white border-indigo-500"
-                                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
-                                }`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
+                    <SegmentedButtons
+                        options={dayOptions}
+                        value={days}
+                        onChange={handleDaysChange}
+                    />
                 </div>
 
                 <div className="bg-white dark:bg-slate-900 rounded-lg shadow">

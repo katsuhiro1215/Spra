@@ -1,7 +1,6 @@
 import React from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { BaseAlert } from "@/Components/Alerts";

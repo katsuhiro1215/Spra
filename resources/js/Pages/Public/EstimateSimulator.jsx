@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import { gsap } from "gsap";
 import PublicLayout from "@/Layouts/PublicLayout";
+import { PublicFlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -17,9 +18,12 @@ export default function EstimateSimulator({
     services = {},
     servicePlans = {},
     serviceItems = {},
+    servicePlanItems = {},
     canLogin = null,
     canRegister = null,
 }) {
+    const { errors: pageErrors } = usePage().props;
+
     // ========================================
     // State管理
     // ========================================
@@ -29,6 +33,12 @@ export default function EstimateSimulator({
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedAddons, setSelectedAddons] = useState([]);
     const [showResult, setShowResult] = useState(false);
+    const [requesterName, setRequesterName] = useState("");
+    const [requesterEmail, setRequesterEmail] = useState("");
+    const [requesterPhone, setRequesterPhone] = useState("");
+    const [requesterCompany, setRequesterCompany] = useState("");
+    const [requestNotes, setRequestNotes] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
     // ========================================
     // 価格計算
@@ -39,12 +49,12 @@ export default function EstimateSimulator({
 
         // プラン基本価格
         if (selectedPlan) {
-            basePrice = parseFloat(selectedPlan.price) || 0;
+            basePrice = parseFloat(selectedPlan.base_price) || 0;
         }
 
         // 追加機能価格
         selectedAddons.forEach((addon) => {
-            addonPrice += parseFloat(addon.price) || 0;
+            addonPrice += parseFloat(addon.standard_price) || 0;
         });
 
         const subtotal = basePrice + addonPrice;
@@ -69,25 +79,26 @@ export default function EstimateSimulator({
         return servicePlans[selectedService.id] || [];
     };
 
-    const getAvailableAddons = () => {
+    // 追加オプション（プラン固有オプション + 全プラン共通オプション）を取得
+    // プラン固有オプション(optional)の方がそのサービスに合わせた選択肢として意味があるため、先に表示する
+    const getAvailableOptions = () => {
         if (!selectedService) return [];
-        // ServiceItemsをフィルタリングしてaddon typeのみ取得
-        const allItems = Object.values(serviceItems).flat();
-        return allItems.filter(
-            (item) =>
-                item.service_id === selectedService.id &&
-                item.item_type === "addon",
-        );
+        const items = serviceItems[selectedService.id] || [];
+        const typeOrder = { optional: 0, addon: 1 };
+        return items
+            .filter((item) => item.item_type === "optional" || item.item_type === "addon")
+            .sort((a, b) => (typeOrder[a.item_type] ?? 99) - (typeOrder[b.item_type] ?? 99));
     };
 
-    // プランに含まれる項目を取得
+    // プランに含まれる項目を取得（service_plan_items 中間テーブル経由）
     const getPlanIncludedItems = (planId) => {
-        const allItems = Object.values(serviceItems).flat();
-        return allItems.filter(
-            (item) =>
-                item.service_plan_id === planId &&
-                item.item_type === "included",
-        );
+        return servicePlanItems[planId] || [];
+    };
+
+    // 選択中のプランに、そのオプションが既に含まれているか（service_item_id で突合）
+    const getIncludedItemIds = () => {
+        if (!selectedPlan) return new Set();
+        return new Set(getPlanIncludedItems(selectedPlan.id).map((item) => item.id));
     };
 
     // 納期を計算
@@ -96,6 +107,9 @@ export default function EstimateSimulator({
 
         // プランの納期
         if (selectedPlan) {
+            // プラン自体の標準納期（プランに含まれる項目の制作期間を織り込んだ目安日数）
+            totalDays += parseInt(selectedPlan.estimated_delivery_days) || 0;
+
             const planItems = getPlanIncludedItems(selectedPlan.id);
             planItems.forEach((item) => {
                 totalDays += parseInt(item.estimated_days) || 0;
@@ -146,6 +160,9 @@ export default function EstimateSimulator({
     // ハンドラー - 追加機能選択（複数選択可能）
     // ========================================
     const handleToggleAddon = (addon) => {
+        // プランに既に含まれているオプションは選択対象外（誤って二重計上させない）
+        if (getIncludedItemIds().has(addon.id)) return;
+
         const isSelected = selectedAddons.some((a) => a.id === addon.id);
         if (isSelected) {
             setSelectedAddons(selectedAddons.filter((a) => a.id !== addon.id));
@@ -174,35 +191,30 @@ export default function EstimateSimulator({
     };
 
     // ========================================
-    // ハンドラー - 見積もり依頼を保存
+    // ハンドラー - 見積もり依頼を送信
     // ========================================
     const handleSaveInquiry = () => {
         const inquiryData = {
-            service_category_id: selectedCategory?.id,
             service_id: selectedService?.id,
             service_plan_id: selectedPlan?.id,
-            simulator_data: {
-                selected_addons: selectedAddons.map((addon) => ({
-                    id: addon.id,
-                    name: addon.name,
-                    price: addon.price,
-                    estimated_days: addon.estimated_days,
-                })),
-            },
+            selected_addon_ids: selectedAddons.map((addon) => addon.id),
             estimated_price: total,
             estimated_days: estimatedDays,
             title: `${selectedService?.name} - ${selectedPlan?.name}`,
-            summary: `見積もりシミュレーターから作成された見積もり依頼です。`,
+            notes: requestNotes,
+            ...(auth?.user
+                ? {}
+                : {
+                      name: requesterName,
+                      email: requesterEmail,
+                      phone: requesterPhone,
+                      company: requesterCompany,
+                  }),
         };
 
+        setSubmitting(true);
         router.post(route("estimate.simulator.save"), inquiryData, {
-            onSuccess: () => {
-                alert("見積もり依頼を保存しました！");
-            },
-            onError: (errors) => {
-                console.error("保存エラー:", errors);
-                alert("保存に失敗しました。もう一度お試しください。");
-            },
+            onFinish: () => setSubmitting(false),
         });
     };
 
@@ -273,6 +285,7 @@ export default function EstimateSimulator({
         return (
             <PublicLayout>
                 <Head title="見積もり結果 - 見積もりシミュレーター" />
+                <PublicFlashMessage />
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
                     <div className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-12">
                         <div className="text-center mb-8">
@@ -316,7 +329,7 @@ export default function EstimateSimulator({
                                 {addonPrice > 0 && (
                                     <div className="flex justify-between text-base">
                                         <span className="text-gray-600">
-                                            追加機能:
+                                            オプション:
                                         </span>
                                         <span className="font-medium text-gray-900">
                                             {formatAmount(addonPrice)}
@@ -443,7 +456,7 @@ export default function EstimateSimulator({
                                         <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                                         <div>
                                             <span className="font-semibold text-gray-700">
-                                                追加機能:
+                                                オプション:
                                             </span>
                                             <br />
                                             <span className="text-gray-600">
@@ -457,25 +470,137 @@ export default function EstimateSimulator({
                             </div>
                         </div>
 
-                        {/* アクションボタン */}
-                        <div
-                            className={`grid ${auth?.user ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4 mb-4`}
-                        >
-                            {auth?.user && (
-                                <button
-                                    onClick={handleSaveInquiry}
-                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-                                >
-                                    <BookmarkIcon className="w-5 h-5" />
-                                    見積もり依頼を保存
-                                </button>
+                        {/* 見積依頼フォーム */}
+                        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                この内容で見積もりを依頼する
+                            </h3>
+
+                            {!auth?.user && (
+                                <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            お名前{" "}
+                                            <span className="text-red-600">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={requesterName}
+                                            onChange={(e) =>
+                                                setRequesterName(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="山田 太郎"
+                                        />
+                                        {pageErrors?.name && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {pageErrors.name}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            メールアドレス{" "}
+                                            <span className="text-red-600">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={requesterEmail}
+                                            onChange={(e) =>
+                                                setRequesterEmail(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="example@email.com"
+                                        />
+                                        {pageErrors?.email && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {pageErrors.email}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            電話番号
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={requesterPhone}
+                                            onChange={(e) =>
+                                                setRequesterPhone(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="090-1234-5678"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            会社名・団体名
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={requesterCompany}
+                                            onChange={(e) =>
+                                                setRequesterCompany(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="○○○ 株式会社"
+                                        />
+                                    </div>
+                                </div>
                             )}
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    ご質問・ご要望（どんなサイトにしたいか、予算の相談など）
+                                </label>
+                                <textarea
+                                    value={requestNotes}
+                                    onChange={(e) =>
+                                        setRequestNotes(e.target.value)
+                                    }
+                                    rows={4}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                    placeholder="例：どんなサイトなのか、もう少し詳しく相談したい／少し予算を抑えられないか、など"
+                                />
+                                {pageErrors?.notes && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                        {pageErrors.notes}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={handleSaveInquiry}
+                                disabled={submitting}
+                                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            >
+                                <BookmarkIcon className="w-5 h-5" />
+                                {submitting
+                                    ? "送信中..."
+                                    : "この内容で見積もりを依頼する"}
+                            </button>
+                        </div>
+
+                        {/* アクションボタン */}
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
                             <Link
                                 href="/contact"
-                                className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+                                className="flex items-center justify-center gap-2 px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:border-gray-400 hover:shadow-md transition-all"
                             >
                                 <EnvelopeIcon className="w-5 h-5" />
-                                お問い合わせ
+                                その他のお問い合わせ
                             </Link>
                             <button
                                 onClick={handleReset}
@@ -486,14 +611,14 @@ export default function EstimateSimulator({
                             </button>
                         </div>
 
-                        {/* ログイン/会員登録CTA（非認証ユーザーのみ） */}
+                        {/* 会員登録CTA（非認証ユーザーのみ・任意） */}
                         {!auth?.user && (canLogin || canRegister) && (
                             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white text-center mb-4">
                                 <h3 className="text-xl font-bold mb-2">
-                                    この内容で正式な見積もりを依頼しますか？
+                                    会員登録すると、やり取りがもっと便利になります
                                 </h3>
                                 <p className="text-indigo-100 mb-4 text-sm">
-                                    会員登録（無料）することで、正式な見積もりを依頼できます
+                                    会員登録（無料）すると、見積もりや契約の進捗をいつでもマイページで確認できます
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                     {canLogin && (
@@ -633,7 +758,7 @@ export default function EstimateSimulator({
                                         </p>
                                     )}
                                     <p className="text-2xl font-bold text-blue-600 mb-4">
-                                        {formatAmount(plan.price)}
+                                        {formatAmount(plan.base_price)}
                                     </p>
 
                                     {/* 含まれる項目を表示 */}
@@ -675,27 +800,65 @@ export default function EstimateSimulator({
             );
         }
 
-        // ステップ3: 追加機能選択
+        // ステップ3: オプション選択
         if (currentStep === 3) {
-            const availableAddons = getAvailableAddons();
+            const availableOptions = getAvailableOptions();
+            const includedItemIds = getIncludedItemIds();
             return (
                 <div className="step-container">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
-                        追加機能を選択してください（複数選択可）
+                        オプションを選択してください（複数選択可）
                     </h2>
                     <p className="text-gray-600 text-center mb-8">
-                        必要な追加機能を選択してください（スキップも可能）
+                        必要なオプションを選択してください（スキップも可能）
                     </p>
-                    {availableAddons.length > 0 ? (
+                    {availableOptions.length > 0 ? (
                         <div className="grid md:grid-cols-2 gap-4 mb-8">
-                            {availableAddons.map((addon) => {
-                                const isSelected = selectedAddons.some(
-                                    (a) => a.id === addon.id,
+                            {availableOptions.map((option) => {
+                                const isIncluded = includedItemIds.has(
+                                    option.id,
                                 );
+                                const isSelected = selectedAddons.some(
+                                    (a) => a.id === option.id,
+                                );
+                                const typeLabel =
+                                    option.item_type === "optional"
+                                        ? "このサービス限定"
+                                        : "共通オプション";
+
+                                if (isIncluded) {
+                                    return (
+                                        <div
+                                            key={option.id}
+                                            className="relative p-6 rounded-xl border-2 border-green-200 bg-green-50 text-left"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-lg font-bold text-gray-900">
+                                                    {option.name}
+                                                </h3>
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-600 text-white whitespace-nowrap">
+                                                    <CheckIcon className="w-3.5 h-3.5" />
+                                                    含まれています
+                                                </span>
+                                            </div>
+                                            {option.description && (
+                                                <p className="text-sm text-gray-600 mb-3">
+                                                    {option.description}
+                                                </p>
+                                            )}
+                                            <p className="text-sm text-green-700 font-medium">
+                                                選択中のプランの料金に含まれているため、追加料金はかかりません
+                                            </p>
+                                        </div>
+                                    );
+                                }
+
                                 return (
                                     <button
-                                        key={addon.id}
-                                        onClick={() => handleToggleAddon(addon)}
+                                        key={option.id}
+                                        onClick={() =>
+                                            handleToggleAddon(option)
+                                        }
                                         className={`group relative p-6 rounded-xl border-2 transition-all transform hover:-translate-y-1 text-left ${
                                             isSelected
                                                 ? "border-purple-600 bg-purple-50 shadow-lg"
@@ -707,22 +870,27 @@ export default function EstimateSimulator({
                                                 <CheckIcon className="w-4 h-4 text-white" />
                                             </div>
                                         )}
-                                        <h3
-                                            className={`text-lg font-bold mb-2 ${
-                                                isSelected
-                                                    ? "text-purple-600"
-                                                    : "text-gray-900"
-                                            }`}
-                                        >
-                                            {addon.name}
-                                        </h3>
-                                        {addon.description && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3
+                                                className={`text-lg font-bold ${
+                                                    isSelected
+                                                        ? "text-purple-600"
+                                                        : "text-gray-900"
+                                                }`}
+                                            >
+                                                {option.name}
+                                            </h3>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                {typeLabel}
+                                            </span>
+                                        </div>
+                                        {option.description && (
                                             <p className="text-sm text-gray-600 mb-3">
-                                                {addon.description}
+                                                {option.description}
                                             </p>
                                         )}
                                         <p className="text-lg font-bold text-blue-600">
-                                            +{formatAmount(addon.price)}
+                                            +{formatAmount(option.standard_price)}
                                         </p>
                                     </button>
                                 );
@@ -730,7 +898,7 @@ export default function EstimateSimulator({
                         </div>
                     ) : (
                         <div className="text-center py-12 text-gray-500 mb-8">
-                            <p>このサービスには追加機能がありません</p>
+                            <p>このサービスには追加オプションがありません</p>
                         </div>
                     )}
                     <div className="text-center">

@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import {
     EyeIcon,
     PencilIcon,
@@ -13,6 +14,15 @@ import {
     XCircleIcon,
 } from "@heroicons/react/24/outline";
 
+const ORANGE_TEXT = `
+    bg-transparent text-orange-600
+    hover:text-orange-900 hover:bg-orange-50
+    focus:ring-orange-500
+    dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-900/20
+`
+    .trim()
+    .replace(/\s+/g, " ");
+
 const ContractsTable = ({
     contracts,
     onDelete,
@@ -21,42 +31,28 @@ const ContractsTable = ({
     onApprove,
     onReminder,
 }) => {
-    // ステータスのバッジカラーを取得
-    const getContractStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-            pending_signature:
-                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-            active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-            suspended:
-                "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-            completed:
-                "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-            cancelled:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    // ステータスのバッジバリアントを取得
+    const getContractStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            pending_signature: "warning",
+            active: "success",
+            suspended: "orange",
+            completed: "info",
+            cancelled: "danger",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-        );
+        return variants[status] || "secondary";
     };
 
-    // 署名ステータスのバッジカラーを取得
-    const getSignatureStatusColor = (status) => {
-        const colors = {
-            pending:
-                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-            user_signed:
-                "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-            fully_signed:
-                "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-            rejected:
-                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    // 署名ステータスのバッジバリアントを取得
+    const getSignatureStatusVariant = (status) => {
+        const variants = {
+            pending: "warning",
+            user_signed: "info",
+            fully_signed: "success",
+            rejected: "danger",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-        );
+        return variants[status] || "secondary";
     };
 
     // 署名ステータスのラベルを取得
@@ -140,35 +136,35 @@ const ContractsTable = ({
                                             "admin.contract.show",
                                             contract.id,
                                         )}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
+                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                                     >
                                         {contract.contract_number ||
                                             contract.id.substring(0, 8)}
                                     </Link>
                                 </Td>
                                 <Td>
-                                    <div className="font-medium text-gray-900">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">
                                         {contract.title}
                                     </div>
                                     {contract.description && (
-                                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                                             {contract.description}
                                         </div>
                                     )}
                                 </Td>
                                 <Td>
-                                    <div className="text-gray-900">
+                                    <div className="text-gray-900 dark:text-gray-100">
                                         {contract.user?.profile?.full_name ||
                                             contract.user?.email}
                                     </div>
                                     {contract.company && (
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                             {contract.company.name}
                                         </div>
                                     )}
                                 </Td>
                                 <Td>
-                                    <Badge className="bg-purple-100 text-purple-800">
+                                    <Badge variant="purple">
                                         {getTypeLabel(contract.type)}
                                     </Badge>
                                 </Td>
@@ -189,17 +185,17 @@ const ContractsTable = ({
                                 </Td>
                                 <Td>
                                     <div className="text-sm">
-                                        <div>
+                                        <div className="text-gray-900 dark:text-gray-100">
                                             {formatDate(contract.start_date)}
                                         </div>
                                         {contract.end_date && (
-                                            <div className="text-gray-500">
+                                            <div className="text-gray-500 dark:text-gray-400">
                                                 ～{" "}
                                                 {formatDate(contract.end_date)}
                                             </div>
                                         )}
                                         {contract.auto_renewal && (
-                                            <div className="text-xs text-blue-600 mt-1">
+                                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                                                 自動更新
                                             </div>
                                         )}
@@ -207,7 +203,7 @@ const ContractsTable = ({
                                 </Td>
                                 <Td>
                                     <Badge
-                                        className={getContractStatusColor(
+                                        variant={getContractStatusVariant(
                                             contract.status,
                                         )}
                                     >
@@ -217,7 +213,7 @@ const ContractsTable = ({
                                 <Td>
                                     {contract.signature_status && (
                                         <Badge
-                                            className={getSignatureStatusColor(
+                                            variant={getSignatureStatusVariant(
                                                 contract.signature_status,
                                             )}
                                         >
@@ -228,102 +224,107 @@ const ContractsTable = ({
                                     )}
                                 </Td>
                                 <Td>
-                                    <div className="flex justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.contract.show",
                                                 contract.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-800"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="h-5 w-5" />
-                                        </Link>
-                                        <Link
-                                            href={route(
-                                                "admin.contract.pdf",
-                                                contract.id,
-                                            )}
-                                            className="text-gray-600 hover:text-gray-800"
-                                            title="PDFダウンロード"
-                                        >
-                                            <DocumentArrowDownIcon className="h-5 w-5" />
-                                        </Link>
+                                        />
+                                        <IconButton
+                                            variant="text"
+                                            icon={DocumentArrowDownIcon}
+                                            size="lg"
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "admin.contract.pdf.preview",
+                                                        contract.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                            title="PDFを確認・ダウンロード"
+                                        />
 
                                         {/* 署名完了 & 未承認 → 承認ボタン */}
                                         {contract.signature_status ===
                                             "fully_signed" &&
                                             contract.status ===
                                                 "pending_signature" && (
-                                                <button
+                                                <IconButton
+                                                    variant="success-text"
+                                                    icon={CheckCircleIcon}
+                                                    size="lg"
                                                     onClick={() =>
                                                         onApprove &&
                                                         onApprove(contract)
                                                     }
-                                                    className="text-green-600 hover:text-green-800"
                                                     title="契約を承認"
-                                                >
-                                                    <CheckCircleIcon className="h-5 w-5" />
-                                                </button>
+                                                />
                                             )}
 
                                         {/* 署名待ち → リマインダー送信ボタン */}
                                         {contract.signature_status ===
                                             "pending" && (
-                                            <button
+                                            <IconButton
+                                                colorClasses={ORANGE_TEXT}
+                                                icon={DocumentTextIcon}
+                                                size="lg"
                                                 onClick={() =>
                                                     onReminder &&
                                                     onReminder(contract)
                                                 }
-                                                className="text-orange-600 hover:text-orange-800"
                                                 title="署名リマインダー送信"
-                                            >
-                                                <DocumentTextIcon className="h-5 w-5" />
-                                            </button>
+                                            />
                                         )}
 
                                         {(contract.status === "draft" ||
                                             contract.status ===
                                                 "pending_signature") && (
                                             <>
-                                                <Link
+                                                <IconButton
+                                                    variant="warning-text"
+                                                    icon={PencilIcon}
+                                                    size="lg"
                                                     href={route(
                                                         "admin.contract.edit",
                                                         contract.id,
                                                     )}
-                                                    className="text-yellow-600 hover:text-yellow-800"
                                                     title="編集"
-                                                >
-                                                    <PencilIcon className="h-5 w-5" />
-                                                </Link>
-                                                <button
+                                                />
+                                                <IconButton
+                                                    variant="success-text"
+                                                    icon={CheckCircleIcon}
+                                                    size="lg"
                                                     onClick={() =>
                                                         onActivate(contract)
                                                     }
-                                                    className="text-green-600 hover:text-green-800"
                                                     title="有効化"
-                                                >
-                                                    <CheckCircleIcon className="h-5 w-5" />
-                                                </button>
+                                                />
                                             </>
                                         )}
 
                                         {contract.status === "active" && (
-                                            <button
+                                            <IconButton
+                                                colorClasses={ORANGE_TEXT}
+                                                icon={XCircleIcon}
+                                                size="lg"
                                                 onClick={() =>
                                                     onCancel(contract)
                                                 }
-                                                className="text-orange-600 hover:text-orange-800"
                                                 title="キャンセル"
-                                            >
-                                                <XCircleIcon className="h-5 w-5" />
-                                            </button>
+                                            />
                                         )}
 
                                         {contract.documents &&
                                             contract.documents.length > 0 && (
                                                 <span
-                                                    className="text-gray-600"
+                                                    className="p-2 text-gray-600 dark:text-gray-400"
                                                     title={`${contract.documents.length}件の書類`}
                                                 >
                                                     <DocumentTextIcon className="h-5 w-5" />
@@ -331,15 +332,15 @@ const ContractsTable = ({
                                             )}
 
                                         {contract.status === "draft" && (
-                                            <button
+                                            <IconButton
+                                                variant="danger-text"
+                                                icon={TrashIcon}
+                                                size="lg"
                                                 onClick={() =>
                                                     onDelete(contract)
                                                 }
-                                                className="text-red-600 hover:text-red-800"
                                                 title="削除"
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
+                                            />
                                         )}
                                     </div>
                                 </Td>

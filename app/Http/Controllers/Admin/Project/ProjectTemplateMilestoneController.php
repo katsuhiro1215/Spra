@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Project;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectTemplateMilestoneRequest;
+use App\Http\Requests\Project\ProjectTemplateMilestoneRequest;
 use App\Models\ProjectTemplate;
 use App\Models\ProjectTemplateMilestone;
 use Inertia\Inertia;
@@ -124,6 +124,6 @@ class ProjectTemplateMilestoneController extends Controller
 
         return redirect()
             ->route('admin.project.template.show', $projectTemplate->id)
-            ->with('success', 'マイルストーンを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'マイルストーン']));
     }
 }

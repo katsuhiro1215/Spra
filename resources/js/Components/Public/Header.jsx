@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "@inertiajs/react";
+import { useState, useEffect, useMemo } from "react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     Bars3Icon,
     XMarkIcon,
@@ -8,7 +8,69 @@ import {
     ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
-export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
+const resolveHref = (item) => {
+    if (item.url) return item.url;
+    if (item.page?.slug) return `/${item.page.slug}`;
+    return "#";
+};
+
+function MegaMenuIcon({ image, letter }) {
+    const [hasError, setHasError] = useState(false);
+
+    if (image && !hasError) {
+        return (
+            <img
+                src={image}
+                alt=""
+                className="w-full h-32 object-cover rounded-xl mb-4"
+                onError={() => setHasError(true)}
+            />
+        );
+    }
+
+    return (
+        <div className="w-full h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-4 flex items-center justify-center">
+            <div className="text-4xl font-bold text-blue-300">{letter}</div>
+        </div>
+    );
+}
+
+const buildMenuItems = (headerMenu) => {
+    const topLevelItems = headerMenu?.menu_items ?? [];
+
+    return topLevelItems.map((item) => {
+        const children = item.children ?? [];
+        const hasSubmenu = children.length > 0;
+
+        return {
+            name: item.label,
+            href: resolveHref(item),
+            hasSubmenu,
+            submenu: hasSubmenu
+                ? {
+                      title: item.label,
+                      description: item.description,
+                      image: item.image_path,
+                      items: children.map((child) => ({
+                          name: child.label,
+                          href: resolveHref(child),
+                          description: child.description,
+                      })),
+                  }
+                : null,
+        };
+    });
+};
+
+const DEFAULT_LOGO_URL = "/upload/logo.svg";
+const DEFAULT_SITE_NAME = "Smart Sprouts";
+
+export default function Header({ auth }) {
+    const { props } = usePage();
+    const organization = props.organization;
+    const logoUrl = organization?.logo_path || DEFAULT_LOGO_URL;
+    const siteName =
+        organization?.site_name || organization?.name || DEFAULT_SITE_NAME;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [hoveredMenu, setHoveredMenu] = useState(null);
@@ -22,154 +84,10 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const menuItems = [
-        {
-            name: "サービス",
-            href: "/service",
-            hasSubmenu: true,
-            submenu: {
-                title: "私たちのサービス",
-                description: "ビジネス成長を支援する包括的なソリューション",
-                image: "/upload/menu-service.jpg",
-                items: [
-                    {
-                        name: "Web制作",
-                        href: "/service/web-development",
-                        description: "レスポンシブWebサイト・アプリ開発",
-                    },
-                    {
-                        name: "システム開発",
-                        href: "/service/system-development",
-                        description: "業務システム・API開発",
-                    },
-                    {
-                        name: "ECサイト構築",
-                        href: "/service/ecommerce",
-                        description: "オンラインストア・決済システム",
-                    },
-                    {
-                        name: "AI・DX支援",
-                        href: "/service/ai-dx",
-                        description: "AI導入・デジタル変革支援",
-                    },
-                    {
-                        name: "ITコンサルティング",
-                        href: "/service/consulting",
-                        description: "IT戦略・技術アドバイス",
-                    },
-                    {
-                        name: "保守・運用",
-                        href: "/service/maintenance",
-                        description: "システム保守・運用サポート",
-                    },
-                    {
-                        name: "スタンダードLP",
-                        href: "/lp",
-                        description: "バランスの取れたランディングページ",
-                    },
-                    {
-                        name: "ミニマルLP",
-                        href: "/lp-minimal",
-                        description: "シンプルで洗練されたデザイン",
-                    },
-                    {
-                        name: "クリエイティブLP",
-                        href: "/lp-creative",
-                        description: "インタラクティブで動的なデザイン",
-                    },
-                ],
-            },
-        },
-        {
-            name: "ソリューション",
-            href: "/solution",
-            hasSubmenu: true,
-            submenu: {
-                title: "業界別ソリューション",
-                description: "様々な業界に特化したソリューション",
-                image: "/upload/menu-solution.jpg",
-                items: [
-                    {
-                        name: "製造業向け",
-                        href: "/solution/manufacturing",
-                        description: "生産管理・品質管理システム",
-                    },
-                    {
-                        name: "小売・EC",
-                        href: "/solution/retail",
-                        description: "在庫管理・販売管理システム",
-                    },
-                    {
-                        name: "医療・介護",
-                        href: "/solution/healthcare",
-                        description: "患者管理・電子カルテシステム",
-                    },
-                    {
-                        name: "教育機関",
-                        href: "/solution/education",
-                        description: "学習管理・出席管理システム",
-                    },
-                    {
-                        name: "金融・保険",
-                        href: "/solution/finance",
-                        description: "顧客管理・リスク管理システム",
-                    },
-                    {
-                        name: "スタートアップ",
-                        href: "/solution/startup",
-                        description: "MVP開発・事業成長支援",
-                    },
-                ],
-            },
-        },
-        {
-            name: "ブログ",
-            href: "/blog",
-            hasSubmenu: false,
-        },
-        {
-            name: "会社情報",
-            href: "/company",
-            hasSubmenu: true,
-            submenu: {
-                title: "Smart Sproutsについて",
-                description: "私たちの会社情報・サポート",
-                image: "/upload/menu-company.jpg",
-                items: [
-                    {
-                        name: "会社概要",
-                        href: "/company",
-                        description: "企業情報・沿革・アクセス",
-                    },
-                    {
-                        name: "チーム紹介",
-                        href: "/about",
-                        description: "メンバー・企業理念・文化",
-                    },
-                    {
-                        name: "お知らせ",
-                        href: "/news",
-                        description: "最新情報・プレスリリース",
-                    },
-                    {
-                        name: "お問い合わせ",
-                        href: "/contact",
-                        description: "相談・見積もり・サポート",
-                    },
-                    {
-                        name: "よくある質問",
-                        href: "/faq",
-                        description: "FAQ・サポート情報",
-                    },
-                    {
-                        name: "プライバシーポリシー",
-                        href: "/privacy-policy",
-                        description: "個人情報保護方針",
-                    },
-                ],
-            },
-        },
-    ];
+    const menuItems = useMemo(
+        () => buildMenuItems(props.headerMenu),
+        [props.headerMenu],
+    );
 
     return (
         <header
@@ -188,10 +106,10 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                     >
                         <img
                             src={logoUrl}
-                            alt="Smart Sprouts"
+                            alt={siteName}
                             className="h-8 w-auto"
                             onError={(e) => {
-                                e.target.src = "/upload/logo.svg";
+                                e.target.src = DEFAULT_LOGO_URL;
                             }}
                         />
                         <span
@@ -201,7 +119,7 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                     : "text-green-500 drop-shadow-md"
                             }`}
                         >
-                            Smart Sprouts
+                            {siteName}
                         </span>
                     </Link>
 
@@ -242,17 +160,10 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                         <div className="flex">
                                             {/* Left Side - Image */}
                                             <div className="w-1/3 p-6">
-                                                <div className="w-full h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-4 flex items-center justify-center">
-                                                    <div className="text-4xl opacity-50">
-                                                        {item.name ===
-                                                            "サービス" && "�️"}
-                                                        {item.name ===
-                                                            "ソリューション" &&
-                                                            "💡"}
-                                                        {item.name ===
-                                                            "会社情報" && "🏢"}
-                                                    </div>
-                                                </div>
+                                                <MegaMenuIcon
+                                                    image={item.submenu.image}
+                                                    letter={item.name.charAt(0)}
+                                                />
                                                 <h3 className="text-lg font-bold text-gray-900 mb-2">
                                                     {item.submenu.title}
                                                 </h3>
@@ -288,7 +199,7 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                                                     </span>
                                                                 </div>
                                                             </Link>
-                                                        )
+                                                        ),
                                                     )}
                                                 </div>
                                             </div>
@@ -307,8 +218,8 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                     href="/dashboard"
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                                         isScrolled
-                                            ? "text-gray-700 hover:bg-gray-100"
-                                            : "text-white hover:bg-white/20"
+                                            ? "text-gray-700 hover:text-gray-900"
+                                            : "text-gray-500 hover:bg-white/20"
                                     }`}
                                 >
                                     <UserCircleIcon className="w-5 h-5" />
@@ -320,8 +231,8 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                     as="button"
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                                         isScrolled
-                                            ? "text-gray-700 hover:bg-gray-100"
-                                            : "text-white hover:bg-white/20"
+                                            ? "text-gray-700 hover:text-gray-900"
+                                            : "text-gray-500 hover:bg-white/20"
                                     }`}
                                 >
                                     <ArrowRightOnRectangleIcon className="w-5 h-5" />
@@ -348,8 +259,8 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className={`md:hidden p-2 rounded-lg transition-colors ${
                             isScrolled
-                                ? "text-gray-900 hover:bg-gray-100"
-                                : "text-white hover:bg-white/20"
+                                ? "text-gray-700 hover:text-gray-900"
+                                : "text-gray-500 hover:bg-white/20"
                         }`}
                         aria-label="メニュー"
                     >
@@ -393,7 +304,7 @@ export default function Header({ auth, logoUrl = "/upload/logo.svg" }) {
                                                     >
                                                         {subItem.name}
                                                     </Link>
-                                                )
+                                                ),
                                             )}
                                         </div>
                                     )}

@@ -1,24 +1,20 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Post Components
 import PostForm from "./_components/Form";
 
-export default function Create({ categories }) {
-    const { data, setData, post, processing, errors } = useForm({
+export default function Create({ categories, mediaList }) {
+    const { data, setData, post, transform, processing, errors } = useForm({
         post_category_id: "",
         title: "",
         slug: "",
         thumbnail: "",
         excerpt: "",
+        tags: "",
         content: {},
         meta_title: "",
         meta_description: "",
@@ -27,6 +23,15 @@ export default function Create({ categories }) {
     });
 
     const handleSubmit = () => {
+        transform((data) => ({
+            ...data,
+            tags: data.tags
+                ? data.tags
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean)
+                : [],
+        }));
         post(route("admin.website.post.store"));
     };
 
@@ -67,6 +72,7 @@ export default function Create({ categories }) {
                     onSubmit={handleSubmit}
                     cancelRoute={route("admin.website.post.index")}
                     categories={categories}
+                    mediaList={mediaList}
                     isEdit={false}
                 />
             </div>

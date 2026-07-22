@@ -91,7 +91,7 @@ export default function Dashboard({
 
             <FlashMessage />
 
-            <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+            <div className="w-full mx-auto flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 space-y-6 min-w-0">
                     {/* 要対応キュー */}
                     <div>
@@ -158,7 +158,7 @@ export default function Dashboard({
 
                 {/* 最近のアクティビティ */}
                 <div className="lg:w-80 lg:shrink-0">
-                    <div className="h-[640px]">
+                    <div className="h-[720px]">
                         <SidebarLogs logs={logs} moreUrl={route("admin.logs.index")} />
                     </div>
                 </div>

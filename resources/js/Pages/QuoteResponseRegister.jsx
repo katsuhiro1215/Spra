@@ -1,5 +1,5 @@
 import React from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
 import {
     InputError,
@@ -15,12 +15,12 @@ export default function QuoteResponseRegister({ token, email }) {
         password_confirmation: "",
         company_name: "",
         company_type: "individual",
+        agreed: false,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Form submitted", { token, data, errors });
-        post(route("quote.response.register.store", { token, ...data }));
+        post(route("quote.response.register.store", { token }));
     };
 
     return (
@@ -153,11 +153,44 @@ export default function QuoteResponseRegister({ token, email }) {
                         </div>
                     </div>
 
-                    {/* Submit Button */}
+                    {/* プライバシーポリシー・利用規約への同意 */}
                     <div className="border-t border-gray-200 pt-6">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={data.agreed}
+                                onChange={(e) =>
+                                    setData("agreed", e.target.checked)
+                                }
+                                className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                                <Link
+                                    href={route("privacy.policy")}
+                                    target="_blank"
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    プライバシーポリシー
+                                </Link>
+                                および
+                                <Link
+                                    href={route("terms")}
+                                    target="_blank"
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    利用規約
+                                </Link>
+                                に同意します
+                            </span>
+                        </label>
+                        <InputError message={errors.agreed} className="mt-2" />
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="pt-2">
                         <PrimaryButton
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || !data.agreed}
                             className="w-full justify-center"
                         >
                             {processing

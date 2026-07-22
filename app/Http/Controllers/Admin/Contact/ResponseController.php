@@ -38,7 +38,7 @@ class ResponseController extends Controller
             $request->get('per_page', 20)
         );
 
-        return Inertia::render('Admin/Contact/Response/Index', [
+        return Inertia::render('Admin/Responses/Index', [
             'responses' => $responses,
             'filters' => $filters,
         ]);
@@ -51,7 +51,7 @@ class ResponseController extends Controller
     {
         $templates = $this->responseTemplateService->getActive();
 
-        return Inertia::render('Admin/Contact/Response/Create', [
+        return Inertia::render('Admin/Responses/Create', [
             'contact' => $contact,
             'templates' => $templates,
             'categories' => $this->responseTemplateService->getCategories(),
@@ -85,13 +85,13 @@ class ResponseController extends Controller
             if ($request->boolean('send_now')) {
                 $this->responseService->sendResponse($response);
                 return redirect()->route('admin.contact.show', $contact)
-                    ->with('success', '返答を送信しました。');
+                    ->with('success', __('messages.sent', ['attribute' => '返答']));
             }
 
             return redirect()->route('admin.contact.show', $contact)
-                ->with('success', '返答を下書き保存しました。');
+                ->with('success', __('messages.response.saved_as_draft'));
         } catch (\Exception $e) {
-            return back()->with('error', '返答の保存に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '返答の保存', 'message' => $e->getMessage()]));
         }
     }
 
@@ -103,12 +103,12 @@ class ResponseController extends Controller
         // 送信済みの返答は編集できない
         if ($response->isSent()) {
             return redirect()->route('admin.contact.show', $contact)
-                ->with('error', '送信済みの返答は編集できません。');
+                ->with('error', __('messages.response.sent_cannot_edit'));
         }
 
         $templates = $this->responseTemplateService->getActive();
 
-        return Inertia::render('Admin/Contact/Response/Edit', [
+        return Inertia::render('Admin/Responses/Edit', [
             'contact' => $contact,
             'response' => $response,
             'templates' => $templates,
@@ -124,7 +124,7 @@ class ResponseController extends Controller
     {
         // 送信済みの返答は編集できない
         if ($response->isSent()) {
-            return back()->with('error', '送信済みの返答は編集できません。');
+            return back()->with('error', __('messages.response.sent_cannot_edit'));
         }
 
         $validated = $request->validated();
@@ -139,13 +139,13 @@ class ResponseController extends Controller
             if ($request->boolean('send_now')) {
                 $this->responseService->sendResponse($response);
                 return redirect()->route('admin.contact.show', $contact)
-                    ->with('success', '返答を送信しました。');
+                    ->with('success', __('messages.sent', ['attribute' => '返答']));
             }
 
             return redirect()->route('admin.contact.show', $contact)
-                ->with('success', '返答を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '返答']));
         } catch (\Exception $e) {
-            return back()->with('error', '返答の更新に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '返答の更新', 'message' => $e->getMessage()]));
         }
     }
 
@@ -158,9 +158,9 @@ class ResponseController extends Controller
             $this->responseService->deleteResponse($response);
 
             return redirect()->route('admin.contact.show', $contact)
-                ->with('success', '返答を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '返答']));
         } catch (\Exception $e) {
-            return back()->with('error', '返答の削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '返答の削除', 'message' => $e->getMessage()]));
         }
     }
 
@@ -171,16 +171,16 @@ class ResponseController extends Controller
     {
         // 既に送信済みの場合
         if ($response->isSent()) {
-            return back()->with('error', 'この返答は既に送信済みです。');
+            return back()->with('error', __('messages.response.already_sent'));
         }
 
         try {
             $this->responseService->sendResponse($response);
 
             return redirect()->route('admin.contact.show', $contact)
-                ->with('success', '返答を送信しました。');
+                ->with('success', __('messages.sent', ['attribute' => '返答']));
         } catch (\Exception $e) {
-            return back()->with('error', '返答の送信に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '返答の送信', 'message' => $e->getMessage()]));
         }
     }
 }

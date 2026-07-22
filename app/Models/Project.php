@@ -21,10 +21,11 @@ class Project extends Model
         'contract_id',
         'user_id',
         'company_id',
-        'admin_id',
         'title',
         'description',
         'thumbnail',
+        'repository_url',
+        'production_url',
         'status',
         'priority',
         'start_date',
@@ -78,9 +79,23 @@ class Project extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function admin(): BelongsTo
+    /**
+     * このプロジェクトの担当管理者（複数人・役割付き）
+     */
+    public function admins(): BelongsToMany
     {
-        return $this->belongsTo(Admin::class);
+        return $this->belongsToMany(Admin::class, 'project_admin')
+            ->using(ProjectAdmin::class)
+            ->withPivot(['id', 'role'])
+            ->withTimestamps();
+    }
+
+    /**
+     * プロジェクトリーダー（1人のみ）
+     */
+    public function leader(): ?Admin
+    {
+        return $this->admins->firstWhere('pivot.role', 'leader');
     }
 
     /**
@@ -107,6 +122,11 @@ class Project extends Model
         return $this->hasMany(ProjectUpdate::class)->orderBy('created_at', 'desc');
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProjectDocument::class);
+    }
+
     public function currentVersion(): HasOne
     {
         return $this->hasOne(ProjectVersion::class)
@@ -122,6 +142,27 @@ class Project extends Model
     public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);
+    }
+
+    /**
+     * このプロジェクトで実際に使用している技術
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'project_technology')
+            ->withPivot('sort_order')
+            ->orderBy('project_technology.sort_order');
+    }
+
+    /**
+     * 紐づく契約のServicePlan→Serviceが持つ使用技術（選択候補）。
+     * 契約やServicePlanが未設定の場合は空コレクションを返す。
+     */
+    public function availableTechnologies(): \Illuminate\Support\Collection
+    {
+        $service = $this->contract?->servicePlan?->service;
+
+        return $service ? $service->technologies()->get() : collect();
     }
 
     public function scopeForClient($query, string $userId)

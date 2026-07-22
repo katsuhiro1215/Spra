@@ -1,14 +1,10 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Quote Components
 import QuoteForm from "./_components/Form";
 
 export default function Edit({
@@ -65,13 +61,9 @@ export default function Edit({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        {
-            label: quote.quote_number,
-            href: route("admin.quote.show", quote.id),
-        },
-        { label: "編集", href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        quote.quote_number,
+        PageConfig.quotes.pages.edit.breadcrumb,
     ];
 
     return (

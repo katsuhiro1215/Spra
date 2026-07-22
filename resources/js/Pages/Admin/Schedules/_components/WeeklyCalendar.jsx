@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
-
-const todayStr = () => new Date().toISOString().split("T")[0];
+import { formatDateKey, todayDateKey } from "@/Utils/dateUtils";
 
 const statusChipClasses = {
     yellow: "bg-yellow-200 text-yellow-900 dark:bg-yellow-900/60 dark:text-yellow-200",
@@ -16,7 +15,7 @@ export default function WeeklyCalendar({
     calendar,
     appointments = {},
 }) {
-    const today = todayStr();
+    const today = todayDateKey();
     // 週表示用のデータを生成
     const weekCalendarData = useMemo(() => {
         const startOfWeek = new Date(selectedDate);
@@ -26,7 +25,7 @@ export default function WeeklyCalendar({
         for (let i = 0; i < 7; i++) {
             const date = new Date(startOfWeek);
             date.setDate(startOfWeek.getDate() + i);
-            const dateStr = date.toISOString().split("T")[0];
+            const dateStr = formatDateKey(date);
             const dayData = calendar[dateStr] || {
                 date: dateStr,
                 is_business_day: false,
@@ -128,7 +127,7 @@ export default function WeeklyCalendar({
                         </div>
                         {day.is_holiday && (
                             <div className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">
-                                休業日
+                                {day.holiday_name || "休業日"}
                             </div>
                         )}
                         {day.is_exception && (

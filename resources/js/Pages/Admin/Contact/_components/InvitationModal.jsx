@@ -11,7 +11,7 @@ export default function InvitationModal({ contact, isOpen, onClose }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        post(route("admin.contact.invitations.store", contact.id), {
+        post(route("admin.contact.invitation.store", contact.id), {
             onSuccess: () => {
                 reset();
                 onClose();

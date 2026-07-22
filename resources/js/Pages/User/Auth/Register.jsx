@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import {
     EyeIcon,
     EyeSlashIcon,
     UserPlusIcon,
-    UserIcon,
     EnvelopeIcon,
     LockClosedIcon,
     BuildingOfficeIcon,
@@ -13,17 +12,17 @@ import {
 } from "@heroicons/react/24/outline";
 import UserAuthLayout from "@/Layouts/UserAuthLayout";
 
-export default function Register({ invitation = null, requiredDocuments = [] }) {
+// 招待リンク経由でのみアクセスされる（招待なしの自己登録は廃止済み）
+export default function Register({ invitation, requiredDocuments = [] }) {
     const { flash } = usePage().props;
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        invitation_token: invitation?.token || "",
-        name: invitation?.contact?.name || "",
-        email: invitation?.email || "",
+        invitation_token: invitation.token,
+        email: invitation.email,
         password: "",
         password_confirmation: "",
-        has_company: !!invitation?.contact?.company,
-        company_name: invitation?.contact?.company || "",
+        has_company: !!invitation.contact.company,
+        company_name: invitation.contact.company || "",
         company_type: "corporate",
         company_registration_number: "",
         company_phone: "",
@@ -44,17 +43,10 @@ export default function Register({ invitation = null, requiredDocuments = [] }) 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // 招待がある場合はメッセージを表示
-    useEffect(() => {
-        if (invitation) {
-            console.log("Invitation received:", invitation);
-        }
-    }, [invitation]);
-
     const submit = (e) => {
         e.preventDefault();
 
-        post(route("user.register"), {
+        post(route("user.register.store"), {
             onFinish: () => reset("password", "password_confirmation"),
         });
     };
@@ -69,14 +61,11 @@ export default function Register({ invitation = null, requiredDocuments = [] }) 
                     <UserPlusIcon className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {invitation
-                        ? "招待からのアカウント作成"
-                        : "新規ユーザー登録"}
+                    招待からのアカウント作成
                 </h1>
                 <p className="text-gray-600">
-                    {invitation
-                        ? `${invitation.contact.name} 様、アカウント作成にご協力いただきありがとうございます`
-                        : "Smart Sproutsのサービスをご利用いただくために、アカウントを作成してください"}
+                    {invitation.contact.name}{" "}
+                    様、アカウント作成にご協力いただきありがとうございます
                 </p>
             </div>
 
@@ -92,47 +81,6 @@ export default function Register({ invitation = null, requiredDocuments = [] }) 
 
             {/* Register Form */}
             <form onSubmit={submit} className="space-y-6">
-                {/* Name Field (招待の場合は読み取り専用) */}
-                {!invitation && (
-                    <div>
-                        <label
-                            htmlFor="name"
-                            className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                            お名前 <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <UserIcon className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                id="name"
-                                type="text"
-                                name="name"
-                                value={data.name}
-                                onChange={(e) =>
-                                    setData("name", e.target.value)
-                                }
-                                className={`block w-full pl-10 pr-3 py-3 border rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors duration-200 ${
-                                    errors.name
-                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-                                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
-                                }`}
-                                placeholder="田中 太郎"
-                                autoComplete="name"
-                                autoFocus
-                                required
-                            />
-                        </div>
-                        {errors.name && (
-                            <p className="mt-2 text-sm text-red-600 flex items-center">
-                                <span className="mr-1">⚠️</span>
-                                {errors.name}
-                            </p>
-                        )}
-                    </div>
-                )}
-
                 {/* Email Field */}
                 <div>
                     <label
@@ -151,14 +99,8 @@ export default function Register({ invitation = null, requiredDocuments = [] }) 
                             name="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
-                            disabled={!!invitation}
-                            className={`block w-full pl-10 pr-3 py-3 border rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors duration-200 ${
-                                invitation
-                                    ? "bg-gray-100 cursor-not-allowed"
-                                    : errors.email
-                                      ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-                                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
-                            }`}
+                            disabled
+                            className="block w-full pl-10 pr-3 py-3 border rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors duration-200 bg-gray-100 cursor-not-allowed border-gray-300"
                             placeholder="your@email.com"
                             autoComplete="username"
                             required
@@ -318,11 +260,9 @@ export default function Register({ invitation = null, requiredDocuments = [] }) 
                                                 e.target.value,
                                             )
                                         }
-                                        disabled={
-                                            !!invitation?.contact?.company
-                                        }
+                                        disabled={!!invitation.contact.company}
                                         className={`block w-full pl-10 pr-3 py-2 border rounded-lg text-sm ${
-                                            invitation?.contact?.company
+                                            invitation.contact.company
                                                 ? "bg-gray-100 cursor-not-allowed"
                                                 : "bg-white"
                                         } ${

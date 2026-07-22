@@ -1,13 +1,10 @@
 import React from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
-// Icons
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Show({ setting }) {

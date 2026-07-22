@@ -11,7 +11,23 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ContactSection() {
+const DEFAULT_HEADING = "まずはお気軽にご相談ください";
+const DEFAULT_DESCRIPTION =
+    "プロジェクトのご相談から、技術的なご質問まで専門スタッフが丁寧にお答えいたします";
+const DEFAULT_BUTTON_LABEL = "お問い合わせフォームへ";
+const DEFAULT_BUTTON_URL = "/contact";
+
+export default function ContactSection({
+    heading,
+    description,
+    buttonLabel,
+    buttonUrl,
+} = {}) {
+    heading = heading ?? DEFAULT_HEADING;
+    description = description ?? DEFAULT_DESCRIPTION;
+    buttonLabel = buttonLabel ?? DEFAULT_BUTTON_LABEL;
+    buttonUrl = buttonUrl ?? DEFAULT_BUTTON_URL;
+
     const sectionRef = useRef(null);
     const contentRef = useRef(null);
 
@@ -73,26 +89,22 @@ export default function ContactSection() {
                     </div>
 
                     {/* タイトル */}
-                    <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                        まずはお気軽に
-                        <br />
-                        ご相談ください
+                    <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight whitespace-pre-line">
+                        {heading}
                     </h2>
 
                     {/* 説明文 */}
-                    <p className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed">
-                        プロジェクトのご相談から、技術的なご質問まで
-                        <br className="hidden md:block" />
-                        専門スタッフが丁寧にお答えいたします
+                    <p className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed whitespace-pre-line">
+                        {description}
                     </p>
 
                     {/* CTAボタン */}
                     <Link
-                        href="/contact"
+                        href={buttonUrl}
                         className="group inline-flex items-center justify-center gap-4 px-12 py-6 bg-white text-purple-600 text-lg font-bold rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300"
                     >
                         <EnvelopeIcon className="w-6 h-6" />
-                        お問い合わせフォームへ
+                        {buttonLabel}
                         <ArrowRightIcon className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                     </Link>
 

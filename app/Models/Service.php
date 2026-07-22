@@ -15,14 +15,15 @@ class Service extends Model
     use HasUlid, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'media_id',
         'name',
         'slug',
         'service_category_id',
+        'media_id',
         'description',
         'details',
         'icon',
         'status',
+        'is_displayed',
         'sort_order',
         'is_featured',
         'created_by',
@@ -31,6 +32,7 @@ class Service extends Model
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_displayed' => 'boolean',
         'status' => 'string',
     ];
 
@@ -40,14 +42,6 @@ class Service extends Model
     public function serviceCategory()
     {
         return $this->belongsTo(ServiceCategory::class);
-    }
-
-    /**
-     * Get the media (image) for this service.
-     */
-    public function media()
-    {
-        return $this->belongsTo(Media::class);
     }
 
     /**
@@ -64,6 +58,62 @@ class Service extends Model
     public function serviceItems()
     {
         return $this->hasMany(ServiceItem::class);
+    }
+
+    /**
+     * Get the gallery media (images) for this service.
+     */
+    public function media()
+    {
+        return $this->belongsToMany(Media::class, 'service_media')
+            ->withPivot('sort_order', 'is_primary')
+            ->orderBy('service_media.sort_order');
+    }
+
+    /**
+     * Get the thumbnail/cover image for this service (admin display).
+     */
+    public function thumbnail()
+    {
+        return $this->belongsTo(Media::class, 'media_id');
+    }
+
+    /**
+     * Get the technologies used for this service.
+     */
+    public function technologies()
+    {
+        return $this->belongsToMany(Technology::class, 'service_technology')
+            ->withPivot('sort_order')
+            ->orderBy('service_technology.sort_order');
+    }
+
+    /**
+     * Get the past-work portfolio pieces for this service.
+     */
+    public function portfolios()
+    {
+        return $this->belongsToMany(Portfolio::class, 'portfolio_service')
+            ->withPivot('sort_order')
+            ->orderBy('portfolio_service.sort_order');
+    }
+
+    /**
+     * Get the FAQs associated with this service.
+     */
+    public function faqs()
+    {
+        return $this->belongsToMany(Faq::class, 'faq_service')
+            ->withPivot('sort_order')
+            ->orderBy('faq_service.sort_order');
+    }
+
+    /**
+     * Get the customer voices (testimonials) for this service.
+     */
+    public function voices()
+    {
+        return $this->hasMany(Voice::class);
     }
 
     /**
@@ -109,6 +159,14 @@ class Service extends Model
         return $query->where('status', 'active');
     }
 
+    /**
+     * Scope a query to only include services displayed on the public website/simulator.
+     */
+    public function scopeDisplayed($query)
+    {
+        return $query->where('is_displayed', true);
+    }
+
     public function scopeByCategory($query, $categoryId)
     {
         return $query->where('service_category_id', $categoryId);
@@ -123,6 +181,14 @@ class Service extends Model
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * Check if service is displayed on the public website/simulator.
+     */
+    public function isDisplayed(): bool
+    {
+        return $this->is_displayed;
     }
 
     // アクセサ

@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-// Icons
+import { PageConfig } from "@/Constants/PageConfig";
 import {
     ArrowLeftIcon,
     CheckCircleIcon,
     ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-// Contract Components
 import ContractForm from "./_components/Form";
 
 export default function Create({
@@ -86,36 +84,13 @@ export default function Create({
         if (fromQuoteResponse && quoteResponse?.quote) {
             sourceQuote = quoteResponse.quote;
             sourceUser = quoteResponse.user;
-            console.log("QuoteResponse mode - quoteResponse:", quoteResponse);
-            console.log("sourceQuote:", sourceQuote);
-            console.log(
-                "sourceQuote.current_version:",
-                sourceQuote.current_version,
-            );
-        } else if (quote) {
-            console.log("Direct Quote mode - quote:", quote);
-            console.log("quote.current_version:", quote.current_version);
         }
 
         if (sourceQuote && sourceQuote.current_version) {
             const cv = sourceQuote.current_version;
-            console.log("Updating form with Quote current_version:", {
-                base_amount: cv.base_amount,
-                discount_amount: cv.discount_amount,
-                tax_rate: cv.tax_rate,
-                tax_amount: cv.tax_amount,
-                total_amount: cv.total_amount,
-            });
 
             // クライアント情報の詳細チェックと同じロジックで会社を取得
             const company = sourceQuote.company ?? sourceUser?.companies?.[0];
-
-            console.log("Debug info:", {
-                sourceUser: sourceUser,
-                sourceUser_id: sourceUser?.id,
-                sourceQuote_user_id: sourceQuote.user_id,
-                company: company,
-            });
 
             const newData = {
                 ...data,
@@ -143,30 +118,12 @@ export default function Create({
                         sort_order: item.sort_order,
                     })) || [],
             };
-            console.log("newData being set:", newData);
             setData(newData);
-        } else {
-            console.log("Condition failed:", {
-                sourceQuote_exists: !!sourceQuote,
-                current_version_exists: !!sourceQuote?.current_version,
-                sourceQuote: sourceQuote,
-            });
         }
     }, [quote, quoteResponse]);
 
     const submit = () => {
-        // onBefore callback で現在の data を確認
-        post(route("admin.contract.store"), {
-            onBefore: (visit) => {
-                console.log("Form data being submitted:", data);
-            },
-            onSuccess: (response) => {
-                console.log("Submit successful", response);
-            },
-            onError: (errors) => {
-                console.error("Submit errors:", errors);
-            },
-        });
+        post(route("admin.contract.store"));
     };
 
     const handleDraftSave = () => {
@@ -182,7 +139,7 @@ export default function Create({
     // ========================================
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.index"),
@@ -190,37 +147,36 @@ export default function Create({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        PageConfig.contracts.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="契約新規作成"
-                    description="新しい契約を作成します"
+                    title={PageConfig.contracts.pages.create.title}
+                    description={PageConfig.contracts.pages.create.description}
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="契約新規作成" />
+            <Head title={PageConfig.contracts.pages.create.title} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            {/* 見積選択セクション - QuoteResponse 経由の場合は非表示 */}
-            {!fromQuoteResponse && (
-                <div className="max-w-7xl mb-6">
+            <div className="w-full space-y-6">
+                {/* 見積選択セクション - QuoteResponse 経由の場合は非表示 */}
+                {!fromQuoteResponse && (
                     <Card>
                         <CardHeader>
                             <CardTitle>見積書を選択</CardTitle>
                         </CardHeader>
                         <CardBody>
                             <div className="max-w-md">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     見積書
                                     {!quote && (
                                         <span className="text-red-500 ml-1">
@@ -231,7 +187,7 @@ export default function Create({
                                 <select
                                     value={selectedQuoteId}
                                     onChange={handleQuoteSelect}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">選択してください</option>
                                     {quotes.map((q) => (
@@ -242,19 +198,16 @@ export default function Create({
                                     ))}
                                 </select>
                                 {!quote && (
-                                    <p className="mt-2 text-sm text-gray-600">
+                                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         見積書を選択すると、クライアント情報が自動入力されます
                                     </p>
                                 )}
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* QuoteResponse 経由の表示 */}
-            {fromQuoteResponse && quoteResponse && (
-                <div className="w-full mb-6">
+                )}
+                {/* QuoteResponse 経由の表示 */}
+                {fromQuoteResponse && quoteResponse && (
                     <Card>
                         <CardHeader>
                             <CardTitle>📌 見積返信から遷移しました</CardTitle>
@@ -269,12 +222,9 @@ export default function Create({
                             </p>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* クライアント情報の詳細チェック */}
-            {quote && (
-                <div className="w-full mb-6">
+                )}
+                {/* クライアント情報の詳細チェック */}
+                {quote && (
                     <Card
                         className={
                             fromQuoteResponse
@@ -480,9 +430,10 @@ export default function Create({
                                                                         {
                                                                             addr.city
                                                                         }
-                                                                        {
-                                                                            addr.address_line1
-                                                                        }
+                                                                        {addr.district &&
+                                                                            ` ${addr.district}`}
+                                                                        {addr.address_other &&
+                                                                            ` ${addr.address_other}`}
                                                                     </p>
                                                                 </div>
                                                             ),
@@ -505,12 +456,9 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* 必要情報チェック結果 */}
-            {quote && requirementStatus && !requirementStatus.can_send && (
-                <div className="max-w-7xl mb-6">
+                )}
+                {/* 必要情報チェック結果 */}
+                {quote && requirementStatus && !requirementStatus.can_send && (
                     <Card className="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
                         <CardBody>
                             <div className="flex gap-4">
@@ -544,12 +492,9 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* 必要情報が揃っている場合 */}
-            {quote && requirementStatus && requirementStatus.can_send && (
-                <div className="max-w-7xl mb-6">
+                )}
+                {/* 必要情報が揃っている場合 */}
+                {quote && requirementStatus && requirementStatus.can_send && (
                     <Card className="border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20">
                         <CardBody>
                             <div className="flex gap-4">
@@ -565,10 +510,7 @@ export default function Create({
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            <div className="w-full">
+                )}
                 <ContractForm
                     data={data}
                     setData={setData}

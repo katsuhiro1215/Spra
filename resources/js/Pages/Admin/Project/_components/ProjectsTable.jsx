@@ -143,9 +143,32 @@ const ProjectsTable = ({ projects, onDelete }) => {
                                     </Badge>
                                 </Td>
                                 <Td>
-                                    {project.admin ? (
+                                    {project.admins &&
+                                    project.admins.length > 0 ? (
                                         <div className="text-sm text-slate-900 dark:text-slate-100">
-                                            {project.admin.name}
+                                            {(() => {
+                                                const leader =
+                                                    project.admins.find(
+                                                        (admin) =>
+                                                            admin.pivot
+                                                                .role ===
+                                                            "leader",
+                                                    ) || project.admins[0];
+                                                const extra =
+                                                    project.admins.length - 1;
+                                                return (
+                                                    <>
+                                                        {leader.profile
+                                                            ?.full_name ||
+                                                            leader.email}
+                                                        {extra > 0 && (
+                                                            <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">
+                                                                +{extra}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     ) : (
                                         <span className="text-slate-400 dark:text-slate-500">

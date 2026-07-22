@@ -12,12 +12,15 @@ import {
     DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import ContractConfirmAlert from "@/Components/Alerts/ContractConfirmAlert";
+import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Preview({ contract }) {
     const [sending, setSending] = useState(false);
     const [showConfirmAlert, setShowConfirmAlert] = useState(false);
     const [pdfError, setPdfError] = useState(false);
-    const currentVersion = contract.currentVersion || contract.versions?.[0];
+    const currentVersion =
+        contract.current_version ||
+        contract.versions?.[contract.versions.length - 1];
     const items = currentVersion?.items || [];
 
     const handleSend = () => {
@@ -43,7 +46,7 @@ export default function Preview({ contract }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contracts.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract.show", contract.id),
@@ -51,13 +54,9 @@ export default function Preview({ contract }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        {
-            label: contract.contract_number,
-            href: route("admin.contract.show", contract.id),
-        },
-        { label: "プレビュー", href: null },
+        ...PageConfig.contracts.breadcrumbs,
+        contract.contract_number,
+        "プレビュー",
     ];
 
     const subtotal = currentVersion?.base_amount || 0;
@@ -97,9 +96,9 @@ export default function Preview({ contract }) {
                 <Card className="border-2 border-blue-500">
                     <CardBody>
                         <div className="flex items-start gap-4">
-                            <EyeIcon className="h-6 w-6 text-blue-600 mt-1" />
+                            <EyeIcon className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-1" />
                             <div className="flex-1">
-                                <h3 className="text-lg font-semibold mb-2">
+                                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
                                     📨 送信前の最終確認
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -170,8 +169,8 @@ export default function Preview({ contract }) {
                                     />
                                 </div>
                             ) : (
-                                <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
-                                    <p className="text-red-800 dark:text-red-200">
+                                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                                    <p className="text-red-800 dark:text-red-300">
                                         ❌
                                         PDFの読み込みに失敗しました。内容を確認して、もう一度お試しください。
                                     </p>
@@ -185,7 +184,7 @@ export default function Preview({ contract }) {
                         <CardHeader>
                             <CardTitle>📋 契約内容サマリー</CardTitle>
                         </CardHeader>
-                        <CardBody className="space-y-6">
+                        <CardBody className="space-y-6 text-gray-900 dark:text-gray-100">
                             {/* 基本情報 */}
                             <div>
                                 <h3 className="font-semibold mb-3">契約基本情報</h3>
@@ -235,7 +234,7 @@ export default function Preview({ contract }) {
                                         </span>
                                     </div>
                                     {discount > 0 && (
-                                        <div className="flex justify-between text-red-600">
+                                        <div className="flex justify-between text-red-600 dark:text-red-400">
                                             <span>割引</span>
                                             <span className="font-medium">
                                                 -¥{discount.toLocaleString()}

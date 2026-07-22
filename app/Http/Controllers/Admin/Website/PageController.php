@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Website;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Page;
 use App\Models\PageType;
 use App\Services\PageService;
@@ -68,15 +69,15 @@ class PageController extends Controller
     public function store(PageRequest $request): RedirectResponse
     {
         try {
-            $this->pageService->createPage($request->validated());
+            $page = $this->pageService->createPage($request->validated());
 
-            return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを作成しました。');
+            return redirect()->route('admin.website.page.edit', $page)
+                ->with('success', __('messages.website_page.created_continue_edit_sections'));
         } catch (\Exception $e) {
             Log::error('Page store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -85,6 +86,11 @@ class PageController extends Controller
      */
     public function show(Page $page): Response
     {
+        $page->load([
+            'sections' => fn ($query) => $query->orderBy('sort_order'),
+            'pageType',
+        ]);
+
         return Inertia::render('Admin/Website/Page/Show', [
             'page' => $page,
         ]);
@@ -95,6 +101,11 @@ class PageController extends Controller
      */
     public function edit(Page $page): Response
     {
+        $page->load([
+            'sections' => fn ($query) => $query->orderBy('sort_order'),
+            'pageType',
+        ]);
+
         $pageTypes = PageType::query()
             ->orderBy('name')
             ->get(['id', 'name', 'key', 'description']);
@@ -103,6 +114,7 @@ class PageController extends Controller
             'page' => $page,
             'pageTypes' => $pageTypes,
             'templates' => $this->getAvailableTemplates(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -115,12 +127,12 @@ class PageController extends Controller
             $this->pageService->updatePage($page, $request->validated());
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -133,11 +145,11 @@ class PageController extends Controller
             $this->pageService->deletePage($page);
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ページの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -150,11 +162,11 @@ class PageController extends Controller
             $this->pageService->restorePage($page);
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを復元しました。');
+                ->with('success', __('messages.restored', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page restore error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ページの復元に失敗しました。');
+                ->with('error', __('messages.restore_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -169,6 +181,7 @@ class PageController extends Controller
             'contact' => 'お問い合わせ',
             'service' => 'サービス',
             'blog' => 'ブログ',
+            'faq' => 'FAQ',
             'page' => '標準ページ',
         ];
     }

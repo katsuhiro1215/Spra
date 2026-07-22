@@ -21,7 +21,9 @@ class Contract extends Model
         'parent_contract_id',
         'quote_id',
         'service_plan_id',
+        'campaign_id',
         'user_id',
+        'billing_user_id',
         'company_id',
         'title',
         'description',
@@ -39,6 +41,7 @@ class Contract extends Model
         'termination_reason',
         'auto_renewal',
         'renewal_notice_days',
+        'renewal_notice_sent_at',
         'billing_day',
         'payment_due_days',
         'auto_invoice_generation',
@@ -57,6 +60,7 @@ class Contract extends Model
         'terminated_at'          => 'datetime',
         'next_billing_date'      => 'datetime',
         'last_invoiced_at'       => 'datetime',
+        'renewal_notice_sent_at' => 'datetime',
         'auto_renewal'           => 'boolean',
         'auto_invoice_generation' => 'boolean',
     ];
@@ -101,6 +105,22 @@ class Contract extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * 請求書・領収書の送付先ユーザー（未設定の場合はuser()にフォールバック）
+     */
+    public function billingUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'billing_user_id');
+    }
+
+    /**
+     * 請求書・領収書の実際の送付先ユーザーを返す（billing_user_id未設定時はuserを返す）
+     */
+    public function getInvoiceRecipientAttribute(): ?User
+    {
+        return $this->billingUser ?? $this->user;
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
@@ -117,6 +137,14 @@ class Contract extends Model
     public function servicePlan(): BelongsTo
     {
         return $this->belongsTo(ServicePlan::class);
+    }
+
+    /**
+     * 見積もりから引き継いだ適用キャンペーン
+     */
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     /**
@@ -205,6 +233,34 @@ class Contract extends Model
     public function isRecurring(): bool
     {
         return in_array($this->type, ['monthly', 'annual']);
+    }
+
+    /**
+     * 既に請求済みの金額（キャンセル済みの請求書を除く）
+     *
+     * $excludeInvoiceId を指定すると、その請求書自身を除いて集計する
+     * （既存請求書の編集時に自分自身の金額を二重に差し引かないため）
+     */
+    public function invoicedAmount(?string $excludeInvoiceId = null): float
+    {
+        return (float) $this->invoices()
+            ->where('status', '!=', 'cancelled')
+            ->when($excludeInvoiceId, fn($query) => $query->where('id', '!=', $excludeInvoiceId))
+            ->sum('total_amount');
+    }
+
+    /**
+     * 未請求の残額（契約金額 - 既に請求済みの金額）
+     *
+     * 一括払い契約(one_time)向けの概念。月額/年額の継続契約は請求サイクルが
+     * 繰り返されるため「残金」という概念自体が馴染まず、呼び出し側で
+     * isRecurring() をチェックした上で使うこと。
+     */
+    public function remainingAmount(?string $excludeInvoiceId = null): float
+    {
+        $contractTotal = (float) ($this->currentVersion?->total_amount ?? 0);
+
+        return max($contractTotal - $this->invoicedAmount($excludeInvoiceId), 0);
     }
 
     /**

@@ -2,137 +2,159 @@
 
 namespace Database\Seeders;
 
-use App\Models\Quote;
-use App\Models\User;
-use App\Models\Company;
 use App\Models\Admin;
+use App\Models\Quote;
+use App\Models\QuoteResponse;
+use App\Models\Service;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class QuoteSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * 2022年5月〜現在にかけて、様々なステータスの見積を作成する。
+     * 一部は「見積回答待ち」の状態にし、ダッシュボードの対応キューを確認できるようにする。
      */
     public function run(): void
     {
-        $users = User::where('status', 'active')->limit(20)->get();
-        $companies = Company::where('status', 'active')->limit(10)->get();
+        $users = User::where('status', 'active')->with('companies')->inRandomOrder()->limit(20)->get();
+        $services = Service::with('serviceItems')->get()->filter(fn (Service $s) => $s->serviceItems->isNotEmpty());
         $admin = Admin::first();
 
-        if ($users->isEmpty() || $companies->isEmpty() || !$admin) {
-            echo "No active users, companies, or admins found. Skipping quote seeding.\n";
+        if ($users->isEmpty() || $services->isEmpty() || !$admin) {
+            $this->command?->warn('QuoteSeeder: 前提データ（User/Service/Admin）が不足しているためスキップします。');
             return;
         }
 
-        $quoteData = [
-            [
-                'title' => 'ウェブサイト制作プロジェクト',
-                'base_amount' => 500000,
-                'tax_rate' => 10,
-                'items' => [
-                    ['description' => 'デザイン・企画', 'quantity' => 1, 'unit_price' => 200000],
-                    ['description' => 'システム構築', 'quantity' => 1, 'unit_price' => 250000],
-                    ['description' => 'テスト・デバッグ', 'quantity' => 1, 'unit_price' => 50000],
-                ]
-            ],
-            [
-                'title' => 'アプリ開発サービス',
-                'base_amount' => 750000,
-                'tax_rate' => 10,
-                'items' => [
-                    ['description' => 'UI/UX設計', 'quantity' => 1, 'unit_price' => 150000],
-                    ['description' => 'フロントエンド開発', 'quantity' => 1, 'unit_price' => 300000],
-                    ['description' => 'バックエンド開発', 'quantity' => 1, 'unit_price' => 250000],
-                    ['description' => 'API統合', 'quantity' => 1, 'unit_price' => 50000],
-                ]
-            ],
-            [
-                'title' => 'マーケティングコンサルティング',
-                'base_amount' => 300000,
-                'tax_rate' => 10,
-                'items' => [
-                    ['description' => 'マーケット分析', 'quantity' => 1, 'unit_price' => 100000],
-                    ['description' => '戦略立案', 'quantity' => 1, 'unit_price' => 150000],
-                    ['description' => '実装支援', 'quantity' => 1, 'unit_price' => 50000],
-                ]
-            ],
-            [
-                'title' => 'ITシステム構築',
-                'base_amount' => 1000000,
-                'tax_rate' => 10,
-                'items' => [
-                    ['description' => 'システム設計', 'quantity' => 1, 'unit_price' => 300000],
-                    ['description' => 'インフラ構築', 'quantity' => 1, 'unit_price' => 400000],
-                    ['description' => 'セキュリティ対応', 'quantity' => 1, 'unit_price' => 200000],
-                    ['description' => 'ドキュメント作成', 'quantity' => 1, 'unit_price' => 100000],
-                ]
-            ],
-            [
-                'title' => 'コンテンツ制作サービス',
-                'base_amount' => 200000,
-                'tax_rate' => 10,
-                'items' => [
-                    ['description' => 'ライティング（10記事）', 'quantity' => 1, 'unit_price' => 100000],
-                    ['description' => 'デザイン・レイアウト', 'quantity' => 1, 'unit_price' => 80000],
-                    ['description' => 'SEO最適化', 'quantity' => 1, 'unit_price' => 20000],
-                ]
-            ],
+        $startDate = Carbon::parse('2022-05-01');
+        $endDate = Carbon::now();
+        $totalQuotes = 24;
+
+        // 直近ほど多くなるように、日付を後半に偏らせて生成
+        $dates = collect(range(1, $totalQuotes))
+            ->map(function ($i) use ($startDate, $endDate, $totalQuotes) {
+                $progress = ($i / $totalQuotes) ** 0.6; // 後半に偏らせる
+                $days = (int) ($startDate->diffInDays($endDate) * $progress);
+                return $startDate->copy()->addDays($days)->addHours(fake()->numberBetween(9, 18));
+            })
+            ->sort()
+            ->values();
+
+        // status distribution: 直近の数件は「negotiating（回答待ち）」にして
+        // ダッシュボードの「未対応の見積回答」キューを確認できるようにする
+        $statusPattern = [
+            'draft', 'negotiating', 'approved', 'contracted', 'approved', 'rejected',
+            'contracted', 'approved', 'negotiating', 'cancelled', 'approved', 'contracted',
         ];
 
-        $createdCount = 0;
         $quoteCounter = 1;
+        $created = 0;
 
-        foreach ($users->take(10) as $index => $user) {
-            $company = $companies->random();
-            $quoteInfo = $quoteData[$index % count($quoteData)];
+        foreach ($dates as $index => $date) {
+            $user = $users[$index % $users->count()];
+            $company = $user->companies->first();
+            $service = $services->random();
+            $items = $service->serviceItems->shuffle()->take(fake()->numberBetween(2, 4));
 
-            try {
-                $baseAmount = $quoteInfo['base_amount'];
-                $taxRate = $quoteInfo['tax_rate'];
-                $taxAmount = round($baseAmount * $taxRate / 100, 2);
-                $totalAmount = $baseAmount + $taxAmount;
-
-                // Generate unique quote_number (Q202607-001, Q202607-002, etc.)
-                $yearMonth = now()->format('Ym');
-                $quoteNumber = "Q{$yearMonth}-" . str_pad($quoteCounter, 5, '0', STR_PAD_LEFT);
-                $quoteCounter++;
-
-                $quote = Quote::create([
-                    'quote_number' => $quoteNumber,
-                    'user_id' => $user->id,
-                    'company_id' => $company->id,
-                    'title' => $quoteInfo['title'],
-                    'base_amount' => $baseAmount,
-                    'tax_rate' => $taxRate,
-                    'tax_amount' => $taxAmount,
-                    'total_amount' => $totalAmount,
-                    'status' => 'approved',
-                    'sent_at' => now(),
-                    'expires_at' => now()->addDays(30),
-                    'created_by' => $admin->id,
-                ]);
-
-                // Add quote items
-                foreach ($quoteInfo['items'] as $itemIndex => $item) {
-                    $quote->items()->create([
-                        'name' => $item['description'],
-                        'description' => $item['description'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'amount' => $item['quantity'] * $item['unit_price'],
-                        'billing_type' => 'one_time',
-                        'item_type' => 'custom',
-                        'sort_order' => $itemIndex,
-                    ]);
-                }
-
-                $createdCount++;
-            } catch (\Exception $e) {
-                echo "Error creating quote for user {$user->id}: " . $e->getMessage() . "\n";
+            if ($items->isEmpty()) {
+                continue;
             }
+
+            // 直近3件は必ず「回答待ち」にする（ダッシュボード確認用）
+            $isRecentPending = $index >= $totalQuotes - 3;
+            $status = $isRecentPending ? 'negotiating' : $statusPattern[$index % count($statusPattern)];
+
+            $baseAmount = $items->sum(fn ($item) => (float) $item->standard_price);
+            $discountAmount = fake()->boolean(20) ? round($baseAmount * 0.05, 2) : 0;
+            $taxableAmount = $baseAmount - $discountAmount;
+            $taxRate = 10;
+            $taxAmount = round($taxableAmount * $taxRate / 100, 2);
+            $totalAmount = $taxableAmount + $taxAmount;
+
+            $yearMonth = $date->format('Ym');
+            $quoteNumber = "Q{$yearMonth}-" . str_pad($quoteCounter++, 4, '0', STR_PAD_LEFT);
+
+            $quote = Quote::create([
+                'quote_number' => $quoteNumber,
+                'user_id' => $user->id,
+                'company_id' => $company?->id,
+                'title' => "{$service->name}のご依頼",
+                'requirements' => "{$service->name}について、{$items->pluck('name')->join('、')}を含む内容でご検討をお願いします。",
+                'status' => $status,
+                'created_by' => $admin->id,
+            ]);
+            $quote->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
+
+            $versionStatus = match ($status) {
+                'draft' => 'draft',
+                'negotiating' => 'sent',
+                'approved', 'contracted' => 'approved',
+                'rejected' => 'rejected',
+                'cancelled' => 'sent',
+                default => 'sent',
+            };
+
+            $version = $quote->versions()->create([
+                'version' => 1,
+                'title' => $quote->title,
+                'requirements' => $quote->requirements,
+                'base_amount' => $baseAmount,
+                'discount_amount' => $discountAmount,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $totalAmount,
+                'status' => $versionStatus,
+                'sent_at' => $status !== 'draft' ? $date->copy()->addHour() : null,
+                'responded_at' => in_array($status, ['approved', 'contracted', 'rejected'], true) ? $date->copy()->addDays(2) : null,
+                'expires_at' => $date->copy()->addDays(30),
+                'is_current' => true,
+                'created_by' => $admin->id,
+            ]);
+            $version->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
+
+            $quote->update(['current_version_id' => $version->id]);
+
+            foreach ($items->values() as $itemIndex => $item) {
+                $version->items()->create([
+                    'service_id' => $service->id,
+                    'service_item_id' => $item->id,
+                    'name' => $item->name,
+                    'description' => $item->description,
+                    'item_type' => $item->item_type,
+                    'billing_type' => 'one_time',
+                    'quantity' => 1,
+                    'unit_price' => $item->standard_price,
+                    'amount' => $item->standard_price,
+                    'estimated_days' => $item->estimated_days,
+                    'sort_order' => $itemIndex + 1,
+                ]);
+            }
+
+            // 見積回答（クライアントからの返信）を作成
+            if (in_array($status, ['negotiating', 'approved', 'contracted', 'rejected'], true)) {
+                $responseType = match ($status) {
+                    'rejected' => 'decline',
+                    'negotiating' => null, // まだ回答なし（保留中）
+                    default => 'request',
+                };
+
+                QuoteResponse::create([
+                    'quote_id' => $quote->id,
+                    'token' => Str::random(40),
+                    'email' => $user->email,
+                    'user_id' => $user->id,
+                    'company_id' => $company?->id,
+                    'response_type' => $responseType,
+                    'responded_at' => $responseType ? $date->copy()->addDays(2) : null,
+                    'admin_notified_at' => $responseType ? $date->copy()->addDays(2) : null,
+                ])->forceFill(['created_at' => $date, 'updated_at' => $date])->save();
+            }
+
+            $created++;
         }
 
-        echo "=== QuoteSeeder Summary ===\n";
-        echo "Total quotes created: {$createdCount}\n";
+        $this->command?->info("QuoteSeeder: {$created}件の見積を作成しました。");
     }
 }

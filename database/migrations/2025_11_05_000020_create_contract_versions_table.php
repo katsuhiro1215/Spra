@@ -28,6 +28,7 @@ return new class extends Migration
             $table->longText('terms_and_conditions')->nullable()->comment('契約条項全文');
             $table->text('special_provisions')->nullable()->comment('特別条項');
             $table->text('notes')->nullable()->comment('備考・メモ');
+            $table->text('custom_specifications')->nullable()->comment('カスタム仕様・メモ');
 
             // 金額情報（QuoteVersionから引き継ぐ）
             $table->decimal('base_amount', 12, 2)->comment('小計');

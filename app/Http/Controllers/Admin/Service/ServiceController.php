@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin\Service;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Service;
 use App\Services\ServiceService;
 use App\Services\ServiceCategoryService;
+use App\Services\TechnologyService;
 use App\Http\Requests\ServiceRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +18,8 @@ class ServiceController extends Controller
 {
     public function __construct(
         private ServiceService $serviceService,
-        private ServiceCategoryService $serviceCategoryService
+        private ServiceCategoryService $serviceCategoryService,
+        private TechnologyService $technologyService
     ) {}
 
     /**
@@ -38,7 +41,7 @@ class ServiceController extends Controller
 
         $stats = $this->serviceService->getStats();
 
-        return Inertia::render('Admin/Service/Index', [
+        return Inertia::render('Admin/Services/Index', [
             'services' => $services,
             'statuses' => $statuses,
             'categories' => $categories,
@@ -56,9 +59,11 @@ class ServiceController extends Controller
         $statuses = $this->serviceService->getStatuses();
         $categories = $this->serviceCategoryService->getActiveForSelect();
 
-        return Inertia::render('Admin/Service/Create', [
+        return Inertia::render('Admin/Services/Create', [
             'statuses' => $statuses,
             'categories' => $categories,
+            'technologies' => $this->technologyService->getActiveForSelect(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -71,12 +76,12 @@ class ServiceController extends Controller
             $this->serviceService->createService($request->validated());
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービス']));
         }
     }
 
@@ -95,10 +100,22 @@ class ServiceController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return Inertia::render('Admin/Service/Show', [
-            'service' => $service->load(['serviceCategory', 'creator', 'updater']),
+        // サムネイル選択用のメディア一覧を取得
+        $mediaList = Media::query()->images()->latest()->limit(100)->get();
+
+        return Inertia::render('Admin/Services/Show', [
+            'service' => $service->load([
+                'serviceCategory',
+                'creator',
+                'updater',
+                'media',
+                'thumbnail',
+                'technologies',
+                'portfolios',
+            ]),
             'servicePlans' => $servicePlans,
             'serviceItems' => $serviceItems,
+            'mediaList' => $mediaList,
         ]);
     }
 
@@ -109,11 +126,14 @@ class ServiceController extends Controller
     {
         $statuses = $this->serviceService->getStatuses();
         $categories = $this->serviceCategoryService->getActiveForSelect();
+        $service->load(['media', 'technologies']);
 
-        return Inertia::render('Admin/Service/Edit', [
+        return Inertia::render('Admin/Services/Edit', [
             'service' => $service,
             'statuses' => $statuses,
             'categories' => $categories,
+            'technologies' => $this->technologyService->getActiveForSelect(),
+            'mediaList' => Media::query()->images()->latest()->limit(100)->get(),
         ]);
     }
 
@@ -126,12 +146,12 @@ class ServiceController extends Controller
             $this->serviceService->updateService($service, $request->validated());
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービス']));
         }
     }
 
@@ -144,11 +164,58 @@ class ServiceController extends Controller
             $this->serviceService->deleteService($service);
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service destroy error: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', $e->getMessage());
+        }
+    }
+
+    // -------------------------
+    // サービスサムネイル画像
+    // -------------------------
+
+    /**
+     * サムネイル画像を設定
+     */
+    public function attachMedia(Request $request, Service $service)
+    {
+        $validated = $request->validate([
+            'media_id' => ['required', 'exists:media,id'],
+        ]);
+
+        try {
+            $service->update(['media_id' => $validated['media_id']]);
+
+            return back()->with('success', __('messages.set', ['attribute' => 'サムネイル画像']));
+        } catch (\Exception $e) {
+            Log::error('サービスサムネイル設定エラー', [
+                'message' => $e->getMessage(),
+                'service_id' => $service->id,
+                'media_id' => $validated['media_id'],
+            ]);
+
+            return back()->with('error', __('messages.set_failed', ['attribute' => '画像']));
+        }
+    }
+
+    /**
+     * サムネイル画像を削除
+     */
+    public function detachMedia(Service $service)
+    {
+        try {
+            $service->update(['media_id' => null]);
+
+            return back()->with('success', __('messages.deleted', ['attribute' => 'サムネイル画像']));
+        } catch (\Exception $e) {
+            Log::error('サービスサムネイル削除エラー', [
+                'message' => $e->getMessage(),
+                'service_id' => $service->id,
+            ]);
+
+            return back()->with('error', __('messages.delete_failed', ['attribute' => '画像']));
         }
     }
 }

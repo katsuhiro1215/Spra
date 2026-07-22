@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import {
     FormGroup,
     TextInput,
     SelectInput,
-    InputError,
     FormTextarea,
 } from "@/Components/Forms";
 import {
@@ -25,10 +24,31 @@ export default function InvoiceForm({
     contracts = [],
     users = [],
     companies = [],
+    remainingAmount = null,
 }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         onSubmit();
+    };
+
+    // 選択中の会社に所属するユーザーに絞り込む。会社未選択の場合は全ユーザーから選べるようにする
+    const selectedCompany = companies.find((c) => c.id === data.company_id);
+    const companyUsers = selectedCompany?.users || [];
+    const userChoices = companyUsers.length > 0 ? companyUsers : users;
+
+    const userLabel = (u) =>
+        (u.profile?.full_name || u.email) +
+        (u.pivot?.is_primary ? "（主担当）" : "");
+
+    // 会社を変更したら、その会社の主担当者をユーザーの初期値として設定する
+    const handleCompanyChange = (companyId) => {
+        const company = companies.find((c) => c.id === companyId);
+        const primaryUser = company?.users?.find((u) => u.pivot?.is_primary);
+        setData((prev) => ({
+            ...prev,
+            company_id: companyId,
+            user_id: primaryUser?.id || company?.users?.[0]?.id || "",
+        }));
     };
 
     const formatAmount = (amount) => {
@@ -38,21 +58,49 @@ export default function InvoiceForm({
         }).format(amount || 0);
     };
 
-    // 合計金額を計算
+    // 合計金額を計算（tax_rate はパーセント表記、例: 10 = 10%）
     const subtotal = parseFloat(data.subtotal) || 0;
-    const taxRate = parseFloat(data.tax_rate) || 0.1;
-    const taxAmount = Math.round(subtotal * taxRate);
+    const taxRate = parseFloat(data.tax_rate) || 0;
+    const taxAmount = Math.round(subtotal * (taxRate / 100));
     const totalAmount = subtotal + taxAmount;
+
+    // 契約に紐づく請求書の場合、契約の残金（税込）を超えていないかチェックする
+    // remainingAmount が null の場合は継続契約(月額/年額)など残金の概念が無いケース
+    const hasRemainingCap = remainingAmount !== null;
+    const noRemainingLeft = hasRemainingCap && remainingAmount <= 0;
+    const exceedsRemaining =
+        hasRemainingCap && !noRemainingLeft && totalAmount > remainingAmount;
+
+    // 送信されるデータ（data.tax_amount / data.total_amount）を計算結果と同期する。
+    // useForm の data はサーバーへ送信される唯一の値なので、ここで同期しないと
+    // 画面表示上は正しい合計でも 0 円で送信されてしまう。
+    useEffect(() => {
+        if (data.tax_amount !== taxAmount) {
+            setData("tax_amount", taxAmount);
+        }
+        if (data.total_amount !== totalAmount) {
+            setData("total_amount", totalAmount);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subtotal, taxRate]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            {noRemainingLeft && (
+                <div className="rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 p-4">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">
+                        この契約は既に契約金額の全額を請求済みです。新しい請求書は作成できません。
+                    </p>
+                </div>
+            )}
+
             {/* 基本情報 */}
             <Card>
                 <CardHeader>
                     <CardTitle>基本情報</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="p-6 space-y-6">
+                    <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {contract ? (
                                 <FormGroup
@@ -76,6 +124,7 @@ export default function InvoiceForm({
                                     label="契約"
                                     htmlFor="contract_id"
                                     required
+                                    error={errors.contract_id}
                                 >
                                     <SelectInput
                                         id="contract_id"
@@ -97,11 +146,6 @@ export default function InvoiceForm({
                                                 label: `${c.contract_number || c.id.substring(0, 8)} - ${c.title}`,
                                             })),
                                         ]}
-                                        error={errors.contract_id}
-                                    />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.contract_id}
                                     />
                                 </FormGroup>
                             )}
@@ -110,6 +154,7 @@ export default function InvoiceForm({
                                 label="発行日"
                                 htmlFor="issue_date"
                                 required
+                                error={errors.issue_date}
                             >
                                 <TextInput
                                     id="issue_date"
@@ -117,16 +162,16 @@ export default function InvoiceForm({
                                     type="date"
                                     value={
                                         data.issue_date ||
-                                        new Date().toISOString().split("T")[0]
+                                        new Date()
+                                            .toISOString()
+                                            .split("T")[0]
                                     }
                                     onChange={(e) =>
-                                        setData("issue_date", e.target.value)
+                                        setData(
+                                            "issue_date",
+                                            e.target.value,
+                                        )
                                     }
-                                    error={errors.issue_date}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.issue_date}
                                 />
                             </FormGroup>
 
@@ -134,6 +179,7 @@ export default function InvoiceForm({
                                 label="請求期間（開始）"
                                 htmlFor="billing_period_start"
                                 required
+                                error={errors.billing_period_start}
                             >
                                 <TextInput
                                     id="billing_period_start"
@@ -141,7 +187,9 @@ export default function InvoiceForm({
                                     type="date"
                                     value={
                                         data.billing_period_start ||
-                                        new Date().toISOString().split("T")[0]
+                                        new Date()
+                                            .toISOString()
+                                            .split("T")[0]
                                     }
                                     onChange={(e) =>
                                         setData(
@@ -149,11 +197,6 @@ export default function InvoiceForm({
                                             e.target.value,
                                         )
                                     }
-                                    error={errors.billing_period_start}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.billing_period_start}
                                 />
                             </FormGroup>
 
@@ -161,23 +204,21 @@ export default function InvoiceForm({
                                 label="請求期間（終了）"
                                 htmlFor="billing_period_end"
                                 required
+                                error={errors.billing_period_end}
                             >
                                 <TextInput
                                     id="billing_period_end"
                                     name="billing_period_end"
                                     type="date"
-                                    value={data.billing_period_end || ""}
+                                    value={
+                                        data.billing_period_end || ""
+                                    }
                                     onChange={(e) =>
                                         setData(
                                             "billing_period_end",
                                             e.target.value,
                                         )
                                     }
-                                    error={errors.billing_period_end}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.billing_period_end}
                                 />
                             </FormGroup>
 
@@ -185,6 +226,7 @@ export default function InvoiceForm({
                                 label="支払期限"
                                 htmlFor="due_date"
                                 required
+                                error={errors.due_date}
                             >
                                 <TextInput
                                     id="due_date"
@@ -192,13 +234,11 @@ export default function InvoiceForm({
                                     type="date"
                                     value={data.due_date || ""}
                                     onChange={(e) =>
-                                        setData("due_date", e.target.value)
+                                        setData(
+                                            "due_date",
+                                            e.target.value,
+                                        )
                                     }
-                                    error={errors.due_date}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.due_date}
                                 />
                             </FormGroup>
 
@@ -206,24 +246,27 @@ export default function InvoiceForm({
                                 label="ステータス"
                                 htmlFor="status"
                                 required
+                                error={errors.status}
                             >
                                 <SelectInput
                                     id="status"
                                     name="status"
                                     value={data.status || "draft"}
                                     onChange={(e) =>
-                                        setData("status", e.target.value)
+                                        setData(
+                                            "status",
+                                            e.target.value,
+                                        )
                                     }
                                     options={INVOICE_STATUS_OPTIONS}
-                                    error={errors.status}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.status}
                                 />
                             </FormGroup>
 
-                            <FormGroup label="請求区分" htmlFor="invoice_type">
+                            <FormGroup
+                                label="請求区分"
+                                htmlFor="invoice_type"
+                                error={errors.invoice_type}
+                            >
                                 <SelectInput
                                     id="invoice_type"
                                     name="invoice_type"
@@ -235,11 +278,6 @@ export default function InvoiceForm({
                                         )
                                     }
                                     options={INVOICE_TYPE_OPTIONS}
-                                    error={errors.invoice_type}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.invoice_type}
                                 />
                             </FormGroup>
                         </div>
@@ -253,46 +291,19 @@ export default function InvoiceForm({
                     <CardTitle>クライアント情報</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="p-6 space-y-6">
+                    <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormGroup
-                                label="ユーザー"
-                                htmlFor="user_id"
-                                required
+                                label="会社"
+                                htmlFor="company_id"
+                                error={errors.company_id}
                             >
-                                <SelectInput
-                                    id="user_id"
-                                    name="user_id"
-                                    value={data.user_id || ""}
-                                    onChange={(e) =>
-                                        setData("user_id", e.target.value)
-                                    }
-                                    options={[
-                                        {
-                                            value: "",
-                                            label: "選択してください",
-                                        },
-                                        ...users.map((u) => ({
-                                            value: u.id,
-                                            label:
-                                                u.profile?.full_name || u.email,
-                                        })),
-                                    ]}
-                                    error={errors.user_id}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.user_id}
-                                />
-                            </FormGroup>
-
-                            <FormGroup label="会社" htmlFor="company_id">
                                 <SelectInput
                                     id="company_id"
                                     name="company_id"
                                     value={data.company_id || ""}
                                     onChange={(e) =>
-                                        setData("company_id", e.target.value)
+                                        handleCompanyChange(e.target.value)
                                     }
                                     options={[
                                         {
@@ -304,12 +315,41 @@ export default function InvoiceForm({
                                             label: c.name,
                                         })),
                                     ]}
-                                    error={errors.company_id}
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.company_id}
+                            </FormGroup>
+
+                            <FormGroup
+                                label="送付先ユーザー"
+                                htmlFor="user_id"
+                                required
+                                error={errors.user_id}
+                            >
+                                <SelectInput
+                                    id="user_id"
+                                    name="user_id"
+                                    value={data.user_id || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "user_id",
+                                            e.target.value,
+                                        )
+                                    }
+                                    options={[
+                                        {
+                                            value: "",
+                                            label: "選択してください",
+                                        },
+                                        ...userChoices.map((u) => ({
+                                            value: u.id,
+                                            label: userLabel(u),
+                                        })),
+                                    ]}
                                 />
+                                {companyUsers.length > 0 && (
+                                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                        この会社に所属するユーザーから選択できます
+                                    </p>
+                                )}
                             </FormGroup>
                         </div>
                     </div>
@@ -322,12 +362,13 @@ export default function InvoiceForm({
                     <CardTitle>金額情報</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="p-6 space-y-6">
+                    <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormGroup
                                 label="請求額（消費税抜き）"
                                 htmlFor="subtotal"
                                 required
+                                error={errors.subtotal}
                             >
                                 <TextInput
                                     id="subtotal"
@@ -337,13 +378,11 @@ export default function InvoiceForm({
                                     min="0"
                                     value={data.subtotal || 0}
                                     onChange={(e) =>
-                                        setData("subtotal", e.target.value)
+                                        setData(
+                                            "subtotal",
+                                            e.target.value,
+                                        )
                                     }
-                                    error={errors.subtotal}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.subtotal}
                                 />
                             </FormGroup>
 
@@ -351,6 +390,7 @@ export default function InvoiceForm({
                                 label="消費税率（%）"
                                 htmlFor="tax_rate"
                                 required
+                                error={errors.tax_rate}
                             >
                                 <TextInput
                                     id="tax_rate"
@@ -361,13 +401,11 @@ export default function InvoiceForm({
                                     max="100"
                                     value={data.tax_rate || 10}
                                     onChange={(e) =>
-                                        setData("tax_rate", e.target.value)
+                                        setData(
+                                            "tax_rate",
+                                            e.target.value,
+                                        )
                                     }
-                                    error={errors.tax_rate}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.tax_rate}
                                 />
                             </FormGroup>
                         </div>
@@ -399,20 +437,27 @@ export default function InvoiceForm({
                                         {formatAmount(totalAmount)}
                                     </span>
                                 </div>
+
+                                {hasRemainingCap && (
+                                    <div className="flex justify-between text-sm pt-2">
+                                        <span className="text-gray-600 dark:text-gray-400">
+                                            この契約の残金（税込）
+                                        </span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            {formatAmount(remainingAmount)}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {exceedsRemaining && (
+                                    <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                                        合計金額が契約の残金（
+                                        {formatAmount(remainingAmount)}
+                                        ）を超えています。金額を見直してください。
+                                    </p>
+                                )}
                             </div>
                         </div>
-
-                        {/* 隠し入力で合計を設定 */}
-                        <input
-                            type="hidden"
-                            name="tax_amount"
-                            value={taxAmount}
-                        />
-                        <input
-                            type="hidden"
-                            name="total_amount"
-                            value={totalAmount}
-                        />
                     </div>
                 </CardBody>
             </Card>
@@ -423,47 +468,42 @@ export default function InvoiceForm({
                     <CardTitle>備考</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="p-6">
-                        <FormGroup label="備考" htmlFor="notes">
-                            <FormTextarea
-                                id="notes"
-                                name="notes"
-                                value={data.notes || ""}
-                                onChange={(e) =>
-                                    setData("notes", e.target.value)
-                                }
-                                rows={4}
-                                placeholder="その他の備考があればこちらに記入してください"
-                                error={errors.notes}
-                            />
-                            <InputError
-                                className="mt-2"
-                                message={errors.notes}
-                            />
-                        </FormGroup>
-                    </div>
+                    <FormGroup
+                        label="備考"
+                        htmlFor="notes"
+                        error={errors.notes}
+                    >
+                        <FormTextarea
+                            id="notes"
+                            name="notes"
+                            value={data.notes || ""}
+                            onChange={(e) =>
+                                setData("notes", e.target.value)
+                            }
+                            rows={4}
+                            placeholder="その他の備考があればこちらに記入してください"
+                        />
+                    </FormGroup>
                 </CardBody>
             </Card>
-
             {/* フォーム操作 */}
-            <Card>
-                <CardBody>
-                    <div className="flex justify-end gap-4">
-                        <SecondaryButton
-                            onClick={() => (window.location.href = cancelRoute)}
-                        >
-                            キャンセル
-                        </SecondaryButton>
-                        <PrimaryButton type="submit" disabled={processing}>
-                            {processing
-                                ? "処理中..."
-                                : isEdit
-                                  ? "更新する"
-                                  : "作成する"}
-                        </PrimaryButton>
-                    </div>
-                </CardBody>
-            </Card>
+            <div className="flex justify-end gap-4">
+                <SecondaryButton href={cancelRoute}>
+                    キャンセル
+                </SecondaryButton>
+                <PrimaryButton
+                    type="submit"
+                    disabled={
+                        processing || exceedsRemaining || noRemainingLeft
+                    }
+                >
+                    {processing
+                        ? "処理中..."
+                        : isEdit
+                            ? "更新する"
+                            : "作成する"}
+                </PrimaryButton>
+            </div>
         </form>
     );
 }

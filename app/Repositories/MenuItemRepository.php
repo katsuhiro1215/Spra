@@ -50,13 +50,15 @@ class MenuItemRepository extends SoftDeletableRepository
     return $query;
   }
 
-  public function getStats(string $menuId): array
+  public function getStats(?string $menuId = null): array
   {
+    $query = fn () => MenuItem::when($menuId, fn (Builder $q) => $q->where('menu_id', $menuId));
+
     return [
-      'total' => MenuItem::where('menu_id', $menuId)->withTrashed()->count(),
-      'active' => MenuItem::where('menu_id', $menuId)->where('is_active', true)->count(),
-      'inactive' => MenuItem::where('menu_id', $menuId)->where('is_active', false)->count(),
-      'trashed' => MenuItem::where('menu_id', $menuId)->onlyTrashed()->count(),
+      'total' => $query()->withTrashed()->count(),
+      'active' => $query()->where('is_active', true)->count(),
+      'inactive' => $query()->where('is_active', false)->count(),
+      'trashed' => $query()->onlyTrashed()->count(),
     ];
   }
 }

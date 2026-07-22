@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import ReceiptForm from "./_components/Form";
 
 export default function Create({
@@ -51,13 +52,12 @@ export default function Create({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("admin.receipts.store"));
+        post(route("admin.receipt.store"));
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "領収書一覧", href: route("admin.receipts.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.receipts.breadcrumbs,
+        PageConfig.receipts.pages.create.breadcrumb,
     ];
 
     return (

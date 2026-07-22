@@ -36,7 +36,7 @@ class LogController extends Controller
      */
     private function getActivityLogs(): array
     {
-        return UserActivityLog::with('user.profile')
+        return UserActivityLog::with(['user.profile', 'admin.profile'])
             ->where('status', UserActivityLog::STATUS_SUCCESS)
             ->latest('performed_at')
             ->limit(50)
@@ -46,7 +46,8 @@ class LogController extends Controller
                 'performed_at' => $log->performed_at,
                 'description' => $log->description ?? $log->action_name,
                 'action_name' => $log->action_name,
-                'user_name' => $this->userDisplayName($log->user),
+                'actor_type' => $log->actor_type,
+                'user_name' => $this->actorDisplayName($log),
                 'ip_address' => $log->ip_address,
                 'status' => $log->status,
                 'status_name' => $log->status_name,
@@ -60,7 +61,7 @@ class LogController extends Controller
      */
     private function getWarningLogs(): array
     {
-        return UserActivityLog::with('user.profile')
+        return UserActivityLog::with(['user.profile', 'admin.profile'])
             ->whereIn('status', [UserActivityLog::STATUS_ERROR, UserActivityLog::STATUS_WARNING])
             ->latest('performed_at')
             ->limit(50)
@@ -70,7 +71,8 @@ class LogController extends Controller
                 'performed_at' => $log->performed_at,
                 'description' => $log->description ?? $log->action_name,
                 'action_name' => $log->action_name,
-                'user_name' => $this->userDisplayName($log->user),
+                'actor_type' => $log->actor_type,
+                'user_name' => $this->actorDisplayName($log),
                 'ip_address' => $log->ip_address,
                 'status' => $log->status,
                 'status_name' => $log->status_name,
@@ -137,6 +139,22 @@ class LogController extends Controller
         }
 
         return $user->profile?->full_name ?: $user->email;
+    }
+
+    /**
+     * UserActivityLog の操作主体（Admin または User）の表示名
+     */
+    private function actorDisplayName(UserActivityLog $log): ?string
+    {
+        if ($log->actor_type === UserActivityLog::ACTOR_SYSTEM) {
+            return 'システム';
+        }
+
+        if ($log->actor_type === UserActivityLog::ACTOR_ADMIN) {
+            return $log->admin ? ($log->admin->profile?->full_name ?: $log->admin->email) : null;
+        }
+
+        return $this->userDisplayName($log->user);
     }
 
     /**

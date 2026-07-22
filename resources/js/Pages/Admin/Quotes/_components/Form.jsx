@@ -1,13 +1,7 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-import {
-    FormGroup,
-    TextInput,
-    SelectInput,
-    TextArea,
-    InputError,
-} from "@/Components/Forms";
+import { FormGroup, TextInput, SelectInput, TextArea } from "@/Components/Forms";
 import { QUOTE_STATUS_OPTIONS } from "@/Constants/SelectOptions";
 
 export default function QuoteForm({
@@ -39,6 +33,7 @@ export default function QuoteForm({
                                 label="ユーザー"
                                 htmlFor="user_id"
                                 help="見積もりを作成するユーザーを選択してください（お問い合わせからの場合は任意）"
+                                error={errors.user_id}
                             >
                                 <SelectInput
                                     id="user_id"
@@ -58,13 +53,13 @@ export default function QuoteForm({
                                         })),
                                     ]}
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.user_id}
-                                />
                             </FormGroup>
 
-                            <FormGroup label="会社" htmlFor="company_id">
+                            <FormGroup
+                                label="会社"
+                                htmlFor="company_id"
+                                error={errors.company_id}
+                            >
                                 <SelectInput
                                     id="company_id"
                                     name="company_id"
@@ -78,10 +73,6 @@ export default function QuoteForm({
                                             label: "会社を選択（任意）",
                                         },
                                     ]}
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.company_id}
                                 />
                             </FormGroup>
                         </div>
@@ -101,6 +92,7 @@ export default function QuoteForm({
                                     htmlFor="title"
                                     help="見積もりの件名を入力してください"
                                     required
+                                    error={errors.title}
                                 >
                                     <TextInput
                                         id="title"
@@ -112,16 +104,13 @@ export default function QuoteForm({
                                         placeholder="例: Webサイト制作見積もり"
                                         required
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.title}
-                                    />
                                 </FormGroup>
 
                                 <FormGroup
                                     label="ステータス"
                                     htmlFor="status"
                                     required
+                                    error={errors.status}
                                 >
                                     <SelectInput
                                         id="status"
@@ -133,14 +122,14 @@ export default function QuoteForm({
                                         options={QUOTE_STATUS_OPTIONS}
                                         required
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.status}
-                                    />
                                 </FormGroup>
                             </div>
 
-                            <FormGroup label="要件" htmlFor="requirements">
+                            <FormGroup
+                                label="要件"
+                                htmlFor="requirements"
+                                error={errors.requirements}
+                            >
                                 <TextArea
                                     id="requirements"
                                     name="requirements"
@@ -151,15 +140,12 @@ export default function QuoteForm({
                                     rows={4}
                                     placeholder="見積もりの要件を入力してください"
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.requirements}
-                                />
                             </FormGroup>
 
                             <FormGroup
                                 label="カスタム仕様"
                                 htmlFor="custom_specifications"
+                                error={errors.custom_specifications}
                             >
                                 <TextArea
                                     id="custom_specifications"
@@ -174,10 +160,6 @@ export default function QuoteForm({
                                     rows={3}
                                     placeholder="カスタム仕様やメモを入力してください"
                                 />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.custom_specifications}
-                                />
                             </FormGroup>
                         </div>
                     </CardBody>
@@ -188,7 +170,7 @@ export default function QuoteForm({
             <div className="flex justify-end space-x-4">
                 <SecondaryButton
                     type="button"
-                    onClick={() => (window.location.href = cancelRoute)}
+                    href={cancelRoute}
                     disabled={processing}
                 >
                     キャンセル

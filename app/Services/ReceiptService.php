@@ -5,15 +5,19 @@ namespace App\Services;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\PaymentNotification;
 use App\Mail\ReceiptMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReceiptService
 {
+  public function __construct(
+    private PointService $pointService,
+  ) {}
+
   /**
    * 入金確認後に領収書を発行
    * Invoice1件につき領収書は1件のみ(既に発行済みの場合はそれを返す)
@@ -41,6 +45,18 @@ class ReceiptService
         'created_by' => auth()->guard('admins')->id(),
       ]);
 
+      // ポイント付与はここが入金確認の実質的なタイミング(Receiptがdraftで作られた瞬間)。
+      // 失敗しても領収書の発行自体は妨げないよう、内側のトランザクション(セーブポイント)ごと
+      // 握りつぶす。
+      try {
+        $this->pointService->grantForReceipt($receipt);
+      } catch (\Throwable $e) {
+        Log::error('ポイント付与に失敗しました', [
+          'receipt_id' => $receipt->id,
+          'error' => $e->getMessage(),
+        ]);
+      }
+
       return $receipt;
     });
   }
@@ -50,10 +66,11 @@ class ReceiptService
    */
   public function generateAndSavePdf(Receipt $receipt): string
   {
-    // PDF生成
+    // PDF生成(A4・縦向き。指定がないとDomPDFのデフォルト用紙(Letter)になり
+    // 実際のA4用紙より横幅が広くレイアウトが間延びして見えるため明示する)
     $pdf = Pdf::loadView('pdfs.receipt', [
-      'receipt' => $receipt->load(['user', 'company', 'invoice']),
-    ]);
+      'receipt' => $receipt->load(['user.profile', 'company', 'invoice.contract']),
+    ])->setPaper('A4', 'portrait');
     \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
     // 保存パス生成
@@ -101,7 +118,10 @@ class ReceiptService
   private function generateReceiptNumber(): string
   {
     $year = date('Y');
-    $lastReceipt = Receipt::whereYear('created_at', $year)
+    // withTrashed: 論理削除された領収書の番号も含めて重複を避ける
+    // (receipt_number にはユニーク制約があるため、除外すると採番が衝突しうる)
+    $lastReceipt = Receipt::withTrashed()
+      ->whereYear('created_at', $year)
       ->orderBy('receipt_number', 'desc')
       ->first();
 
@@ -112,51 +132,5 @@ class ReceiptService
     }
 
     return sprintf('RCP%s-%04d', $year, $nextNumber);
-  }
-
-  /**
-   * 支払い通知を作成
-   */
-  public function createPaymentNotification(Invoice $invoice, array $data): PaymentNotification
-  {
-    return PaymentNotification::create([
-      'invoice_id'      => $invoice->id,
-      'user_id'         => $invoice->user_id,
-      'company_id'      => $invoice->company_id,
-      'payment_method'  => $data['payment_method'],
-      'amount'          => $data['amount'],
-      'payment_date'    => $data['payment_date'],
-      'transaction_id'  => $data['transaction_id'] ?? null,
-      'notes'           => $data['notes'] ?? null,
-      'status'          => 'pending',
-    ]);
-  }
-
-  /**
-   * 支払い通知を確認（Admin操作）
-   * paymentId が渡された場合、その入金記録と紐付ける
-   */
-  public function acknowledgePaymentNotification(PaymentNotification $notification, string $adminId, ?string $paymentId = null): void
-  {
-    $notification->acknowledge($adminId, $paymentId);
-  }
-
-  /**
-   * ペンディング中の支払い通知を取得（Admin用）
-   */
-  public function getPendingPaymentNotifications()
-  {
-    return PaymentNotification::pending()
-      ->with(['invoice', 'user', 'company'])
-      ->orderBy('created_at', 'desc')
-      ->get();
-  }
-
-  /**
-   * 支払い通知の数を取得
-   */
-  public function getPendingPaymentNotificationsCount(): int
-  {
-    return PaymentNotification::pending()->count();
   }
 }

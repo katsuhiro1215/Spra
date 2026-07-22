@@ -24,13 +24,14 @@ class ContractItemRequest extends FormRequest
         return [
             'items' => 'required|array|min:1',
             'items.*.service_id' => 'required|ulid|exists:services,id',
-            'items.*.service_item_id' => 'required|ulid|exists:service_items,id',
+            'items.*.service_item_id' => 'nullable|ulid|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
             'items.*.description' => 'nullable|string',
             'items.*.item_type' => 'nullable|string|max:50',
             'items.*.billing_type' => 'required|in:one_time,monthly,quarterly,yearly',
             'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
+            // プラン割引/追加料金の明細行は負の単価を取り得るため下限を設けない
+            'items.*.unit_price' => 'required|numeric',
             'items.*.estimated_days' => 'nullable|integer|min:0',
             'items.*.sort_order' => 'nullable|integer',
             'items.*.selected' => 'nullable|boolean',

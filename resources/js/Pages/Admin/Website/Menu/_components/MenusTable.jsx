@@ -1,14 +1,23 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
 import { Card, CardHeader } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
+import { IconButton } from "@/Components/Buttons";
 import {
     EyeIcon,
     PencilIcon,
     TrashIcon,
     ListBulletIcon,
 } from "@heroicons/react/24/outline";
+
+const PURPLE_TEXT = `
+    bg-transparent text-purple-600
+    hover:text-purple-900 hover:bg-purple-50
+    focus:ring-purple-500
+    dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20
+`
+    .trim()
+    .replace(/\s+/g, " ");
 
 const MenusTable = ({ menus, onDelete }) => {
     const getLocationLabel = (location) => {
@@ -87,44 +96,44 @@ const MenusTable = ({ menus, onDelete }) => {
                                     </span>
                                 </Td>
                                 <Td className="text-right">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            colorClasses={PURPLE_TEXT}
+                                            icon={ListBulletIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.menu.item.index",
                                                 menu.id,
                                             )}
-                                            className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 p-1"
                                             title="アイテム管理"
-                                        >
-                                            <ListBulletIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.menu.show",
                                                 menu.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="w-4 h-4" />
-                                        </Link>
-                                        <Link
+                                        />
+                                        <IconButton
+                                            variant="warning-text"
+                                            icon={PencilIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.website.menu.edit",
                                                 menu.id,
                                             )}
-                                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1"
                                             title="編集"
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                        </Link>
-                                        <button
+                                        />
+                                        <IconButton
+                                            variant="danger-text"
+                                            icon={TrashIcon}
+                                            size="lg"
                                             onClick={() => onDelete(menu)}
-                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
                                             title="削除"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                                        />
                                     </div>
                                 </Td>
                             </Tr>

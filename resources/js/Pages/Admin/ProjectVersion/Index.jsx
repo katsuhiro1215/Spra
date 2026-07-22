@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badge";
-import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
+import { TextButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import {
     ArrowLeftIcon,
@@ -72,15 +72,6 @@ export default function Index({ project, versions }) {
                     title={`${project.title} - バージョン管理`}
                     description="プロジェクトバージョンの一覧と管理"
                     actions={[
-                        {
-                            label: "新規バージョン作成",
-                            icon: PlusIcon,
-                            variant: "primary",
-                            route: route(
-                                "admin.project.versions.create",
-                                project.id,
-                            ),
-                        },
                         {
                             label: "プロジェクトに戻る",
                             icon: ArrowLeftIcon,
@@ -154,9 +145,23 @@ export default function Index({ project, versions }) {
                 {/* バージョン一覧 */}
                 <Card>
                     <CardHeader>
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                            バージョン一覧
-                        </h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                バージョン一覧
+                            </h2>
+                            <TextButton
+                                href={route(
+                                    "admin.project.versions.create",
+                                    project.id,
+                                )}
+                                variant="primary"
+                                size="sm"
+                                title="新規バージョン作成"
+                            >
+                                <PlusIcon className="w-4 h-4 mr-1" />
+                                新規バージョン作成
+                            </TextButton>
+                        </div>
                     </CardHeader>
                     <CardBody>
                         {versions && versions.length > 0 ? (
@@ -215,7 +220,7 @@ export default function Index({ project, versions }) {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Link
+                                                <TextButton
                                                     href={route(
                                                         "admin.project.versions.show",
                                                         {
@@ -223,12 +228,14 @@ export default function Index({ project, versions }) {
                                                             version: version.id,
                                                         },
                                                     )}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                                    variant="primary"
+                                                    size="sm"
+                                                    title="詳細"
                                                 >
-                                                    <EyeIcon className="w-4 h-4" />
+                                                    <EyeIcon className="w-4 h-4 mr-1" />
                                                     詳細
-                                                </Link>
-                                                <Link
+                                                </TextButton>
+                                                <TextButton
                                                     href={route(
                                                         "admin.project.versions.edit",
                                                         {
@@ -236,35 +243,41 @@ export default function Index({ project, versions }) {
                                                             version: version.id,
                                                         },
                                                     )}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+                                                    variant="warning"
+                                                    size="sm"
+                                                    title="編集"
                                                 >
-                                                    <PencilIcon className="w-4 h-4" />
+                                                    <PencilIcon className="w-4 h-4 mr-1" />
                                                     編集
-                                                </Link>
+                                                </TextButton>
                                                 {!version.is_current && (
-                                                    <button
+                                                    <TextButton
                                                         onClick={() =>
                                                             handleSetCurrent(
                                                                 version,
                                                             )
                                                         }
-                                                        className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                                                        variant="success"
+                                                        size="sm"
+                                                        title="現在に設定"
                                                     >
                                                         現在に設定
-                                                    </button>
+                                                    </TextButton>
                                                 )}
                                                 {!version.is_current && (
-                                                    <button
+                                                    <TextButton
                                                         onClick={() =>
                                                             handleDelete(
                                                                 version,
                                                             )
                                                         }
-                                                        className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                                        variant="danger"
+                                                        size="sm"
+                                                        title="削除"
                                                     >
-                                                        <TrashIcon className="w-4 h-4" />
+                                                        <TrashIcon className="w-4 h-4 mr-1" />
                                                         削除
-                                                    </button>
+                                                    </TextButton>
                                                 )}
                                             </div>
                                         </div>

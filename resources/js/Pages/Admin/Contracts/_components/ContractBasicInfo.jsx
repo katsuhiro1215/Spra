@@ -8,6 +8,14 @@ export default function ContractBasicInfo({ contract, statuses }) {
         return new Date(date).toLocaleDateString("ja-JP");
     };
 
+    // signatures は signed_at 降順で渡されるため、最初に見つかったもの＝最新の署名
+    const userSignature = contract.signatures?.find(
+        (s) => s.signature_type === "user" && s.status !== "rejected",
+    );
+    const adminSignature = contract.signatures?.find(
+        (s) => s.signature_type === "admin" && s.status !== "rejected",
+    );
+
     return (
         <>
             <Card>
@@ -85,15 +93,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                 <div className="flex items-center gap-2 mb-2">
                                     {contract.user_signed_at ? (
                                         <>
-                                            <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                                            <p className="text-sm font-semibold text-green-600">
+                                            <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                            <p className="text-sm font-semibold text-green-600 dark:text-green-400">
                                                 ユーザー署名済み
                                             </p>
                                         </>
                                     ) : (
                                         <>
-                                            <XCircleIcon className="h-5 w-5 text-yellow-600" />
-                                            <p className="text-sm font-semibold text-yellow-600">
+                                            <XCircleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                            <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
                                                 ユーザー署名待ち
                                             </p>
                                         </>
@@ -107,6 +115,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                         ).toLocaleDateString("ja-JP")}
                                     </p>
                                 )}
+                                {userSignature?.signature_image && (
+                                    <div className="mt-3 flex justify-center bg-white dark:bg-gray-100 rounded border border-gray-200 dark:border-gray-600 p-2">
+                                        <img
+                                            src={userSignature.signature_image}
+                                            alt="ユーザー署名"
+                                            className="max-h-24 object-contain"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Admin 署名 */}
@@ -114,15 +131,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                 <div className="flex items-center gap-2 mb-2">
                                     {contract.admin_signed_at ? (
                                         <>
-                                            <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                                            <p className="text-sm font-semibold text-green-600">
+                                            <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                            <p className="text-sm font-semibold text-green-600 dark:text-green-400">
                                                 Admin 署名済み
                                             </p>
                                         </>
                                     ) : (
                                         <>
-                                            <XCircleIcon className="h-5 w-5 text-yellow-600" />
-                                            <p className="text-sm font-semibold text-yellow-600">
+                                            <XCircleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                            <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
                                                 Admin 署名待ち
                                             </p>
                                         </>
@@ -135,6 +152,15 @@ export default function ContractBasicInfo({ contract, statuses }) {
                                             contract.admin_signed_at,
                                         ).toLocaleDateString("ja-JP")}
                                     </p>
+                                )}
+                                {adminSignature?.signature_image && (
+                                    <div className="mt-3 flex justify-center bg-white dark:bg-gray-100 rounded border border-gray-200 dark:border-gray-600 p-2">
+                                        <img
+                                            src={adminSignature.signature_image}
+                                            alt="Admin署名"
+                                            className="max-h-24 object-contain"
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -155,14 +181,14 @@ export default function ContractBasicInfo({ contract, statuses }) {
                 </Card>
             )}
 
-            {contract.currentVersion?.terms_and_conditions && (
+            {contract.current_version?.terms_and_conditions && (
                 <Card>
                     <CardHeader>
                         <CardTitle>契約条項</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                            {contract.currentVersion.terms_and_conditions}
+                            {contract.current_version.terms_and_conditions}
                         </p>
                     </CardBody>
                 </Card>

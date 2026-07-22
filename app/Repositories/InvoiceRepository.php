@@ -119,7 +119,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
   {
     return Invoice::whereIn('status', ['sent', 'overdue'])
       ->where('due_date', '<', Carbon::today())
-      ->with(['user', 'company', 'contract'])
+      ->with(['user.profile', 'company', 'contract'])
       ->get();
   }
 

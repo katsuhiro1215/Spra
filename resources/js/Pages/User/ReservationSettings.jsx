@@ -9,6 +9,7 @@ import {
     PlusIcon,
 } from "@heroicons/react/24/outline";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
 
 export default function ReservationSettings() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -100,10 +101,21 @@ export default function ReservationSettings() {
     };
 
     return (
-        <AuthenticatedLayout header="予約設定">
+        <AuthenticatedLayout>
             <Head title="予約設定 | Smart Sprouts" />
 
             <div className="space-y-8">
+                <UserPageHeader
+                    title="予約設定"
+                    description="面談予約の営業時間・時間枠・休業日を設定します"
+                    breadcrumbs={[
+                        {
+                            label: "ダッシュボード",
+                            href: route("user.dashboard"),
+                        },
+                        { label: "予約設定", href: "#" },
+                    ]}
+                />
                 <form onSubmit={submit} className="space-y-8">
                     {/* 営業時間設定 */}
                     <div className="bg-white shadow-sm rounded-lg border border-gray-200">

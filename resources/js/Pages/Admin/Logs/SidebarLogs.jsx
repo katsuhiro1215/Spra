@@ -106,7 +106,13 @@ export default function SidebarLogs({ logs = {}, moreUrl = "/admin/logs" }) {
                                         <span>IP: {log.ip_address}</span>
                                     )}
                                     {log.user_name && (
-                                        <span>by {log.user_name}</span>
+                                        <span>
+                                            by{" "}
+                                            {log.actor_type === "admin"
+                                                ? "Admin: "
+                                                : ""}
+                                            {log.user_name}
+                                        </span>
                                     )}
                                 </div>
                             </li>

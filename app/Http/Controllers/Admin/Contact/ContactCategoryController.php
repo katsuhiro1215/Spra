@@ -8,12 +8,10 @@ use App\Services\ContactCategoryService;
 use App\Http\Requests\ContactCategoryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * ContactCategory 管理コントローラー
- */
 class ContactCategoryController extends Controller
 {
     public function __construct(
@@ -34,7 +32,7 @@ class ContactCategoryController extends Controller
         $categories = $this->service->getPaginated($filters, $sort, 20);
         $stats = $this->service->getStats();
 
-        return Inertia::render('Admin/Contact/Category/Index', [
+        return Inertia::render('Admin/ContactCategories/Index', [
             'categories' => $categories,
             'stats' => $stats,
             'filters' => $filters,
@@ -46,7 +44,7 @@ class ContactCategoryController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Contact/Category/Create');
+        return Inertia::render('Admin/ContactCategories/Create');
     }
 
     /**
@@ -54,11 +52,18 @@ class ContactCategoryController extends Controller
      */
     public function store(ContactCategoryRequest $request): RedirectResponse
     {
-        $this->service->create($request->validated());
+        try {
+            $this->service->create($request->validated());
 
-        return redirect()
-            ->route('admin.contact.category.index')
-            ->with('message', 'カテゴリが正常に作成されました。');
+            return redirect()
+                ->route('admin.contact.category.index')
+                ->with('success', __('messages.created', ['attribute' => 'お問い合わせカテゴリ']));
+        } catch (\Exception $e) {
+            Log::error('ContactCategory store error: ' . $e->getMessage());
+            return redirect()
+                ->route('admin.contact.category.index')
+                ->with('error', __('messages.create_failed', ['attribute' => 'お問い合わせカテゴリ']));
+        }
     }
 
     /**
@@ -68,7 +73,7 @@ class ContactCategoryController extends Controller
     {
         $category = $this->service->findById($id);
 
-        return Inertia::render('Admin/Contact/Category/Edit', [
+        return Inertia::render('Admin/ContactCategories/Edit', [
             'category' => $category,
         ]);
     }
@@ -78,37 +83,42 @@ class ContactCategoryController extends Controller
      */
     public function update(ContactCategoryRequest $request, string $id): RedirectResponse
     {
-        $this->service->update($id, $request->validated());
+        try {
+            $this->service->update($id, $request->validated());
 
-        return redirect()
-            ->route('admin.contact.category.index')
-            ->with('message', 'カテゴリが正常に更新されました。');
+            return redirect()
+                ->route('admin.contact.category.index')
+                ->with('success', __('messages.updated', ['attribute' => 'お問い合わせカテゴリ']));
+        } catch (\Exception $e) {
+            Log::error('ContactCategory update error: ' . $e->getMessage());
+            return redirect()
+                ->route('admin.contact.category.index')
+                ->with('error', __('messages.update_failed', ['attribute' => 'お問い合わせカテゴリ']));
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy(ContactCategory $category): RedirectResponse
     {
-        $category = $this->service->findById($id);
-
-        if (!$category) {
-            return redirect()
-                ->route('admin.contact.category.index')
-                ->with('error', 'カテゴリが見つかりません。');
-        }
-
         // 関連するコンタクトがあるかチェック
-        if ($category->contacts()->count() > 0) {
+        if ($category->contacts()->exists()) {
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('error', '関連するお問い合わせが存在するため、削除できません。');
+                ->with('error', __('messages.contact.has_related'));
         }
+        // 削除処理
 
-        $this->service->delete($category);
+        try {
+            $this->service->delete($category);
 
-        return redirect()
-            ->route('admin.contact.category.index')
-            ->with('message', 'カテゴリが正常に削除されました。');
+            return redirect()->route('admin.contact.category.index')
+                ->with('success', __('messages.deleted', ['attribute' => 'お問い合わせカテゴリ']));
+        } catch (\Exception $e) {
+            Log::error('ContactCategory delete error: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', __('messages.delete_failed', ['attribute' => 'お問い合わせカテゴリ']));
+        }
     }
 }

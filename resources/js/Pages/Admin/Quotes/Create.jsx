@@ -1,14 +1,10 @@
 import React, { useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Quote Components
 import QuoteForm from "./_components/Form";
 
 export default function Create({
@@ -76,12 +72,10 @@ export default function Create({
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        PageConfig.quotes.pages.create.breadcrumb,
     ];
 
-    // タイトルをコンテキストに応じて変更
     // タイトルをコンテキストに応じて変更
     const getTitle = () => {
         if (contact) return `${contact.name} 様への見積もり作成`;
@@ -102,7 +96,7 @@ export default function Create({
                 />
             }
         >
-            <Head title={PageConfig.quotes.create} />
+            <Head title={getTitle()} />
 
             {/* フラッシュメッセージ */}
             <FlashMessage />

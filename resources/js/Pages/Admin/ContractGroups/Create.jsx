@@ -7,6 +7,7 @@ import { FormGroup, TextInput, TextArea, InputError } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
 
 const formatAmount = (amount) =>
     new Intl.NumberFormat("ja-JP", {
@@ -43,7 +44,7 @@ export default function Create({ draftContracts = [] }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.contractGroups.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.contract-group.index"),
@@ -51,24 +52,22 @@ export default function Create({ draftContracts = [] }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "契約一覧", href: route("admin.contract.index") },
-        { label: "契約グループ", href: route("admin.contract-group.index") },
-        { label: "新規作成", href: null },
+        ...PageConfig.contractGroups.breadcrumbs,
+        PageConfig.contractGroups.pages.create.breadcrumb,
     ];
 
     return (
         <AdminAuthenticatedLayout
             header={
                 <PageHeader
-                    title="契約グループを作成"
+                    title={PageConfig.contractGroups.pages.create.title}
                     description="既存の下書き契約を複数選んでグループ化します"
                     actions={headerActions}
                     breadcrumbs={breadcrumbs}
                 />
             }
         >
-            <Head title="契約グループを作成" />
+            <Head title={PageConfig.contractGroups.pages.create.title} />
             <FlashMessage />
 
             <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">

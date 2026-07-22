@@ -1,7 +1,6 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
@@ -13,9 +12,7 @@ import {
     InputError,
 } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-// Icons
 import { ArrowLeftIcon, CheckIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Create() {

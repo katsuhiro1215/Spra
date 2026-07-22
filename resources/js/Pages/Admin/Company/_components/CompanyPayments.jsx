@@ -44,10 +44,10 @@ export default function CompanyPayments({ payments = [] }) {
             pending: { text: "保留中", variant: "warning" },
             completed: { text: "完了", variant: "success" },
             failed: { text: "失敗", variant: "danger" },
-            refunded: { text: "返金済み", variant: "neutral" },
-            cancelled: { text: "キャンセル", variant: "neutral" },
+            refunded: { text: "返金済み", variant: "secondary" },
+            cancelled: { text: "キャンセル", variant: "secondary" },
         };
-        return badges[status] || { text: status, variant: "neutral" };
+        return badges[status] || { text: status, variant: "secondary" };
     };
 
     const getPaymentMethodLabel = (method) => {
@@ -146,11 +146,9 @@ export default function CompanyPayments({ payments = [] }) {
                             <h2 className="text-lg font-medium text-slate-900 dark:text-slate-100">
                                 決済一覧
                             </h2>
-                            <Badge
-                                text={`${payments.length}件`}
-                                variant="neutral"
-                                size="sm"
-                            />
+                            <Badge variant="secondary" size="sm">
+                                {payments.length}件
+                            </Badge>
                         </div>
                     </div>
                 </CardHeader>
@@ -245,10 +243,18 @@ export default function CompanyPayments({ payments = [] }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Badge
-                                                    {...getStatusBadge(
-                                                        payment.status,
-                                                    )}
-                                                />
+                                                    variant={
+                                                        getStatusBadge(
+                                                            payment.status,
+                                                        ).variant
+                                                    }
+                                                >
+                                                    {
+                                                        getStatusBadge(
+                                                            payment.status,
+                                                        ).text
+                                                    }
+                                                </Badge>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                                                 {payment.confirmed_at ? (

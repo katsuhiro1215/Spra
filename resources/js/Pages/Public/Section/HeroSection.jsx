@@ -10,64 +10,51 @@ import {
     CalculatorIcon,
 } from "@heroicons/react/24/outline";
 
-export default function HeroSection() {
-    const titleRef = useRef(null);
-    const subtitleRef = useRef(null);
-    const buttonRef = useRef(null);
+// スライドショー用のデフォルト画像
+const DEFAULT_HERO_IMAGES = [
+    "/upload/test1.jpg",
+    "/upload/test2.jpg",
+    "/upload/test3.jpg",
+];
+
+export default function HeroSection({ images }) {
     const particlesRef = useRef([]);
     const imageRefs = useRef([]);
     const imageContainerRef = useRef(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    // タイトル/サブタイトル/ボタンの初期表示はCSSトランジションで行う。
+    // GSAPの delay 付き gsap.from() は、途中で何らかの要因（HMR再実行・
+    // 裏タブ化によるrAFスロットリング等）に中断されると、要素が
+    // opacity:0付近で固まって永久に見えなくなるリスクがあるため避ける。
+    const [entered, setEntered] = useState(false);
 
-    // スライドショー用の画像
-    const heroImages = [
-        "/upload/test1.jpg",
-        "/upload/test2.jpg",
-        "/upload/test3.jpg",
-    ];
+    const heroImages =
+        Array.isArray(images) && images.length > 0 ? images : DEFAULT_HERO_IMAGES;
 
     useEffect(() => {
-        // テキストアニメーション
-        gsap.from(titleRef.current, {
-            y: 40,
-            opacity: 0,
-            duration: 1.2,
-            ease: "power3.out",
-        });
+        const raf = requestAnimationFrame(() => setEntered(true));
 
-        gsap.from(subtitleRef.current, {
-            y: 30,
-            opacity: 0,
-            duration: 1.2,
-            delay: 0.2,
-            ease: "power3.out",
-        });
-
-        gsap.from(buttonRef.current, {
-            scale: 0.9,
-            opacity: 0,
-            duration: 0.8,
-            delay: 0.4,
-            ease: "back.out(1.7)",
-        });
-
-        // パーティクルアニメーション
-        particlesRef.current.forEach((p, i) => {
-            gsap.fromTo(
-                p,
-                { y: 30, opacity: 0, scale: 0.6 },
-                {
-                    y: -30,
-                    opacity: 1,
-                    scale: 1,
-                    duration: 3,
-                    delay: i * 0.4,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "power1.inOut",
-                }
-            );
+        // gsap.context() で作成したtweenをまとめて管理し、
+        // エフェクトの再実行・アンマウント時に確実にkill/リバートする
+        const ctx = gsap.context(() => {
+            // パーティクルアニメーション
+            particlesRef.current.forEach((p, i) => {
+                gsap.fromTo(
+                    p,
+                    { y: 30, opacity: 0, scale: 0.6 },
+                    {
+                        y: -30,
+                        opacity: 1,
+                        scale: 1,
+                        duration: 3,
+                        delay: i * 0.4,
+                        repeat: -1,
+                        yoyo: true,
+                        ease: "power1.inOut",
+                    }
+                );
+            });
         });
 
         // 画像スライドショー
@@ -75,7 +62,11 @@ export default function HeroSection() {
             setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
         }, 4000);
 
-        return () => clearInterval(slideInterval);
+        return () => {
+            cancelAnimationFrame(raf);
+            ctx.revert();
+            clearInterval(slideInterval);
+        };
     }, []);
 
     // マウスムーブで3D効果を動的に変更
@@ -141,8 +132,11 @@ export default function HeroSection() {
                 {/* Left */}
                 <div className="max-w-xl space-y-6">
                     <h1
-                        ref={titleRef}
-                        className="text-4xl md:text-5xl font-bold leading-tight"
+                        className={`text-4xl md:text-5xl font-bold leading-tight transform transition-all duration-[1200ms] ease-out ${
+                            entered
+                                ? "opacity-100 translate-y-0"
+                                : "opacity-0 translate-y-10"
+                        }`}
                     >
                         Grow Smart.
                         <span className="block text-green-600">
@@ -150,16 +144,24 @@ export default function HeroSection() {
                         </span>
                     </h1>
                     <p
-                        ref={subtitleRef}
-                        className="text-gray-600 text-lg leading-relaxed"
+                        className={`text-gray-600 text-lg leading-relaxed transform transition-all duration-[1200ms] delay-[200ms] ease-out ${
+                            entered
+                                ? "opacity-100 translate-y-0"
+                                : "opacity-0 translate-y-8"
+                        }`}
                     >
                         Smart
                         Sproutsは、あなたのビジネスを次の成長ステージへ導くデジタルパートナーです。
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <div
+                        className={`flex flex-col sm:flex-row gap-4 pt-4 transform transition-all duration-[800ms] delay-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                            entered
+                                ? "opacity-100 scale-100"
+                                : "opacity-0 scale-90"
+                        }`}
+                    >
                         <Link
-                            href="/#service"
-                            ref={buttonRef}
+                            href="/service"
                             className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                         >
                             サービスを見る

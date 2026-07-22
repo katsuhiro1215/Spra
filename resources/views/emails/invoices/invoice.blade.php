@@ -117,13 +117,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <p>{{ $invoice->user->name }} 様</p>
+            <p>{{ $invoice->user->profile?->full_name ?? $invoice->user->email }} 様</p>
             <p>いつも大変お世話になっております。{{ config('app.name') }}です。</p>
         </div>
 
         <div class="content">
+            <p>請求書を送付しました。添付しているPDFまたはWebよりご確認ください。</p>
             <p>{{ $invoice->issue_date->format('Y年m月') }}分のご請求書をお送りいたします。</p>
-            <p>下記の内容をご確認ください。</p>
 
             <h2>ご請求書の内容</h2>
 
@@ -206,7 +206,7 @@
                 <p style="margin-top: 0; font-size: 16px; font-weight: 600; color: #1f2937;">
                     ご請求書の詳細をご確認ください
                 </p>
-                <a href="{{ route('user.invoices.show', ['id' => $invoice->id]) }}" class="cta-button">
+                <a href="{{ route('user.invoice.show', $invoice->id) }}" class="cta-button">
                     ご請求書を確認する
                 </a>
             </div>
@@ -214,6 +214,18 @@
             <h2>お支払い方法</h2>
             <p>ご請求書に記載の銀行口座へお振込みください。</p>
             <p>お振込み手数料は恐れ入りますがご負担くださいますようお願いいたします。</p>
+
+            @if ($invoice->payment_report_token)
+                <div class="cta-section" style="background-color: #dcfce7;">
+                    <p style="margin-top: 0; font-size: 16px; font-weight: 600; color: #1f2937;">
+                        入金した場合は以下より有無をお知らせください。
+                    </p>
+                    <a href="{{ route('invoice.payment.show', $invoice->payment_report_token) }}"
+                        class="cta-button" style="background-color: #16a34a;">
+                        入金を報告する
+                    </a>
+                </div>
+            @endif
 
             <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
         </div>

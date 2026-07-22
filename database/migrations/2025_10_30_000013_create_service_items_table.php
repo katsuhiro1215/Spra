@@ -24,6 +24,11 @@ return new class extends Migration
             // 項目タイプ
             $table->enum('item_type', ['plan_base', 'included', 'optional', 'addon'])->default('included');
 
+            // 契約特典（将来拡張用）
+            $table->string('benefit_type')->nullable()->comment('契約特典の種類: meeting等（将来拡張用）');
+            $table->unsignedInteger('benefit_ticket_count')->nullable()->comment('この項目1単位が付与するチケット枚数');
+            $table->unsignedInteger('benefit_unit_minutes')->nullable()->comment('チケット1枚あたりの時間（分）');
+
             // 価格
             $table->decimal('standard_price', 12, 2)->default(0);
             $table->decimal('internal_cost', 12, 2)->default(0);

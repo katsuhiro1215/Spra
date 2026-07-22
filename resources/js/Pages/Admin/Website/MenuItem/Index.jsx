@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm, router, Link } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
 import Pagination from "@/Components/Layout/Pagination";
-// Icons
 import {
     PlusIcon,
     FunnelIcon,
     ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-// MenuItem Components
 import MenuItemsTable from "./_components/MenuItemsTable";
 
 export default function Index({

@@ -34,6 +34,7 @@ class ContractVersion extends Model
         'terms_and_conditions',
         'special_provisions',
         'notes',
+        'custom_specifications',
         'base_amount',
         'discount_amount',
         'tax_rate',

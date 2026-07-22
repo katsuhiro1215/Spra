@@ -1,13 +1,9 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layout
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon, TagIcon, EyeIcon } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
 
 const BlogCategoryEdit = ({ category }) => {

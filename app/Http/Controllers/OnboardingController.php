@@ -13,7 +13,8 @@ class OnboardingController extends Controller
    */
   public function show(string $token)
   {
-    $quoteResponse = QuoteResponse::where('token', $token)
+    $quoteResponse = QuoteResponse::with('quote.currentVersion')
+      ->where('token', $token)
       ->where('responded_at', '!=', null)
       ->firstOrFail();
 
@@ -28,7 +29,7 @@ class OnboardingController extends Controller
         'email' => $quoteResponse->email,
         'quote' => [
           'title' => $quoteResponse->quote->title,
-          'total_amount' => $quoteResponse->quote->total_amount,
+          'total_amount' => $quoteResponse->quote->currentVersion?->total_amount ?? 0,
         ],
       ],
     ]);

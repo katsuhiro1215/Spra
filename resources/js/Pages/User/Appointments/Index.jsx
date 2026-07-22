@@ -69,6 +69,8 @@ export default function Index({ appointments }) {
             }
         >
             <Head title="予約" />
+
+            {/* フラッシュメッセージ */}
             <FlashMessage />
 
             <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 py-8 space-y-4">
@@ -89,9 +91,7 @@ export default function Index({ appointments }) {
                                     予約はまだありません
                                 </p>
                                 <Link href={route("user.appointments.create")}>
-                                    <PrimaryButton>
-                                        予約する
-                                    </PrimaryButton>
+                                    <PrimaryButton>予約する</PrimaryButton>
                                 </Link>
                             </div>
                         </CardBody>

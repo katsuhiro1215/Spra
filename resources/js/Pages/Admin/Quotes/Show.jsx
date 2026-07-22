@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Head } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card } from "@/Components/Card";
 import { TextButton } from "@/Components/Buttons";
-// Icons
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -14,9 +12,7 @@ import {
     DocumentTextIcon,
     PlusIcon,
 } from "@heroicons/react/24/outline";
-// Constants
 import { PageConfig } from "@/Constants/PageConfig";
-// Quote Components
 import QuoteBasicInfo from "./_components/QuoteBasicInfo";
 import QuoteItems from "./_components/QuoteItems";
 import QuoteAmount from "./_components/QuoteAmount";
@@ -45,7 +41,7 @@ export default function Show({ quote, statuses }) {
 
     const headerActions = [
         {
-            label: "戻る",
+            label: PageConfig.quotes.actions.back,
             icon: ArrowLeftIcon,
             variant: "ghost",
             route: route("admin.quote.index"),
@@ -53,9 +49,8 @@ export default function Show({ quote, statuses }) {
     ];
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "見積もり一覧", href: route("admin.quote.index") },
-        { label: quote.quote_number, href: null },
+        ...PageConfig.quotes.breadcrumbs,
+        quote.quote_number,
     ];
 
     return (

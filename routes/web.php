@@ -1,58 +1,71 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Public\AppointmentController;
 use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
+use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\ServiceController;
+use App\Http\Controllers\Public\FaqController;
+use App\Http\Controllers\Public\PageController;
+use App\Http\Controllers\Public\DocumentController;
+use App\Http\Controllers\Public\PostController;
+use App\Http\Controllers\Public\ContactController as PublicContactController;
+// User用コントローラー
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProjectController as UserProjectController;
+use App\Http\Controllers\User\NotificationController;
+use App\Http\Controllers\User\SecuritySettingsController;
 use App\Http\Controllers\User\ContractController;
-use App\Http\Controllers\User\InvoiceController;
 use App\Http\Controllers\User\ReceiptController;
+use App\Http\Controllers\User\PointController;
+use App\Http\Controllers\User\PointRedemptionController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
+use App\Http\Controllers\User\MediaController as UserMediaController;
 use App\Http\Controllers\User\CompanyController;
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\UserAddressController;
-use App\Http\Controllers\User\QuoteController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
+use App\Http\Controllers\User\CalendarController as UserCalendarController;
+use App\Http\Controllers\User\ContactController as UserContactController;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Public/Home', [
-        'canLogin' => Route::has('user.login'),
-        'canRegister' => Route::has('user.register'),
-    ]);
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
-Route::get('/service', fn() => Inertia::render('Public/Service'))->name('service');
-Route::get('/services/{slug}', fn($slug) => Inertia::render('Public/ServiceDetail', ['slug' => $slug]))->name('service.detail');
-Route::get('/blog', fn() => Inertia::render('Public/Blog'))->name('blog');
-Route::get('/blog/{slug}', fn($slug) => Inertia::render('Public/BlogDetail', ['slug' => $slug]))->name('blog.detail');
-Route::get('/faq', fn() => Inertia::render('Public/Faq'))->name('faq');
-Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
-Route::get('/company', fn() => Inertia::render('Public/Company'))->name('company');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::get('/privacy-policy', fn() => Inertia::render('Public/PrivacyPolicy'))->name('privacy.policy');
-Route::get('/documents/{slug}', function (string $slug) {
-    $document = \App\Models\Document::where('slug', $slug)->firstOrFail();
-    abort_unless($document->activeVersion, 404);
-
-    return Inertia::render('Public/Document', [
-        'document' => [
-            'title' => $document->title,
-            'description' => $document->description,
-            'content' => $document->activeVersion->content,
-            'version' => $document->activeVersion->version,
-            'effective_date' => $document->activeVersion->effective_date,
-        ],
+Route::get('/service', [ServiceController::class, 'index'])->name('service');
+Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('service.detail');
+Route::get('/blog', [PostController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [PostController::class, 'show'])->name('blog.detail');
+Route::get('/news', [PostController::class, 'newsIndex'])->name('news');
+Route::get('/news/{slug}', [PostController::class, 'show'])->name('news.detail');
+Route::get('/faq', [FaqController::class, 'show'])->name('faq');
+Route::get('/company', function () {
+    return Inertia::render('Public/Company', [
+        'histories' => \App\Models\OrganizationHistory::published()->ordered()->get(),
     ]);
-})->name('documents.show');
+})->name('company');
+Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
+Route::get('/privacy-policy', [DocumentController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/terms', [DocumentController::class, 'terms'])->name('terms');
+Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
+
+// // More public routes
+Route::get('/lp', fn() => Inertia::render('Public/LandingPage'))->name('landing.page');
+Route::get('/lp-minimal', fn() => Inertia::render('Public/LandingPageMinimal'))->name('landing.minimal');
+Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative'))->name('landing.creative');
 
 // Contact 送信
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
+
+// 無料相談予約（Public - ログイン不要、一般クライアント向け）
+Route::get('/consultation', [AppointmentController::class, 'create'])->name('consultation');
+Route::post('/consultation', [AppointmentController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('consultation.store');
 // 見積もりシミュレーター
 Route::get('/estimate-simulator', [EstimateSimulatorController::class, 'index'])->name('estimate.simulator');
 
@@ -61,6 +74,10 @@ Route::get('/quote-response/{token}', [QuoteResponseController::class, 'show'])-
 Route::post('/quote-response/{token}', [QuoteResponseController::class, 'store'])->name('quote.response.store');
 Route::get('/quote-response/{token}/register', [QuoteResponseController::class, 'registerShow'])->name('quote.response.register');
 Route::post('/quote-response/{token}/register', [QuoteResponseController::class, 'registerStore'])->name('quote.response.register.store');
+
+// 請求書メールからの入金報告（Public - ログイン不要）
+Route::get('/invoice-payment/{token}', [InvoicePaymentController::class, 'show'])->name('invoice.payment.show');
+Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store'])->name('invoice.payment.store');
 
 
 // Public routes - define authenticated routes FIRST before public routes
@@ -90,30 +107,37 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::get('/contracts/{id}/pdf', [ContractController::class, 'generatePdf'])->name('contract.pdf');
     Route::get('/contracts/{id}/pdf/preview', [ContractController::class, 'previewPdf'])->name('contract.pdf.preview');
 
-    // 請求書（クライアント向け） userを付与
-    Route::resource('/invoice', InvoiceController::class)->only(['index', 'show']);
-    Route::post('/invoice/{invoice}/payment-notification', [InvoiceController::class, 'storePaymentNotification'])->name('invoice.payment-notification.store');
-    Route::get('/invoice/{invoice}/receipt/download', [InvoiceController::class, 'downloadReceipt'])->name('invoice.receipt.download');
-    Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoice.pdf');
-    Route::get('/invoice/{invoice}/pdf/preview', [InvoiceController::class, 'previewPdf'])->name('invoice.pdf.preview');
+    /**************************************
+     * 請求書
+     **************************************/
+    require __DIR__ . '/user/invoice.php';
 
     // 領収書（クライアント向け）
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
     Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
+    Route::get('/receipt/{receipt}/pdf/preview', [ReceiptController::class, 'previewPdf'])->name('receipt.pdf.preview');
 
-    // 見積書（クライアント向け）
-    Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');
-    Route::get('/quotes/{id}', [QuoteController::class, 'show'])->name('quote.show');
-    Route::get('/quotes/{id}/pdf', [QuoteController::class, 'pdf'])->name('quote.pdf');
-    Route::post('/quotes/{id}/accept', [QuoteController::class, 'accept'])->name('quote.accept');
-    Route::post('/quotes/{id}/reject', [QuoteController::class, 'reject'])->name('quote.reject');
+    // ポイント（クライアント向け）
+    Route::get('/points', [PointController::class, 'index'])->name('points.index');
+
+    // ポイント交換（クライアント向け）
+    Route::get('/point-redemptions', [PointRedemptionController::class, 'index'])->name('point-redemptions.index');
+    Route::post('/point-redemptions', [PointRedemptionController::class, 'store'])->name('point-redemptions.store');
+
+    /**************************************
+     * 見積もり
+     **************************************/
+    require __DIR__ . '/user/quote.php';
 
     // 進捗状況（クライアント向け）
     Route::get('/progress', [UserProjectController::class, 'progress'])->name('progress.index');
 
     // 通知（クライアント向け）
-    Route::get('/notifications/{id}/read', [\App\Http\Controllers\User\NotificationController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/read-all', [\App\Http\Controllers\User\NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+    // メディア（プロフィール画像アップロード用）
+    Route::post('/media', [UserMediaController::class, 'store'])->name('media.store');
 
     // 設定（クライアント向け）
     Route::get('/settings', function () {
@@ -124,6 +148,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         // 個人情報（Profile）
         Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/attach-media', [UserProfileController::class, 'attachMedia'])->name('profile.attach-media');
+        Route::delete('/profile/detach-media', [UserProfileController::class, 'detachMedia'])->name('profile.detach-media');
 
         // 会社情報（Company）
         Route::get('/company', [CompanyController::class, 'edit'])->name('company.edit');
@@ -138,8 +164,8 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::put('/address', [UserAddressController::class, 'update'])->name('address.update');
 
         // セキュリティ（二段階認証）
-        Route::get('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'edit'])->name('security.edit');
-        Route::put('/security', [\App\Http\Controllers\User\SecuritySettingsController::class, 'update'])->name('security.update');
+        Route::get('/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
+        Route::put('/security', [SecuritySettingsController::class, 'update'])->name('security.update');
     });
 
     Route::get('/reservation-settings', function () {
@@ -148,6 +174,9 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::post('/reservation-settings', function () {
         return redirect()->back()->with('success', '予約設定を保存しました。');
     })->name('reservation.settings.store');
+
+    // カレンダー（自分の予定確認）
+    Route::get('/calendar', [UserCalendarController::class, 'index'])->name('calendar.index');
 
     // 予約（Adminとの面談予約）
     Route::prefix('appointments')->name('appointments.')->group(function () {
@@ -158,28 +187,31 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::put('/{appointment}', [UserAppointmentController::class, 'update'])->name('update');
         Route::post('/{appointment}/cancel', [UserAppointmentController::class, 'cancel'])->name('cancel');
     });
+
+    // お問い合わせ（公開用の /contact とURIが衝突しないよう /my プレフィックスを付与）
+    Route::prefix('my/contact')->name('contact.')->group(function () {
+        Route::get('/', [UserContactController::class, 'index'])->name('index');
+        Route::post('/', [UserContactController::class, 'send'])->name('send');
+    });
 });
+
+Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->name('estimate.simulator.save');
 
 // Public routes
 // Route::group(['prefix' => '', 'name' => 'public.'], function () {
-//     Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->middleware('auth:users')->name('estimate.simulator.save');
 //     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
 //     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
-//     Route::get('/terms', fn() => inertiaPublic('Terms'))->name('terms');
 
 //     // Onboarding (public, no auth required)
 //     Route::get('/onboarding/{token}', [OnboardingController::class, 'show'])->name('onboarding.show');
 //     Route::post('/onboarding/{token}', [OnboardingController::class, 'store'])->name('onboarding.store');
 // });
 
-// // More public routes
-// Route::name('public.')->prefix('/')->group(function () {
-//     Route::get('/lp', fn() => inertiaPublic('LandingPage'))->name('landing.page');
-//     Route::get('/lp-minimal', fn() => inertiaPublic('LandingPageMinimal'))->name('landing.minimal');
-//     Route::get('/lp-creative', fn() => inertiaPublic('LandingPageCreative'))->name('landing.creative');
-//     Route::get('/reservation', fn() => inertiaPublic('Reservation'))->name('reservation');
-//     Route::post('/reservation', fn() => redirect()->back()->with('success', '予約を受け付けました。確認メールをお送りしました。'))->name('reservation.store');
-// });
-
 // Auth routes
 require __DIR__ . '/auth.php';
+
+// 汎用固定ページ(Page + ブロックエディタ content)。他の具体的なルートに一致しない場合のフォールバック
+// 必ず他の全ルート（特に auth.php の /login, /register 等）より後に定義すること
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('page.show');

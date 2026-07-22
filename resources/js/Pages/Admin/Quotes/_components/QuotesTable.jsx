@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
-import { ShowButton, EditButton, DeleteButton } from "@/Components/Buttons";
+import { IconButton } from "@/Components/Buttons";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import {
@@ -12,17 +12,17 @@ import {
 } from "@heroicons/react/24/outline";
 
 const QuotesTable = ({ quotes, onDelete }) => {
-    // ステータスのバッジカラーを取得
-    const getQuoteStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            negotiating: "bg-blue-100 text-blue-800",
-            approved: "bg-green-100 text-green-800",
-            rejected: "bg-red-100 text-red-800",
-            contracted: "bg-emerald-100 text-emerald-800",
-            cancelled: "bg-gray-400 text-gray-700",
+    // ステータスのバッジバリアントを取得
+    const getQuoteStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            negotiating: "info",
+            approved: "success",
+            rejected: "danger",
+            contracted: "success",
+            cancelled: "secondary",
         };
-        return colors[status] || "bg-gray-100 text-gray-800";
+        return variants[status] || "secondary";
     };
 
     // ステータスのラベルを取得
@@ -84,7 +84,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                             "admin.quote.show",
                                             quote.id,
                                         )}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
+                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                                     >
                                         {quote.quote_number}
                                     </Link>
@@ -137,7 +137,7 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                 </Td>
                                 <Td>
                                     <Badge
-                                        className={getQuoteStatusColor(
+                                        variant={getQuoteStatusVariant(
                                             quote.status,
                                         )}
                                     >
@@ -165,47 +165,54 @@ const QuotesTable = ({ quotes, onDelete }) => {
                                     {formatDate(quote.created_at)}
                                 </Td>
                                 <Td>
-                                    <div className="flex justify-end space-x-2">
-                                        <Link
+                                    <div className="flex justify-end items-center gap-1">
+                                        <IconButton
+                                            variant="info-text"
+                                            icon={EyeIcon}
+                                            size="lg"
                                             href={route(
                                                 "admin.quote.show",
                                                 quote.id,
                                             )}
-                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                             title="詳細"
-                                        >
-                                            <EyeIcon className="h-5 w-5" />
-                                        </Link>
+                                        />
                                         {quote.status !== "approved" && (
-                                            <Link
+                                            <IconButton
+                                                variant="warning-text"
+                                                icon={PencilIcon}
+                                                size="lg"
                                                 href={route(
                                                     "admin.quote.edit",
                                                     quote.id,
                                                 )}
-                                                className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300"
                                                 title="編集"
-                                            >
-                                                <PencilIcon className="h-5 w-5" />
-                                            </Link>
+                                            />
                                         )}
-                                        <Link
-                                            href={route(
-                                                "admin.quote.pdf",
-                                                quote.id,
-                                            )}
-                                            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
-                                            title="PDFダウンロード"
-                                        >
-                                            <DocumentArrowDownIcon className="h-5 w-5" />
-                                        </Link>
+                                        <IconButton
+                                            variant="text"
+                                            icon={DocumentArrowDownIcon}
+                                            size="lg"
+                                            onClick={() =>
+                                                window.open(
+                                                    route(
+                                                        "admin.quote.pdf.preview",
+                                                        quote.id,
+                                                    ),
+                                                    "_blank",
+                                                )
+                                            }
+                                            title="PDFを確認・ダウンロード"
+                                        />
                                         {quote.status !== "approved" && (
-                                            <button
-                                                onClick={() => onDelete(quote)}
-                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                            <IconButton
+                                                variant="danger-text"
+                                                icon={TrashIcon}
+                                                size="lg"
+                                                onClick={() =>
+                                                    onDelete(quote)
+                                                }
                                                 title="削除"
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
+                                            />
                                         )}
                                     </div>
                                 </Td>

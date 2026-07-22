@@ -1,0 +1,82 @@
+import React from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+import PageHeader from "@/Components/Layout/PageHeader";
+import { FlashMessage } from "@/Components/Notifications";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PageConfig } from "@/Constants/PageConfig";
+import ServiceForm from "./_components/Form";
+
+export default function Create({ categories, technologies, mediaList }) {
+    const { data, setData, post, processing, errors } = useForm({
+        name: "",
+        slug: "",
+        service_category_id: "",
+        description: "",
+        details: "",
+        icon: "",
+        sort_order: 0,
+        status: "active",
+        is_displayed: true,
+        is_featured: false,
+        media_ids: [],
+        technology_ids: [],
+    });
+
+    const submit = () => {
+        post(route("admin.service.store"));
+    };
+
+    // ========================================
+    // Constants - Header Actions
+    // ========================================
+    const headerActions = [
+        {
+            label: PageConfig.services.actions.back,
+            icon: ArrowLeftIcon,
+            variant: "ghost",
+            route: route("admin.service.index"),
+        },
+    ];
+
+    // ========================================
+    // Constants - Breadcrumbs
+    // ========================================
+    const breadcrumbs = [
+        ...PageConfig.services.breadcrumbs,
+        PageConfig.services.pages.create.breadcrumb,
+    ];
+
+    return (
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title={PageConfig.services.pages.create.title}
+                    description={PageConfig.services.pages.create.description}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
+            <Head title={PageConfig.services.pages.create.documentTitle} />
+
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+
+            <div className="max-w-7xl">
+                <ServiceForm
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    processing={processing}
+                    onSubmit={submit}
+                    cancelRoute={route("admin.service.index")}
+                    categories={categories}
+                    technologies={technologies}
+                    mediaList={mediaList}
+                    isEdit={false}
+                />
+            </div>
+        </AdminAuthenticatedLayout>
+    );
+}

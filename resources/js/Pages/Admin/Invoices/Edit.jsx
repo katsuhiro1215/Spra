@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
 import InvoiceForm from "./_components/Form";
 
 export default function Edit({
@@ -11,6 +12,7 @@ export default function Edit({
     users,
     companies,
     statuses,
+    remainingAmount = null,
 }) {
     const { data, setData, put, processing, errors } = useForm({
         contract_id: invoice.contract_id || "",
@@ -22,7 +24,7 @@ export default function Edit({
         due_date: invoice.due_date || "",
         status: invoice.status || "draft",
         subtotal: invoice.subtotal || 0,
-        tax_rate: invoice.tax_rate || 0.1,
+        tax_rate: invoice.tax_rate || 10,
         tax_amount: invoice.tax_amount || 0,
         total_amount: invoice.total_amount || 0,
         notes: invoice.notes || "",
@@ -33,9 +35,9 @@ export default function Edit({
     };
 
     const breadcrumbs = [
-        { label: "ダッシュボード", href: "/admin/dashboard" },
-        { label: "請求書一覧", href: route("admin.invoice.index") },
-        { label: "請求書編集", href: null },
+        ...PageConfig.invoices.breadcrumbs,
+        invoice.invoice_number || invoice.id.substring(0, 8),
+        PageConfig.invoices.pages.edit.breadcrumb,
     ];
 
     return (
@@ -65,6 +67,7 @@ export default function Edit({
                     contracts={contracts}
                     users={users}
                     companies={companies}
+                    remainingAmount={remainingAmount}
                 />
             </div>
         </AdminAuthenticatedLayout>

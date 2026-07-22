@@ -6,7 +6,6 @@ import {
     SelectInput,
     TextArea,
     Checkbox,
-    InputError,
 } from "@/Components/Forms";
 import { StoreButton, SecondaryButton } from "@/Components/Buttons";
 import { Core as YubinBango } from "yubinbango-core2";
@@ -128,7 +127,12 @@ export default function AddressForm({
                         <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                             {/* 住所タイプ */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="住所タイプ" required>
+                                <FormGroup
+                                    label="住所タイプ"
+                                    htmlFor="type"
+                                    required
+                                    error={errors.type || localErrors.type}
+                                >
                                     <SelectInput
                                         id="type"
                                         name="type"
@@ -139,18 +143,16 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("type")}
                                         options={typeOptions}
                                     />
-                                    <InputError
-                                        message={
-                                            errors.type || localErrors.type
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* ラベル */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="ラベル">
+                                <FormGroup
+                                    label="ラベル"
+                                    htmlFor="label"
+                                    error={errors.label || localErrors.label}
+                                >
                                     <TextInput
                                         id="label"
                                         name="label"
@@ -161,18 +163,20 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("label")}
                                         placeholder="本社オフィス"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.label || localErrors.label
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 郵便番号 */}
                             <div className="sm:col-span-2">
-                                <FormGroup label="郵便番号" required>
+                                <FormGroup
+                                    label="郵便番号"
+                                    htmlFor="postal_code"
+                                    required
+                                    error={
+                                        errors.postal_code ||
+                                        localErrors.postal_code
+                                    }
+                                >
                                     <div className="flex gap-2">
                                         <TextInput
                                             id="postal_code"
@@ -201,19 +205,20 @@ export default function AddressForm({
                                             自動取得
                                         </SecondaryButton>
                                     </div>
-                                    <InputError
-                                        message={
-                                            errors.postal_code ||
-                                            localErrors.postal_code
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 都道府県 */}
                             <div className="sm:col-span-2">
-                                <FormGroup label="都道府県" required>
+                                <FormGroup
+                                    label="都道府県"
+                                    htmlFor="prefecture"
+                                    required
+                                    error={
+                                        errors.prefecture ||
+                                        localErrors.prefecture
+                                    }
+                                >
                                     <SelectInput
                                         id="prefecture"
                                         name="prefecture"
@@ -227,19 +232,17 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("prefecture")}
                                         options={prefectureOptions}
                                     />
-                                    <InputError
-                                        message={
-                                            errors.prefecture ||
-                                            localErrors.prefecture
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 市区町村 */}
                             <div className="sm:col-span-2">
-                                <FormGroup label="市区町村" required>
+                                <FormGroup
+                                    label="市区町村"
+                                    htmlFor="city"
+                                    required
+                                    error={errors.city || localErrors.city}
+                                >
                                     <TextInput
                                         id="city"
                                         name="city"
@@ -250,18 +253,19 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("city")}
                                         placeholder="千代田区"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.city || localErrors.city
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 町域 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="町域">
+                                <FormGroup
+                                    label="町域"
+                                    htmlFor="district"
+                                    error={
+                                        errors.district ||
+                                        localErrors.district
+                                    }
+                                >
                                     <TextInput
                                         id="district"
                                         name="district"
@@ -272,19 +276,19 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("district")}
                                         placeholder="千代田"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.district ||
-                                            localErrors.district
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 番地・建物名 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="番地・建物名">
+                                <FormGroup
+                                    label="番地・建物名"
+                                    htmlFor="address_other"
+                                    error={
+                                        errors.address_other ||
+                                        localErrors.address_other
+                                    }
+                                >
                                     <TextInput
                                         id="address_other"
                                         name="address_other"
@@ -300,19 +304,16 @@ export default function AddressForm({
                                         }
                                         placeholder="1-1-1 〇〇ビル3F"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.address_other ||
-                                            localErrors.address_other
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 電話番号 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="電話番号">
+                                <FormGroup
+                                    label="電話番号"
+                                    htmlFor="phone"
+                                    error={errors.phone || localErrors.phone}
+                                >
                                     <TextInput
                                         id="phone"
                                         name="phone"
@@ -323,18 +324,19 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("phone")}
                                         placeholder="03-1234-5678"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.phone || localErrors.phone
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 担当者名 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="担当者名">
+                                <FormGroup
+                                    label="担当者名"
+                                    htmlFor="contact_person"
+                                    error={
+                                        errors.contact_person ||
+                                        localErrors.contact_person
+                                    }
+                                >
                                     <TextInput
                                         id="contact_person"
                                         name="contact_person"
@@ -350,19 +352,16 @@ export default function AddressForm({
                                         }
                                         placeholder="山田 太郎"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.contact_person ||
-                                            localErrors.contact_person
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 備考 */}
                             <div className="sm:col-span-6">
-                                <FormGroup label="備考">
+                                <FormGroup
+                                    label="備考"
+                                    htmlFor="notes"
+                                    error={errors.notes || localErrors.notes}
+                                >
                                     <TextArea
                                         id="notes"
                                         name="notes"
@@ -374,18 +373,19 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("notes")}
                                         placeholder="備考を入力してください..."
                                     />
-                                    <InputError
-                                        message={
-                                            errors.notes || localErrors.notes
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 緯度 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="緯度">
+                                <FormGroup
+                                    label="緯度"
+                                    htmlFor="latitude"
+                                    error={
+                                        errors.latitude ||
+                                        localErrors.latitude
+                                    }
+                                >
                                     <TextInput
                                         id="latitude"
                                         name="latitude"
@@ -398,19 +398,19 @@ export default function AddressForm({
                                         onBlur={() => handleBlur("latitude")}
                                         placeholder="35.6812"
                                     />
-                                    <InputError
-                                        message={
-                                            errors.latitude ||
-                                            localErrors.latitude
-                                        }
-                                        className="mt-2"
-                                    />
                                 </FormGroup>
                             </div>
 
                             {/* 経度 */}
                             <div className="sm:col-span-3">
-                                <FormGroup label="経度">
+                                <FormGroup
+                                    label="経度"
+                                    htmlFor="longitude"
+                                    error={
+                                        errors.longitude ||
+                                        localErrors.longitude
+                                    }
+                                >
                                     <TextInput
                                         id="longitude"
                                         name="longitude"
@@ -422,13 +422,6 @@ export default function AddressForm({
                                         }
                                         onBlur={() => handleBlur("longitude")}
                                         placeholder="139.7671"
-                                    />
-                                    <InputError
-                                        message={
-                                            errors.longitude ||
-                                            localErrors.longitude
-                                        }
-                                        className="mt-2"
                                     />
                                 </FormGroup>
                             </div>

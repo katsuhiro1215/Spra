@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePaymentNotificationRequest;
+use App\Http\Requests\StoreClientPaymentRequest;
+use App\Models\Admin;
 use App\Models\Invoice;
+use App\Notifications\PaymentReported;
 use App\Services\InvoiceService;
+use App\Services\PaymentService;
 use App\Services\ReceiptService;
 use App\Support\PdfFontRegistrar;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +24,7 @@ class InvoiceController extends Controller
   public function __construct(
     private InvoiceService $service,
     private ReceiptService $receiptService,
+    private PaymentService $paymentService,
   ) {}
 
   public function index(Request $request): Response
@@ -48,20 +53,28 @@ class InvoiceController extends Controller
   }
 
   /**
-   * 入金通知を作成
+   * 入金報告を作成
+   * 確認待ち(pending)のPaymentとして登録し、Adminの確認によってcompletedへ更新される
    */
-  public function storePaymentNotification(Invoice $invoice, StorePaymentNotificationRequest $request): RedirectResponse
+  public function storePayment(Invoice $invoice, StoreClientPaymentRequest $request): RedirectResponse
   {
     $userId = auth('users')->id();
 
     // ユーザーが自分の請求書に対してのみ操作可能
     abort_unless($invoice->user_id === $userId, 403);
 
-    // 支払い通知を作成
-    $this->receiptService->createPaymentNotification($invoice, $request->validated());
+    $payment = $this->paymentService->create([
+      'invoice_id' => $invoice->id,
+      'company_id' => $invoice->company_id,
+      ...$request->validated(),
+      'status' => 'pending',
+    ]);
+
+    // Adminへ入金報告を通知
+    Notification::send(Admin::all(), new PaymentReported($payment));
 
     return redirect()->route('user.invoice.show', $invoice->id)
-      ->with('success', '入金通知を送信しました。管理者の確認をお待ちください。');
+      ->with('success', '入金報告を送信しました。管理者の確認をお待ちください。');
   }
 
   /**

@@ -405,20 +405,23 @@ export default function Show({
         {
             label: "プロジェクト詳細に戻る",
             icon: ArrowLeftIcon,
-            variant: "secondary",
+            variant: "ghost",
             route: route("admin.project.show", project.id),
         },
     ];
 
     return (
-        <AdminAuthenticatedLayout breadcrumbs={breadcrumbs}>
+        <AdminAuthenticatedLayout
+            header={
+                <PageHeader
+                    title="ガントチャート"
+                    description={project.title}
+                    actions={headerActions}
+                    breadcrumbs={breadcrumbs}
+                />
+            }
+        >
             <Head title={`${project.title} - ガントチャート`} />
-
-            <PageHeader
-                title="ガントチャート"
-                description={project.title}
-                actions={headerActions}
-            />
 
             <div className="h-[calc(100vh-280px)] flex flex-col">
                 {/* ツールバー */}

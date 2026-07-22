@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
+use App\Notifications\PaymentConfirmed;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -90,6 +91,35 @@ class PaymentController extends Controller
     }
 
     /**
+     * 入金報告(pending)を確認し、確定(completed)にする
+     * 請求額に達していれば請求書のステータス更新・領収書の下書き作成までPaymentServiceが行う
+     * (領収書の送信は行わない。内容を確認してから領収書詳細画面で送信する)
+     */
+    public function confirm(Payment $payment): RedirectResponse
+    {
+        if ($payment->status !== 'pending') {
+            return back()->with('error', __('messages.payment.not_awaiting_confirmation'));
+        }
+
+        $wasReceiptIssued = (bool) $payment->invoice?->receipt;
+
+        $confirmed = $this->service->confirm($payment, auth('admins')->id());
+
+        $confirmed->invoice?->user?->notify(new PaymentConfirmed($confirmed));
+
+        // 請求額に達した場合、PaymentService::confirm() が領収書を下書きとして作成済み
+        // 内容を確認してから送信できるよう、領収書詳細画面へ遷移する
+        $invoice = $confirmed->invoice?->fresh('receipt');
+        if ($invoice?->receipt && !$wasReceiptIssued) {
+            return redirect()
+                ->route('admin.receipt.show', $invoice->receipt->id)
+                ->with('success', __('messages.invoice.payment_confirmed_receipt_created'));
+        }
+
+        return back()->with('success', __('messages.confirmed', ['attribute' => '入金']));
+    }
+
+    /**
      * 支払い削除
      */
     public function destroy(Payment $payment): RedirectResponse
@@ -98,6 +128,6 @@ class PaymentController extends Controller
         $this->service->delete($payment);
 
         return redirect()->route('admin.invoice.show', $invoiceId)
-            ->with('success', '入金記録を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '入金記録']));
     }
 }

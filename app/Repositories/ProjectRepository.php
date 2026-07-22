@@ -17,7 +17,7 @@ class ProjectRepository implements ProjectRepositoryInterface
 
   public function findById(string $id): ?Project
   {
-    return Project::with(['user', 'company', 'admin', 'milestones', 'contracts'])->find($id);
+    return Project::with(['user', 'company', 'admins.profile', 'milestones', 'contracts', 'technologies'])->find($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Project
@@ -30,6 +30,8 @@ class ProjectRepository implements ProjectRepositoryInterface
           ->whereHas('projectVersion', fn($v) => $v->where('is_current', true)),
         'updates' => fn($q) => $q->clientVisible(),
         'contract',
+        'technologies',
+        'admins.profile.media',
         'currentVersion.items' => fn($q) => $q->where('is_client_visible', true)->orderBy('sort_order'),
         'currentVersion.items.assignee.profile',
       ])
@@ -38,7 +40,7 @@ class ProjectRepository implements ProjectRepositoryInterface
 
   public function findWithFilters(array $filters): Builder
   {
-    $query = Project::query()->with(['user', 'company', 'admin']);
+    $query = Project::query()->with(['user', 'company', 'admins.profile']);
 
     if (!empty($filters['search'])) {
       $search = $filters['search'];
@@ -61,7 +63,7 @@ class ProjectRepository implements ProjectRepositoryInterface
     }
 
     if (!empty($filters['admin_id'])) {
-      $query->where('admin_id', $filters['admin_id']);
+      $query->whereHas('admins', fn($q) => $q->where('admins.id', $filters['admin_id']));
     }
 
     return $query;
@@ -79,6 +81,7 @@ class ProjectRepository implements ProjectRepositoryInterface
       ->with([
         'milestones' => fn($q) => $q->where('is_client_visible', true)
           ->whereHas('projectVersion', fn($v) => $v->where('is_current', true)),
+        'admins.profile.media',
       ]);
 
     if (!empty($filters['status'])) {

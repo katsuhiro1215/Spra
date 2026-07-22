@@ -115,9 +115,9 @@ class ReceiptController extends Controller
     }
 
     return Inertia::render('Admin/Receipts/Create', [
-      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount']),
+      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount', 'status', 'invoice_type']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
       'statuses'  => Receipt::STATUSES,
       'invoice'   => $invoice,
       'payment'   => $payment,
@@ -156,13 +156,16 @@ class ReceiptController extends Controller
 
     $receipt = Receipt::create($validated);
 
-    // PDFを生成
-    if (in_array($receipt->status, ['issued', 'sent'])) {
+    // ステータスが「送付済み」で作成された場合、PDF生成に加えて実際にメール送信も行う
+    // (以前は生成のみでステータスだけ「送付済み」になり、実際には送られていなかった)
+    if ($receipt->status === 'sent') {
+      $this->service->sendReceipt($receipt);
+    } elseif ($receipt->status === 'issued') {
       $this->service->generateAndSavePdf($receipt);
     }
 
-    return redirect()->route('admin.receipts.show', $receipt->id)
-      ->with('success', '領収書を作成しました。');
+    return redirect()->route('admin.receipt.show', $receipt->id)
+      ->with('success', __('messages.created', ['attribute' => '領収書']));
   }
 
   /**
@@ -174,15 +177,15 @@ class ReceiptController extends Controller
 
     // 送付済みの領収書は編集不可
     if ($receipt->status === 'sent') {
-      return redirect()->route('admin.receipts.show', $receipt->id)
-        ->with('error', '送付済みの領収書は編集できません。');
+      return redirect()->route('admin.receipt.show', $receipt->id)
+        ->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
     return Inertia::render('Admin/Receipts/Edit', [
       'receipt'   => $receipt,
-      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount']),
+      'invoices'  => Invoice::where('status', 'paid')->orderBy('created_at', 'desc')->get(['id', 'invoice_number', 'user_id', 'company_id', 'total_amount', 'status', 'invoice_type']),
       'users'     => User::with('profile')->orderBy('email')->get(['id', 'email']),
-      'companies' => Company::orderBy('name')->get(['id', 'name']),
+      'companies' => Company::with('users.profile')->orderBy('name')->get(['id', 'name']),
       'statuses'  => Receipt::STATUSES,
     ]);
   }
@@ -196,7 +199,7 @@ class ReceiptController extends Controller
 
     // 送付済みの領収書は編集不可
     if ($receipt->status === 'sent') {
-      return back()->with('error', '送付済みの領収書は編集できません。');
+      return back()->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
     $validated = $request->validate([
@@ -216,15 +219,19 @@ class ReceiptController extends Controller
       $validated['issued_at'] = now();
     }
 
+    $wasSent = $receipt->status === 'sent';
+
     $receipt->update($validated);
 
-    // PDFを再生成
-    if (in_array($receipt->status, ['issued', 'sent']) && !$receipt->pdf_path) {
+    // ステータスが新たに「送付済み」になった場合は実際にメール送信も行う
+    if ($receipt->status === 'sent' && !$wasSent) {
+      $this->service->sendReceipt($receipt);
+    } elseif (in_array($receipt->status, ['issued', 'sent']) && !$receipt->pdf_path) {
       $this->service->generateAndSavePdf($receipt);
     }
 
-    return redirect()->route('admin.receipts.show', $receipt->id)
-      ->with('success', '領収書を更新しました。');
+    return redirect()->route('admin.receipt.show', $receipt->id)
+      ->with('success', __('messages.updated', ['attribute' => '領収書']));
   }
 
   /**
@@ -236,7 +243,7 @@ class ReceiptController extends Controller
 
     // 送付済みの領収書は削除不可
     if ($receipt->status === 'sent') {
-      return back()->with('error', '送付済みの領収書は削除できません。');
+      return back()->with('error', __('messages.receipt.delivered_cannot_delete'));
     }
 
     // PDFファイルも削除
@@ -246,8 +253,8 @@ class ReceiptController extends Controller
 
     $receipt->delete();
 
-    return redirect()->route('admin.receipts.index')
-      ->with('success', '領収書を削除しました。');
+    return redirect()->route('admin.receipt.index')
+      ->with('success', __('messages.deleted', ['attribute' => '領収書']));
   }
 
   /**
@@ -280,15 +287,15 @@ class ReceiptController extends Controller
     $receipt = Receipt::findOrFail($id);
 
     if ($receipt->status === 'sent') {
-      return back()->with('error', 'この領収書はすでに送付済みです。');
+      return back()->with('error', __('messages.receipt.already_delivered'));
     }
 
     try {
       $this->service->sendReceipt($receipt);
 
-      return back()->with('success', '領収書を送付しました。');
+      return back()->with('success', __('messages.delivered', ['attribute' => '領収書']));
     } catch (\Exception $e) {
-      return back()->with('error', '領収書の送付に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => '領収書の送付', 'message' => $e->getMessage()]));
     }
   }
 
@@ -298,7 +305,10 @@ class ReceiptController extends Controller
   private function generateReceiptNumber(): string
   {
     $year = date('Y');
-    $lastReceipt = Receipt::whereYear('created_at', $year)
+    // withTrashed: 論理削除された領収書の番号も含めて重複を避ける
+    // (receipt_number にはユニーク制約があるため、除外すると採番が衝突しうる)
+    $lastReceipt = Receipt::withTrashed()
+      ->whereYear('created_at', $year)
       ->orderBy('receipt_number', 'desc')
       ->first();
 

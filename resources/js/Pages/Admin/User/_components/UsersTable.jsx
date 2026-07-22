@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { Card, CardHeader } from "@/Components/Card";
+import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { getStatusBadge } from "@/Constants/Badges";
@@ -24,7 +24,6 @@ const UsersTable = ({ users, onDelete }) => {
 
     return (
         <Card>
-            <CardHeader>ユーザー一覧 ({users.total}件)</CardHeader>
             <Table>
                 <THead>
                     <Tr hover={false}>

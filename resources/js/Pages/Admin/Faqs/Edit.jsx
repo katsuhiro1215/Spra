@@ -1,12 +1,8 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-// Layouts
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
-// Components
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-// Icons
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-// Features
 import { FaqsConstants } from "@/Features/Homepage/Faqs/constants";
 
 export default function Edit({ faq, categories }) {

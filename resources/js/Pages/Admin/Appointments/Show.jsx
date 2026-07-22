@@ -121,6 +121,9 @@ export default function Show({ appointment }) {
                     {appointment.is_guest_booking && (
                         <Badge variant="warning">一般クライアント</Badge>
                     )}
+                    {appointment.source === "instagram" && (
+                        <Badge variant="info">Instagram</Badge>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

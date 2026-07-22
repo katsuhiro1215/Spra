@@ -1,12 +1,17 @@
 import React, { useState } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
-import UserAuthLayout from "@/Layouts/UserAuthLayout";
-import PageHeader from "@/Components/Layout/PageHeader";
-import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
+import { Head, useForm } from "@inertiajs/react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
+import {
+    UserCard,
+    UserCardHeader,
+    UserCardTitle,
+    UserCardBody,
+} from "@/Components/User";
+import { FlashMessage } from "@/Components/Notifications";
 import {
     SecondaryButton,
     PrimaryButton,
-    DangerButton,
 } from "@/Components/Buttons";
 import {
     ArrowDownTrayIcon,
@@ -29,15 +34,6 @@ export default function InvoiceShow({ invoice }) {
         transaction_id: "",
         notes: "",
     });
-
-    const statusColors = {
-        draft: "gray",
-        sent: "blue",
-        viewed: "indigo",
-        paid: "green",
-        overdue: "red",
-        cancelled: "gray",
-    };
 
     const statusLabels = {
         draft: "下書き",
@@ -71,9 +67,12 @@ export default function InvoiceShow({ invoice }) {
         }).format(amount || 0);
     };
 
-    const handleSubmitPaymentNotification = (e) => {
+    const formatDate = (date) =>
+        date ? new Date(date).toLocaleDateString("ja-JP") : "-";
+
+    const handleSubmitPayment = (e) => {
         e.preventDefault();
-        post(route("user.invoice.payment-notification.store", invoice.id), {
+        post(route("user.invoice.payments.store", invoice.id), {
             preserveScroll: true,
             onSuccess: () => {
                 setShowPaymentForm(false);
@@ -102,33 +101,34 @@ export default function InvoiceShow({ invoice }) {
         invoice.status !== "draft";
 
     return (
-        <UserAuthLayout>
-            <Head title={`請求書 ${invoice.invoice_number}`} />
-
-            <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 py-8">
-                <PageHeader
+        <AuthenticatedLayout
+            header={
+                <UserPageHeader
                     title={`請求書 ${invoice.invoice_number}`}
-                    description={`発行日: ${new Date(invoice.issue_date).toLocaleDateString("ja-JP")}`}
+                    description={`発行日: ${formatDate(invoice.issue_date)}`}
                     breadcrumbs={breadcrumbs}
                 />
+            }
+        >
+            <Head title={`請求書 ${invoice.invoice_number}`} />
 
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+
+            <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 py-8 space-y-6">
                 {/* ステータスとアクション */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3">
-                        <div
-                            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                                isPaid
-                                    ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
-                                    : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
-                            }`}
-                        >
-                            {isPaid && (
-                                <CheckCircleIcon className="h-4 w-4 inline mr-1" />
-                            )}
-                            {statusLabels[invoice.status]}
-                        </div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div
+                        className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-sm font-medium ${
+                            isPaid
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                        }`}
+                    >
+                        {isPaid && <CheckCircleIcon className="h-4 w-4 mr-1" />}
+                        {statusLabels[invoice.status]}
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                         <SecondaryButton
                             onClick={() =>
                                 window.open(
@@ -163,46 +163,44 @@ export default function InvoiceShow({ invoice }) {
                 </div>
 
                 {/* 請求書情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* 基本情報 */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>基本情報</CardTitle>
-                        </CardHeader>
-                        <CardBody>
+                    <UserCard>
+                        <UserCardHeader>
+                            <UserCardTitle>基本情報</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500">
                                         請求書番号
                                     </p>
-                                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <p className="text-lg font-semibold text-gray-900">
                                         {invoice.invoice_number}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500">
                                         発行日
                                     </p>
-                                    <p className="text-gray-900 dark:text-white">
-                                        {new Date(
-                                            invoice.issue_date,
-                                        ).toLocaleDateString("ja-JP")}
+                                    <p className="text-gray-900">
+                                        {formatDate(invoice.issue_date)}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500">
                                         契約内容
                                     </p>
-                                    <p className="text-gray-900 dark:text-white">
+                                    <p className="text-gray-900">
                                         {invoice.contract?.title}
                                     </p>
                                 </div>
                                 {invoice.invoice_type && (
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-500">
                                             請求区分
                                         </p>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-gray-900">
                                             {invoiceTypeLabels[
                                                 invoice.invoice_type
                                             ] || invoice.invoice_type}
@@ -212,59 +210,54 @@ export default function InvoiceShow({ invoice }) {
                                 {invoice.contract?.current_version
                                     ?.total_amount && (
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-500">
                                             契約金額（総額）
                                         </p>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-gray-900">
                                             {formatAmount(
-                                                invoice.contract
-                                                    .current_version
+                                                invoice.contract.current_version
                                                     .total_amount,
                                             )}
                                         </p>
                                     </div>
                                 )}
                             </div>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
 
                     {/* 支払い情報 */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>支払い情報</CardTitle>
-                        </CardHeader>
-                        <CardBody>
+                    <UserCard>
+                        <UserCardHeader>
+                            <UserCardTitle>支払い情報</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500">
                                         請求期間
                                     </p>
-                                    <p className="text-gray-900 dark:text-white">
-                                        {new Date(
+                                    <p className="text-gray-900">
+                                        {formatDate(
                                             invoice.billing_period_start,
-                                        ).toLocaleDateString("ja-JP")}{" "}
+                                        )}{" "}
                                         〜{" "}
-                                        {new Date(
-                                            invoice.billing_period_end,
-                                        ).toLocaleDateString("ja-JP")}
+                                        {formatDate(invoice.billing_period_end)}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500">
                                         お支払い期限
                                     </p>
-                                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                        {new Date(
-                                            invoice.due_date,
-                                        ).toLocaleDateString("ja-JP")}
+                                    <p className="text-lg font-semibold text-gray-900">
+                                        {formatDate(invoice.due_date)}
                                     </p>
                                 </div>
                                 {invoice.sent_at && (
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-500">
                                             送付日時
                                         </p>
-                                        <p className="text-sm text-gray-900 dark:text-white">
+                                        <p className="text-sm text-gray-900">
                                             {new Date(
                                                 invoice.sent_at,
                                             ).toLocaleString("ja-JP")}
@@ -272,31 +265,31 @@ export default function InvoiceShow({ invoice }) {
                                     </div>
                                 )}
                             </div>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 </div>
 
                 {/* 請求明細 */}
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle>請求明細</CardTitle>
-                    </CardHeader>
-                    <CardBody>
+                <UserCard>
+                    <UserCardHeader>
+                        <UserCardTitle>請求明細</UserCardTitle>
+                    </UserCardHeader>
+                    <UserCardBody>
                         {invoice.items && invoice.items.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="border-b border-gray-200 dark:border-gray-700">
-                                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                                        <tr className="border-b border-gray-200">
+                                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                                                 説明
                                             </th>
-                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white w-20">
+                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 w-20">
                                                 数量
                                             </th>
-                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white w-32">
+                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 w-32">
                                                 単価
                                             </th>
-                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white w-32">
+                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 w-32">
                                                 合計
                                             </th>
                                         </tr>
@@ -305,20 +298,20 @@ export default function InvoiceShow({ invoice }) {
                                         {invoice.items.map((item, index) => (
                                             <tr
                                                 key={index}
-                                                className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                                                className="border-b border-gray-100 hover:bg-gray-50"
                                             >
-                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                                                <td className="px-4 py-3 text-sm text-gray-900">
                                                     {item.description}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-sm text-gray-600 dark:text-gray-400">
+                                                <td className="px-4 py-3 text-right text-sm text-gray-600">
                                                     {item.quantity}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-sm text-gray-600 dark:text-gray-400">
+                                                <td className="px-4 py-3 text-right text-sm text-gray-600">
                                                     {formatAmount(
                                                         item.unit_price,
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-sm font-medium text-gray-900 dark:text-white">
+                                                <td className="px-4 py-3 text-right text-sm font-medium text-gray-900">
                                                     {formatAmount(item.amount)}
                                                 </td>
                                             </tr>
@@ -327,34 +320,32 @@ export default function InvoiceShow({ invoice }) {
                                 </table>
                             </div>
                         ) : (
-                            <p className="text-gray-500 dark:text-gray-400">
-                                明細はありません
-                            </p>
+                            <p className="text-gray-500">明細はありません</p>
                         )}
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
 
                 {/* 金額計算 */}
-                <Card className="mb-6">
-                    <CardBody>
+                <UserCard>
+                    <UserCardBody>
                         <div className="space-y-2 max-w-md ml-auto">
-                            <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                            <div className="flex justify-between text-gray-700">
                                 <span>小計:</span>
                                 <span>{formatAmount(invoice.subtotal)}</span>
                             </div>
                             {invoice.discount_amount > 0 && (
-                                <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                                <div className="flex justify-between text-gray-700">
                                     <span>割引:</span>
                                     <span>
                                         -{formatAmount(invoice.discount_amount)}
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                            <div className="flex justify-between text-gray-700">
                                 <span>消費税 ({invoice.tax_rate}%):</span>
                                 <span>{formatAmount(invoice.tax_amount)}</span>
                             </div>
-                            <div className="flex justify-between text-2xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-3">
+                            <div className="flex justify-between text-2xl font-bold text-gray-900 border-t border-gray-300 pt-3">
                                 <span>合計:</span>
                                 <span>
                                     {formatAmount(invoice.total_amount)}
@@ -362,15 +353,13 @@ export default function InvoiceShow({ invoice }) {
                             </div>
                             {invoice.paid_amount > 0 && !isPaid && (
                                 <>
-                                    <div className="flex justify-between text-green-700 dark:text-green-400">
+                                    <div className="flex justify-between text-green-700">
                                         <span>入金済み:</span>
                                         <span>
-                                            {formatAmount(
-                                                invoice.paid_amount,
-                                            )}
+                                            {formatAmount(invoice.paid_amount)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between font-semibold text-gray-900 dark:text-white">
+                                    <div className="flex justify-between font-semibold text-gray-900">
                                         <span>残額:</span>
                                         <span>
                                             {formatAmount(invoice.balance)}
@@ -379,21 +368,21 @@ export default function InvoiceShow({ invoice }) {
                                 </>
                             )}
                         </div>
-                    </CardBody>
-                </Card>
+                    </UserCardBody>
+                </UserCard>
 
                 {/* 備考 */}
                 {invoice.notes && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>備考</CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    <UserCard>
+                        <UserCardHeader>
+                            <UserCardTitle>備考</UserCardTitle>
+                        </UserCardHeader>
+                        <UserCardBody>
+                            <p className="text-gray-700 whitespace-pre-wrap">
                                 {invoice.notes}
                             </p>
-                        </CardBody>
-                    </Card>
+                        </UserCardBody>
+                    </UserCard>
                 )}
             </div>
 
@@ -403,16 +392,13 @@ export default function InvoiceShow({ invoice }) {
                 onClose={() => setShowPaymentForm(false)}
             >
                 <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         入金通知
                     </h3>
 
-                    <form
-                        onSubmit={handleSubmitPaymentNotification}
-                        className="space-y-4"
-                    >
+                    <form onSubmit={handleSubmitPayment} className="space-y-4">
                         <FormGroup>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 支払方法 <span className="text-red-500">*</span>
                             </label>
                             <SelectInput
@@ -434,7 +420,7 @@ export default function InvoiceShow({ invoice }) {
                         </FormGroup>
 
                         <FormGroup>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 金額 <span className="text-red-500">*</span>
                             </label>
                             <TextInput
@@ -450,7 +436,7 @@ export default function InvoiceShow({ invoice }) {
                         </FormGroup>
 
                         <FormGroup>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 支払い日 <span className="text-red-500">*</span>
                             </label>
                             <TextInput
@@ -465,7 +451,7 @@ export default function InvoiceShow({ invoice }) {
                         </FormGroup>
 
                         <FormGroup>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 トランザクションID
                             </label>
                             <TextInput
@@ -481,7 +467,7 @@ export default function InvoiceShow({ invoice }) {
                         </FormGroup>
 
                         <FormGroup>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 備考
                             </label>
                             <textarea
@@ -490,7 +476,7 @@ export default function InvoiceShow({ invoice }) {
                                     setData("notes", e.target.value)
                                 }
                                 placeholder="入金に関する追加情報があればお書きください"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows="3"
                             />
                             <InputError message={errors.notes} />
@@ -510,6 +496,6 @@ export default function InvoiceShow({ invoice }) {
                     </form>
                 </div>
             </Modal>
-        </UserAuthLayout>
+        </AuthenticatedLayout>
     );
 }

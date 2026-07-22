@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\OneTimePassword;
+use App\Services\TwoFactorTotpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,10 @@ use Inertia\Response;
 
 class TwoFactorChallengeController extends Controller
 {
+    public function __construct(
+        private TwoFactorTotpService $totp
+    ) {}
+
     /**
      * 認証コード入力画面を表示
      */
@@ -22,7 +27,13 @@ class TwoFactorChallengeController extends Controller
             return redirect()->route('admin.login');
         }
 
-        return Inertia::render('Admin/Auth/TwoFactorChallenge');
+        $pending = $request->session()->get('2fa_pending');
+        $admin = Admin::find($pending['id']);
+        abort_unless($admin, 419);
+
+        return Inertia::render('Admin/Auth/TwoFactorChallenge', [
+            'method' => $admin->twoFactorMethod(),
+        ]);
     }
 
     /**
@@ -40,7 +51,13 @@ class TwoFactorChallengeController extends Controller
         $admin = Admin::find($pending['id']);
         abort_unless($admin, 419);
 
-        if (!OneTimePassword::verifyFor($admin, $request->input('code'))) {
+        $code = trim($request->input('code'));
+
+        $verified = $admin->usesTotp()
+            ? ($this->totp->verify($admin->two_factor_secret, $code) || $admin->redeemRecoveryCode($code))
+            : OneTimePassword::verifyFor($admin, $code);
+
+        if (!$verified) {
             return back()->withErrors(['code' => '認証コードが正しくないか、有効期限が切れています。']);
         }
 
@@ -52,7 +69,7 @@ class TwoFactorChallengeController extends Controller
     }
 
     /**
-     * 認証コードを再送信する
+     * 認証コードを再送信する（メールOTP方式のみ）
      */
     public function resend(Request $request): RedirectResponse
     {
@@ -63,6 +80,10 @@ class TwoFactorChallengeController extends Controller
         $pending = $request->session()->get('2fa_pending');
         $admin = Admin::find($pending['id']);
         abort_unless($admin, 419);
+
+        if ($admin->usesTotp()) {
+            return back()->withErrors(['code' => '認証アプリ方式では再送信は利用できません。']);
+        }
 
         if (!OneTimePassword::canResendFor($admin)) {
             return back()->withErrors(['code' => 'しばらく待ってから再送信してください。']);
