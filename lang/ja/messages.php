@@ -352,6 +352,8 @@ return [
   // 勤怠
   'attendance' => [
     'record_corrected' => '勤怠記録を修正しました。',
+    'not_working' => '勤務中でないため休憩を開始できません。',
+    'not_on_break' => '休憩中でないため休憩を終了できません。',
   ],
 
   // 文書

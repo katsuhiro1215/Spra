@@ -54,8 +54,65 @@ class AttendanceService
             $record->clocked_in_at = $at;
         }
 
+        // 休憩中のまま退勤した場合は、その休憩を自動的に確定して合計時間に加算する
+        if ($record->status === 'on_break' && $record->break_started_at) {
+            $record->break_minutes += $record->break_started_at->diffInMinutes($at);
+            $record->break_started_at = null;
+        }
+
         $record->clocked_out_at = $at;
         $record->status = 'finished';
+        $record->updated_by = $admin->id;
+        $record->save();
+
+        return $record;
+    }
+
+    /**
+     * 休憩開始
+     *
+     * @throws \RuntimeException 勤務中でない場合
+     */
+    public function breakStart(Admin $admin, ?Carbon $at = null): AdminAttendanceRecord
+    {
+        $at ??= now();
+
+        $record = AdminAttendanceRecord::where('admin_id', $admin->id)
+            ->where('work_date', $at->format('Y-m-d'))
+            ->first();
+
+        if (!$record || $record->status !== 'working') {
+            throw new \RuntimeException(__('messages.attendance.not_working'));
+        }
+
+        $record->break_started_at = $at;
+        $record->status = 'on_break';
+        $record->updated_by = $admin->id;
+        $record->save();
+
+        return $record;
+    }
+
+    /**
+     * 休憩終了
+     *
+     * @throws \RuntimeException 休憩中でない場合
+     */
+    public function breakEnd(Admin $admin, ?Carbon $at = null): AdminAttendanceRecord
+    {
+        $at ??= now();
+
+        $record = AdminAttendanceRecord::where('admin_id', $admin->id)
+            ->where('work_date', $at->format('Y-m-d'))
+            ->first();
+
+        if (!$record || $record->status !== 'on_break' || !$record->break_started_at) {
+            throw new \RuntimeException(__('messages.attendance.not_on_break'));
+        }
+
+        $record->break_minutes += $record->break_started_at->diffInMinutes($at);
+        $record->break_started_at = null;
+        $record->status = 'working';
         $record->updated_by = $admin->id;
         $record->save();
 
@@ -70,13 +127,13 @@ class AttendanceService
     }
 
     /**
-     * 本日出勤中の管理者一覧を取得
+     * 本日出勤中（休憩中を含む）の管理者一覧を取得
      */
     public function getWorkingNow(): Collection
     {
         return AdminAttendanceRecord::with('admin.profile')
             ->where('work_date', now()->format('Y-m-d'))
-            ->currentlyWorking()
+            ->whereIn('status', ['working', 'on_break'])
             ->get();
     }
 
@@ -128,6 +185,7 @@ class AttendanceService
                     'admin_name' => $record->admin?->profile?->full_name ?? $record->admin?->email,
                     'clocked_in_at' => $record->clocked_in_at?->format('H:i'),
                     'clocked_out_at' => $record->clocked_out_at?->format('H:i'),
+                    'break_minutes' => $record->break_minutes,
                     'status' => $record->status,
                     'status_label' => AdminAttendanceRecord::getStatusLabel($record->status),
                 ])->values(),

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Admin\AdminAddressController;
+use App\Http\Controllers\Admin\Admin\AdminEmploymentController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\SecuritySettingsController;
 use App\Http\Controllers\Admin\AdminPermissionOverrideController;
@@ -75,6 +76,8 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
         Route::put('/{address}', 'update')->name('update');
         Route::delete('/{address}', 'destroy')->name('destroy');
     });
+    // 管理者の雇用条件・給与設定
+    Route::put('/admin/{admin}/employment', [AdminEmploymentController::class, 'update'])->name('admin.employment.update');
     // 個別Admin向けの追加権限制限（owner/super_adminのみ操作可、対象はadmin/editorロールに限る）
     // 表示データは管理者詳細画面（AdminController@show）側で合わせて渡す
     Route::put('/admin/{admin}/permission-overrides', [AdminPermissionOverrideController::class, 'update'])
@@ -93,6 +96,8 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      * ユーザー
      **************************************/
     // ユーザー管理
+    // ユーザー一覧のエクスポート（resourceのshowルートと競合しないよう先に登録する）
+    Route::get('/user/export', [UserController::class, 'export'])->name('user.export');
     Route::resource('user', UserController::class);
     // ユーザープロフィール管理
     Route::controller(UserProfileController::class)->prefix('user/{user}/profile')->name('user.profile.')->group(function () {
@@ -203,10 +208,12 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
 
     // Documents (規約・ヘルプ・APIドキュメント等) 管理
     Route::resource('documents', DocumentController::class)->except(['show']);
-    Route::post('/documents/{document}/versions', [DocumentController::class, 'createVersion'])->name('documents.versions.store');
-    Route::put('/documents/{document}/versions/{version}', [DocumentController::class, 'updateVersion'])->name('documents.versions.update');
-    Route::post('/documents/{document}/versions/{version}/activate', [DocumentController::class, 'activateVersion'])->name('documents.versions.activate');
-    Route::post('/documents/{document}/versions/{version}/revert-to-draft', [DocumentController::class, 'revertVersionToDraft'])->name('documents.versions.revertToDraft');
+    Route::controller(DocumentController::class)->group(function () {
+        Route::post('/documents/{document}/versions', 'createVersion')->name('documents.versions.store');
+        Route::put('/documents/{document}/versions/{version}', 'updateVersion')->name('documents.versions.update');
+        Route::post('/documents/{document}/versions/{version}/activate', 'activateVersion')->name('documents.versions.activate');
+        Route::post('/documents/{document}/versions/{version}/revert-to-draft', 'revertVersionToDraft')->name('documents.versions.revertToDraft');
+    });
 
     Route::post('/document-categories', [DocumentCategoryController::class, 'store'])->name('documentCategories.store');
     Route::put('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'update'])->name('documentCategories.update');
@@ -223,6 +230,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      * 勤怠管理
      **************************************/
     require __DIR__ . '/admin/attendance.php';
+
+    /**************************************
+     * 給与計算
+     **************************************/
+    require __DIR__ . '/admin/payroll.php';
 
     // 予約枠管理
     Route::prefix('appointment-slots')->name('appointment-slots.')->group(function () {

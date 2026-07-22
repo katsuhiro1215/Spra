@@ -256,7 +256,7 @@ export const getAdminNavigationItems = () => {
                 },
                 { name: "勤怠管理", href: "admin.attendance.index" },
                 { name: "シフト管理", href: "admin.attendance.shifts.index" },
-                // 今後給与管理などの管理者向け機能が追加される可能性があるため、子要素を追加する余地を残しておく
+                { name: "給与計算", href: "admin.payroll.index" },
             ],
         },
         // システム管理

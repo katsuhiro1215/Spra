@@ -23,6 +23,8 @@ return [
         'attendance.index',
         'attendance.clock-in',
         'attendance.clock-out',
+        'attendance.break-start',
+        'attendance.break-end',
         // 権限管理画面自体は isSuperAdmin() チェックで別途保護するため権限カタログの対象外にする
         'permissions.index',
         'permissions.update',

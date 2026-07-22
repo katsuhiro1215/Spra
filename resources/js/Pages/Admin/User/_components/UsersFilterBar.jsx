@@ -3,6 +3,7 @@ import { Button } from "@/Components/Buttons";
 import TabNavigation from "@/Components/TabNavigation";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
+import ExportMenu from "@/Components/ExportMenu";
 import { FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import { ADMIN_STATUS_OPTIONS } from "@/Constants/SelectOptions";
@@ -72,6 +73,11 @@ const UsersFilterBar = ({
                             </span>
                         )}
                     </Button>
+                </div>
+
+                {/* エクスポート（現在の絞り込み条件を引き継ぐ） */}
+                <div className="flex-shrink-0">
+                    <ExportMenu routeName="admin.user.export" filters={data} />
                 </div>
             </div>
 

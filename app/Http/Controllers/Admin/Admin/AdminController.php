@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreAdminRequest;
 use App\Http\Requests\Auth\UpdateAdminRequest;
 use App\Models\Admin;
+use App\Models\AdminEmployment;
 use App\Models\LoginLog;
 use App\Models\Media;
 use App\Services\AdminService;
@@ -80,7 +81,7 @@ class AdminController extends Controller
      */
     public function show(Request $request, Admin $admin): Response
     {
-        $admin->load(['profile.media', 'addresses']);
+        $admin->load(['profile.media', 'addresses', 'employment']);
         // プロフィール画像URLを明示的に追加
         if ($admin->profile && $admin->profile->media) {
             $admin->profile->media->makeVisible(['url', 'original_url']);
@@ -125,6 +126,12 @@ class AdminController extends Controller
             'mediaList' => $mediaList,
             'permissionOverride' => $permissionOverride,
             'loginLogs' => $loginLogs,
+            'employmentTypes' => collect(AdminEmployment::EMPLOYMENT_TYPES)
+                ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
+                ->values(),
+            'payTypes' => collect(AdminEmployment::PAY_TYPES)
+                ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
+                ->values(),
         ]);
     }
 

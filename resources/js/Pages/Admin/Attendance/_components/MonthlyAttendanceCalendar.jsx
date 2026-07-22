@@ -3,6 +3,7 @@ import { todayDateKey } from "@/Utils/dateUtils";
 
 const statusChipClasses = {
     working: "bg-green-200 text-green-900 dark:bg-green-900/60 dark:text-green-200",
+    on_break: "bg-amber-200 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200",
     finished: "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-200",
 };
 
@@ -118,7 +119,7 @@ export default function MonthlyAttendanceCalendar({ year, month, calendar }) {
                                                         record.status
                                                     ] || statusChipClasses.finished
                                                 }`}
-                                                title={`${record.admin_name} ${record.clocked_in_at || ""}〜${record.clocked_out_at || ""} (${record.status_label})`}
+                                                title={`${record.admin_name} ${record.clocked_in_at || ""}〜${record.clocked_out_at || ""} (${record.status_label}${record.break_minutes ? ` / 休憩${record.break_minutes}分` : ""})`}
                                             >
                                                 {record.admin_name}{" "}
                                                 {record.clocked_in_at || "-"}〜

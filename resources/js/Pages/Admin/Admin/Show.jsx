@@ -21,6 +21,8 @@ export default function Show({
     mediaList = [],
     permissionOverride = null,
     loginLogs = [],
+    employmentTypes = [],
+    payTypes = [],
 }) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
@@ -53,6 +55,8 @@ export default function Show({
                     <AdminSettings
                         admin={admin}
                         permissionOverride={permissionOverride}
+                        employmentTypes={employmentTypes}
+                        payTypes={payTypes}
                     />
                 );
             default:

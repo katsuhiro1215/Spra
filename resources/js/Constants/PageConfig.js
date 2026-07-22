@@ -1302,6 +1302,16 @@ export const PageConfig = {
     },
 
     /**
+     * 給与計算
+     */
+    payroll: {
+        title: "💰 給与計算",
+        description: "勤怠実績から月次の支給額を概算します（税・社会保険料は未対応）",
+        documentTitle: "給与計算",
+        breadcrumbs: ["ホーム", "給与計算"],
+    },
+
+    /**
      * システム設定管理
      */
     systemSettings: {

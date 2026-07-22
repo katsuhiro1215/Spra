@@ -17,6 +17,7 @@
         "laravel/horizon": "^5.48",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "^3.1",
         "mpdf/mpdf": "^8.3",
         "pragmarx/google2fa": "^9.0",
         "spatie/laravel-permission": "^8.3",

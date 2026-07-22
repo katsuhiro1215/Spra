@@ -20,6 +20,7 @@ export default function RecordsEdit({ record }) {
     const { data, setData, put, processing, errors } = useForm({
         clocked_in_at: toTimeInputValue(record.clocked_in_at),
         clocked_out_at: toTimeInputValue(record.clocked_out_at),
+        break_minutes: record.break_minutes ?? 0,
         status: record.status,
         notes: record.notes || "",
     });
@@ -108,6 +109,30 @@ export default function RecordsEdit({ record }) {
 
                         <div>
                             <InputLabel
+                                htmlFor="break_minutes"
+                                value="休憩時間（分）"
+                            />
+                            <TextInput
+                                id="break_minutes"
+                                type="number"
+                                min="0"
+                                value={data.break_minutes}
+                                onChange={(e) =>
+                                    setData(
+                                        "break_minutes",
+                                        e.target.value,
+                                    )
+                                }
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.break_minutes}
+                                className="mt-2"
+                            />
+                        </div>
+
+                        <div>
+                            <InputLabel
                                 htmlFor="status"
                                 value="ステータス *"
                                 required
@@ -122,6 +147,7 @@ export default function RecordsEdit({ record }) {
                                 required
                             >
                                 <option value="working">勤務中</option>
+                                <option value="on_break">休憩中</option>
                                 <option value="finished">退勤済み</option>
                             </select>
                             <InputError

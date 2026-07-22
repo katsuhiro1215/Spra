@@ -60,7 +60,8 @@ class AttendanceRecordController extends Controller
         $validated = $request->validate([
             'clocked_in_at' => 'nullable|date_format:H:i',
             'clocked_out_at' => 'nullable|date_format:H:i',
-            'status' => 'required|in:working,finished',
+            'break_minutes' => 'nullable|integer|min:0',
+            'status' => 'required|in:working,on_break,finished',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -69,6 +70,9 @@ class AttendanceRecordController extends Controller
         $record->update([
             'clocked_in_at' => $validated['clocked_in_at'] ? "{$workDate} {$validated['clocked_in_at']}" : null,
             'clocked_out_at' => $validated['clocked_out_at'] ? "{$workDate} {$validated['clocked_out_at']}" : null,
+            'break_minutes' => $validated['break_minutes'] ?? 0,
+            // 手動修正では「休憩中」を選んでも進行中の休憩開始時刻までは復元できないため、合計時間のみを保持する
+            'break_started_at' => null,
             'status' => $validated['status'],
             'notes' => $validated['notes'] ?? null,
             'updated_by' => Auth::guard('admins')->id(),

@@ -11,6 +11,7 @@ import { PageConfig } from "@/Constants/PageConfig";
 
 const STATUS_BADGE_CLASSES = {
     working: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200",
+    on_break: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200",
     finished: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
 };
 
@@ -131,6 +132,7 @@ export default function RecordsIndex({ records, admins, statuses, filters }) {
                                 <Th>担当者</Th>
                                 <Th>出勤</Th>
                                 <Th>退勤</Th>
+                                <Th>休憩</Th>
                                 <Th>ステータス</Th>
                                 <Th className="text-right">アクション</Th>
                             </Tr>
@@ -169,6 +171,11 @@ export default function RecordsIndex({ records, admins, statuses, filters }) {
                                                           minute: "2-digit",
                                                       },
                                                   )
+                                                : "-"}
+                                        </Td>
+                                        <Td>
+                                            {record.break_minutes
+                                                ? `${record.break_minutes}分`
                                                 : "-"}
                                         </Td>
                                         <Td>
@@ -213,7 +220,7 @@ export default function RecordsIndex({ records, admins, statuses, filters }) {
                             ) : (
                                 <Tr>
                                     <Td
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="text-center text-slate-500 dark:text-slate-400 py-8"
                                     >
                                         勤怠記録はありません

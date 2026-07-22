@@ -33,6 +33,7 @@ class AttendanceController extends Controller
             'admin_id' => $record->admin_id,
             'admin_name' => $record->admin?->profile?->full_name ?? $record->admin?->email,
             'clocked_in_at' => $record->clocked_in_at?->format('H:i'),
+            'status' => $record->status,
         ])->values();
 
         return Inertia::render('Admin/Attendance/Index', [
@@ -63,5 +64,37 @@ class AttendanceController extends Controller
         $this->attendanceService->clockOut($admin);
 
         return redirect()->back()->with('success', __('messages.recorded', ['attribute' => '退勤']));
+    }
+
+    /**
+     * 休憩開始
+     */
+    public function breakStart(Request $request): RedirectResponse
+    {
+        $admin = Auth::guard('admins')->user();
+
+        try {
+            $this->attendanceService->breakStart($admin);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', __('messages.recorded', ['attribute' => '休憩開始']));
+    }
+
+    /**
+     * 休憩終了
+     */
+    public function breakEnd(Request $request): RedirectResponse
+    {
+        $admin = Auth::guard('admins')->user();
+
+        try {
+            $this->attendanceService->breakEnd($admin);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', __('messages.recorded', ['attribute' => '休憩終了']));
     }
 }
