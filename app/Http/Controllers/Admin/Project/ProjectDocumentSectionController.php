@@ -28,7 +28,7 @@ class ProjectDocumentSectionController extends Controller
 
         $this->service->create($version, $request->validated('section_type'), $request->validated('title'));
 
-        return back()->with('success', 'セクションを追加しました。');
+        return back()->with('success', __('messages.added', ['attribute' => 'セクション']));
     }
 
     public function update(ProjectDocumentSectionRequest $request, Project $project, ProjectDocument $document, ProjectDocumentSection $section): RedirectResponse
@@ -37,7 +37,7 @@ class ProjectDocumentSectionController extends Controller
 
         $this->service->updateMeta($section, $request->validated());
 
-        return back()->with('success', 'セクションを更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => 'セクション']));
     }
 
     public function updateDetails(ProjectDocumentSectionDetailsRequest $request, Project $project, ProjectDocument $document, ProjectDocumentSection $section): RedirectResponse
@@ -46,7 +46,7 @@ class ProjectDocumentSectionController extends Controller
 
         $this->service->replaceDetails($section, $request->validated('rows', []));
 
-        return back()->with('success', 'セクションの内容を保存しました。');
+        return back()->with('success', __('messages.saved', ['attribute' => 'セクションの内容']));
     }
 
     public function destroy(Project $project, ProjectDocument $document, ProjectDocumentSection $section): RedirectResponse
@@ -55,7 +55,7 @@ class ProjectDocumentSectionController extends Controller
 
         $this->service->delete($section);
 
-        return back()->with('success', 'セクションを削除しました。');
+        return back()->with('success', __('messages.deleted', ['attribute' => 'セクション']));
     }
 
     public function reorder(Request $request, Project $project, ProjectDocument $document): RedirectResponse

@@ -42,9 +42,12 @@ class CampaignRequest extends FormRequest
           ['max:100']
         ),
       ],
+      'usage_limit' => 'nullable|integer|min:1',
       'starts_at' => 'required|date',
       'ends_at' => 'required|date|after:starts_at',
       'is_active' => 'boolean',
+      'service_plan_ids' => 'nullable|array',
+      'service_plan_ids.*' => 'ulid|exists:service_plans,id',
     ];
   }
 
@@ -59,9 +62,11 @@ class CampaignRequest extends FormRequest
       'description' => '説明',
       'discount_type' => '割引種別',
       'discount_value' => '割引値',
+      'usage_limit' => '適用可能件数の上限',
       'starts_at' => '開始日時',
       'ends_at' => '終了日時',
       'is_active' => '有効',
+      'service_plan_ids' => '対象プラン',
     ];
   }
 

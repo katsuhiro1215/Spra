@@ -6,6 +6,7 @@ use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Campaign extends Model
@@ -24,6 +25,8 @@ class Campaign extends Model
         'media_id',
         'discount_type',
         'discount_value',
+        'usage_limit',
+        'used_count',
         'starts_at',
         'ends_at',
         'is_active',
@@ -33,6 +36,8 @@ class Campaign extends Model
 
     protected $casts = [
         'discount_value' => 'decimal:2',
+        'usage_limit' => 'integer',
+        'used_count' => 'integer',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_active' => 'boolean',
@@ -60,6 +65,14 @@ class Campaign extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    /**
+     * 適用対象を限定する場合の対象プラン（未設定＝全プラン対象）
+     */
+    public function applicablePlans(): BelongsToMany
+    {
+        return $this->belongsToMany(ServicePlan::class, 'campaign_service_plans');
     }
 
     // -------------------------
@@ -91,6 +104,49 @@ class Campaign extends Model
         $now = now();
 
         return $now->gte($this->starts_at) && $now->lte($this->ends_at);
+    }
+
+    /**
+     * 件数上限に達していないか（上限未設定なら常にtrue）
+     */
+    public function hasRemainingUsage(): bool
+    {
+        if (is_null($this->usage_limit)) {
+            return true;
+        }
+
+        return $this->used_count < $this->usage_limit;
+    }
+
+    /**
+     * 指定したServicePlanにこのキャンペーンを適用可能か
+     *
+     * 対象プランが1件も設定されていなければ全プラン対象として扱う。
+     * 対象プランが設定されている場合、プラン未確定（$servicePlanId=null）の見積には適用できない。
+     */
+    public function isApplicableToPlan(?string $servicePlanId): bool
+    {
+        if ($this->relationLoaded('applicablePlans')) {
+            $restrictedPlanIds = $this->applicablePlans->pluck('id');
+        } else {
+            $restrictedPlanIds = $this->applicablePlans()->pluck('service_plans.id');
+        }
+
+        if ($restrictedPlanIds->isEmpty()) {
+            return true;
+        }
+
+        return !is_null($servicePlanId) && $restrictedPlanIds->contains($servicePlanId);
+    }
+
+    /**
+     * 今この見積・契約にこのキャンペーンを適用してよいか（期間・件数上限・対象プランを総合判定）
+     */
+    public function isEligibleFor(?string $servicePlanId): bool
+    {
+        return $this->isCurrentlyActive()
+            && $this->hasRemainingUsage()
+            && $this->isApplicableToPlan($servicePlanId);
     }
 
     /**

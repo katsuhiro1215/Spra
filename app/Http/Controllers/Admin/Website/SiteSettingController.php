@@ -102,7 +102,7 @@ class SiteSettingController extends Controller
                 }
             }
 
-            return redirect()->back()->with('success', '設定を保存しました。');
+            return redirect()->back()->with('success', __('messages.saved', ['attribute' => '設定']));
         }
 
         $values = [];
@@ -132,7 +132,7 @@ class SiteSettingController extends Controller
         SiteSetting::create($request->validated());
 
         return redirect()->route('admin.website.siteSetting.index')
-            ->with('success', '設定を作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '設定']));
     }
 
     /**
@@ -163,7 +163,7 @@ class SiteSettingController extends Controller
         $siteSetting->update($request->validated());
 
         return redirect()->route('admin.website.siteSetting.index')
-            ->with('success', '設定を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '設定']));
     }
 
     /**
@@ -174,6 +174,6 @@ class SiteSettingController extends Controller
         $siteSetting->delete();
 
         return redirect()->route('admin.website.siteSetting.index')
-            ->with('success', '設定を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '設定']));
     }
 }

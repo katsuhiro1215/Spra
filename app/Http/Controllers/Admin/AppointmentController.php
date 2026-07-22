@@ -211,7 +211,7 @@ class AppointmentController extends Controller
       $this->notificationService->sendNewAppointmentNotifications($appointment);
 
       return redirect()->route('admin.appointments.index')
-        ->with('success', '予約が作成されました。');
+        ->with('success', __('messages.created', ['attribute' => '予約']));
     } catch (\RuntimeException $e) {
       return redirect()->back()
         ->withInput()
@@ -220,7 +220,7 @@ class AppointmentController extends Controller
       Log::error('Appointment store error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', '予約の作成に失敗しました。');
+        ->with('error', __('messages.create_failed', ['attribute' => '予約']));
     }
   }
 
@@ -306,7 +306,7 @@ class AppointmentController extends Controller
       }
 
       return redirect()->route('admin.appointments.index')
-        ->with('success', '予約が更新されました。');
+        ->with('success', __('messages.updated', ['attribute' => '予約']));
     } catch (\RuntimeException $e) {
       return redirect()->back()
         ->withInput()
@@ -315,7 +315,7 @@ class AppointmentController extends Controller
       Log::error('Appointment update error: ' . $e->getMessage());
       return redirect()->back()
         ->withInput()
-        ->with('error', '予約の更新に失敗しました。');
+        ->with('error', __('messages.update_failed', ['attribute' => '予約']));
     }
   }
 
@@ -336,11 +336,11 @@ class AppointmentController extends Controller
       $this->benefitService->refund($appointment, ignoreCutoff: true);
 
       return redirect()->route('admin.appointments.index')
-        ->with('success', '予約が削除されました。');
+        ->with('success', __('messages.deleted', ['attribute' => '予約']));
     } catch (\Exception $e) {
       Log::error('Appointment destroy error: ' . $e->getMessage());
       return redirect()->back()
-        ->with('error', '予約の削除に失敗しました。');
+        ->with('error', __('messages.delete_failed', ['attribute' => '予約']));
     }
   }
 
@@ -357,11 +357,11 @@ class AppointmentController extends Controller
       $this->notificationService->sendConfirmationNotification($appointment);
 
       return redirect()->back()
-        ->with('success', '予約が確定されました。');
+        ->with('success', __('messages.appointment.confirmed'));
     } catch (\Exception $e) {
       Log::error('Appointment confirm error: ' . $e->getMessage());
       return redirect()->back()
-        ->with('error', '予約の確定に失敗しました。');
+        ->with('error', __('messages.appointment.confirm_failed'));
     }
   }
 
@@ -385,11 +385,11 @@ class AppointmentController extends Controller
       $this->notificationService->sendCancellationNotification($appointment);
 
       return redirect()->back()
-        ->with('success', '予約がキャンセルされました。');
+        ->with('success', __('messages.appointment.cancelled'));
     } catch (\Exception $e) {
       Log::error('Appointment cancel error: ' . $e->getMessage());
       return redirect()->back()
-        ->with('error', '予約のキャンセルに失敗しました。');
+        ->with('error', __('messages.cancel_failed', ['attribute' => '予約']));
     }
   }
 
@@ -402,11 +402,11 @@ class AppointmentController extends Controller
       $appointment->complete();
 
       return redirect()->back()
-        ->with('success', '予約が完了しました。');
+        ->with('success', __('messages.appointment.completed'));
     } catch (\Exception $e) {
       Log::error('Appointment complete error: ' . $e->getMessage());
       return redirect()->back()
-        ->with('error', '予約の完了処理に失敗しました。');
+        ->with('error', __('messages.appointment.complete_failed'));
     }
   }
 

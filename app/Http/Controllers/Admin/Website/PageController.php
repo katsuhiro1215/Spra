@@ -72,12 +72,12 @@ class PageController extends Controller
             $page = $this->pageService->createPage($request->validated());
 
             return redirect()->route('admin.website.page.edit', $page)
-                ->with('success', 'ページを作成しました。続けてセクションの内容を編集してください。');
+                ->with('success', __('messages.website_page.created_continue_edit_sections'));
         } catch (\Exception $e) {
             Log::error('Page store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -127,12 +127,12 @@ class PageController extends Controller
             $this->pageService->updatePage($page, $request->validated());
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -145,11 +145,11 @@ class PageController extends Controller
             $this->pageService->deletePage($page);
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ページの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'ページ']));
         }
     }
 
@@ -162,11 +162,11 @@ class PageController extends Controller
             $this->pageService->restorePage($page);
 
             return redirect()->route('admin.website.page.index')
-                ->with('success', 'ページを復元しました。');
+                ->with('success', __('messages.restored', ['attribute' => 'ページ']));
         } catch (\Exception $e) {
             Log::error('Page restore error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'ページの復元に失敗しました。');
+                ->with('error', __('messages.restore_failed', ['attribute' => 'ページ']));
         }
     }
 

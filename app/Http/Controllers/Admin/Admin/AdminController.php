@@ -72,7 +72,7 @@ class AdminController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $result['admin'])
-            ->with('success', '管理者を作成しました。初期パスワード: ' . $result['password']);
+            ->with('success', __('messages.admin.created_with_password', ['password' => $result['password']]));
     }
 
     /**
@@ -151,7 +151,7 @@ class AdminController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $admin)
-            ->with('success', '管理者情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '管理者情報']));
     }
 
     /**
@@ -164,7 +164,7 @@ class AdminController extends Controller
 
             return redirect()
                 ->route('admin.admin.index')
-                ->with('success', '管理者を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '管理者']));
         } catch (\Exception $e) {
             return redirect()
                 ->route('admin.admin.index')

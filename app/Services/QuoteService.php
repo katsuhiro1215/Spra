@@ -92,6 +92,8 @@ class QuoteService extends BaseService
             // 作成者を設定
             $createdBy = $data['created_by'] ?? auth('admins')->id();
 
+            $this->assertCampaignEligible($data['campaign_id'] ?? null, $data['service_plan_id'] ?? null);
+
             // Quote を作成（プロジェクト管理レベル）
             $quoteData = [
                 'quote_number' => $data['quote_number'],
@@ -121,6 +123,7 @@ class QuoteService extends BaseService
                 'status' => 'draft',
                 'is_current' => true,
                 'campaign_id' => $data['campaign_id'] ?? null,
+                'service_plan_id' => $data['service_plan_id'] ?? null,
                 'created_by' => $createdBy,
             ];
 
@@ -174,13 +177,23 @@ class QuoteService extends BaseService
             // draft状態なら現在のバージョンを上書き更新、それ以外は新しいバージョンを作成
             if ($currentVersion->status === 'draft') {
                 // draft状態: 既存バージョンを上書き更新
+                $campaignId = array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id;
+                $servicePlanId = array_key_exists('service_plan_id', $data) ? $data['service_plan_id'] : $currentVersion->service_plan_id;
+
+                // キャンペーンやプランの選択自体が変わる場合のみ適用可否を再検証する
+                // （無関係な項目の編集のたびに、他の見積の消費によって事後的に対象外になったキャンペーンでエラーになるのを防ぐ）
+                if ($campaignId !== $currentVersion->campaign_id || $servicePlanId !== $currentVersion->service_plan_id) {
+                    $this->assertCampaignEligible($campaignId, $servicePlanId);
+                }
+
                 $versionUpdate = [
                     'title' => $data['title'] ?? $currentVersion->title,
                     'requirements' => $data['requirements'] ?? $currentVersion->requirements,
                     'custom_specifications' => $data['custom_specifications'] ?? $currentVersion->custom_specifications,
                     'discount_amount' => $data['discount_amount'] ?? $currentVersion->discount_amount,
                     'tax_rate' => $data['tax_rate'] ?? $currentVersion->tax_rate,
-                    'campaign_id' => array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id,
+                    'campaign_id' => $campaignId,
+                    'service_plan_id' => $servicePlanId,
                     'updated_by' => auth('admins')->id(),
                 ];
                 $currentVersion->update($versionUpdate);
@@ -213,6 +226,14 @@ class QuoteService extends BaseService
                 // バージョン番号をインクリメント
                 $newVersion = $currentVersion->version + 1;
 
+                $campaignId = array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id;
+                $servicePlanId = array_key_exists('service_plan_id', $data) ? $data['service_plan_id'] : $currentVersion->service_plan_id;
+
+                // キャンペーンやプランの選択自体が変わる場合のみ適用可否を再検証する
+                if ($campaignId !== $currentVersion->campaign_id || $servicePlanId !== $currentVersion->service_plan_id) {
+                    $this->assertCampaignEligible($campaignId, $servicePlanId);
+                }
+
                 $versionData = [
                     'quote_id' => $quote->id,
                     'version' => $newVersion,
@@ -226,7 +247,8 @@ class QuoteService extends BaseService
                     'total_amount' => 0,
                     'status' => 'draft', // 新バージョンはドラフト状態で作成
                     'is_current' => true, // 新バージョンを現在のバージョンにセット
-                    'campaign_id' => array_key_exists('campaign_id', $data) ? $data['campaign_id'] : $currentVersion->campaign_id,
+                    'campaign_id' => $campaignId,
+                    'service_plan_id' => $servicePlanId,
                     'created_by' => auth('admins')->id(),
                 ];
 
@@ -478,6 +500,36 @@ class QuoteService extends BaseService
             'tax_amount' => $taxAmount,
             'total_amount' => $totalAmount,
         ]);
+    }
+
+    /**
+     * キャンペーンを見積もりに適用してよいか検証する（期間・件数上限・対象プラン）
+     *
+     * @throws \Exception
+     */
+    public function assertCampaignEligible(?string $campaignId, ?string $servicePlanId): void
+    {
+        if (!$campaignId) {
+            return;
+        }
+
+        $campaign = Campaign::with('applicablePlans')->find($campaignId);
+
+        if (!$campaign) {
+            throw new \Exception('指定されたキャンペーンが見つかりません。');
+        }
+
+        if (!$campaign->isCurrentlyActive()) {
+            throw new \Exception('このキャンペーンは現在ご利用いただけません（開催期間外または停止中）。');
+        }
+
+        if (!$campaign->hasRemainingUsage()) {
+            throw new \Exception('このキャンペーンは適用件数の上限に達しています。');
+        }
+
+        if (!$campaign->isApplicableToPlan($servicePlanId)) {
+            throw new \Exception('このキャンペーンは選択されたプランには適用できません。');
+        }
     }
 
     /**

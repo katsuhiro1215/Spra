@@ -31,8 +31,17 @@ class CampaignService extends BaseService
     public function createCampaign(array $data): Campaign
     {
         return DB::transaction(function () use ($data) {
+            $servicePlanIds = $data['service_plan_ids'] ?? null;
+            unset($data['service_plan_ids']);
+
             $data['created_by'] = Auth::guard('admins')->id();
-            return $this->repository->create($data);
+            $campaign = $this->repository->create($data);
+
+            if ($servicePlanIds !== null) {
+                $campaign->applicablePlans()->sync($servicePlanIds);
+            }
+
+            return $campaign;
         });
     }
 
@@ -42,8 +51,17 @@ class CampaignService extends BaseService
     public function updateCampaign(Campaign $campaign, array $data): Campaign
     {
         return DB::transaction(function () use ($campaign, $data) {
+            $servicePlanIds = $data['service_plan_ids'] ?? null;
+            unset($data['service_plan_ids']);
+
             $data['updated_by'] = Auth::guard('admins')->id();
-            return $this->repository->update($campaign, $data);
+            $campaign = $this->repository->update($campaign, $data);
+
+            if ($servicePlanIds !== null) {
+                $campaign->applicablePlans()->sync($servicePlanIds);
+            }
+
+            return $campaign;
         });
     }
 
@@ -63,8 +81,18 @@ class CampaignService extends BaseService
     public function getActiveForSelect(): \Illuminate\Support\Collection
     {
         return Campaign::currentlyRunning()
+            ->with('applicablePlans:id,name')
             ->orderBy('name')
-            ->get(['id', 'name', 'code', 'discount_type', 'discount_value']);
+            ->get(['id', 'name', 'code', 'discount_type', 'discount_value', 'usage_limit', 'used_count'])
+            ->map(fn (Campaign $campaign) => [
+                'id' => $campaign->id,
+                'name' => $campaign->name,
+                'code' => $campaign->code,
+                'discount_type' => $campaign->discount_type,
+                'discount_value' => $campaign->discount_value,
+                'has_remaining_usage' => $campaign->hasRemainingUsage(),
+                'applicable_plan_ids' => $campaign->applicablePlans->pluck('id'),
+            ]);
     }
 
     /**

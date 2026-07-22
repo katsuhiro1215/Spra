@@ -45,6 +45,6 @@ class PermissionController extends Controller
             'editor' => $validated['editor'] ?? [],
         ]);
 
-        return back()->with('success', '権限設定を更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => '権限設定']));
     }
 }

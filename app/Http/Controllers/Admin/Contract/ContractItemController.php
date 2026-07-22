@@ -129,7 +129,7 @@ class ContractItemController extends Controller
         $contract = Contract::with('currentVersion')->findOrFail($contractId);
 
         if (!$contract->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         $validated = $request->validated();
@@ -180,9 +180,9 @@ class ContractItemController extends Controller
             $this->contractService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.contract.show', $contractId)
-                ->with('success', '契約明細を追加しました。');
+                ->with('success', __('messages.added', ['attribute' => '契約明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の追加に失敗しました: ' . $e->getMessage())
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の追加', 'message' => $e->getMessage()]))
                 ->withInput();
         }
     }
@@ -308,7 +308,7 @@ class ContractItemController extends Controller
         $contract = Contract::with('currentVersion.items')->findOrFail($contractId);
 
         if (!$contract->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         $validated = $request->validated();
@@ -356,9 +356,9 @@ class ContractItemController extends Controller
             $this->contractService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.contract.show', $contractId)
-                ->with('success', '契約明細を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '契約明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の更新に失敗しました: ' . $e->getMessage())
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の更新', 'message' => $e->getMessage()]))
                 ->withInput();
         }
     }
@@ -371,7 +371,7 @@ class ContractItemController extends Controller
         $contract = Contract::with('currentVersion.items')->findOrFail($contractId);
 
         if (!$contract->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         try {
@@ -384,9 +384,9 @@ class ContractItemController extends Controller
             $this->contractService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.contract.show', $contractId)
-                ->with('success', '契約明細を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '契約明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の削除', 'message' => $e->getMessage()]));
         }
     }
 }

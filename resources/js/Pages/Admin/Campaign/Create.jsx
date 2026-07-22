@@ -7,7 +7,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import CampaignForm from "./_components/Form";
 
-export default function Create({ discountTypes = {} }) {
+export default function Create({ discountTypes = {}, servicePlans = [] }) {
     // ========================================
     // State & Form
     // ========================================
@@ -17,9 +17,11 @@ export default function Create({ discountTypes = {} }) {
         description: "",
         discount_type: "percentage",
         discount_value: "",
+        usage_limit: "",
         starts_at: "",
         ends_at: "",
         is_active: true,
+        service_plan_ids: [],
     });
 
     const handleSubmit = () => {
@@ -59,7 +61,7 @@ export default function Create({ discountTypes = {} }) {
             {/* フラッシュメッセージ */}
             <FlashMessage />
 
-            <div className="max-w-4xl">
+            <div className="w-full">
                 <CampaignForm
                     data={data}
                     setData={setData}
@@ -68,6 +70,7 @@ export default function Create({ discountTypes = {} }) {
                     onSubmit={handleSubmit}
                     cancelRoute={route("admin.campaign.index")}
                     discountTypes={discountTypes}
+                    servicePlans={servicePlans}
                     isEdit={false}
                 />
             </div>

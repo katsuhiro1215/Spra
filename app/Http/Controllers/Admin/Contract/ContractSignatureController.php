@@ -92,13 +92,13 @@ class ContractSignatureController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->withErrors(['signature' => '署名の保存に失敗しました: ' . $e->getMessage()]);
+            return back()->withErrors(['signature' => __('messages.action_failed_detail', ['attribute' => '署名の保存', 'message' => $e->getMessage()])]);
         }
 
         // キュー通知を送信（管理者に）
         ContractSignedNotificationJob::dispatch($contract, 'user_signed');
 
-        return back()->with('success', '署名を送信しました。管理者の確認をお待ちください。');
+        return back()->with('success', __('messages.contract_signature.sent_await_admin'));
     }
 
     /**
@@ -134,7 +134,7 @@ class ContractSignatureController extends Controller
                 $contract->update(['signature_status' => 'fully_signed']);
             }
 
-            return back()->with('success', 'ユーザー署名を確認しました');
+            return back()->with('success', __('messages.contract_signature.confirmed'));
         } else {
             // 却下
             $userSignature->reject($request->reason);
@@ -209,13 +209,13 @@ class ContractSignatureController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->withErrors(['signature' => '署名の保存に失敗しました: ' . $e->getMessage()]);
+            return back()->withErrors(['signature' => __('messages.action_failed_detail', ['attribute' => '署名の保存', 'message' => $e->getMessage()])]);
         }
 
         // キュー通知を送信（クライアントに）
         ContractSignedNotificationJob::dispatch($contract, 'fully_signed');
 
-        return back()->with('success', '契約書に署名し、クライアントに完了通知を送信しました');
+        return back()->with('success', __('messages.contract_signature.signed_and_notified'));
     }
 
     /**

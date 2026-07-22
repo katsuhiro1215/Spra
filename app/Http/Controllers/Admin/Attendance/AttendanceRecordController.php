@@ -75,7 +75,7 @@ class AttendanceRecordController extends Controller
         ]);
 
         return redirect()->route('admin.attendance.records.index')
-            ->with('success', '勤怠記録を修正しました。');
+            ->with('success', __('messages.attendance.record_corrected'));
     }
 
     public function destroy(AdminAttendanceRecord $record): RedirectResponse
@@ -85,6 +85,6 @@ class AttendanceRecordController extends Controller
         $record->delete();
 
         return redirect()->route('admin.attendance.records.index')
-            ->with('success', '勤怠記録を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '勤怠記録']));
     }
 }

@@ -72,12 +72,12 @@ class VoiceController extends Controller
             $this->voiceService->create($request->validated());
 
             return redirect()->route('admin.website.voice.index')
-                ->with('success', 'お客様の声を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'お客様の声']));
         } catch (\Exception $e) {
             Log::error('Voice store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'お客様の声の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'お客様の声']));
         }
     }
 
@@ -117,12 +117,12 @@ class VoiceController extends Controller
             $this->voiceService->update($voice, $request->validated());
 
             return redirect()->route('admin.website.voice.index')
-                ->with('success', 'お客様の声を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'お客様の声']));
         } catch (\Exception $e) {
             Log::error('Voice update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'お客様の声の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'お客様の声']));
         }
     }
 
@@ -135,11 +135,11 @@ class VoiceController extends Controller
             $this->voiceService->deleteVoice($voice);
 
             return redirect()->route('admin.website.voice.index')
-                ->with('success', 'お客様の声を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'お客様の声']));
         } catch (\Exception $e) {
             Log::error('Voice destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'お客様の声の削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'お客様の声']));
         }
     }
 
@@ -155,10 +155,10 @@ class VoiceController extends Controller
         try {
             $this->voiceService->changeStatus($voice, $validated['is_published']);
 
-            return redirect()->back()->with('success', 'ステータスを変更しました。');
+            return redirect()->back()->with('success', __('messages.status_changed'));
         } catch (\Exception $e) {
             Log::error('Voice changeStatus error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'ステータスの変更に失敗しました。');
+            return redirect()->back()->with('error', __('messages.status_change_failed'));
         }
     }
 
@@ -179,7 +179,7 @@ class VoiceController extends Controller
             return redirect()->back()->with('success', "{$count}件のお客様の声を更新しました。");
         } catch (\Exception $e) {
             Log::error('Voice bulkAction error: ' . $e->getMessage());
-            return redirect()->back()->with('error', '一括操作に失敗しました。');
+            return redirect()->back()->with('error', __('messages.bulk_action_failed'));
         }
     }
 }

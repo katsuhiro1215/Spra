@@ -60,12 +60,12 @@ class MembershipRankController extends Controller
             $this->membershipRankService->createMembershipRank($request->validated());
 
             return redirect()->route('admin.membership-rank.index')
-                ->with('success', '会員ランクを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => '会員ランク']));
         } catch (\Exception $e) {
             Log::error('MembershipRank store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '会員ランクの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => '会員ランク']));
         }
     }
 
@@ -88,12 +88,12 @@ class MembershipRankController extends Controller
             $this->membershipRankService->updateMembershipRank($membershipRank, $request->validated());
 
             return redirect()->route('admin.membership-rank.index')
-                ->with('success', '会員ランクを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '会員ランク']));
         } catch (\Exception $e) {
             Log::error('MembershipRank update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '会員ランクの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => '会員ランク']));
         }
     }
 
@@ -106,7 +106,7 @@ class MembershipRankController extends Controller
             $this->membershipRankService->deleteMembershipRank($membershipRank);
 
             return redirect()->route('admin.membership-rank.index')
-                ->with('success', '会員ランクを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '会員ランク']));
         } catch (\Exception $e) {
             Log::error('MembershipRank destroy error: ' . $e->getMessage());
             return redirect()->back()

@@ -199,6 +199,33 @@ export default function Show({ campaign, mediaList = [] }) {
                                 )}
                             </span>
                         </div>
+                        <div className="flex justify-between">
+                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                適用件数
+                            </span>
+                            <span className="text-sm text-slate-900 dark:text-slate-100">
+                                {campaign.used_count || 0}件
+                                {campaign.usage_limit
+                                    ? ` / ${campaign.usage_limit}件`
+                                    : "（無制限）"}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                対象プラン
+                            </span>
+                            <span className="text-sm text-slate-900 dark:text-slate-100 text-right">
+                                {campaign.applicablePlans &&
+                                campaign.applicablePlans.length > 0
+                                    ? campaign.applicablePlans
+                                          .map(
+                                              (plan) =>
+                                                  `${plan.service?.name || "未分類"} - ${plan.name}`,
+                                          )
+                                          .join("、")
+                                    : "全プラン対象"}
+                            </span>
+                        </div>
                     </div>
                 </Card>
 

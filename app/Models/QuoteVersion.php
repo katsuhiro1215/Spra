@@ -46,6 +46,7 @@ class QuoteVersion extends Model
         'expires_at',
         'is_current',
         'campaign_id',
+        'service_plan_id',
         'created_by',
     ];
 
@@ -97,6 +98,14 @@ class QuoteVersion extends Model
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    /**
+     * 「プランから追加」で選択されたプラン
+     */
+    public function servicePlan(): BelongsTo
+    {
+        return $this->belongsTo(ServicePlan::class);
     }
 
     // -------------------------

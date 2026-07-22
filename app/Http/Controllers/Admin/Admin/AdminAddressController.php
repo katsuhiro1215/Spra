@@ -36,7 +36,7 @@ class AdminAddressController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $admin)
-            ->with('success', '住所を追加しました。');
+            ->with('success', __('messages.added', ['attribute' => '住所']));
     }
 
     /**
@@ -64,7 +64,7 @@ class AdminAddressController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $admin)
-            ->with('success', '住所を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '住所']));
     }
 
     /**
@@ -76,7 +76,7 @@ class AdminAddressController extends Controller
 
         return redirect()
             ->route('admin.admin.show', $admin)
-            ->with('success', '住所を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '住所']));
     }
 
     /**

@@ -151,6 +151,7 @@ export default function QuoteItemForm({
         }
 
         setItems([...items, ...newItems]);
+        setData("service_plan_id", servicePlan.id);
         setShowServicePlanModal(false);
     };
 
@@ -218,8 +219,35 @@ export default function QuoteItemForm({
         0,
     );
 
+    // 選択中のプラン（キャンペーンの対象プラン判定に使用）
+    const selectedServicePlan = servicePlans.find(
+        (plan) => plan.id === data.service_plan_id,
+    );
+
+    // 現在のプラン・在庫状況で適用可能なキャンペーンのみに絞り込む
+    const eligibleCampaigns = campaigns.filter((campaign) => {
+        if (campaign.has_remaining_usage === false) return false;
+        if (!campaign.applicable_plan_ids || campaign.applicable_plan_ids.length === 0) {
+            return true;
+        }
+        return (
+            !!data.service_plan_id &&
+            campaign.applicable_plan_ids.includes(data.service_plan_id)
+        );
+    });
+
+    // プラン変更等で選択中のキャンペーンが対象外になったら選択を解除する
+    useEffect(() => {
+        if (
+            data.campaign_id &&
+            !eligibleCampaigns.some((campaign) => campaign.id === data.campaign_id)
+        ) {
+            setData("campaign_id", "");
+        }
+    }, [data.service_plan_id]);
+
     // 選択中のキャンペーン
-    const selectedCampaign = campaigns.find(
+    const selectedCampaign = eligibleCampaigns.find(
         (campaign) => campaign.id === data.campaign_id,
     );
 
@@ -512,12 +540,33 @@ export default function QuoteItemForm({
                 <CardBody>
                     <div className="space-y-4 max-w-md ml-auto">
                         <div className="grid grid-cols-2 gap-4">
+                            {selectedServicePlan && (
+                                <div className="col-span-2 flex items-center justify-between text-sm bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-md px-3 py-2">
+                                    <span className="text-green-800 dark:text-green-200">
+                                        選択中のプラン: {selectedServicePlan.name}
+                                        （対象キャンペーンの絞り込みに使用されます）
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setData("service_plan_id", "")
+                                        }
+                                        className="text-green-700 dark:text-green-300 hover:underline"
+                                    >
+                                        解除
+                                    </button>
+                                </div>
+                            )}
                             <div className="col-span-2">
                                 <FormGroup
                                     label="キャンペーン"
                                     htmlFor="campaign_id"
                                     error={errors.campaign_id}
-                                    helpText="選択すると値引き額がキャンペーンの割引ルールから自動計算されます"
+                                    helpText={
+                                        selectedServicePlan
+                                            ? "選択すると値引き額がキャンペーンの割引ルールから自動計算されます（現在のプランに対応するキャンペーンのみ表示）"
+                                            : "選択すると値引き額がキャンペーンの割引ルールから自動計算されます。プラン限定のキャンペーンは「ServicePlanから選択」でプランを選ぶと表示されます"
+                                    }
                                 >
                                     <SelectInput
                                         id="campaign_id"
@@ -530,7 +579,7 @@ export default function QuoteItemForm({
                                         }
                                         options={[
                                             { value: "", label: "適用しない" },
-                                            ...campaigns.map((campaign) => ({
+                                            ...eligibleCampaigns.map((campaign) => ({
                                                 value: campaign.id,
                                                 label: `${campaign.name}（${campaign.code}）`,
                                             })),

@@ -66,7 +66,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.user.show', $result['user'])
-            ->with('success', 'ユーザーを作成しました。初期パスワード: ' . $result['password']);
+            ->with('success', __('messages.user.created_with_password', ['password' => $result['password']]));
     }
 
     /**
@@ -129,7 +129,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.user.show', $user)
-            ->with('success', 'ユーザー情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'ユーザー情報']));
     }
 
     /**
@@ -142,12 +142,12 @@ class UserController extends Controller
 
             return redirect()
                 ->route('admin.user.index')
-                ->with('success', 'ユーザーを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ユーザー']));
         } catch (\Exception $e) {
             Log::error('User delete error: ' . $e->getMessage());
             return redirect()
                 ->route('admin.user.index')
-                ->with('error', 'ユーザーの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'ユーザー']));
         }
     }
 }

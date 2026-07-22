@@ -74,12 +74,12 @@ class FaqController extends Controller
             $this->faqService->createFaq($request->validated());
 
             return redirect()->route('admin.website.faq.index')
-                ->with('success', 'FAQを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'FAQ']));
         } catch (\Exception $e) {
             Log::error('Faq store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'FAQの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'FAQ']));
         }
     }
 
@@ -118,12 +118,12 @@ class FaqController extends Controller
             $this->faqService->updateFaq($faq, $request->validated());
 
             return redirect()->route('admin.website.faq.index')
-                ->with('success', 'FAQを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'FAQ']));
         } catch (\Exception $e) {
             Log::error('Faq update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'FAQの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'FAQ']));
         }
     }
 
@@ -136,11 +136,11 @@ class FaqController extends Controller
             $this->faqService->deleteFaq($faq);
 
             return redirect()->route('admin.website.faq.index')
-                ->with('success', 'FAQを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'FAQ']));
         } catch (\Exception $e) {
             Log::error('Faq destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'FAQの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'FAQ']));
         }
     }
 
@@ -156,10 +156,10 @@ class FaqController extends Controller
         try {
             $this->faqService->changeStatus($faq, $validated['is_published']);
 
-            return redirect()->back()->with('success', 'ステータスを変更しました。');
+            return redirect()->back()->with('success', __('messages.status_changed'));
         } catch (\Exception $e) {
             Log::error('Faq changeStatus error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'ステータスの変更に失敗しました。');
+            return redirect()->back()->with('error', __('messages.status_change_failed'));
         }
     }
 
@@ -180,7 +180,7 @@ class FaqController extends Controller
             return redirect()->back()->with('success', "{$count}件のFAQを更新しました。");
         } catch (\Exception $e) {
             Log::error('Faq bulkAction error: ' . $e->getMessage());
-            return redirect()->back()->with('error', '一括操作に失敗しました。');
+            return redirect()->back()->with('error', __('messages.bulk_action_failed'));
         }
     }
 
@@ -203,7 +203,7 @@ class FaqController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => '画像のアップロードに失敗しました: ' . $e->getMessage(),
+                'message' => __('messages.action_failed_detail', ['attribute' => '画像のアップロード', 'message' => $e->getMessage()]),
             ], 422);
         }
     }

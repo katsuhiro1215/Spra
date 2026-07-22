@@ -86,12 +86,12 @@ class ServicePlanController extends Controller
 
             // ServicePlan詳細ページへリダイレクト
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスプランが作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスプランの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービスプラン']));
         }
     }
 
@@ -138,12 +138,12 @@ class ServicePlanController extends Controller
 
             // ServicePlan詳細ページへリダイレクト
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスプランが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスプランの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービスプラン']));
         }
     }
 
@@ -157,7 +157,7 @@ class ServicePlanController extends Controller
             $service = $servicePlan->service_id;
 
             return redirect()->route('admin.service.show', $service)
-                ->with('success', 'サービスプランが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービスプラン']));
         } catch (\Exception $e) {
             Log::error('ServicePlan destroy error: ' . $e->getMessage());
             return redirect()->back()

@@ -124,6 +124,6 @@ class ProjectTemplateMilestoneController extends Controller
 
         return redirect()
             ->route('admin.project.template.show', $projectTemplate->id)
-            ->with('success', 'マイルストーンを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'マイルストーン']));
     }
 }

@@ -60,12 +60,12 @@ class PointCatalogItemController extends Controller
             $this->pointCatalogItemService->createPointCatalogItem($request->validated());
 
             return redirect()->route('admin.point-catalog-item.index')
-                ->with('success', 'カタログ商品を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'カタログ商品']));
         } catch (\Exception $e) {
             Log::error('PointCatalogItem store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'カタログ商品の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'カタログ商品']));
         }
     }
 
@@ -88,12 +88,12 @@ class PointCatalogItemController extends Controller
             $this->pointCatalogItemService->updatePointCatalogItem($pointCatalogItem, $request->validated());
 
             return redirect()->route('admin.point-catalog-item.index')
-                ->with('success', 'カタログ商品を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'カタログ商品']));
         } catch (\Exception $e) {
             Log::error('PointCatalogItem update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'カタログ商品の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'カタログ商品']));
         }
     }
 
@@ -106,7 +106,7 @@ class PointCatalogItemController extends Controller
             $this->pointCatalogItemService->deletePointCatalogItem($pointCatalogItem);
 
             return redirect()->route('admin.point-catalog-item.index')
-                ->with('success', 'カタログ商品を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'カタログ商品']));
         } catch (\Exception $e) {
             Log::error('PointCatalogItem destroy error: ' . $e->getMessage());
             return redirect()->back()

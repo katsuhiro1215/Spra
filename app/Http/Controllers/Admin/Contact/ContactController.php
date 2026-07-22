@@ -84,12 +84,12 @@ class ContactController extends Controller
         try {
             $this->contactService->updateContact($contact, $request->validated());
 
-            return redirect()->back()->with('success', 'お問い合わせ情報を更新しました。');
+            return redirect()->back()->with('success', __('messages.updated', ['attribute' => 'お問い合わせ情報']));
         } catch (\Exception $e) {
             Log::error('Contact update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'お問い合わせの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'お問い合わせ']));
         }
     }
 
@@ -102,11 +102,11 @@ class ContactController extends Controller
             $this->contactService->deleteContact($contact);
 
             return redirect()->route('admin.contact.index')
-                ->with('success', 'お問い合わせを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'お問い合わせ']));
         } catch (\Exception $e) {
             Log::error('Contact delete error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'お問い合わせの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'お問い合わせ']));
         }
     }
 
@@ -140,7 +140,7 @@ class ContactController extends Controller
             Log::error('Contact bulk update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'お問い合わせの一括更新に失敗しました。');
+                ->with('error', __('messages.contact.bulk_update_failed'));
         }
     }
 
@@ -210,7 +210,7 @@ class ContactController extends Controller
         } catch (\Exception $e) {
             Log::error('Contact export error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'お問い合わせのエクスポートに失敗しました。');
+                ->with('error', __('messages.contact.export_failed'));
         }
     }
 }

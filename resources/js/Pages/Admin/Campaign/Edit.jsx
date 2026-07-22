@@ -16,7 +16,7 @@ const toDatetimeLocal = (value) => {
     )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
-export default function Edit({ campaign, discountTypes = {} }) {
+export default function Edit({ campaign, discountTypes = {}, servicePlans = [] }) {
     // ========================================
     // State & Form
     // ========================================
@@ -26,9 +26,13 @@ export default function Edit({ campaign, discountTypes = {} }) {
         description: campaign.description || "",
         discount_type: campaign.discount_type || "percentage",
         discount_value: campaign.discount_value || "",
+        usage_limit: campaign.usage_limit ?? "",
         starts_at: toDatetimeLocal(campaign.starts_at),
         ends_at: toDatetimeLocal(campaign.ends_at),
         is_active: campaign.is_active ?? true,
+        service_plan_ids: (campaign.applicablePlans || []).map(
+            (plan) => plan.id,
+        ),
     });
 
     const handleSubmit = () => {
@@ -79,6 +83,8 @@ export default function Edit({ campaign, discountTypes = {} }) {
                     onSubmit={handleSubmit}
                     cancelRoute={route("admin.campaign.index")}
                     discountTypes={discountTypes}
+                    servicePlans={servicePlans}
+                    usedCount={campaign.used_count || 0}
                     isEdit={true}
                 />
             </div>

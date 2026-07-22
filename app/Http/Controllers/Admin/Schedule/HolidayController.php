@@ -95,7 +95,7 @@ class HolidayController extends Controller
         $holiday = $this->holidayService->createHoliday($request->validated());
 
         return redirect()->route('admin.holidays.index')
-            ->with('success', '祝日を登録しました。');
+            ->with('success', __('messages.registered', ['attribute' => '祝日']));
     }
 
     /**
@@ -129,7 +129,7 @@ class HolidayController extends Controller
                 ->with('success', $message);
         } catch (\Exception $e) {
             return back()
-                ->with('error', 'インポートに失敗しました: ' . $e->getMessage());
+                ->with('error', __('messages.action_failed_detail', ['attribute' => 'インポート', 'message' => $e->getMessage()]));
         }
     }
 
@@ -151,7 +151,7 @@ class HolidayController extends Controller
         $this->holidayService->updateHoliday($holiday, $request->validated());
 
         return redirect()->route('admin.holidays.index')
-            ->with('success', '祝日を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '祝日']));
     }
 
     /**
@@ -163,7 +163,7 @@ class HolidayController extends Controller
             $this->holidayService->deleteHoliday($holiday);
 
             return redirect()->route('admin.holidays.index')
-                ->with('success', '祝日を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '祝日']));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

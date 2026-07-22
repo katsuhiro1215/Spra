@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Campaign;
 use App\Models\Contract;
 use App\Models\ContractVersion;
+use App\Models\Quote;
 use App\Repositories\ContractRepository;
 use App\Services\ContractBenefitService;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -56,6 +58,17 @@ class ContractService
             // クライアントの署名を確認
             if (!$contract->user_signed_at) {
                 throw new \Exception('クライアントの署名が完了していません。契約をクライアントに送信し、署名後に有効化してください。');
+            }
+
+            // キャンペーンが紐付いている場合、成約（有効化）のタイミングで件数上限を消費する
+            if ($contract->campaign_id) {
+                $campaign = Campaign::where('id', $contract->campaign_id)->lockForUpdate()->first();
+
+                if ($campaign && !$campaign->hasRemainingUsage()) {
+                    throw new \Exception('このキャンペーンは適用件数の上限に達しているため、契約を有効化できません。');
+                }
+
+                $campaign?->increment('used_count');
             }
 
             $data = array_merge(['status' => 'active'], $signedData);
@@ -151,11 +164,17 @@ class ContractService
             // 作成者を設定
             $createdBy = $data['created_by'] ?? auth('admins')->id();
 
+            // 見積もりから作成する場合、選択されていたプラン・キャンペーンを引き継ぐ
+            $sourceQuoteVersion = !empty($data['quote_id'])
+                ? Quote::find($data['quote_id'])?->currentVersion
+                : null;
+
             // Contract を作成（プロジェクト管理レベル）
             $contractData = [
                 'contract_number' => $data['contract_number'],
                 'quote_id' => $data['quote_id'] ?? null,
-                'service_plan_id' => $data['service_plan_id'] ?? null,
+                'service_plan_id' => $data['service_plan_id'] ?? $sourceQuoteVersion?->service_plan_id,
+                'campaign_id' => $data['campaign_id'] ?? $sourceQuoteVersion?->campaign_id,
                 'user_id' => $data['user_id'],
                 'company_id' => $data['company_id'] ?? null,
                 'contract_group_id' => $data['contract_group_id'] ?? null,

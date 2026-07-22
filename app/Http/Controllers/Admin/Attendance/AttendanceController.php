@@ -51,7 +51,7 @@ class AttendanceController extends Controller
         $admin = Auth::guard('admins')->user();
         $this->attendanceService->clockIn($admin);
 
-        return redirect()->back()->with('success', '出勤を記録しました。');
+        return redirect()->back()->with('success', __('messages.recorded', ['attribute' => '出勤']));
     }
 
     /**
@@ -62,6 +62,6 @@ class AttendanceController extends Controller
         $admin = Auth::guard('admins')->user();
         $this->attendanceService->clockOut($admin);
 
-        return redirect()->back()->with('success', '退勤を記録しました。');
+        return redirect()->back()->with('success', __('messages.recorded', ['attribute' => '退勤']));
     }
 }

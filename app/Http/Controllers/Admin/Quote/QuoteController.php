@@ -140,9 +140,9 @@ class QuoteController extends Controller
 
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを作成しました。見積明細を追加してください。');
+                ->with('success', __('messages.quote.created_add_items'));
         } catch (\Exception $e) {
-            return back()->with('error', '見積もりの作成に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの作成', 'message' => $e->getMessage()]));
         }
     }
 
@@ -177,7 +177,7 @@ class QuoteController extends Controller
         // 承認済みの見積もりは編集できない
         if ($quote->status === 'approved') {
             return redirect()->route('admin.quote.show', $quote)
-                ->with('error', '承認済みの見積もりは編集できません。');
+                ->with('error', __('messages.quote.approved_cannot_edit'));
         }
 
         $quote->load(['currentVersion.items', 'user.profile', 'contact', 'company']);
@@ -234,7 +234,7 @@ class QuoteController extends Controller
     {
         // 承認済みの見積もりは編集できない
         if ($quote->status === 'approved') {
-            return back()->with('error', '承認済みの見積もりは編集できません。');
+            return back()->with('error', __('messages.quote.approved_cannot_edit'));
         }
 
         $validated = $request->validate([
@@ -246,6 +246,7 @@ class QuoteController extends Controller
             'custom_specifications' => 'nullable|string',
             'discount_amount' => 'nullable|numeric|min:0',
             'campaign_id' => 'nullable|exists:campaigns,id',
+            'service_plan_id' => 'nullable|exists:service_plans,id',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'status' => 'required|in:draft,negotiating,approved,rejected,contracted,cancelled',
             'items' => 'array',
@@ -272,9 +273,9 @@ class QuoteController extends Controller
             $this->quoteService->updateQuote($quote, $validated);
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '見積もり']));
         } catch (\Exception $e) {
-            return back()->with('error', '見積もりの更新に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの更新', 'message' => $e->getMessage()]));
         }
     }
 
@@ -287,9 +288,9 @@ class QuoteController extends Controller
             $this->quoteService->deleteQuote($quote);
 
             return redirect()->route('admin.quote.index')
-                ->with('success', '見積もりを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '見積もり']));
         } catch (\Exception $e) {
-            return back()->with('error', '見積もりの削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの削除', 'message' => $e->getMessage()]));
         }
     }
 
@@ -324,13 +325,13 @@ class QuoteController extends Controller
             $this->quoteService->sendQuote($quote, $token, $responseFormUrl);
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを送信しました。');
+                ->with('success', __('messages.sent', ['attribute' => '見積もり']));
         } catch (\Exception $e) {
             Log::error('Quote send error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()->with('error', '見積もりの送信に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの送信', 'message' => $e->getMessage()]));
         }
     }
 
@@ -347,9 +348,9 @@ class QuoteController extends Controller
             $this->quoteService->approveQuote($quote, $validated['client_feedback'] ?? null);
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを承認しました。');
+                ->with('success', __('messages.approved', ['attribute' => '見積もり']));
         } catch (\Exception $e) {
-            return back()->with('error', '見積もりの承認に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの承認', 'message' => $e->getMessage()]));
         }
     }
 
@@ -366,9 +367,9 @@ class QuoteController extends Controller
             $this->quoteService->rejectQuote($quote, $validated['client_feedback'] ?? null);
 
             return redirect()->route('admin.quote.show', $quote)
-                ->with('success', '見積もりを却下しました。');
+                ->with('success', __('messages.rejected', ['attribute' => '見積もり']));
         } catch (\Exception $e) {
-            return back()->with('error', '見積もりの却下に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの却下', 'message' => $e->getMessage()]));
         }
     }
 
@@ -402,7 +403,7 @@ class QuoteController extends Controller
             // PDFをダウンロード
             return $pdf->download($filename);
         } catch (\Exception $e) {
-            return back()->with('error', 'PDFの生成に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'PDFの生成', 'message' => $e->getMessage()]));
         }
     }
 
@@ -433,7 +434,7 @@ class QuoteController extends Controller
             // ブラウザでプレビュー表示
             return $pdf->stream(sprintf('見積書_%s.pdf', $quote->quote_number));
         } catch (\Exception $e) {
-            return back()->with('error', 'PDFの生成に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'PDFの生成', 'message' => $e->getMessage()]));
         }
     }
 }

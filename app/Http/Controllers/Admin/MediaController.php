@@ -80,25 +80,25 @@ class MediaController extends Controller
                 return response()->json([
                     'success' => true,
                     'media' => $media,
-                    'message' => 'メディアをアップロードしました。バリアントは自動生成中です。',
+                    'message' => __('messages.media.uploaded_variants_processing'),
                 ]);
             }
 
             return redirect()
                 ->route('admin.media.show', $media)
-                ->with('success', 'メディアをアップロードしました。バリアントは自動生成中です。');
+                ->with('success', __('messages.media.uploaded_variants_processing'));
         } catch (\Exception $e) {
             // Ajaxリクエストの場合はJSONエラーを返す
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'メディアのアップロードに失敗しました: ' . $e->getMessage(),
+                    'message' => __('messages.action_failed_detail', ['attribute' => 'メディアのアップロード', 'message' => $e->getMessage()]),
                 ], 422);
             }
 
             return back()
                 ->withInput()
-                ->with('error', 'メディアのアップロードに失敗しました: ' . $e->getMessage());
+                ->with('error', __('messages.action_failed_detail', ['attribute' => 'メディアのアップロード', 'message' => $e->getMessage()]));
         }
     }
 
@@ -134,11 +134,11 @@ class MediaController extends Controller
         try {
             $this->mediaRepository->update($media->id, $request->validated());
 
-            return back()->with('success', 'メディア情報を更新しました。');
+            return back()->with('success', __('messages.updated', ['attribute' => 'メディア情報']));
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'メディア情報の更新に失敗しました: ' . $e->getMessage());
+                ->with('error', __('messages.action_failed_detail', ['attribute' => 'メディア情報の更新', 'message' => $e->getMessage()]));
         }
     }
 
@@ -152,9 +152,9 @@ class MediaController extends Controller
 
             return redirect()
                 ->route('admin.media.index')
-                ->with('success', 'メディアを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'メディア']));
         } catch (\Exception $e) {
-            return back()->with('error', 'メディアの削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'メディアの削除', 'message' => $e->getMessage()]));
         }
     }
 
@@ -185,9 +185,9 @@ class MediaController extends Controller
                 $validated['crop_data'] ?? null
             );
 
-            return back()->with('success', 'カスタムバリアントを作成しました。');
+            return back()->with('success', __('messages.created', ['attribute' => 'カスタムバリアント']));
         } catch (\Exception $e) {
-            return back()->with('error', 'バリアントの作成に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'バリアントの作成', 'message' => $e->getMessage()]));
         }
     }
 }

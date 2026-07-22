@@ -152,7 +152,7 @@ class ScheduleDefaultController extends Controller
         }
 
         return redirect()->route('admin.schedules.defaults.index')
-            ->with('success', 'デフォルトスケジュールを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'デフォルトスケジュール']));
     }
 
     /**

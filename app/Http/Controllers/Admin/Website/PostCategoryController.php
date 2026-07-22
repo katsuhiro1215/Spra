@@ -68,7 +68,7 @@ class PostCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.post.category.index')
-                ->with('success', 'カテゴリを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'カテゴリ']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -115,7 +115,7 @@ class PostCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.post.category.index')
-                ->with('success', 'カテゴリを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'カテゴリ']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -134,7 +134,7 @@ class PostCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.post.category.index')
-                ->with('success', 'カテゴリを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'カテゴリ']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()

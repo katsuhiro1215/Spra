@@ -104,12 +104,12 @@ class ServiceItemController extends Controller
             $this->serviceItemService->createServiceItem($request->validated());
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービス項目の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービス項目']));
         }
     }
 
@@ -156,12 +156,12 @@ class ServiceItemController extends Controller
             $this->serviceItemService->updateServiceItem($serviceItem, $request->validated());
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービス項目の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービス項目']));
         }
     }
 
@@ -174,7 +174,7 @@ class ServiceItemController extends Controller
             $this->serviceItemService->deleteServiceItem($serviceItem);
 
             return redirect()->route('admin.service.item.index')
-                ->with('success', 'サービス項目が削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービス項目']));
         } catch (\Exception $e) {
             Log::error('ServiceItem destroy error: ' . $e->getMessage());
             return redirect()->back()

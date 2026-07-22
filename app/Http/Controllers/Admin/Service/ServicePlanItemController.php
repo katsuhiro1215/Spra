@@ -110,12 +110,12 @@ class ServicePlanItemController extends Controller
             }
 
             return redirect()->route('admin.service.plan.show', $servicePlan)
-                ->with('success', 'サービスアイテムが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービスアイテム']));
         } catch (\Exception $e) {
             Log::error('ServicePlanItem update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'アイテムの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'アイテム']));
         }
     }
 
@@ -127,17 +127,17 @@ class ServicePlanItemController extends Controller
         try {
             // 権限チェック：このアイテムがこのプランに属しているか確認
             if ($servicePlanItem->service_plan_id !== $servicePlan->id) {
-                return redirect()->back()->with('error', 'アイテムが見つかりません。');
+                return redirect()->back()->with('error', __('messages.not_found', ['attribute' => 'アイテム']));
             }
 
             $servicePlanItem->delete();
 
             return redirect()->back()
-                ->with('success', 'アイテムが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'アイテム']));
         } catch (\Exception $e) {
             Log::error('ServicePlanItem destroy error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'アイテムの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'アイテム']));
         }
     }
 }

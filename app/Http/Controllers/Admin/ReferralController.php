@@ -64,12 +64,12 @@ class ReferralController extends Controller
             $this->referralService->createReferral($request->validated());
 
             return redirect()->route('admin.referral.index')
-                ->with('success', '紹介を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => '紹介']));
         } catch (\Exception $e) {
             Log::error('Referral store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '紹介の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => '紹介']));
         }
     }
 
@@ -105,12 +105,12 @@ class ReferralController extends Controller
             $this->referralService->updateReferral($referral, $request->validated());
 
             return redirect()->route('admin.referral.index')
-                ->with('success', '紹介を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '紹介']));
         } catch (\Exception $e) {
             Log::error('Referral update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '紹介の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => '紹介']));
         }
     }
 
@@ -123,7 +123,7 @@ class ReferralController extends Controller
             $this->referralService->deleteReferral($referral);
 
             return redirect()->route('admin.referral.index')
-                ->with('success', '紹介を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '紹介']));
         } catch (\Exception $e) {
             Log::error('Referral destroy error: ' . $e->getMessage());
             return redirect()->back()
@@ -140,7 +140,7 @@ class ReferralController extends Controller
             $this->referralService->markContracted($referral);
 
             return redirect()->route('admin.referral.show', $referral->id)
-                ->with('success', '紹介を成立にし、ポイントを付与しました。');
+                ->with('success', __('messages.referral.confirmed_and_granted'));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage());

@@ -62,6 +62,6 @@ class OrganizationController extends Controller
 
         return redirect()
             ->route('admin.organization.edit')
-            ->with('success', '組織情報を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '組織情報']));
     }
 }

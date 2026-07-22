@@ -93,6 +93,7 @@ class QuoteItemController extends Controller
             'campaigns' => $this->campaignService->getActiveForSelect(),
             'discount_amount' => $quote->currentVersion->discount_amount ?? 0,
             'campaign_id' => $quote->currentVersion->campaign_id ?? '',
+            'service_plan_id' => $quote->currentVersion->service_plan_id ?? '',
             'tax_rate' => $quote->currentVersion->tax_rate ?? 10,
             'base_amount' => $quote->currentVersion->base_amount ?? 0,
             'tax_amount' => $quote->currentVersion->tax_amount ?? 0,
@@ -109,7 +110,7 @@ class QuoteItemController extends Controller
         $quote = Quote::with('currentVersion')->findOrFail($quoteId);
 
         if (!$quote->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         $validated = $request->validated();
@@ -127,9 +128,17 @@ class QuoteItemController extends Controller
             if (isset($validated['custom_specifications'])) {
                 $currentVersion->custom_specifications = $validated['custom_specifications'];
             }
-            if (array_key_exists('campaign_id', $validated)) {
-                $currentVersion->campaign_id = $validated['campaign_id'] ?: null;
+            $campaignId = array_key_exists('campaign_id', $validated) ? ($validated['campaign_id'] ?: null) : $currentVersion->campaign_id;
+            $servicePlanId = array_key_exists('service_plan_id', $validated) ? ($validated['service_plan_id'] ?: null) : $currentVersion->service_plan_id;
+
+            // キャンペーンやプランの選択自体が変わる場合のみ適用可否を再検証する
+            // （無関係な明細の編集のたびに、他の見積の消費によって事後的に対象外になったキャンペーンでエラーになるのを防ぐ）
+            if ($campaignId !== $currentVersion->campaign_id || $servicePlanId !== $currentVersion->service_plan_id) {
+                $this->quoteService->assertCampaignEligible($campaignId, $servicePlanId);
             }
+
+            $currentVersion->campaign_id = $campaignId;
+            $currentVersion->service_plan_id = $servicePlanId;
             $currentVersion->save();
 
             // 明細を追加
@@ -158,9 +167,9 @@ class QuoteItemController extends Controller
             $this->quoteService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.quote.show', $quoteId)
-                ->with('success', '見積明細を追加しました。');
+                ->with('success', __('messages.added', ['attribute' => '見積明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の追加に失敗しました: ' . $e->getMessage())
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の追加', 'message' => $e->getMessage()]))
                 ->withInput();
         }
     }
@@ -246,6 +255,7 @@ class QuoteItemController extends Controller
             'campaigns' => $this->campaignService->getActiveForSelect(),
             'discount_amount' => $quote->currentVersion->discount_amount ?? 0,
             'campaign_id' => $quote->currentVersion->campaign_id ?? '',
+            'service_plan_id' => $quote->currentVersion->service_plan_id ?? '',
             'tax_rate' => $quote->currentVersion->tax_rate ?? 10,
             'base_amount' => $quote->currentVersion->base_amount ?? 0,
             'tax_amount' => $quote->currentVersion->tax_amount ?? 0,
@@ -262,7 +272,7 @@ class QuoteItemController extends Controller
         $quote->load('currentVersion.items');
 
         if (!$quote->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         $validated = $request->validated();
@@ -280,9 +290,17 @@ class QuoteItemController extends Controller
             if (isset($validated['custom_specifications'])) {
                 $currentVersion->custom_specifications = $validated['custom_specifications'];
             }
-            if (array_key_exists('campaign_id', $validated)) {
-                $currentVersion->campaign_id = $validated['campaign_id'] ?: null;
+            $campaignId = array_key_exists('campaign_id', $validated) ? ($validated['campaign_id'] ?: null) : $currentVersion->campaign_id;
+            $servicePlanId = array_key_exists('service_plan_id', $validated) ? ($validated['service_plan_id'] ?: null) : $currentVersion->service_plan_id;
+
+            // キャンペーンやプランの選択自体が変わる場合のみ適用可否を再検証する
+            // （無関係な明細の編集のたびに、他の見積の消費によって事後的に対象外になったキャンペーンでエラーになるのを防ぐ）
+            if ($campaignId !== $currentVersion->campaign_id || $servicePlanId !== $currentVersion->service_plan_id) {
+                $this->quoteService->assertCampaignEligible($campaignId, $servicePlanId);
             }
+
+            $currentVersion->campaign_id = $campaignId;
+            $currentVersion->service_plan_id = $servicePlanId;
             $currentVersion->save();
 
             // 既存の明細を全て削除
@@ -313,9 +331,9 @@ class QuoteItemController extends Controller
             $this->quoteService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.quote.show', $quote->id)
-                ->with('success', '見積明細を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '見積明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の更新に失敗しました: ' . $e->getMessage())
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の更新', 'message' => $e->getMessage()]))
                 ->withInput();
         }
     }
@@ -328,7 +346,7 @@ class QuoteItemController extends Controller
         $quote->load('currentVersion.items');
 
         if (!$quote->currentVersion) {
-            return back()->with('error', '現在のバージョンが見つかりません。');
+            return back()->with('error', __('messages.not_found', ['attribute' => '現在のバージョン']));
         }
 
         try {
@@ -341,9 +359,9 @@ class QuoteItemController extends Controller
             $this->quoteService->recalculateVersionAmounts($currentVersion);
 
             return redirect()->route('admin.quote.show', $quote->id)
-                ->with('success', '見積明細を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '見積明細']));
         } catch (\Exception $e) {
-            return back()->with('error', '明細の削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => '明細の削除', 'message' => $e->getMessage()]));
         }
     }
 }

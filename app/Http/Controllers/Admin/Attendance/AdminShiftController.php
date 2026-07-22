@@ -77,7 +77,7 @@ class AdminShiftController extends Controller
         AdminShift::create($validated);
 
         return redirect()->route('admin.attendance.shifts.index')
-            ->with('success', 'シフトを登録しました。');
+            ->with('success', __('messages.registered', ['attribute' => 'シフト']));
     }
 
     public function edit(AdminShift $shift): Response
@@ -103,7 +103,7 @@ class AdminShiftController extends Controller
         $shift->update($validated);
 
         return redirect()->route('admin.attendance.shifts.index')
-            ->with('success', 'シフトを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'シフト']));
     }
 
     public function destroy(AdminShift $shift): RedirectResponse
@@ -113,7 +113,7 @@ class AdminShiftController extends Controller
         $shift->delete();
 
         return redirect()->route('admin.attendance.shifts.index')
-            ->with('success', 'シフトを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'シフト']));
     }
 
     /**
@@ -142,7 +142,7 @@ class AdminShiftController extends Controller
         $rangeError = null;
 
         if ($startDate->diffInDays($endDate) + 1 > self::BULK_CREATE_MAX_DAYS) {
-            $rangeError = 'まとめて作成できる期間は最大' . self::BULK_CREATE_MAX_DAYS . '日間までです。';
+            $rangeError = __('messages.appointment_slot.bulk_create_period_max', ['days' => self::BULK_CREATE_MAX_DAYS]);
         } elseif ($adminId) {
             $existingDates = AdminShift::where('admin_id', $adminId)
                 ->whereBetween('shift_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])

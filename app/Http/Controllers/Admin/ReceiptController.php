@@ -165,7 +165,7 @@ class ReceiptController extends Controller
     }
 
     return redirect()->route('admin.receipt.show', $receipt->id)
-      ->with('success', '領収書を作成しました。');
+      ->with('success', __('messages.created', ['attribute' => '領収書']));
   }
 
   /**
@@ -178,7 +178,7 @@ class ReceiptController extends Controller
     // 送付済みの領収書は編集不可
     if ($receipt->status === 'sent') {
       return redirect()->route('admin.receipt.show', $receipt->id)
-        ->with('error', '送付済みの領収書は編集できません。');
+        ->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
     return Inertia::render('Admin/Receipts/Edit', [
@@ -199,7 +199,7 @@ class ReceiptController extends Controller
 
     // 送付済みの領収書は編集不可
     if ($receipt->status === 'sent') {
-      return back()->with('error', '送付済みの領収書は編集できません。');
+      return back()->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
     $validated = $request->validate([
@@ -231,7 +231,7 @@ class ReceiptController extends Controller
     }
 
     return redirect()->route('admin.receipt.show', $receipt->id)
-      ->with('success', '領収書を更新しました。');
+      ->with('success', __('messages.updated', ['attribute' => '領収書']));
   }
 
   /**
@@ -243,7 +243,7 @@ class ReceiptController extends Controller
 
     // 送付済みの領収書は削除不可
     if ($receipt->status === 'sent') {
-      return back()->with('error', '送付済みの領収書は削除できません。');
+      return back()->with('error', __('messages.receipt.delivered_cannot_delete'));
     }
 
     // PDFファイルも削除
@@ -254,7 +254,7 @@ class ReceiptController extends Controller
     $receipt->delete();
 
     return redirect()->route('admin.receipt.index')
-      ->with('success', '領収書を削除しました。');
+      ->with('success', __('messages.deleted', ['attribute' => '領収書']));
   }
 
   /**
@@ -287,15 +287,15 @@ class ReceiptController extends Controller
     $receipt = Receipt::findOrFail($id);
 
     if ($receipt->status === 'sent') {
-      return back()->with('error', 'この領収書はすでに送付済みです。');
+      return back()->with('error', __('messages.receipt.already_delivered'));
     }
 
     try {
       $this->service->sendReceipt($receipt);
 
-      return back()->with('success', '領収書を送付しました。');
+      return back()->with('success', __('messages.delivered', ['attribute' => '領収書']));
     } catch (\Exception $e) {
-      return back()->with('error', '領収書の送付に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => '領収書の送付', 'message' => $e->getMessage()]));
     }
   }
 

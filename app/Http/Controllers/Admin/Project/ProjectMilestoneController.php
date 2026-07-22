@@ -56,7 +56,7 @@ class ProjectMilestoneController extends Controller
 
     $version->milestones()->create($data);
 
-    return back()->with('success', 'マイルストーンを追加しました。');
+    return back()->with('success', __('messages.added', ['attribute' => 'マイルストーン']));
   }
 
   /**
@@ -92,7 +92,7 @@ class ProjectMilestoneController extends Controller
 
     $milestone->update($data);
 
-    return back()->with('success', 'マイルストーンを更新しました。');
+    return back()->with('success', __('messages.updated', ['attribute' => 'マイルストーン']));
   }
 
   /**
@@ -102,6 +102,6 @@ class ProjectMilestoneController extends Controller
   {
     $milestone->delete();
 
-    return back()->with('success', 'マイルストーンを削除しました。');
+    return back()->with('success', __('messages.deleted', ['attribute' => 'マイルストーン']));
   }
 }

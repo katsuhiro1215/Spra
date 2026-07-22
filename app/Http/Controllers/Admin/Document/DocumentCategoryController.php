@@ -16,7 +16,7 @@ class DocumentCategoryController extends Controller
         DocumentCategory::create($request->validated());
 
         return redirect()->route('admin.documents.index')
-            ->with('success', 'カテゴリを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'カテゴリ']));
     }
 
     /**
@@ -27,7 +27,7 @@ class DocumentCategoryController extends Controller
         $documentCategory->update($request->validated());
 
         return redirect()->route('admin.documents.index')
-            ->with('success', 'カテゴリを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'カテゴリ']));
     }
 
     /**
@@ -42,6 +42,6 @@ class DocumentCategoryController extends Controller
         $documentCategory->delete();
 
         return redirect()->route('admin.documents.index')
-            ->with('success', 'カテゴリを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'カテゴリ']));
     }
 }

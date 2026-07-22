@@ -89,7 +89,7 @@ class ScheduleExceptionController extends Controller
         ]);
 
         return redirect()->route('admin.schedules.exceptions.index')
-            ->with('success', '例外日を登録しました。');
+            ->with('success', __('messages.registered', ['attribute' => '例外日']));
     }
 
     /**
@@ -125,7 +125,7 @@ class ScheduleExceptionController extends Controller
         ]);
 
         return redirect()->route('admin.schedules.exceptions.index')
-            ->with('success', '例外日を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '例外日']));
     }
 
     /**
@@ -137,6 +137,6 @@ class ScheduleExceptionController extends Controller
         $exception->delete();
 
         return redirect()->route('admin.schedules.exceptions.index')
-            ->with('success', '例外日を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '例外日']));
     }
 }

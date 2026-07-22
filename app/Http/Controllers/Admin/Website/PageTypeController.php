@@ -61,12 +61,12 @@ class PageTypeController extends Controller
             $this->pageTypeService->createPageType($request->validated());
 
             return redirect()->route('admin.website.page.type.index')
-                ->with('success', 'ページタイプを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'ページタイプ']));
         } catch (\Exception $e) {
             Log::error('PageType store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページタイプの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'ページタイプ']));
         }
     }
 
@@ -99,12 +99,12 @@ class PageTypeController extends Controller
             $this->pageTypeService->updatePageType($pageType, $request->validated());
 
             return redirect()->route('admin.website.page.type.index')
-                ->with('success', 'ページタイプを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'ページタイプ']));
         } catch (\Exception $e) {
             Log::error('PageType update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ページタイプの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'ページタイプ']));
         }
     }
 
@@ -117,7 +117,7 @@ class PageTypeController extends Controller
             $this->pageTypeService->deletePageType($pageType);
 
             return redirect()->route('admin.website.page.type.index')
-                ->with('success', 'ページタイプを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ページタイプ']));
         } catch (\Exception $e) {
             Log::error('PageType destroy error: ' . $e->getMessage());
             return redirect()->back()

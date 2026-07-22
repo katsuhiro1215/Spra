@@ -69,7 +69,7 @@ class PointRedemptionController extends Controller
             $this->pointRedemptionService->approve($pointRedemption, Auth::guard('admins')->id());
 
             return redirect()->route('admin.point-redemption.show', $pointRedemption->id)
-                ->with('success', '交換申請を承認し、ポイントを消費しました。');
+                ->with('success', __('messages.point_redemption.approved_and_consumed'));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage());
@@ -93,7 +93,7 @@ class PointRedemptionController extends Controller
             );
 
             return redirect()->route('admin.point-redemption.show', $pointRedemption->id)
-                ->with('success', '交換申請を却下しました。');
+                ->with('success', __('messages.rejected', ['attribute' => '交換申請']));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage());

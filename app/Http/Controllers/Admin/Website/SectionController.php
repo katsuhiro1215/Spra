@@ -71,7 +71,7 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -117,7 +117,7 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -136,7 +136,7 @@ class SectionController extends Controller
 
             return redirect()
                 ->route('admin.website.section.index')
-                ->with('success', 'セクションを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'セクション']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()

@@ -32,6 +32,6 @@ class AdminPermissionOverrideController extends Controller
 
         $this->permissionService->updateOverridesFor($admin, $validated['restricted_permission_ids'] ?? []);
 
-        return back()->with('success', '権限制限を更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => '権限制限']));
     }
 }

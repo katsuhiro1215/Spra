@@ -98,7 +98,7 @@ class PaymentController extends Controller
     public function confirm(Payment $payment): RedirectResponse
     {
         if ($payment->status !== 'pending') {
-            return back()->with('error', 'この入金は確認待ちの状態ではありません。');
+            return back()->with('error', __('messages.payment.not_awaiting_confirmation'));
         }
 
         $wasReceiptIssued = (bool) $payment->invoice?->receipt;
@@ -113,10 +113,10 @@ class PaymentController extends Controller
         if ($invoice?->receipt && !$wasReceiptIssued) {
             return redirect()
                 ->route('admin.receipt.show', $invoice->receipt->id)
-                ->with('success', '入金を確認しました。請求額に達したため領収書を作成しました。内容を確認して送付してください。');
+                ->with('success', __('messages.invoice.payment_confirmed_receipt_created'));
         }
 
-        return back()->with('success', '入金を確認しました。');
+        return back()->with('success', __('messages.confirmed', ['attribute' => '入金']));
     }
 
     /**
@@ -128,6 +128,6 @@ class PaymentController extends Controller
         $this->service->delete($payment);
 
         return redirect()->route('admin.invoice.show', $invoiceId)
-            ->with('success', '入金記録を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '入金記録']));
     }
 }

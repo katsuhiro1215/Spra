@@ -37,7 +37,7 @@ class TechnologyController extends Controller
 
         return redirect()
             ->route('admin.service.technology.index')
-            ->with('success', '技術を作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '技術']));
     }
 
     public function edit(Technology $technology): Response
@@ -53,7 +53,7 @@ class TechnologyController extends Controller
 
         return redirect()
             ->route('admin.service.technology.index')
-            ->with('success', '技術を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '技術']));
     }
 
     public function destroy(Technology $technology): RedirectResponse
@@ -61,13 +61,13 @@ class TechnologyController extends Controller
         if ($technology->services()->count() > 0) {
             return redirect()
                 ->route('admin.service.technology.index')
-                ->with('error', 'この技術は使用中のサービスがあるため削除できません。');
+                ->with('error', __('messages.technology.in_use'));
         }
 
         $this->technologyService->delete($technology);
 
         return redirect()
             ->route('admin.service.technology.index')
-            ->with('success', '技術を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '技術']));
     }
 }

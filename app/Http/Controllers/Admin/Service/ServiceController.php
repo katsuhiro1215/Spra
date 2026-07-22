@@ -76,12 +76,12 @@ class ServiceController extends Controller
             $this->serviceService->createService($request->validated());
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが作成されました。');
+                ->with('success', __('messages.created', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'サービス']));
         }
     }
 
@@ -146,12 +146,12 @@ class ServiceController extends Controller
             $this->serviceService->updateService($service, $request->validated());
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが更新されました。');
+                ->with('success', __('messages.updated', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'サービスの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'サービス']));
         }
     }
 
@@ -164,7 +164,7 @@ class ServiceController extends Controller
             $this->serviceService->deleteService($service);
 
             return redirect()->route('admin.service.index')
-                ->with('success', 'サービスが削除されました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'サービス']));
         } catch (\Exception $e) {
             Log::error('Service destroy error: ' . $e->getMessage());
             return redirect()->back()
@@ -188,7 +188,7 @@ class ServiceController extends Controller
         try {
             $service->update(['media_id' => $validated['media_id']]);
 
-            return back()->with('success', 'サムネイル画像を設定しました。');
+            return back()->with('success', __('messages.set', ['attribute' => 'サムネイル画像']));
         } catch (\Exception $e) {
             Log::error('サービスサムネイル設定エラー', [
                 'message' => $e->getMessage(),
@@ -196,7 +196,7 @@ class ServiceController extends Controller
                 'media_id' => $validated['media_id'],
             ]);
 
-            return back()->with('error', '画像の設定に失敗しました。');
+            return back()->with('error', __('messages.set_failed', ['attribute' => '画像']));
         }
     }
 
@@ -208,14 +208,14 @@ class ServiceController extends Controller
         try {
             $service->update(['media_id' => null]);
 
-            return back()->with('success', 'サムネイル画像を削除しました。');
+            return back()->with('success', __('messages.deleted', ['attribute' => 'サムネイル画像']));
         } catch (\Exception $e) {
             Log::error('サービスサムネイル削除エラー', [
                 'message' => $e->getMessage(),
                 'service_id' => $service->id,
             ]);
 
-            return back()->with('error', '画像の削除に失敗しました。');
+            return back()->with('error', __('messages.delete_failed', ['attribute' => '画像']));
         }
     }
 }

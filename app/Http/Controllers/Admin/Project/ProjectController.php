@@ -79,7 +79,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.show', $project->id)
-            ->with('success', 'プロジェクトを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'プロジェクト']));
     }
 
     /**
@@ -174,7 +174,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.show', $project->id)
-            ->with('success', 'プロジェクトを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'プロジェクト']));
     }
 
     /**
@@ -186,6 +186,6 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('admin.project.index')
-            ->with('success', 'プロジェクトを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'プロジェクト']));
     }
 }

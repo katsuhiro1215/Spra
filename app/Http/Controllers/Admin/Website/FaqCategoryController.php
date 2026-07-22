@@ -62,13 +62,13 @@ class FaqCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.faq.category.index')
-                ->with('success', 'FAQカテゴリを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'FAQカテゴリ']));
         } catch (\Exception $e) {
             Log::error('FaqCategory store error: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'FAQカテゴリの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'FAQカテゴリ']));
         }
     }
 
@@ -104,13 +104,13 @@ class FaqCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.faq.category.index')
-                ->with('success', 'FAQカテゴリを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'FAQカテゴリ']));
         } catch (\Exception $e) {
             Log::error('FaqCategory update error: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'FAQカテゴリの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'FAQカテゴリ']));
         }
     }
 
@@ -124,12 +124,12 @@ class FaqCategoryController extends Controller
 
             return redirect()
                 ->route('admin.website.faq.category.index')
-                ->with('success', 'FAQカテゴリを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'FAQカテゴリ']));
         } catch (\Exception $e) {
             Log::error('FaqCategory destroy error: ' . $e->getMessage());
             return redirect()
                 ->back()
-                ->with('error', 'FAQカテゴリの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'FAQカテゴリ']));
         }
     }
 
@@ -150,7 +150,7 @@ class FaqCategoryController extends Controller
             return redirect()->back()->with('success', "{$count}件のFAQカテゴリを更新しました。");
         } catch (\Exception $e) {
             Log::error('FaqCategory bulkAction error: ' . $e->getMessage());
-            return redirect()->back()->with('error', '一括操作に失敗しました。');
+            return redirect()->back()->with('error', __('messages.bulk_action_failed'));
         }
     }
 
@@ -168,10 +168,10 @@ class FaqCategoryController extends Controller
         try {
             $this->faqCategoryService->updateOrder($validated['orders']);
 
-            return redirect()->back()->with('success', '表示順を更新しました。');
+            return redirect()->back()->with('success', __('messages.updated', ['attribute' => '表示順']));
         } catch (\Exception $e) {
             Log::error('FaqCategory updateOrder error: ' . $e->getMessage());
-            return redirect()->back()->with('error', '表示順の更新に失敗しました。');
+            return redirect()->back()->with('error', __('messages.update_failed', ['attribute' => '表示順']));
         }
     }
 }

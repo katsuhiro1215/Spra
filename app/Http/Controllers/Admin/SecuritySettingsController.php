@@ -46,11 +46,11 @@ class SecuritySettingsController extends Controller
         if (! $request->boolean('two_factor_enabled')) {
             $admin->disableTwoFactor();
 
-            return back()->with('success', '二段階認証を無効にしました。');
+            return back()->with('success', __('messages.two_factor.disabled'));
         }
 
         if ($admin->usesTotp()) {
-            return back()->with('success', '二段階認証は認証アプリ方式で有効になっています。');
+            return back()->with('success', __('messages.two_factor.already_enabled_authenticator'));
         }
 
         $admin->update([
@@ -108,7 +108,7 @@ class SecuritySettingsController extends Controller
         $recoveryCodes = $admin->generateRecoveryCodes();
 
         return back()
-            ->with('success', '認証アプリによる二段階認証を有効にしました。')
+            ->with('success', __('messages.two_factor.authenticator_enabled'))
             ->with('recoveryCodesReveal', $recoveryCodes);
     }
 
@@ -123,7 +123,7 @@ class SecuritySettingsController extends Controller
         $recoveryCodes = $admin->generateRecoveryCodes();
 
         return back()
-            ->with('success', 'リカバリーコードを再発行しました。以前のコードは無効になりました。')
+            ->with('success', __('messages.two_factor.recovery_codes_regenerated'))
             ->with('recoveryCodesReveal', $recoveryCodes);
     }
 }

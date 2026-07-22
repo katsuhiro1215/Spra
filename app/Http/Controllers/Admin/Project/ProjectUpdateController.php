@@ -21,7 +21,7 @@ class ProjectUpdateController extends Controller
 
     ProjectUpdate::create($data);
 
-    return back()->with('success', '更新情報を追加しました。');
+    return back()->with('success', __('messages.added', ['attribute' => '更新情報']));
   }
 
   /**
@@ -31,7 +31,7 @@ class ProjectUpdateController extends Controller
   {
     $update->update($request->validated());
 
-    return back()->with('success', '更新情報を変更しました。');
+    return back()->with('success', __('messages.project.update_changed'));
   }
 
   /**
@@ -41,6 +41,6 @@ class ProjectUpdateController extends Controller
   {
     $update->delete();
 
-    return back()->with('success', '更新情報を削除しました。');
+    return back()->with('success', __('messages.deleted', ['attribute' => '更新情報']));
   }
 }

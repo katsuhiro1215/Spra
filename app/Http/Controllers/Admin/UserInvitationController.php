@@ -29,7 +29,7 @@ class UserInvitationController extends Controller
             ->first();
 
         if ($existingInvitation) {
-            return back()->with('error', 'このお問い合わせには既に有効な招待が存在します。');
+            return back()->with('error', __('messages.user_invitation.already_invited'));
         }
 
         // 招待を作成
@@ -47,7 +47,7 @@ class UserInvitationController extends Controller
         try {
             Mail::to($contact->email)->send(new UserInvitationMail($invitation, $contact));
 
-            return back()->with('success', '招待メールを送信しました。');
+            return back()->with('success', __('messages.sent', ['attribute' => '招待メール']));
         } catch (\Exception $e) {
             // メール送信失敗時も招待は作成済み
             Log::error('Invitation email failed', [
@@ -65,20 +65,20 @@ class UserInvitationController extends Controller
     public function resend(UserInvitation $invitation)
     {
         if (!$invitation->isValid()) {
-            return back()->with('error', 'この招待は既に使用されているか、期限切れです。');
+            return back()->with('error', __('messages.user_invitation.already_used_or_expired'));
         }
 
         try {
             Mail::to($invitation->email)->send(new UserInvitationMail($invitation, $invitation->contact));
 
-            return back()->with('success', '招待メールを再送信しました。');
+            return back()->with('success', __('messages.resent', ['attribute' => '招待メール']));
         } catch (\Exception $e) {
             Log::error('Invitation resend failed', [
                 'invitation_id' => $invitation->id,
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'メール送信に失敗しました。');
+            return back()->with('error', __('messages.user_invitation.email_send_failed'));
         }
     }
 
@@ -88,11 +88,11 @@ class UserInvitationController extends Controller
     public function revoke(UserInvitation $invitation)
     {
         if ($invitation->isAccepted()) {
-            return back()->with('error', 'この招待は既に承認済みのため、取り消すことができません。');
+            return back()->with('error', __('messages.user_invitation.already_approved'));
         }
 
         $invitation->revoke();
 
-        return back()->with('success', '招待を取り消しました。');
+        return back()->with('success', __('messages.user_invitation.revoked'));
     }
 }

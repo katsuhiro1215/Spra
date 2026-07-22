@@ -70,7 +70,7 @@ class ContractTemplateController extends Controller
 
         return redirect()
             ->route('admin.contract.template.show', $template->id)
-            ->with('success', 'テンプレートを作成しました。');
+            ->with('success', __('messages.created', ['attribute' => 'テンプレート']));
     }
 
     /**
@@ -105,7 +105,7 @@ class ContractTemplateController extends Controller
 
         return redirect()
             ->route('admin.contract.template.show', $contractTemplate->id)
-            ->with('success', 'テンプレートを更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => 'テンプレート']));
     }
 
     /**
@@ -117,6 +117,6 @@ class ContractTemplateController extends Controller
 
         return redirect()
             ->route('admin.contract.template.index')
-            ->with('success', 'テンプレートを削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => 'テンプレート']));
     }
 }

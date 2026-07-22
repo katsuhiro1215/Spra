@@ -21,6 +21,7 @@ class Contract extends Model
         'parent_contract_id',
         'quote_id',
         'service_plan_id',
+        'campaign_id',
         'user_id',
         'billing_user_id',
         'company_id',
@@ -136,6 +137,14 @@ class Contract extends Model
     public function servicePlan(): BelongsTo
     {
         return $this->belongsTo(ServicePlan::class);
+    }
+
+    /**
+     * 見積もりから引き継いだ適用キャンペーン
+     */
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     /**

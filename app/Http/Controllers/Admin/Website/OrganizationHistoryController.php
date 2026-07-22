@@ -85,7 +85,7 @@ class OrganizationHistoryController extends Controller
 
             return redirect()
                 ->route('admin.organization.history.index')
-                ->with('success', '沿革を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => '沿革']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -114,7 +114,7 @@ class OrganizationHistoryController extends Controller
 
             return redirect()
                 ->route('admin.organization.history.index')
-                ->with('success', '沿革を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '沿革']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -133,7 +133,7 @@ class OrganizationHistoryController extends Controller
 
             return redirect()
                 ->route('admin.organization.history.index')
-                ->with('success', '沿革を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '沿革']));
         } catch (\Exception $e) {
             return redirect()
                 ->back()

@@ -91,6 +91,14 @@ class ServicePlan extends Model
     }
 
     /**
+     * Get the campaigns that are restricted to this service plan.
+     */
+    public function campaigns()
+    {
+        return $this->belongsToMany(Campaign::class, 'campaign_service_plans');
+    }
+
+    /**
      * Get the admin who created this service plan.
      */
     public function creator()

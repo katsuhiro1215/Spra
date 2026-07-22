@@ -137,7 +137,7 @@ class ContactApiClientController extends Controller
         if (!$client) {
             return redirect()
                 ->route('admin.contact.api-client.index')
-                ->with('error', 'APIクライアントが見つかりません。');
+                ->with('error', __('messages.not_found', ['attribute' => 'APIクライアント']));
         }
 
         $this->service->delete($client);

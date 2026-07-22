@@ -39,7 +39,7 @@ class ProjectDocumentController extends Controller
 
         return redirect()
             ->route('admin.project.documents.show', [$project->id, $document->id])
-            ->with('success', '文書を作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '文書']));
     }
 
     public function show(Project $project, ProjectDocument $document): Response
@@ -56,7 +56,7 @@ class ProjectDocumentController extends Controller
     {
         $this->service->update($document, $request->validated());
 
-        return back()->with('success', '文書情報を更新しました。');
+        return back()->with('success', __('messages.updated', ['attribute' => '文書情報']));
     }
 
     public function compare(Request $request, Project $project, ProjectDocument $document): Response
@@ -94,6 +94,6 @@ class ProjectDocumentController extends Controller
 
         return redirect()
             ->route('admin.project.show', $project->id)
-            ->with('success', '文書を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '文書']));
     }
 }

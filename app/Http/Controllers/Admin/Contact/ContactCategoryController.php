@@ -57,12 +57,12 @@ class ContactCategoryController extends Controller
 
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('success', 'お問い合わせカテゴリを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'お問い合わせカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ContactCategory store error: ' . $e->getMessage());
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('error', 'お問い合わせカテゴリの作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'お問い合わせカテゴリ']));
         }
     }
 
@@ -88,12 +88,12 @@ class ContactCategoryController extends Controller
 
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('success', 'お問い合わせカテゴリを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'お問い合わせカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ContactCategory update error: ' . $e->getMessage());
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('error', 'お問い合わせカテゴリの更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'お問い合わせカテゴリ']));
         }
     }
 
@@ -106,7 +106,7 @@ class ContactCategoryController extends Controller
         if ($category->contacts()->exists()) {
             return redirect()
                 ->route('admin.contact.category.index')
-                ->with('error', '関連するお問い合わせが存在するため、削除できません。');
+                ->with('error', __('messages.contact.has_related'));
         }
         // 削除処理
 
@@ -114,11 +114,11 @@ class ContactCategoryController extends Controller
             $this->service->delete($category);
 
             return redirect()->route('admin.contact.category.index')
-                ->with('success', 'お問い合わせカテゴリを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'お問い合わせカテゴリ']));
         } catch (\Exception $e) {
             Log::error('ContactCategory delete error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'お問い合わせカテゴリの削除に失敗しました。');
+                ->with('error', __('messages.delete_failed', ['attribute' => 'お問い合わせカテゴリ']));
         }
     }
 }

@@ -71,9 +71,9 @@ class ContractGroupController extends Controller
       );
 
       return redirect()->route('admin.contract-group.show', $group->id)
-        ->with('success', '契約書グループを作成しました');
+        ->with('success', __('messages.contract_group.created'));
     } catch (\Exception $e) {
-      return back()->with('error', 'グループ作成に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'グループ作成', 'message' => $e->getMessage()]));
     }
   }
 
@@ -114,12 +114,12 @@ class ContractGroupController extends Controller
 
     // 送信要件チェック
     if ($group->contracts->isEmpty()) {
-      return back()->with('error', 'グループに契約書が含まれていません');
+      return back()->with('error', __('messages.contract_group.no_documents'));
     }
 
     $recipientEmail = $group->user?->email;
     if (!$recipientEmail) {
-      return back()->with('error', 'ユーザーのメールアドレスが登録されていません');
+      return back()->with('error', __('messages.contract_group.user_email_missing'));
     }
 
     try {
@@ -130,9 +130,9 @@ class ContractGroupController extends Controller
       );
 
       return redirect()->route('admin.contract-group.show', $group->id)
-        ->with('success', 'グループ内の全契約書を送信しました');
+        ->with('success', __('messages.contract_group.all_sent'));
     } catch (\Exception $e) {
-      return back()->with('error', 'グループ送信に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'グループ送信', 'message' => $e->getMessage()]));
     }
   }
 
@@ -145,15 +145,15 @@ class ContractGroupController extends Controller
     $contract = Contract::findOrFail($contractId);
 
     if ($contract->contract_group_id !== $group->id) {
-      return back()->with('error', 'この契約書はグループに含まれていません');
+      return back()->with('error', __('messages.contract_group.not_in_group'));
     }
 
     try {
       $this->service->removeContractFromGroup($contract);
 
-      return back()->with('success', 'グループから契約書を削除しました');
+      return back()->with('success', __('messages.contract_group.removed_document'));
     } catch (\Exception $e) {
-      return back()->with('error', '削除に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => '削除', 'message' => $e->getMessage()]));
     }
   }
 
@@ -173,9 +173,9 @@ class ContractGroupController extends Controller
     try {
       $this->service->addContractToGroup($group, $contract);
 
-      return back()->with('success', '契約書をグループに追加しました');
+      return back()->with('success', __('messages.contract_group.added_document'));
     } catch (\Exception $e) {
-      return back()->with('error', '追加に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => '追加', 'message' => $e->getMessage()]));
     }
   }
 
@@ -190,9 +190,9 @@ class ContractGroupController extends Controller
       $this->service->removeGroupAssociation($group);
 
       return redirect()->route('admin.contract-group.index')
-        ->with('success', 'グループを削除しました');
+        ->with('success', __('messages.contract_group.deleted'));
     } catch (\Exception $e) {
-      return back()->with('error', '削除に失敗しました: ' . $e->getMessage());
+      return back()->with('error', __('messages.action_failed_detail', ['attribute' => '削除', 'message' => $e->getMessage()]));
     }
   }
 }

@@ -60,12 +60,12 @@ class PointRewardController extends Controller
             $this->pointRewardService->createPointReward($request->validated());
 
             return redirect()->route('admin.point-reward.index')
-                ->with('success', 'ポイント特典を作成しました。');
+                ->with('success', __('messages.created', ['attribute' => 'ポイント特典']));
         } catch (\Exception $e) {
             Log::error('PointReward store error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ポイント特典の作成に失敗しました。');
+                ->with('error', __('messages.create_failed', ['attribute' => 'ポイント特典']));
         }
     }
 
@@ -88,12 +88,12 @@ class PointRewardController extends Controller
             $this->pointRewardService->updatePointReward($pointReward, $request->validated());
 
             return redirect()->route('admin.point-reward.index')
-                ->with('success', 'ポイント特典を更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => 'ポイント特典']));
         } catch (\Exception $e) {
             Log::error('PointReward update error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'ポイント特典の更新に失敗しました。');
+                ->with('error', __('messages.update_failed', ['attribute' => 'ポイント特典']));
         }
     }
 
@@ -106,7 +106,7 @@ class PointRewardController extends Controller
             $this->pointRewardService->deletePointReward($pointReward);
 
             return redirect()->route('admin.point-reward.index')
-                ->with('success', 'ポイント特典を削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => 'ポイント特典']));
         } catch (\Exception $e) {
             Log::error('PointReward destroy error: ' . $e->getMessage());
             return redirect()->back()

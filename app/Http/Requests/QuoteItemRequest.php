@@ -36,6 +36,7 @@ class QuoteItemRequest extends FormRequest
             'items.*.sort_order' => 'nullable|integer',
             'discount_amount' => 'nullable|numeric|min:0',
             'campaign_id' => 'nullable|exists:campaigns,id',
+            'service_plan_id' => 'nullable|exists:service_plans,id',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'custom_specifications' => 'nullable|string',
         ];

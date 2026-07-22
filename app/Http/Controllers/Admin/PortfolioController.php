@@ -45,7 +45,7 @@ class PortfolioController extends Controller
 
         return redirect()
             ->route('admin.portfolio.index')
-            ->with('success', '実績を作成しました。');
+            ->with('success', __('messages.created', ['attribute' => '実績']));
     }
 
     public function edit(Portfolio $portfolio): Response
@@ -63,7 +63,7 @@ class PortfolioController extends Controller
 
         return redirect()
             ->route('admin.portfolio.index')
-            ->with('success', '実績を更新しました。');
+            ->with('success', __('messages.updated', ['attribute' => '実績']));
     }
 
     public function destroy(Portfolio $portfolio): RedirectResponse
@@ -72,6 +72,6 @@ class PortfolioController extends Controller
 
         return redirect()
             ->route('admin.portfolio.index')
-            ->with('success', '実績を削除しました。');
+            ->with('success', __('messages.deleted', ['attribute' => '実績']));
     }
 }

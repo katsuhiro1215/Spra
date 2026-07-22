@@ -73,9 +73,9 @@ class ResponseTemplateController extends Controller
             $this->responseTemplateService->createResponseTemplate($validated);
 
             return redirect()->route('admin.response.template.index')
-                ->with('success', '返答テンプレートを作成しました。');
+                ->with('success', __('messages.created', ['attribute' => '返答テンプレート']));
         } catch (\Exception $e) {
-            return back()->with('error', 'テンプレートの作成に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'テンプレートの作成', 'message' => $e->getMessage()]));
         }
     }
 
@@ -118,9 +118,9 @@ class ResponseTemplateController extends Controller
             $this->responseTemplateService->updateResponseTemplate($responseTemplate, $validated);
 
             return redirect()->route('admin.response.template.index')
-                ->with('success', '返答テンプレートを更新しました。');
+                ->with('success', __('messages.updated', ['attribute' => '返答テンプレート']));
         } catch (\Exception $e) {
-            return back()->with('error', 'テンプレートの更新に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'テンプレートの更新', 'message' => $e->getMessage()]));
         }
     }
 
@@ -133,9 +133,9 @@ class ResponseTemplateController extends Controller
             $this->responseTemplateService->deleteResponseTemplate($responseTemplate);
 
             return redirect()->route('admin.response.template.index')
-                ->with('success', '返答テンプレートを削除しました。');
+                ->with('success', __('messages.deleted', ['attribute' => '返答テンプレート']));
         } catch (\Exception $e) {
-            return back()->with('error', 'テンプレートの削除に失敗しました: ' . $e->getMessage());
+            return back()->with('error', __('messages.action_failed_detail', ['attribute' => 'テンプレートの削除', 'message' => $e->getMessage()]));
         }
     }
 }
