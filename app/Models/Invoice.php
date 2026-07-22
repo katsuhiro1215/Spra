@@ -179,6 +179,32 @@ class Invoice extends Model
     }
 
     /**
+     * 請求対象期間のラベル（例: 「2026年7月分」）。
+     * billing_period_start/end が同一月に収まる場合はその月、
+     * またがる場合は開始月〜終了月の範囲で表示する。
+     */
+    public function getBillingPeriodLabelAttribute(): ?string
+    {
+        if (!$this->billing_period_start) {
+            return null;
+        }
+
+        $start = \Carbon\Carbon::parse($this->billing_period_start);
+
+        if (!$this->billing_period_end) {
+            return $start->format('Y年n月分');
+        }
+
+        $end = \Carbon\Carbon::parse($this->billing_period_end);
+
+        if ($start->isSameMonth($end)) {
+            return $start->format('Y年n月分');
+        }
+
+        return $start->format('Y年n月') . '〜' . $end->format('Y年n月分');
+    }
+
+    /**
      * 完了済みPaymentの合計額
      */
     public function getPaidAmountAttribute(): float

@@ -203,14 +203,28 @@ class EstimateSimulatorController extends Controller
                 'status' => 'draft',
                 'is_current' => true,
                 'created_by' => $admin->id,
+                'service_plan_id' => $plan->id,
             ]);
 
             $quote->update(['current_version_id' => $version->id]);
 
             $sortOrder = 1;
 
+            // プランに含まれるItem（item_type=included）はプラン価格に内包されているため単価0円で記録し、
+            // 定価の合計とプラン価格(base_price)との差額は「プラン割引」の調整行として追加する。
+            // （管理画面のForm.jsx::handleAddServicePlan と同じ計算方法に揃えることで、
+            // 　見積明細の合計とプラン価格を常に一致させる）
+            $planItemsTotal = 0;
+            $planItemRows = [];
+
             foreach ($planItems as $planItem) {
-                $version->items()->create([
+                $unitPrice = $planItem->serviceItem->item_type === 'included'
+                    ? 0
+                    : (float) $planItem->serviceItem->standard_price;
+                $itemAmount = $unitPrice * $planItem->quantity;
+                $planItemsTotal += $itemAmount;
+
+                $planItemRows[] = [
                     'service_id' => $planItem->serviceItem->service_id,
                     'service_item_id' => $planItem->service_item_id,
                     'name' => $planItem->serviceItem->name,
@@ -218,9 +232,32 @@ class EstimateSimulatorController extends Controller
                     'item_type' => $planItem->serviceItem->item_type,
                     'billing_type' => 'one_time',
                     'quantity' => $planItem->quantity,
-                    'unit_price' => $planItem->serviceItem->standard_price,
-                    'amount' => $planItem->serviceItem->standard_price * $planItem->quantity,
+                    'unit_price' => $unitPrice,
+                    'amount' => $itemAmount,
                     'estimated_days' => $planItem->estimated_days,
+                ];
+            }
+
+            foreach ($planItemRows as $row) {
+                $version->items()->create($row + ['sort_order' => $sortOrder++]);
+            }
+
+            $priceDifference = $planItemsTotal - (float) $plan->base_price;
+
+            if (round($priceDifference, 2) !== 0.0) {
+                $version->items()->create([
+                    'service_id' => $plan->service_id,
+                    'service_item_id' => null,
+                    'name' => $priceDifference > 0
+                        ? "{$plan->name} プラン割引"
+                        : "{$plan->name} プラン追加料金",
+                    'description' => 'プラン選択による価格調整',
+                    'item_type' => 'custom',
+                    'billing_type' => 'one_time',
+                    'quantity' => 1,
+                    'unit_price' => -$priceDifference,
+                    'amount' => -$priceDifference,
+                    'estimated_days' => 0,
                     'sort_order' => $sortOrder++,
                 ]);
             }

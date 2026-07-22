@@ -4,6 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { Card } from "@/Components/Card";
 import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
@@ -29,6 +30,7 @@ export default function Index({ contracts, filters = {}, stats = {} }) {
     const [showFilters, setShowFilters] = useState(
         !!(filters?.status || filters?.type),
     );
+    const [sending, setSending] = useState(false);
 
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
@@ -99,7 +101,12 @@ export default function Index({ contracts, filters = {}, stats = {} }) {
             `${contract.user?.profile?.full_name || contract.user?.email}さんに署名リマインダーメールを送信しますか？`,
         );
         if (confirmed) {
-            router.post(route("admin.contract.send-reminder", contract.id));
+            setSending(true);
+            router.post(
+                route("admin.contract.send-reminder", contract.id),
+                {},
+                { onFinish: () => setSending(false) },
+            );
         }
     };
 
@@ -141,6 +148,7 @@ export default function Index({ contracts, filters = {}, stats = {} }) {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索 + フィルタートグル */}

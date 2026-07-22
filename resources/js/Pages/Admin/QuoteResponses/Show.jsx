@@ -7,6 +7,7 @@ import { Badge } from "@/Components/Badges";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { ArrowLeftIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
@@ -94,6 +95,7 @@ export default function Detail({ quoteResponse, responseTypes }) {
             <Head title="見積返信詳細" />
 
             <FlashMessage />
+            <SendingOverlay show={processing} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 基本情報 */}

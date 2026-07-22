@@ -57,6 +57,7 @@ class Company extends Model
         'active'    => '有効',
         'inactive'  => '無効',
         'suspended' => '停止中',
+        'pending'   => '承認待ち',
     ];
 
     // -------------------------

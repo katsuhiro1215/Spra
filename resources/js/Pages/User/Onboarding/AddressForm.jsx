@@ -5,6 +5,7 @@ import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import { TextInput, InputLabel, InputError } from "@/Components/Forms";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { PREFECTURE_OPTIONS } from "@/Constants/SelectOptions";
+import { Core as YubinBango } from "yubinbango-core2";
 
 export default function AddressForm({
     address,
@@ -22,6 +23,25 @@ export default function AddressForm({
         address_other: address?.address_other || "",
         phone: address?.phone || "",
     });
+
+    // 郵便番号自動入力
+    const fetchAddress = () => {
+        const postalCode = data.postal_code.replace(/[^0-9]/g, "");
+
+        if (postalCode.length === 7) {
+            new YubinBango(postalCode, (result) => {
+                if (result.region) {
+                    setData({
+                        ...data,
+                        postal_code: `${postalCode.slice(0, 3)}-${postalCode.slice(3)}`,
+                        prefecture: result.region,
+                        city: result.locality,
+                        district: result.street,
+                    });
+                }
+            });
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -49,21 +69,29 @@ export default function AddressForm({
                         {/* 郵便番号 */}
                         <div>
                             <InputLabel htmlFor="postal_code">
-                                郵俽番号 <span className="text-red-500">*</span>
+                                郵便番号 <span className="text-red-500">*</span>
                             </InputLabel>
-                            <TextInput
-                                id="postal_code"
-                                type="text"
-                                name="postal_code"
-                                value={data.postal_code}
-                                onChange={(e) =>
-                                    setData("postal_code", e.target.value)
-                                }
-                                placeholder="100-0001"
-                                pattern="\d{3}-\d{4}"
-                                className="mt-1 w-full"
-                                required
-                            />
+                            <div className="mt-1 flex gap-2">
+                                <TextInput
+                                    id="postal_code"
+                                    type="text"
+                                    name="postal_code"
+                                    value={data.postal_code}
+                                    onChange={(e) =>
+                                        setData("postal_code", e.target.value)
+                                    }
+                                    placeholder="100-0001"
+                                    pattern="\d{3}-\d{4}"
+                                    className="w-full"
+                                    required
+                                />
+                                <SecondaryButton
+                                    type="button"
+                                    onClick={fetchAddress}
+                                >
+                                    自動取得
+                                </SecondaryButton>
+                            </div>
                             {errors.postal_code && (
                                 <InputError message={errors.postal_code} />
                             )}

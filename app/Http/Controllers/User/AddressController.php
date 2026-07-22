@@ -113,6 +113,9 @@ class AddressController extends Controller
         if (!$address->exists) {
             $address->addressable_type = 'App\Models\Company';
             $address->addressable_id = $company->id;
+            // 会社の住所を最初に登録する際は、分析画面の地域分布集計等で
+            // 利用できるようデフォルト住所として登録する
+            $address->is_default = true;
         }
 
         $address->save();

@@ -8,6 +8,7 @@ import { Card } from "@/Components/Card";
 import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { Badge } from "@/Components/Badges";
 import { DeleteAlert, ConfirmAlert } from "@/Components/Alerts";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { SecondaryButton, IconButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
@@ -53,6 +54,7 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
     const [showFilters, setShowFilters] = useState(!!filters?.status);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [sendTarget, setSendTarget] = useState(null);
+    const [sending, setSending] = useState(false);
 
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
@@ -95,9 +97,17 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
 
     const handleConfirmSend = () => {
         if (sendTarget) {
-            router.post(route("admin.receipts.send", sendTarget.id), {
-                onFinish: () => setSendTarget(null),
-            });
+            setSending(true);
+            router.post(
+                route("admin.receipts.send", sendTarget.id),
+                {},
+                {
+                    onFinish: () => {
+                        setSendTarget(null);
+                        setSending(false);
+                    },
+                },
+            );
         }
     };
 
@@ -140,6 +150,7 @@ export default function Index({ receipts, filters = {}, stats = {}, statuses = {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             <DeleteAlert
                 show={!!deleteTarget}

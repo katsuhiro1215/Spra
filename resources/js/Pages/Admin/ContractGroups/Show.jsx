@@ -8,6 +8,7 @@ import { Badge } from "@/Components/Badges";
 import { TextButton, PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { ConfirmAlert } from "@/Components/Alerts";
 import { FlashMessage } from "@/Components/Notifications";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import {
     ArrowLeftIcon,
     EyeIcon,
@@ -41,6 +42,7 @@ const formatAmount = (amount) =>
 export default function Show({ group, stats, availableContracts = [] }) {
     const [showSendConfirm, setShowSendConfirm] = useState(false);
     const [removeTarget, setRemoveTarget] = useState(null);
+    const [sending, setSending] = useState(false);
     const { data, setData, post, processing, reset } = useForm({
         contract_id: "",
     });
@@ -48,10 +50,12 @@ export default function Show({ group, stats, availableContracts = [] }) {
     const handleSend = () => setShowSendConfirm(true);
 
     const handleConfirmSend = () => {
+        setShowSendConfirm(false);
+        setSending(true);
         router.post(
             route("admin.contract-group.send", group.id),
             {},
-            { onFinish: () => setShowSendConfirm(false) },
+            { onFinish: () => setSending(false) },
         );
     };
 
@@ -103,6 +107,7 @@ export default function Show({ group, stats, availableContracts = [] }) {
         >
             <Head title={`契約グループ: ${group.title}`} />
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             <ConfirmAlert
                 isOpen={showSendConfirm}
@@ -235,7 +240,8 @@ export default function Show({ group, stats, availableContracts = [] }) {
                                 onClick={handleSend}
                                 disabled={
                                     !group.contracts ||
-                                    group.contracts.length === 0
+                                    group.contracts.length === 0 ||
+                                    sending
                                 }
                             >
                                 <PaperAirplaneIcon className="h-4 w-4 mr-1" />

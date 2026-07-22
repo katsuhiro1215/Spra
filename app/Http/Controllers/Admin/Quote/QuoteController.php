@@ -69,7 +69,7 @@ class QuoteController extends Controller
         // ユーザー一覧を取得（検索用）
         $users = User::with('profile')
             ->select('id', 'email')
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'pending'])
             ->orderBy('email')
             ->get()
             ->map(function ($user) {
@@ -103,6 +103,7 @@ class QuoteController extends Controller
 
         return Inertia::render('Admin/Quotes/Create', [
             'users' => $users,
+            'companies' => Company::orderBy('name')->get(['id', 'name']),
             'contact' => $contact,
             'user' => $user,
             'company' => $company,
@@ -205,7 +206,7 @@ class QuoteController extends Controller
         // ユーザー一覧を取得
         $users = User::with('profile')
             ->select('id', 'email')
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'pending'])
             ->orderBy('email')
             ->get()
             ->map(function ($user) {
@@ -224,6 +225,7 @@ class QuoteController extends Controller
             'serviceItems' => $serviceItems,
             'servicePlans' => $servicePlans,
             'users' => $users,
+            'companies' => Company::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

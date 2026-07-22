@@ -19,6 +19,7 @@ export const STATUS_BADGES = {
     active: { text: "アクティブ", variant: "success" },
     inactive: { text: "非アクティブ", variant: "secondary" },
     suspended: { text: "停止中", variant: "danger" },
+    pending: { text: "承認待ち", variant: "warning" },
 };
 
 /**

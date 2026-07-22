@@ -12,6 +12,7 @@ import {
     DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import ContractConfirmAlert from "@/Components/Alerts/ContractConfirmAlert";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Preview({ contract }) {
@@ -22,6 +23,15 @@ export default function Preview({ contract }) {
         contract.current_version ||
         contract.versions?.[contract.versions.length - 1];
     const items = currentVersion?.items || [];
+
+    const formatDate = (date) => {
+        if (!date) return "未設定";
+        return new Date(date).toLocaleDateString("ja-JP");
+    };
+
+    const contractPeriodLabel = `${formatDate(contract.start_date)} 〜 ${
+        contract.end_date ? formatDate(contract.end_date) : "期限なし"
+    }${contract.auto_renewal ? "（自動更新）" : ""}`;
 
     const handleSend = () => {
         setShowConfirmAlert(true);
@@ -78,6 +88,7 @@ export default function Preview({ contract }) {
         >
             <Head title="契約書プレビュー" />
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             {/* 送信確認アラート */}
             <ContractConfirmAlert
@@ -86,7 +97,7 @@ export default function Preview({ contract }) {
                 onConfirm={handleConfirmSend}
                 contractDetails={{
                     serviceName: contract.title,
-                    contractPeriod: `${contract.start_date} 〜 ${contract.end_date || "期限なし"}`,
+                    contractPeriod: contractPeriodLabel,
                     price: currentVersion?.total_amount || 0,
                 }}
             />
@@ -202,8 +213,7 @@ export default function Preview({ contract }) {
                                             契約期間
                                         </p>
                                         <p className="font-medium">
-                                            {contract.start_date} 〜{" "}
-                                            {contract.end_date || "期限なし"}
+                                            {contractPeriodLabel}
                                         </p>
                                     </div>
                                 </div>

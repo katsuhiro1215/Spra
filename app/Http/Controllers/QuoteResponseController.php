@@ -143,7 +143,7 @@ class QuoteResponseController extends Controller
                 $company = \App\Models\Company::create([
                     'name' => $validated['company_name'],
                     'company_type' => $validated['company_type'],
-                    'status' => 'active',
+                    'status' => 'pending', // Pending admin approval (see OnboardingController::approve)
                 ]);
 
                 // Attach user to company
@@ -159,6 +159,17 @@ class QuoteResponseController extends Controller
                     'company_id' => $company->id,
                     'admin_notified_at' => now(),
                 ]);
+
+                // 元の見積（シミュレーター経由でゲストとして作成された時点では
+                // user_id/company_id が無い）に、今作成したUser/Companyを紐付ける。
+                // これをしないと、登録後もUser側のダッシュボード（user_idで絞り込み）に
+                // この見積が一切表示されなくなる。
+                if ($quoteResponse->quote_id) {
+                    \App\Models\Quote::where('id', $quoteResponse->quote_id)->update([
+                        'user_id' => $user->id,
+                        'company_id' => $company->id,
+                    ]);
+                }
             });
 
             return redirect()->route('user.login')->with('success', 'アカウントを作成しました。ログインしてダッシュボードにアクセスしてください。管理者の確認後、追加情報の登録をお願いいたします。');

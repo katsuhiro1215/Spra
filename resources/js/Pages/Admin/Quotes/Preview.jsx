@@ -6,6 +6,7 @@ import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardTitle, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
 import { ConfirmAlert, SuccessAlert } from "@/Components/Alerts";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function Preview({ quote, statuses }) {
@@ -109,6 +110,7 @@ export default function Preview({ quote, statuses }) {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
+            <SendingOverlay show={processing || isSubmitting} />
 
             <div className="max-w-4xl space-y-6">
                 {/* 送信先情報 */}

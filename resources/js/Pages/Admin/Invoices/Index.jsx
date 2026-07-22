@@ -4,6 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { Card } from "@/Components/Card";
 import { SecondaryButton } from "@/Components/Buttons";
 import SearchBar from "@/Components/SearchBar";
@@ -18,6 +19,7 @@ export default function Index({ invoices, filters = {}, stats = {} }) {
     // State & Form
     // ========================================
     const [showFilters, setShowFilters] = useState(!!filters?.status);
+    const [sending, setSending] = useState(false);
 
     const { data, setData, get, processing } = useForm({
         search: filters?.search || "",
@@ -60,7 +62,12 @@ export default function Index({ invoices, filters = {}, stats = {} }) {
             `請求書「${invoice.invoice_number}」をクライアントに送付してもよろしいですか？`,
         );
         if (confirmed) {
-            router.patch(route("admin.invoice.send", invoice.id));
+            setSending(true);
+            router.patch(
+                route("admin.invoice.send", invoice.id),
+                {},
+                { onFinish: () => setSending(false) },
+            );
         }
     };
 
@@ -78,7 +85,12 @@ export default function Index({ invoices, filters = {}, stats = {} }) {
             `請求書「${invoice.invoice_number}」を再送信しますか？`,
         );
         if (confirmed) {
-            router.post(route("admin.invoice.resend", invoice.id));
+            setSending(true);
+            router.post(
+                route("admin.invoice.resend", invoice.id),
+                {},
+                { onFinish: () => setSending(false) },
+            );
         }
     };
 
@@ -120,6 +132,7 @@ export default function Index({ invoices, filters = {}, stats = {} }) {
 
             {/* フラッシュメッセージ */}
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索 + フィルタートグル */}
