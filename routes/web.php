@@ -32,7 +32,47 @@ use App\Http\Controllers\User\UserAddressController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
 use App\Http\Controllers\User\CalendarController as UserCalendarController;
 use App\Http\Controllers\User\ContactController as UserContactController;
+use App\Http\Controllers\User\AtlasController as UserAtlasController;
+use App\Http\Controllers\Atlas\Auth\AuthenticatedSessionController as AtlasAuthenticatedSessionController;
+use App\Http\Controllers\Atlas\Auth\RegisteredUserController as AtlasRegisteredUserController;
+use App\Http\Controllers\Atlas\RoomController as AtlasRoomController;
 use Inertia\Inertia;
+
+// Atlas（富裕層向けサービス）: Private Preview + Private Room
+// メインサイトと切り離すため、サブドメイン（atlas.example.com）で配信する。
+// ローカルでは http://atlas.localhost:8000 のようにポート付きでアクセスする。
+// セッションもメインサイトとは共有しない（Atlas内で完結するログイン導線）。
+Route::domain(config('app.atlas_domain'))->group(function () {
+    Route::get('/', fn() => Inertia::render('Public/Atlas'))->name('atlas');
+    Route::get('/apply', fn() => Inertia::render('Public/AtlasComingSoon', [
+        'title' => '利用申請',
+        'message' => '利用申請フォームは、現在準備中です。',
+    ]))->name('atlas.apply');
+
+    Route::middleware('guest:users')->group(function () {
+        Route::controller(AtlasAuthenticatedSessionController::class)->group(function () {
+            Route::get('/login', 'create')->name('atlas.login');
+            Route::post('/login', 'store');
+        });
+        Route::controller(AtlasRegisteredUserController::class)->group(function () {
+            Route::get('/register', 'create')->name('atlas.register');
+            Route::post('/register', 'store');
+        });
+    });
+
+    Route::post('/logout', [AtlasAuthenticatedSessionController::class, 'destroy'])
+        ->middleware('auth:users')
+        ->name('atlas.logout');
+
+    Route::middleware('auth:users')->group(function () {
+        Route::get('/membership-required', [AtlasRoomController::class, 'membershipRequired'])
+            ->name('atlas.membership-required');
+
+        Route::middleware('atlas.member')->group(function () {
+            Route::get('/room', [AtlasRoomController::class, 'index'])->name('atlas.room');
+        });
+    });
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
@@ -57,6 +97,7 @@ Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('docu
 Route::get('/lp', fn() => Inertia::render('Public/LandingPage'))->name('landing.page');
 Route::get('/lp-minimal', fn() => Inertia::render('Public/LandingPageMinimal'))->name('landing.minimal');
 Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative'))->name('landing.creative');
+
 
 // Contact 送信
 Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
@@ -83,6 +124,9 @@ Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store
 // Public routes - define authenticated routes FIRST before public routes
 Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Atlas会員資格の紹介カード用API（同一セッションでの利用が前提）
+    Route::get('/api/atlas/me', [UserAtlasController::class, 'me'])->name('atlas.me');
 
     // Onboarding routes (登録情報の完成)
     Route::get('/onboarding/profile', [UserProfileController::class, 'create'])->name('onboarding.profile');

@@ -135,7 +135,7 @@ class CompanySeeder extends Seeder
 
         if ($wellsia) {
             $wellsiaUser = User::updateOrCreate(
-                ['email' => 'wellsia-test@example.com'],
+                ['email' => 'wellsia.pi@gmail.com'],
                 ['password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()]
             );
 
@@ -154,7 +154,13 @@ class CompanySeeder extends Seeder
             if (!$wellsia->addresses()->where('type', 'office')->exists()) {
                 Address::factory()->forCompany($wellsia)->office()->default()->create([
                     'label' => '本社',
-                    'prefecture' => '大阪府',
+                    'postal_code' => '899-5433',
+                    'prefecture' => '鹿児島県',
+                    'city' => '姶良市',
+                    'district' => '平松',
+                    'address_other' => '5359-2',
+                    'phone' => '070-8482-5102',
+                    'is_default' => true,
                 ]);
             }
         }

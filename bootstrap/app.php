@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'contact.api_key' => \App\Http\Middleware\VerifyContactApiKey::class,
         'instagram.signature' => \App\Http\Middleware\VerifyInstagramSignature::class,
         'admin.permission' => \App\Http\Middleware\EnsureAdminPermission::class,
+        'atlas.member' => \App\Http\Middleware\EnsureAtlasMembership::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

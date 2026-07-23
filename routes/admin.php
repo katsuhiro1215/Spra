@@ -190,6 +190,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      **************************************/
     require __DIR__ . '/admin/point.php';
 
+    /**************************************
+     * Atlas（富裕層向けサービス）
+     **************************************/
+    require __DIR__ . '/admin/atlas.php';
+
     // オンボーディング管理
     Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {
         Route::get('/', 'index')->name('index');

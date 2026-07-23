@@ -82,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(Voice::class);
     }
 
+    public function atlasMembership(): HasOne
+    {
+        return $this->hasOne(AtlasMembership::class);
+    }
+
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')

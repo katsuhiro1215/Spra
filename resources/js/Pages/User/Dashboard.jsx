@@ -12,6 +12,7 @@ import {
     UserCardHeader,
     UserCardBody,
     UserCardTitle,
+    AtlasMembershipCard,
 } from "@/Components/User";
 import Badge from "@/Components/Badge";
 
@@ -89,6 +90,9 @@ export default function Dashboard({
                         );
                     })}
                 </div>
+
+                {/* Atlas会員向け紹介カード（会員でない場合は非表示） */}
+                <AtlasMembershipCard />
 
                 {/* 未払いの請求書 */}
                 {unpaidInvoices && unpaidInvoices.length > 0 && (
