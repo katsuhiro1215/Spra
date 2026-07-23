@@ -399,6 +399,16 @@ export default function EstimateSimulator({
                                         こちらはあくまでも目安の金額です。詳細なヒアリング後、正式なお見積もりをご提示いたします。
                                         プロジェクトの内容により金額が変動する場合がございます。
                                     </p>
+                                    <p className="text-sm text-yellow-800 mt-2">
+                                        直接お話ししながら詳しくご相談されたい方は、
+                                        <Link
+                                            href={route("consultation")}
+                                            className="font-semibold text-blue-700 hover:text-blue-900 underline"
+                                        >
+                                            無料相談を予約する
+                                        </Link>
+                                        こともできます。
+                                    </p>
                                 </div>
                             </div>
                         </div>

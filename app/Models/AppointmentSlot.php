@@ -38,7 +38,9 @@ class AppointmentSlot extends Model
    * @var array<string, string>
    */
   protected $casts = [
-    'date' => 'date',
+    // 'date'のみだとJSON化の際にUTC変換され、日本時間の日付が前日にズレてしまうため
+    // 出力フォーマットを明示し、日付のみを保持する
+    'date' => 'date:Y-m-d',
     'current_bookings' => 'integer',
     'max_capacity' => 'integer',
   ];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentSlot;
 use App\Models\Admin;
+use App\Models\AdminShift;
 use App\Services\AttendanceService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
@@ -27,6 +28,49 @@ class AppointmentSlotController extends Controller
     private AttendanceService $attendanceService
   )
   {
+  }
+
+  /**
+   * 指定した時間帯（H:i形式のstart/end）が、渡されたシフト群のいずれかに完全に収まっているか判定
+   *
+   * @param string $start
+   * @param string $end
+   * @param \Illuminate\Support\Collection<int, AdminShift> $shifts
+   */
+  private function isWithinAnyShift(string $start, string $end, $shifts): bool
+  {
+    foreach ($shifts as $shift) {
+      $shiftStart = substr($shift->start_time, 0, 5);
+      $shiftEnd = substr($shift->end_time, 0, 5);
+
+      if ($start >= $shiftStart && $end <= $shiftEnd) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * 個別登録・編集画面で「この担当者・この日のシフト」を注意喚起表示するための情報を返す。
+   * あくまで参考表示用であり、シフト外での登録自体は残業対応等のため許可する（ブロックしない）。
+   */
+  private function getShiftInfo(?string $adminId, ?string $date): ?array
+  {
+    if (!$adminId || !$date) {
+      return null;
+    }
+
+    $shifts = AdminShift::where('admin_id', $adminId)
+      ->whereDate('shift_date', $date)
+      ->get();
+
+    return [
+      'shifts' => $shifts->map(fn($shift) => [
+        'start_time' => substr($shift->start_time, 0, 5),
+        'end_time' => substr($shift->end_time, 0, 5),
+      ])->values(),
+    ];
   }
 
   /**
@@ -129,7 +173,7 @@ class AppointmentSlotController extends Controller
   /**
    * Show the form for creating a new resource.
    */
-  public function create(): Response
+  public function create(Request $request): Response
   {
     $admins = Admin::with('profile')
       ->whereHas('profile')
@@ -149,6 +193,10 @@ class AppointmentSlotController extends Controller
     return Inertia::render('Admin/AppointmentSlots/Create', [
       'admins' => $admins,
       'slotTypes' => $slotTypes,
+      'shiftInfo' => $this->getShiftInfo(
+        $request->query('assigned_admin_id'),
+        $request->query('date')
+      ),
     ]);
   }
 
@@ -159,8 +207,10 @@ class AppointmentSlotController extends Controller
   {
     $validated = $request->validate([
       'date' => 'required|date',
-      'start_time' => 'required|date_format:H:i',
-      'end_time' => 'required|date_format:H:i|after:start_time',
+      // 編集画面では既存レコード（TIME型カラム=秒付き "H:i:s"）の値がそのまま
+      // 送られてくることがあるため、"H:i" だけでなく "H:i:s" も許可する
+      'start_time' => 'required|date_format:H:i,H:i:s',
+      'end_time' => 'required|date_format:H:i,H:i:s|after:start_time',
       'slot_type' => 'required|in:meeting,progress_review,consultation,other',
       'max_capacity' => 'required|integer|min:1|max:100',
       'assigned_admin_id' => 'nullable|exists:admins,id',
@@ -191,8 +241,10 @@ class AppointmentSlotController extends Controller
   {
     $validated = $request->validate([
       'date' => 'required|date',
-      'start_time' => 'required|date_format:H:i',
-      'end_time' => 'required|date_format:H:i|after:start_time',
+      // 編集画面では既存レコード（TIME型カラム=秒付き "H:i:s"）の値がそのまま
+      // 送られてくることがあるため、"H:i" だけでなく "H:i:s" も許可する
+      'start_time' => 'required|date_format:H:i,H:i:s',
+      'end_time' => 'required|date_format:H:i,H:i:s|after:start_time',
       'slot_type' => 'required|in:meeting,progress_review,consultation,other',
       'max_capacity' => 'required|integer|min:1|max:100',
       'assigned_admin_id' => 'nullable|exists:admins,id',
@@ -264,6 +316,15 @@ class AppointmentSlotController extends Controller
         ->get()
         ->groupBy(fn($slot) => $slot->date->format('Y-m-d'));
 
+      // 担当者を選択している場合、期間内の当該担当者のシフトを取得しておく
+      // （生成した候補のうち、シフト時間外のものはデフォルトでチェックを外すため）
+      $shiftsByDate = $assignedAdminId
+        ? AdminShift::where('admin_id', $assignedAdminId)
+          ->whereBetween('shift_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+          ->get()
+          ->groupBy(fn($shift) => $shift->shift_date->format('Y-m-d'))
+        : collect();
+
       $preview = collect();
       $current = $startDate->copy();
 
@@ -271,6 +332,7 @@ class AppointmentSlotController extends Controller
         if ($this->scheduleService->isBusinessDay($current)) {
           $daySlots = $this->scheduleService->getAvailableTimeSlots($current, $intervalMinutes, $durationMinutes);
           $existingForDay = $existingSlotsByDate->get($current->format('Y-m-d'), collect());
+          $shiftsForDay = $shiftsByDate->get($current->format('Y-m-d'), collect());
 
           $rows = $daySlots
             ->reject(function ($slot) use ($existingForDay) {
@@ -285,13 +347,19 @@ class AppointmentSlotController extends Controller
                   );
               });
             })
-            ->map(fn($slot) => [
-              'date' => $current->format('Y-m-d'),
-              'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],
-              'start_time' => $slot['start'],
-              'end_time' => $slot['end'],
-              'include' => true,
-            ])
+            ->map(function ($slot) use ($current, $assignedAdminId, $shiftsForDay) {
+              // 担当者未選択の場合はシフトによる絞り込みができないため常にチェックを入れる
+              $withinShift = !$assignedAdminId || $this->isWithinAnyShift($slot['start'], $slot['end'], $shiftsForDay);
+
+              return [
+                'date' => $current->format('Y-m-d'),
+                'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],
+                'start_time' => $slot['start'],
+                'end_time' => $slot['end'],
+                'include' => $withinShift,
+                'within_shift' => $withinShift,
+              ];
+            })
             ->values();
 
           if ($rows->isNotEmpty()) {
@@ -299,6 +367,13 @@ class AppointmentSlotController extends Controller
               'date' => $current->format('Y-m-d'),
               'day_name' => ['日', '月', '火', '水', '木', '金', '土'][$current->dayOfWeek],
               'rows' => $rows,
+              // フロント側で「この日の担当者シフト」を表示するための情報
+              'shifts' => $assignedAdminId
+                ? $shiftsForDay->map(fn($shift) => [
+                  'start_time' => substr($shift->start_time, 0, 5),
+                  'end_time' => substr($shift->end_time, 0, 5),
+                ])->values()
+                : null,
             ]);
           }
         }
@@ -417,7 +492,7 @@ class AppointmentSlotController extends Controller
   /**
    * Show the form for editing the specified resource.
    */
-  public function edit(AppointmentSlot $appointmentSlot): Response
+  public function edit(Request $request, AppointmentSlot $appointmentSlot): Response
   {
     $admins = Admin::with('profile')
       ->whereHas('profile')
@@ -444,6 +519,10 @@ class AppointmentSlotController extends Controller
       'admins' => $admins,
       'slotTypes' => $slotTypes,
       'statuses' => $statuses,
+      'shiftInfo' => $this->getShiftInfo(
+        $request->query('assigned_admin_id', $appointmentSlot->assigned_admin_id),
+        $request->query('date', optional($appointmentSlot->date)->format('Y-m-d'))
+      ),
     ]);
   }
 
@@ -454,8 +533,10 @@ class AppointmentSlotController extends Controller
   {
     $validated = $request->validate([
       'date' => 'required|date',
-      'start_time' => 'required|date_format:H:i',
-      'end_time' => 'required|date_format:H:i|after:start_time',
+      // 編集画面では既存レコード（TIME型カラム=秒付き "H:i:s"）の値がそのまま
+      // 送られてくることがあるため、"H:i" だけでなく "H:i:s" も許可する
+      'start_time' => 'required|date_format:H:i,H:i:s',
+      'end_time' => 'required|date_format:H:i,H:i:s|after:start_time',
       'slot_type' => 'required|in:meeting,progress_review,consultation,other',
       'max_capacity' => 'required|integer|min:1|max:100',
       'assigned_admin_id' => 'nullable|exists:admins,id',

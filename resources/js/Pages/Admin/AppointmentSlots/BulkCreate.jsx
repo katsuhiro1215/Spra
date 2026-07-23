@@ -297,9 +297,32 @@ export default function BulkCreate({
                                     {days.map((day, dateIndex) => (
                                         <div key={day.date}>
                                             <div className="flex items-center justify-between mb-2">
-                                                <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                                    {day.date}（{day.day_name}）
-                                                </h4>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                                        {day.date}（{day.day_name}）
+                                                    </h4>
+                                                    {day.shifts &&
+                                                        (day.shifts.length >
+                                                        0 ? (
+                                                            <span className="text-xs text-indigo-600 dark:text-indigo-400">
+                                                                シフト:{" "}
+                                                                {day.shifts
+                                                                    .map(
+                                                                        (
+                                                                            shift,
+                                                                        ) =>
+                                                                            `${shift.start_time}〜${shift.end_time}`,
+                                                                    )
+                                                                    .join(
+                                                                        "、",
+                                                                    )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-amber-600 dark:text-amber-400">
+                                                                シフト未登録（時間外の候補は未選択にしています）
+                                                            </span>
+                                                        ))}
+                                                </div>
                                                 <div className="flex gap-3 text-xs">
                                                     <button
                                                         type="button"
@@ -384,6 +407,12 @@ export default function BulkCreate({
                                                                 }
                                                                 className="w-24 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-xs"
                                                             />
+                                                            {row.within_shift ===
+                                                                false && (
+                                                                <span className="text-xs text-amber-600 dark:text-amber-400">
+                                                                    シフト外
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     ),
                                                 )}
