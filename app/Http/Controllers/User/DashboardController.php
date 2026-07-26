@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Services\ProjectService;
 use App\Services\ContractService;
 use App\Services\InvoiceService;
@@ -47,9 +48,17 @@ class DashboardController extends Controller
     $pendingContracts = $this->contractService->getByUserAndStatus($userId, 'pending_signature');
     $unpaidInvoices = $this->invoiceService->getUnpaidByUser($userId);
 
+    $recentAnnouncements = Announcement::published()
+      ->visibleTo($user)
+      ->orderByDesc('published_at')
+      ->limit(3)
+      ->get(['id', 'title', 'published_at']);
+
     return Inertia::render('User/Dashboard', [
       'pendingContracts' => $pendingContracts,
       'unpaidInvoices' => $unpaidInvoices,
+      'recentAnnouncements' => $recentAnnouncements,
+      'readAnnouncementIds' => Announcement::readIdsFor($user),
     ]);
   }
 }

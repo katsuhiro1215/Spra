@@ -89,6 +89,7 @@ export default function ConfirmPassword() {
 
                         <div className="flex items-center justify-end">
                             <PrimaryButton
+                                type="submit"
                                 className="bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
                                 disabled={processing}
                             >

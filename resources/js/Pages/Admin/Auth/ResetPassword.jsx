@@ -147,6 +147,7 @@ export default function ResetPassword({ token, email }) {
                                 ← ログイン画面に戻る
                             </a>
                             <PrimaryButton
+                                type="submit"
                                 className="bg-green-600 hover:bg-green-700 focus:ring-green-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105"
                                 disabled={processing}
                             >

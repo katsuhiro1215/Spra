@@ -165,6 +165,11 @@ class User extends Authenticatable
         return $query->where('status', 'active');
     }
 
+    public function scopeWithActiveContract($query)
+    {
+        return $query->whereHas('contracts', fn ($q) => $q->active());
+    }
+
     // -------------------------
     // Helpers
     // -------------------------
@@ -174,8 +179,22 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
+    public function hasActiveContract(): bool
+    {
+        return $this->contracts()->active()->exists();
+    }
+
     public function updateLastLogin(): bool
     {
         return $this->update(['last_login_at' => now()]);
+    }
+
+    /**
+     * Laravel標準の通知ではなく、ブランドデザインを適用したメールを送る
+     * App\Notifications\UserResetPassword を使用する。
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\UserResetPassword($token));
     }
 }

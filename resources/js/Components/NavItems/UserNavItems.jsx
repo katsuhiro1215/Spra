@@ -12,6 +12,7 @@ import {
     CalendarDaysIcon,
     ClockIcon,
     ChatBubbleLeftRightIcon,
+    MegaphoneIcon,
 } from "@heroicons/react/24/solid";
 
 export const getUserNavigationItems = () => {
@@ -81,6 +82,14 @@ export const getUserNavigationItems = () => {
             href: "user.appointments.index",
             icon: ClockIcon,
             currentPath: "user.appointments.*",
+            children: [],
+        },
+        // お知らせ
+        {
+            name: "お知らせ",
+            href: "user.announcement.index",
+            icon: MegaphoneIcon,
+            currentPath: "user.announcement.*",
             children: [],
         },
         // お問い合わせ

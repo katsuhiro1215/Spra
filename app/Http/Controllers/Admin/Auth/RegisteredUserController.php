@@ -3,12 +3,8 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\AdminRequest;
-use App\Models\Admin;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,24 +25,13 @@ class RegisteredUserController extends Controller
 
     /**
      * 新規登録処理
+     *
+     * 管理者アカウントの一般公開された自己登録は許可していない
+     * （resources/js/Pages/Admin/Auth/Register.jsx もその前提でフォームを描画しない）。
+     * 管理者アカウントは既存の管理者が管理画面から作成する。
      */
-    public function store(AdminRequest $request): RedirectResponse
+    public function store(): RedirectResponse
     {
-        // 新規登録処理
-        try {
-            $admin = Admin::create($request->validated());
-
-            event(new Registered($admin));
-
-            Auth::guard('admins')->login($admin);
-
-            return redirect_to_admin_home()->with('success', __('messages.auth.registration_success'));
-        } catch (\Exception $e) {
-            // その他のエラー
-            Log::error('Admin registration error: ' . $e->getMessage());
-
-            return back()->withInput($request->only('name', 'email'))
-                ->with('error', __('messages.auth.registration_failed'));
-        }
+        abort(404);
     }
 }

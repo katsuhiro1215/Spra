@@ -1,4 +1,5 @@
-import { Head, useForm, usePage } from "@inertiajs/react";
+import { useState } from "react";
+import { Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import { FlashMessage } from "@/Components/Notifications";
@@ -6,16 +7,18 @@ import { Card, CardBody } from "@/Components/Card";
 
 export default function Security({ twoFactorEnabled }) {
     const { flash } = usePage().props;
-    const { data, setData, put, processing } = useForm({
-        two_factor_enabled: twoFactorEnabled,
-    });
+    const [toggling, setToggling] = useState(false);
 
     const toggle = () => {
-        const next = !data.two_factor_enabled;
-        setData("two_factor_enabled", next);
-        put(route("user.settings.security.update"), {
-            data: { two_factor_enabled: next },
-        });
+        router.put(
+            route("user.settings.security.update"),
+            { two_factor_enabled: !twoFactorEnabled },
+            {
+                preserveScroll: true,
+                onStart: () => setToggling(true),
+                onFinish: () => setToggling(false),
+            },
+        );
     };
 
     const breadcrumbs = [
@@ -55,16 +58,16 @@ export default function Security({ twoFactorEnabled }) {
                                 <button
                                     type="button"
                                     onClick={toggle}
-                                    disabled={processing}
+                                    disabled={toggling}
                                     className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
-                                        data.two_factor_enabled
+                                        twoFactorEnabled
                                             ? "bg-green-600"
                                             : "bg-gray-300 dark:bg-gray-600"
                                     }`}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                            data.two_factor_enabled
+                                            twoFactorEnabled
                                                 ? "translate-x-6"
                                                 : "translate-x-1"
                                         }`}
@@ -75,12 +78,12 @@ export default function Security({ twoFactorEnabled }) {
                                 現在の状態:{" "}
                                 <span
                                     className={
-                                        data.two_factor_enabled
+                                        twoFactorEnabled
                                             ? "text-green-600 dark:text-green-400"
                                             : "text-gray-500 dark:text-gray-400"
                                     }
                                 >
-                                    {data.two_factor_enabled ? "有効" : "無効"}
+                                    {twoFactorEnabled ? "有効" : "無効"}
                                 </span>
                             </p>
                         </CardBody>

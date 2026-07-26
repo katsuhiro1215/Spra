@@ -24,12 +24,21 @@ class FaqCategorySeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'アカウント',
+                'slug' => 'account',
+                'description' => 'アカウントに関する質問',
+                'color' => '#6B7280',
+                'icon' => 'UserIcon',
+                'sort_order' => 2,
+                'is_active' => true,
+            ],
+            [
                 'name' => '料金・プラン',
                 'slug' => 'pricing',
                 'description' => '料金体系やプランに関する質問',
                 'color' => '#10B981',
                 'icon' => 'CurrencyYenIcon',
-                'sort_order' => 2,
+                'sort_order' => 3,
                 'is_active' => true,
             ],
             [
@@ -38,7 +47,7 @@ class FaqCategorySeeder extends Seeder
                 'description' => '契約内容やお支払いに関する質問',
                 'color' => '#3B82F6',
                 'icon' => 'DocumentTextIcon',
-                'sort_order' => 3,
+                'sort_order' => 4,
                 'is_active' => true,
             ],
             [
@@ -47,7 +56,7 @@ class FaqCategorySeeder extends Seeder
                 'description' => 'サポート体制やアフターフォローに関する質問',
                 'color' => '#8B5CF6',
                 'icon' => 'LifebuoyIcon',
-                'sort_order' => 4,
+                'sort_order' => 5,
                 'is_active' => true,
             ],
             [
@@ -56,7 +65,7 @@ class FaqCategorySeeder extends Seeder
                 'description' => '開発の流れや進め方に関する質問',
                 'color' => '#F59E0B',
                 'icon' => 'Cog6ToothIcon',
-                'sort_order' => 5,
+                'sort_order' => 6,
                 'is_active' => true,
             ],
             [
@@ -65,7 +74,7 @@ class FaqCategorySeeder extends Seeder
                 'description' => '技術的な内容や仕様に関する質問',
                 'color' => '#EF4444',
                 'icon' => 'CodeBracketIcon',
-                'sort_order' => 6,
+                'sort_order' => 7,
                 'is_active' => true,
             ],
         ];

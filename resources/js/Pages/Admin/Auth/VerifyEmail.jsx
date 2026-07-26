@@ -63,6 +63,7 @@ export default function VerifyEmail({ status }) {
                     <form onSubmit={submit} className="space-y-6">
                         <div className="flex flex-col space-y-4">
                             <PrimaryButton
+                                type="submit"
                                 className="bg-purple-600 hover:bg-purple-700 focus:ring-purple-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
                                 disabled={processing}
                             >

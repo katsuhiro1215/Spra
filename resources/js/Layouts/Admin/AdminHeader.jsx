@@ -89,12 +89,6 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
         router.get(route("admin.search"), { q: searchKeyword });
     };
 
-    // デバッグ: admin データを確認
-    useEffect(() => {
-        console.log("Admin data:", admin);
-        console.log("Admin profile:", admin?.profile);
-    }, [admin]);
-
     // ダークモード状態管理
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (typeof window !== "undefined") {
@@ -119,8 +113,6 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     // 初回レンダリング時にダークモードの状態を確実に適用
     useEffect(() => {
         const htmlElement = document.documentElement;
-        console.log("Dark mode state changed:", isDarkMode);
-        console.log("HTML classes before:", htmlElement.classList.toString());
 
         if (isDarkMode) {
             htmlElement.classList.add("dark");
@@ -128,7 +120,6 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
             htmlElement.classList.remove("dark");
         }
 
-        console.log("HTML classes after:", htmlElement.classList.toString());
         localStorage.setItem("admin-dark-mode", JSON.stringify(isDarkMode));
     }, [isDarkMode]);
 
@@ -150,11 +141,7 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
     }, [colorTheme]);
 
     const toggleDarkMode = () => {
-        setIsDarkMode((prev) => {
-            const newValue = !prev;
-            console.log("Toggling dark mode:", prev, "->", newValue);
-            return newValue;
-        });
+        setIsDarkMode((prev) => !prev);
     };
 
     // 管理者の名前を取得
@@ -485,9 +472,17 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }) {
                                         </div>
                                         <div className="border-t border-gray-100 dark:border-gray-700"></div>
                                         <Dropdown.Link
-                                            href={route("admin.profile.edit")}
+                                            href={route(
+                                                "admin.admin.profile.edit",
+                                                admin.id,
+                                            )}
                                         >
                                             プロフィール設定
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href={route("admin.profile.edit")}
+                                        >
+                                            メール・パスワード設定
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route("admin.security.edit")}

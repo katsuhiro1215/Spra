@@ -49,6 +49,7 @@ export const getAdminNavigationItems = () => {
                 "admin.receipt.*",
                 "admin.payment.*",
                 "admin.project.*",
+                "admin.announcement.*",
             ],
             children: [
                 { name: "ユーザー一覧", href: "admin.user.index" },
@@ -87,6 +88,7 @@ export const getAdminNavigationItems = () => {
                 { name: "請求書", href: "admin.invoice.index" },
                 { name: "領収書", href: "admin.receipt.index" },
                 { name: "入金確認", href: "admin.payment.index" },
+                { name: "お知らせ配信", href: "admin.announcement.index" },
                 // 未払一覧
                 // 再請求一覧
                 // 定期請求一覧

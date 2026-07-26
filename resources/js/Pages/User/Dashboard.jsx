@@ -4,6 +4,8 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
     BanknotesIcon,
+    QuestionMarkCircleIcon,
+    MegaphoneIcon,
 } from "@heroicons/react/24/outline";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
@@ -25,6 +27,8 @@ const formatAmount = (amount) =>
 export default function Dashboard({
     pendingContracts = [],
     unpaidInvoices = [],
+    recentAnnouncements = [],
+    readAnnouncementIds = [],
 }) {
     const stats = [
         {
@@ -93,6 +97,65 @@ export default function Dashboard({
 
                 {/* Atlas会員向け紹介カード（会員でない場合は非表示） */}
                 <AtlasMembershipCard />
+
+                {/* お知らせ */}
+                {recentAnnouncements && recentAnnouncements.length > 0 && (
+                    <UserCard className="border-indigo-200 bg-indigo-50">
+                        <UserCardHeader>
+                            <div className="flex items-center gap-2">
+                                <MegaphoneIcon className="h-6 w-6 text-indigo-600" />
+                                <UserCardTitle>お知らせ</UserCardTitle>
+                            </div>
+                        </UserCardHeader>
+                        <UserCardBody>
+                            <div className="space-y-3">
+                                {recentAnnouncements.map((announcement) => {
+                                    const isUnread =
+                                        !readAnnouncementIds.includes(
+                                            announcement.id,
+                                        );
+
+                                    return (
+                                        <Link
+                                            key={announcement.id}
+                                            href={route(
+                                                "user.announcement.show",
+                                                announcement.id,
+                                            )}
+                                            className="block"
+                                        >
+                                            <div className="flex items-center justify-between gap-3 p-3 bg-white rounded-lg hover:shadow-md transition">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    {isUnread && (
+                                                        <span className="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0" />
+                                                    )}
+                                                    <h4 className="font-medium text-gray-900 truncate">
+                                                        {announcement.title}
+                                                    </h4>
+                                                </div>
+                                                <span className="text-sm text-gray-500 flex-shrink-0">
+                                                    {announcement.published_at
+                                                        ? new Date(
+                                                              announcement.published_at,
+                                                          ).toLocaleDateString(
+                                                              "ja-JP",
+                                                          )
+                                                        : "-"}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                            <Link
+                                href={route("user.announcement.index")}
+                                className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-900 font-medium"
+                            >
+                                すべてのお知らせを見る →
+                            </Link>
+                        </UserCardBody>
+                    </UserCard>
+                )}
 
                 {/* 未払いの請求書 */}
                 {unpaidInvoices && unpaidInvoices.length > 0 && (
@@ -222,6 +285,15 @@ export default function Dashboard({
                         </UserCard>
                     ))}
             </div>
+
+            {/* よくある質問（FAQ）への導線 */}
+            <Link
+                href={route("user.faq.index")}
+                title="よくある質問"
+                className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all"
+            >
+                <QuestionMarkCircleIcon className="h-8 w-8" />
+            </Link>
         </AuthenticatedLayout>
     );
 }
