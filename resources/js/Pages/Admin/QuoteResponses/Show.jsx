@@ -32,6 +32,7 @@ const QUOTE_STATUS_LABELS = {
 export default function Detail({ quoteResponse, responseTypes }) {
     const { post, processing } = useForm();
     const declineForm = useForm({ note: "" });
+    const reviewForm = useForm();
     const [showInvitationConfirm, setShowInvitationConfirm] = useState(false);
     const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
@@ -42,6 +43,13 @@ export default function Detail({ quoteResponse, responseTypes }) {
     const confirmSendInvitation = () => {
         post(route("admin.quote-response.send-invitation", quoteResponse.id));
         setShowInvitationConfirm(false);
+    };
+
+    const handleMarkReviewed = () => {
+        reviewForm.post(
+            route("admin.quote-response.mark-reviewed", quoteResponse.id),
+            { preserveScroll: true },
+        );
     };
 
     const confirmDecline = () => {
@@ -101,9 +109,33 @@ export default function Detail({ quoteResponse, responseTypes }) {
                 {/* 基本情報 */}
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center gap-2">
-                            <CardTitle>返信内容</CardTitle>
-                            {getStatusBadge(quoteResponse)}
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <CardTitle>返信内容</CardTitle>
+                                {getStatusBadge(quoteResponse)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {quoteResponse.admin_reviewed_at ? (
+                                    <Badge variant="success">
+                                        確認済み
+                                        {quoteResponse.reviewed_by_admin
+                                            ? `（${quoteResponse.reviewed_by_admin.email}）`
+                                            : ""}
+                                    </Badge>
+                                ) : (
+                                    <>
+                                        <Badge variant="secondary">
+                                            未確認
+                                        </Badge>
+                                        <SecondaryButton
+                                            onClick={handleMarkReviewed}
+                                            disabled={reviewForm.processing}
+                                        >
+                                            確認済みにする
+                                        </SecondaryButton>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </CardHeader>
                     <div className="space-y-4">
@@ -364,15 +396,35 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                     次のステップ
                                 </h3>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                    クライアントが見積を了承しました。招待メールを送信して、アカウント作成と会社情報入力を促します。
-                                </p>
-                                <PrimaryButton
-                                    onClick={handleSendInvitation}
-                                    disabled={processing}
-                                >
-                                    招待メールを送信
-                                </PrimaryButton>
+                                {quoteResponse.invitation_sent_at ? (
+                                    <>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            クライアントが見積を了承したため、招待メールは自動送信済みです（
+                                            {new Date(
+                                                quoteResponse.invitation_sent_at,
+                                            ).toLocaleString("ja-JP")}
+                                            ）。届いていない場合は再送信してください。
+                                        </p>
+                                        <SecondaryButton
+                                            onClick={handleSendInvitation}
+                                            disabled={processing}
+                                        >
+                                            招待メールを再送信
+                                        </SecondaryButton>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            クライアントが見積を了承しました。招待メールを送信して、アカウント作成と会社情報入力を促します。
+                                        </p>
+                                        <PrimaryButton
+                                            onClick={handleSendInvitation}
+                                            disabled={processing}
+                                        >
+                                            招待メールを送信
+                                        </PrimaryButton>
+                                    </>
+                                )}
                             </div>
                         </Card>
                     )}

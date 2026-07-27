@@ -199,6 +199,9 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                         返信状態
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                        確認
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
                                         返信日時
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
@@ -238,6 +241,17 @@ export default function Index({ quoteResponses, filters, responseTypes }) {
                                         </td>
                                         <td className="px-4 py-3">
                                             {getStatusBadge(response)}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {response.admin_reviewed_at ? (
+                                                <Badge variant="success">
+                                                    確認済み
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="secondary">
+                                                    未確認
+                                                </Badge>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                                             {response.responded_at
