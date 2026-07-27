@@ -62,8 +62,8 @@ export default function Show({ quote }) {
         return colors[status] || "bg-gray-100 text-gray-800";
     };
 
-    const handleDownloadPdf = () => {
-        window.open(route("user.quote.pdf", quote.id), "_blank");
+    const handlePreviewPdf = () => {
+        window.open(route("user.quote.pdf.preview", quote.id), "_blank");
     };
 
     const handleAccept = () => {
@@ -100,11 +100,6 @@ export default function Show({ quote }) {
                             label: "戻る",
                             variant: "default",
                             onClick: handleBack,
-                        },
-                        {
-                            label: "PDFをダウンロード",
-                            variant: "primary",
-                            onClick: handleDownloadPdf,
                         },
                     ]}
                 />
@@ -278,30 +273,19 @@ export default function Show({ quote }) {
                     </UserCard>
                 )}
 
-                {/* 見積PDF表示 */}
+                {/* 見積PDF */}
                 <UserCard>
                     <UserCardHeader>
                         <UserCardTitle>見積書PDF</UserCardTitle>
                     </UserCardHeader>
                     <UserCardBody>
-                        <div
-                            style={{
-                                height: "600px",
-                                overflow: "auto",
-                                backgroundColor: "#f5f5f5",
-                                borderRadius: "8px",
-                            }}
+                        <PrimaryButton
+                            onClick={handlePreviewPdf}
+                            className="flex items-center gap-2"
                         >
-                            <iframe
-                                src={route("user.quote.pdf", quote.id)}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    border: "none",
-                                }}
-                                title="見積書PDF"
-                            />
-                        </div>
+                            <DocumentTextIcon className="h-5 w-5" />
+                            PDFを確認・ダウンロード
+                        </PrimaryButton>
                     </UserCardBody>
                 </UserCard>
 

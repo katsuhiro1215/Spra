@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\QuoteResponse;
 use App\Notifications\QuoteResponseReceived;
+use App\Services\QuoteResponseService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\RedirectResponse;
 
 class QuoteResponseController extends Controller
 {
+    public function __construct(
+        private QuoteResponseService $quoteResponseService,
+    ) {}
+
     /**
      * Show the quote response form (Public - No Auth).
      */
@@ -59,6 +65,25 @@ class QuoteResponseController extends Controller
             'responded_at' => now(),
             'admin_notified_at' => now(),
         ]);
+
+        // 「ご依頼をお願いします」の場合は、管理者の確認を待たずに招待メールを自動送信する。
+        // 管理者による内容確認は admin_reviewed_at で別途後追い記録する（Admin/QuoteResponses/Show.jsx）。
+        if (
+            $validated['response_type'] === 'request'
+            && !$quoteResponse->user_id
+            && !$quoteResponse->invitation_sent_at
+        ) {
+            try {
+                $this->quoteResponseService->sendInvitationEmail($quoteResponse);
+            } catch (\Exception $e) {
+                // メール送信に失敗してもクライアントの回答自体は保存済みなので、
+                // ここで処理を止めずログのみ残す（管理者側で手動再送信できる）。
+                Log::error('Quote response invitation auto-send failed', [
+                    'quote_response_id' => $quoteResponse->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         // Send notification to all admins
         $admins = \App\Models\Admin::all();
@@ -143,7 +168,7 @@ class QuoteResponseController extends Controller
                 $company = \App\Models\Company::create([
                     'name' => $validated['company_name'],
                     'company_type' => $validated['company_type'],
-                    'status' => 'active',
+                    'status' => 'pending', // Pending admin approval (see OnboardingController::approve)
                 ]);
 
                 // Attach user to company
@@ -159,6 +184,17 @@ class QuoteResponseController extends Controller
                     'company_id' => $company->id,
                     'admin_notified_at' => now(),
                 ]);
+
+                // 元の見積（シミュレーター経由でゲストとして作成された時点では
+                // user_id/company_id が無い）に、今作成したUser/Companyを紐付ける。
+                // これをしないと、登録後もUser側のダッシュボード（user_idで絞り込み）に
+                // この見積が一切表示されなくなる。
+                if ($quoteResponse->quote_id) {
+                    \App\Models\Quote::where('id', $quoteResponse->quote_id)->update([
+                        'user_id' => $user->id,
+                        'company_id' => $company->id,
+                    ]);
+                }
             });
 
             return redirect()->route('user.login')->with('success', 'アカウントを作成しました。ログインしてダッシュボードにアクセスしてください。管理者の確認後、追加情報の登録をお願いいたします。');

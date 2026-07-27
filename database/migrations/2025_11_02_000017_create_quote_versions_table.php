@@ -31,6 +31,10 @@ return new class extends Migration
             // 金額
             $table->decimal('base_amount', 12, 2);
             $table->decimal('discount_amount', 12, 2)->default(0);
+            $table->ulid('campaign_id')->nullable();
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('set null');
+            $table->ulid('service_plan_id')->nullable()->comment('「プランから追加」で選択されたプラン');
+            $table->foreign('service_plan_id')->references('id')->on('service_plans')->onDelete('set null');
             $table->decimal('tax_rate', 5, 2)->default(10);
             $table->decimal('tax_amount', 12, 2);
             $table->decimal('total_amount', 12, 2);

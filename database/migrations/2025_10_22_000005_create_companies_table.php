@@ -36,7 +36,7 @@ return new class extends Migration
             $table->decimal('capital', 15, 2)->nullable();
             $table->date('established_date')->nullable();
             // システム情報
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->enum('status', ['active', 'inactive', 'suspended', 'pending'])->default('active');
             $table->text('notes')->nullable();
 
             $table->timestamps();

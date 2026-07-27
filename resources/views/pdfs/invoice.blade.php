@@ -215,6 +215,11 @@
         <!-- ヘッダー -->
         <div class="header">
             <h1>請求書</h1>
+            @if ($invoice->contract || $invoice->billing_period_label)
+                <p style="font-size: 11pt; color: #333; margin: -10px 0 15px 0;">
+                    {{ $invoice->contract->title ?? '' }}{{ $invoice->contract && $invoice->billing_period_label ? '　' : '' }}{{ $invoice->billing_period_label ? '（' . $invoice->billing_period_label . '）' : '' }}
+                </p>
+            @endif
             <div class="header-info">
                 <div class="header-left">
                     <p><strong>{{ $invoice->company->name ?? 'Company Name' }}</strong></p>

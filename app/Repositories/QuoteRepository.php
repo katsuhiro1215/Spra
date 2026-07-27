@@ -122,20 +122,18 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
         $month = date('m');
         $prefix = "Q{$year}{$month}";
 
-        // 今月の最新の見積番号を取得
-        $latestQuote = Quote::where('quote_number', 'like', "{$prefix}%")
+        // 見積シミュレーター経由の番号（例: Q20260722-XFIJAX）は "Q{年}{月}" で始まるため
+        // 単純な LIKE "{prefix}%" では拾ってしまい、末尾4桁の数値化に失敗して 0 とみなされ
+        // 既存の番号と重複する不具合があった。"{prefix}" + ちょうど4文字 の形式のみに絞り込む。
+        $lastNumber = Quote::withTrashed()
+            ->where('quote_number', 'like', "{$prefix}____")
             ->orderBy('quote_number', 'desc')
-            ->first();
+            ->lockForUpdate()
+            ->get(['quote_number'])
+            ->map(fn (Quote $quote) => (int) substr($quote->quote_number, strlen($prefix)))
+            ->max() ?? 0;
 
-        if ($latestQuote) {
-            // 最後の4桁を取得してインクリメント
-            $lastNumber = (int) substr($latestQuote->quote_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return sprintf('%s%04d', $prefix, $newNumber);
+        return sprintf('%s%04d', $prefix, $lastNumber + 1);
     }
 
     /**

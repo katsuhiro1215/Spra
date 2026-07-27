@@ -5,7 +5,8 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
 import { FlashMessage } from "@/Components/Notifications";
 import { DeleteAlert } from "@/Components/Alerts";
-import { CreateButton, SecondaryButton } from "@/Components/Buttons";
+import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
+import { CreateButton, SecondaryButton, IconButton } from "@/Components/Buttons";
 import { Card } from "@/Components/Card";
 import SearchBar from "@/Components/SearchBar";
 import FilterSelect from "@/Components/FilterSelect";
@@ -14,8 +15,10 @@ import {
     FunnelIcon,
     XMarkIcon,
     Squares2X2Icon,
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Table, THead, TBody, Tr, Th, Td } from "@/Components/Tables";
 import { PageConfig } from "@/Constants/PageConfig";
 
 export default function Index({
@@ -251,136 +254,134 @@ export default function Index({
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターセクション */}
-                <Card>
-                    <div className="space-y-4">
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder={
-                                        PageConfig.appointmentSlots.ui.search
-                                            .placeholder
-                                    }
-                                />
-                            </div>
-
-                            {/* フィルター切り替えボタン */}
-                            <div className="flex-shrink-0">
-                                <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className="relative"
-                                >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    {
-                                        PageConfig.appointmentSlots.ui.filter
-                                            .button
-                                    }
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </SecondaryButton>
-
-                                {activeFilterCount > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleClearFilters}
-                                        className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                                    >
-                                        <XMarkIcon className="h-4 w-4 mr-1" />
-                                        {
-                                            PageConfig.appointmentSlots.ui
-                                                .filter.clear
-                                        }
-                                    </button>
-                                )}
-                            </div>
+                <div className="space-y-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                        {/* 検索バー */}
+                        <div className="flex-1 max-w-md">
+                            <SearchBar
+                                value={data.search}
+                                onChange={(value) =>
+                                    setData("search", value)
+                                }
+                                onSearch={handleSearch}
+                                placeholder={
+                                    PageConfig.appointmentSlots.ui.search
+                                        .placeholder
+                                }
+                            />
                         </div>
 
-                        {/* フィルターセクション */}
-                        {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <FilterSelect
-                                    label={
-                                        PageConfig.appointmentSlots.filters
-                                            .slotType.label
+                        {/* フィルター切り替えボタン */}
+                        <div className="flex-shrink-0">
+                            <SecondaryButton
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="relative"
+                            >
+                                <FunnelIcon className="h-4 w-4 mr-2" />
+                                {
+                                    PageConfig.appointmentSlots.ui.filter
+                                        .button
+                                }
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </SecondaryButton>
+
+                            {activeFilterCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleClearFilters}
+                                    className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                                >
+                                    <XMarkIcon className="h-4 w-4 mr-1" />
+                                    {
+                                        PageConfig.appointmentSlots.ui
+                                            .filter.clear
                                     }
-                                    value={data.slot_type}
-                                    onChange={(value) =>
-                                        setData("slot_type", value)
-                                    }
-                                    options={slotTypes}
-                                    placeholder={
-                                        PageConfig.appointmentSlots.filters
-                                            .slotType.placeholder
-                                    }
-                                />
-                                <FilterSelect
-                                    label={
-                                        PageConfig.appointmentSlots.filters
-                                            .status.label
-                                    }
-                                    value={data.status}
-                                    onChange={(value) =>
-                                        setData("status", value)
-                                    }
-                                    options={statuses}
-                                    placeholder={
-                                        PageConfig.appointmentSlots.filters
-                                            .status.placeholder
-                                    }
-                                />
-                                <FilterSelect
-                                    label={
-                                        PageConfig.appointmentSlots.filters
-                                            .assignedAdmin.label
-                                    }
-                                    value={data.assigned_admin_id}
-                                    onChange={(value) =>
-                                        setData("assigned_admin_id", value)
-                                    }
-                                    options={admins}
-                                    placeholder={
-                                        PageConfig.appointmentSlots.filters
-                                            .assignedAdmin.placeholder
-                                    }
-                                />
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        開始日
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={data.date_from}
-                                        onChange={(e) =>
-                                            setData("date_from", e.target.value)
-                                        }
-                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        終了日
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={data.date_to}
-                                        onChange={(e) =>
-                                            setData("date_to", e.target.value)
-                                        }
-                                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    />
-                                </div>
-                            </div>
-                        )}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </Card>
+
+                    {/* フィルターセクション */}
+                    {showFilters && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <FilterSelect
+                                label={
+                                    PageConfig.appointmentSlots.filters
+                                        .slotType.label
+                                }
+                                value={data.slot_type}
+                                onChange={(value) =>
+                                    setData("slot_type", value)
+                                }
+                                options={slotTypes}
+                                placeholder={
+                                    PageConfig.appointmentSlots.filters
+                                        .slotType.placeholder
+                                }
+                            />
+                            <FilterSelect
+                                label={
+                                    PageConfig.appointmentSlots.filters
+                                        .status.label
+                                }
+                                value={data.status}
+                                onChange={(value) =>
+                                    setData("status", value)
+                                }
+                                options={statuses}
+                                placeholder={
+                                    PageConfig.appointmentSlots.filters
+                                        .status.placeholder
+                                }
+                            />
+                            <FilterSelect
+                                label={
+                                    PageConfig.appointmentSlots.filters
+                                        .assignedAdmin.label
+                                }
+                                value={data.assigned_admin_id}
+                                onChange={(value) =>
+                                    setData("assigned_admin_id", value)
+                                }
+                                options={admins}
+                                placeholder={
+                                    PageConfig.appointmentSlots.filters
+                                        .assignedAdmin.placeholder
+                                }
+                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    開始日
+                                </label>
+                                <input
+                                    type="date"
+                                    value={data.date_from}
+                                    onChange={(e) =>
+                                        setData("date_from", e.target.value)
+                                    }
+                                    className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    終了日
+                                </label>
+                                <input
+                                    type="date"
+                                    value={data.date_to}
+                                    onChange={(e) =>
+                                        setData("date_to", e.target.value)
+                                    }
+                                    className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* 一覧テーブル */}
                 <Card>
@@ -501,38 +502,39 @@ export default function Index({
                                             </Td>
                                             <Td className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Link
+                                                    <IconButton
+                                                        variant="info-text"
+                                                        icon={EyeIcon}
+                                                        size="lg"
                                                         href={route(
                                                             "admin.appointment-slots.show",
                                                             slot.id,
                                                         )}
-                                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                                                    >
-                                                        詳細
-                                                    </Link>
-                                                    <Link
+                                                        title="詳細"
+                                                    />
+                                                    <IconButton
+                                                        variant="warning-text"
+                                                        icon={PencilIcon}
+                                                        size="lg"
                                                         href={route(
                                                             "admin.appointment-slots.edit",
                                                             slot.id,
                                                         )}
-                                                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
-                                                    >
-                                                        編集
-                                                    </Link>
-                                                    <button
+                                                        title="編集"
+                                                    />
+                                                    <IconButton
+                                                        variant="danger-text"
+                                                        icon={TrashIcon}
+                                                        size="lg"
                                                         onClick={() =>
                                                             handleDelete(slot)
                                                         }
-                                                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                         disabled={
                                                             isDeleting ===
                                                             slot.id
                                                         }
-                                                    >
-                                                        {isDeleting === slot.id
-                                                            ? "削除中..."
-                                                            : "削除"}
-                                                    </button>
+                                                        title="削除"
+                                                    />
                                                 </div>
                                             </Td>
                                         </Tr>

@@ -64,10 +64,10 @@ class AdminResetPassword extends Notification
   {
     return (new MailMessage)
       ->subject(__('passwords.reset_subject'))
-      ->line(__('passwords.reset_intro'))
-      ->action(__('passwords.reset_action'), $url)
-      ->line(__('passwords.reset_expiry', ['count' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire')]))
-      ->line(__('passwords.reset_ignore'));
+      ->view('emails.auth.reset-password', [
+        'url' => $url,
+        'expireMinutes' => (int) config('auth.passwords.admins.expire'),
+      ]);
   }
 
   /**

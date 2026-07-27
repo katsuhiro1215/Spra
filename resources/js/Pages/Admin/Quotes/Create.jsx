@@ -9,6 +9,7 @@ import QuoteForm from "./_components/Form";
 
 export default function Create({
     users,
+    companies = [],
     contact = null,
     user = null,
     company = null,
@@ -110,6 +111,7 @@ export default function Create({
                     onSubmit={submit}
                     cancelRoute={route("admin.quote.index")}
                     users={users}
+                    companies={companies}
                     isEdit={false}
                 />
             </div>

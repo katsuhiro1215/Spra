@@ -66,7 +66,9 @@ class GenerateInvoiceJob implements ShouldQueue
       $issueDate = now()->addDays($this->delayDays);
     }
 
-    $subtotal = (float) ($currentVersion?->total_amount ?? 0);
+    // total_amountは税込済みのため、税抜のbase_amountをsubtotalとして使う
+    // (total_amountをsubtotalにすると、ここで税を再度加算し二重課税になる)
+    $subtotal = (float) ($currentVersion?->base_amount ?? 0);
     $taxRate = (float) ($currentVersion?->tax_rate ?? 0);
     $taxAmount = round($subtotal * $taxRate / 100, 2);
     $totalAmount = $subtotal + $taxAmount;

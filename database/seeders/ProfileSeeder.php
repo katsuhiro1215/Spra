@@ -84,6 +84,18 @@ class ProfileSeeder extends Seeder
                 'mobile' => '090-5678-9012',
                 'bio' => '営業とサポートを兼任しています。',
             ],
+            'kakoi104@smartsprouts.jp' => [
+                'last_name' => '高橋',
+                'first_name' => '彩',
+                'last_name_kana' => 'タカハシ',
+                'first_name_kana' => 'アヤ',
+                'display_name' => 'あやちゃん',
+                'birth_date' => '1995-02-18',
+                'gender' => 'female',
+                'phone' => '03-6789-0123',
+                'mobile' => '080-6789-0123',
+                'bio' => 'ビューワーとして、閲覧専用の役割を担っています。',
+            ],
         ];
 
         foreach ($adminProfiles as $email => $profileData) {
@@ -93,35 +105,35 @@ class ProfileSeeder extends Seeder
             }
         }
 
-        $this->command->info('Admin profiles created: ' . count($adminProfiles));
+        // $this->command->info('Admin profiles created: ' . count($adminProfiles));
 
-        // =============================================
-        // 2. User用Profile作成（100名）
-        // =============================================
-        $users = User::all();
-        $profileCount = 0;
+        // // =============================================
+        // // 2. User用Profile作成（100名）
+        // // =============================================
+        // $users = User::all();
+        // $profileCount = 0;
 
-        foreach ($users as $user) {
-            if (!$user->profile) {
-                $user->profile()->create([
-                    'last_name' => fake('ja_JP')->lastName(),
-                    'first_name' => fake('ja_JP')->firstName(),
-                    'last_name_kana' => fake('ja_JP')->lastKanaName(),
-                    'first_name_kana' => fake('ja_JP')->firstKanaName(),
-                    'display_name' => fake()->optional(0.5)->userName(),
-                    'birth_date' => fake()->optional(0.7)->dateTimeBetween('-60 years', '-18 years'),
-                    'gender' => fake()->optional(0.8)->randomElement(['male', 'female', 'other', 'prefer_not_to_say']),
-                    'phone' => fake()->optional(0.6)->phoneNumber(),
-                    'mobile' => fake()->optional(0.9)->phoneNumber(),
-                    'emergency_contact_name' => fake()->optional(0.3)->name(),
-                    'emergency_contact_phone' => fake()->optional(0.3)->phoneNumber(),
-                    'bio' => fake()->optional(0.3)->realText(200),
-                ]);
-                $profileCount++;
-            }
-        }
+        // foreach ($users as $user) {
+        //     if (!$user->profile) {
+        //         $user->profile()->create([
+        //             'last_name' => fake('ja_JP')->lastName(),
+        //             'first_name' => fake('ja_JP')->firstName(),
+        //             'last_name_kana' => fake('ja_JP')->lastKanaName(),
+        //             'first_name_kana' => fake('ja_JP')->firstKanaName(),
+        //             'display_name' => fake()->optional(0.5)->userName(),
+        //             'birth_date' => fake()->optional(0.7)->dateTimeBetween('-60 years', '-18 years'),
+        //             'gender' => fake()->optional(0.8)->randomElement(['male', 'female', 'other', 'prefer_not_to_say']),
+        //             'phone' => fake()->optional(0.6)->phoneNumber(),
+        //             'mobile' => fake()->optional(0.9)->phoneNumber(),
+        //             'emergency_contact_name' => fake()->optional(0.3)->name(),
+        //             'emergency_contact_phone' => fake()->optional(0.3)->phoneNumber(),
+        //             'bio' => fake()->optional(0.3)->realText(200),
+        //         ]);
+        //         $profileCount++;
+        //     }
+        // }
 
-        $this->command->info('User profiles created: ' . $profileCount);
+        // $this->command->info('User profiles created: ' . $profileCount);
         $this->command->info('Total profiles: ' . Profile::count());
     }
 }

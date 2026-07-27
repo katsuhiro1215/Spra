@@ -196,77 +196,75 @@ export default function HolidaysIndex({
 
             <div className="w-full flex flex-col gap-4">
                 {/* 検索・フィルターカード */}
-                <Card>
-                    <div className="p-4 space-y-3">
-                        {/* 検索 + フィルタートグル */}
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                            {/* 検索バー */}
-                            <div className="flex-1 max-w-md">
-                                <SearchBar
-                                    value={data.search}
-                                    onChange={(value) =>
-                                        setData("search", value)
-                                    }
-                                    onSearch={handleSearch}
-                                    placeholder="祝日名で検索..."
-                                    disabled={processing}
-                                />
-                            </div>
-
-                            {/* フィルタートグルボタン */}
-                            <div className="flex-shrink-0">
-                                <SecondaryButton
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    icon={FunnelIcon}
-                                >
-                                    フィルター
-                                    {activeFilterCount > 0 && (
-                                        <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </SecondaryButton>
-                            </div>
+                <div className="space-y-4">
+                    {/* 検索 + フィルタートグル */}
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                        {/* 検索バー */}
+                        <div className="flex-1 max-w-md">
+                            <SearchBar
+                                value={data.search}
+                                onChange={(value) =>
+                                    setData("search", value)
+                                }
+                                onSearch={handleSearch}
+                                placeholder="祝日名で検索..."
+                                disabled={processing}
+                            />
                         </div>
 
-                        {/* 詳細フィルター（折りたたみ可能） */}
-                        {showFilters && (
-                            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <FilterSelect
-                                        label="年"
-                                        value={data.year}
-                                        onChange={(value) =>
-                                            setData("year", value)
-                                        }
-                                        options={yearOptions}
-                                        placeholder="すべての年"
-                                    />
-                                    <FilterSelect
-                                        label="種類"
-                                        value={data.type}
-                                        onChange={(value) =>
-                                            setData("type", value)
-                                        }
-                                        options={typeOptions}
-                                        placeholder="すべての種類"
-                                    />
-                                    <div className="flex items-end">
-                                        {hasActiveFilters && (
-                                            <SecondaryButton
-                                                onClick={handleClearFilters}
-                                                icon={XMarkIcon}
-                                                className="w-full"
-                                            >
-                                                フィルタークリア
-                                            </SecondaryButton>
-                                        )}
-                                    </div>
+                        {/* フィルタートグルボタン */}
+                        <div className="flex-shrink-0">
+                            <SecondaryButton
+                                onClick={() => setShowFilters(!showFilters)}
+                                icon={FunnelIcon}
+                            >
+                                フィルター
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </SecondaryButton>
+                        </div>
+                    </div>
+
+                    {/* 詳細フィルター（折りたたみ可能） */}
+                    {showFilters && (
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <FilterSelect
+                                    label="年"
+                                    value={data.year}
+                                    onChange={(value) =>
+                                        setData("year", value)
+                                    }
+                                    options={yearOptions}
+                                    placeholder="すべての年"
+                                />
+                                <FilterSelect
+                                    label="種類"
+                                    value={data.type}
+                                    onChange={(value) =>
+                                        setData("type", value)
+                                    }
+                                    options={typeOptions}
+                                    placeholder="すべての種類"
+                                />
+                                <div className="flex items-end">
+                                    {hasActiveFilters && (
+                                        <SecondaryButton
+                                            onClick={handleClearFilters}
+                                            icon={XMarkIcon}
+                                            className="w-full"
+                                        >
+                                            フィルタークリア
+                                        </SecondaryButton>
+                                    )}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </Card>
+                        </div>
+                    )}
+                </div>
 
                 {/* 祝日一覧テーブル */}
                 {holidays.length > 0 ? (

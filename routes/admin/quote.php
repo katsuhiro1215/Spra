@@ -33,4 +33,5 @@ Route::prefix('quote-response')->name('quote-response.')->group(function () {
     Route::get('/{quoteResponse}', [QuoteResponseController::class, 'show'])->name('show');
     Route::post('/{quoteResponse}/send-invitation', [QuoteResponseController::class, 'sendInvitation'])->name('send-invitation');
     Route::post('/{quoteResponse}/mark-declined', [QuoteResponseController::class, 'markDeclined'])->name('mark-declined');
+    Route::post('/{quoteResponse}/mark-reviewed', [QuoteResponseController::class, 'markReviewed'])->name('mark-reviewed');
 });

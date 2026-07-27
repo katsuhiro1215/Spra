@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import { Card, CardBody } from "@/Components/Card";
-import { InputError } from "@/Components/Forms";
+import { TextInput, FormGroup } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 
@@ -32,9 +32,9 @@ export default function TwoFactorChallenge({ method = "email" }) {
 
             <div className="max-w-md w-full space-y-8">
                 <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg
-                            className="w-8 h-8 text-blue-600"
+                            className="w-8 h-8 text-blue-600 dark:text-blue-400"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -60,8 +60,8 @@ export default function TwoFactorChallenge({ method = "email" }) {
                 <Card>
                     <CardBody className="px-8 py-8 space-y-6">
                         <form onSubmit={submit} className="space-y-4">
-                            <div>
-                                <input
+                            <FormGroup error={errors.code}>
+                                <TextInput
                                     type="text"
                                     value={data.code}
                                     onChange={(e) =>
@@ -71,10 +71,9 @@ export default function TwoFactorChallenge({ method = "email" }) {
                                     placeholder="000000"
                                     maxLength={isTotp ? 20 : 6}
                                     autoComplete="one-time-code"
-                                    autoFocus
+                                    isFocused
                                 />
-                                <InputError message={errors.code} />
-                            </div>
+                            </FormGroup>
 
                             <PrimaryButton
                                 type="submit"
@@ -95,9 +94,11 @@ export default function TwoFactorChallenge({ method = "email" }) {
                                     type="button"
                                     onClick={resend}
                                     disabled={resending}
-                                    className="text-sm text-blue-600 hover:text-blue-500 font-medium disabled:text-gray-400"
+                                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium disabled:text-gray-400 dark:disabled:text-gray-600"
                                 >
-                                    {resending ? "送信中..." : "コードを再送信する"}
+                                    {resending
+                                        ? "送信中..."
+                                        : "コードを再送信する"}
                                 </button>
                             </div>
                         )}

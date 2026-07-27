@@ -62,6 +62,7 @@ return new class extends Migration
 
             // PDF管理
             $table->string('pdf_path')->nullable()->comment('PDFファイルパス');
+            $table->string('payment_report_token', 60)->nullable()->unique();
             $table->integer('resend_count')->default(0)->comment('再送信回数');
             $table->timestamp('last_resent_at')->nullable()->comment('最終再送信日時');
 

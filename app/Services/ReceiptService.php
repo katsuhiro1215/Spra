@@ -88,6 +88,21 @@ class ReceiptService
   }
 
   /**
+   * 複数の領収書をまとめた1つのPDFを生成（保存はせずバイナリを返す）
+   */
+  public function generateBulkPdfContent(\Illuminate\Support\Collection $receipts): string
+  {
+    $receipts->loadMissing(['user.profile', 'company', 'invoice.contract']);
+
+    $pdf = Pdf::loadView('pdfs.receipts-bulk', [
+      'receipts' => $receipts,
+    ])->setPaper('A4', 'portrait');
+    \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
+
+    return $pdf->output();
+  }
+
+  /**
    * 領収書を発行して送付
    */
   public function sendReceipt(Receipt $receipt): bool

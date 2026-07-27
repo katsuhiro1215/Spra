@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('media_variants', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id')->primary();
             $table->foreignUlid('media_id')->constrained('media')->cascadeOnDelete()->comment('メディアID');
 
             // バリアント種類（WordPress方式）

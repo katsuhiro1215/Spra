@@ -7,6 +7,7 @@ import { TextButton } from "@/Components/Buttons";
 import { Badge } from "@/Components/Badges";
 import { FlashMessage } from "@/Components/Notifications";
 import { ConfirmAlert } from "@/Components/Alerts";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import { PageConfig } from "@/Constants/PageConfig";
 import {
     PencilIcon,
@@ -27,6 +28,7 @@ export default function Show({ invoice, payments }) {
     const [activeTab, setActiveTab] = useState("basic");
     const [showConfirmAlert, setShowConfirmAlert] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null);
+    const [sending, setSending] = useState(false);
 
     const tabs = [
         { id: "basic", label: "基本情報" },
@@ -50,7 +52,12 @@ export default function Show({ invoice, payments }) {
 
     const handleConfirmAction = () => {
         if (confirmAction === "send") {
-            router.patch(route("admin.invoice.send", invoice.id));
+            setSending(true);
+            router.patch(
+                route("admin.invoice.send", invoice.id),
+                {},
+                { onFinish: () => setSending(false) },
+            );
         } else if (confirmAction === "delete") {
             router.delete(route("admin.invoice.destroy", invoice.id), {
                 onSuccess: () => {
@@ -177,6 +184,7 @@ export default function Show({ invoice, payments }) {
         >
             <Head title="請求書詳細" />
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             {/* 確認ダイアログ */}
             <ConfirmAlert
@@ -228,6 +236,7 @@ export default function Show({ invoice, payments }) {
                                 variant="skyblue"
                                 size="sm"
                                 title="送付"
+                                disabled={sending}
                             >
                                 <PaperAirplaneIcon className="w-4 h-4 mr-1" />
                                 送付

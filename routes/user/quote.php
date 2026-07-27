@@ -8,7 +8,8 @@ use App\Http\Controllers\User\QuoteController;
 
 // 見積書（クライアント向け）
 Route::get('/quotes', [QuoteController::class, 'index'])->name('quote.index');
-Route::get('/quotes/{id}', [QuoteController::class, 'show'])->name('quote.show');
-Route::get('/quotes/{id}/pdf', [QuoteController::class, 'pdf'])->name('quote.pdf');
-Route::post('/quotes/{id}/accept', [QuoteController::class, 'accept'])->name('quote.accept');
-Route::post('/quotes/{id}/reject', [QuoteController::class, 'reject'])->name('quote.reject');
+Route::get('/quotes/{quote}', [QuoteController::class, 'show'])->name('quote.show');
+Route::get('/quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quote.pdf');
+Route::get('/quotes/{quote}/pdf/preview', [QuoteController::class, 'pdfPreview'])->name('quote.pdf.preview');
+Route::post('/quotes/{quote}/accept', [QuoteController::class, 'accept'])->name('quote.accept');
+Route::post('/quotes/{quote}/reject', [QuoteController::class, 'reject'])->name('quote.reject');

@@ -95,6 +95,19 @@ class QuoteResponseController extends Controller
     }
 
     /**
+     * 管理者が内容を確認済みであることを記録する
+     *
+     * @param QuoteResponse $quoteResponse
+     * @return RedirectResponse
+     */
+    public function markReviewed(QuoteResponse $quoteResponse): RedirectResponse
+    {
+        $this->quoteResponseService->markReviewed($quoteResponse, auth('admins')->id());
+
+        return back()->with('success', '確認済みにしました。');
+    }
+
+    /**
      * 未回答の見積を管理者が目視確認のうえ手動で「見送り(NG)」として記録する
      *
      * @param Request $request

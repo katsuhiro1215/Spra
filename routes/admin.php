@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Admin\AdminAddressController;
@@ -44,9 +44,9 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // 自身のプロフィール
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [AccountController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [AccountController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [AccountController::class, 'destroy'])->name('profile.destroy');
 
     // セキュリティ（二段階認証）
     Route::get('/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
@@ -190,6 +190,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      **************************************/
     require __DIR__ . '/admin/point.php';
 
+    /**************************************
+     * Atlas（富裕層向けサービス）
+     **************************************/
+    require __DIR__ . '/admin/atlas.php';
+
     // オンボーディング管理
     Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {
         Route::get('/', 'index')->name('index');
@@ -211,6 +216,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      * 領収書
      **************************************/
     require __DIR__ . '/admin/receipt.php';
+
+    /**************************************
+     * お知らせ配信
+     **************************************/
+    require __DIR__ . '/admin/announcement.php';
 
     // Documents (規約・ヘルプ・APIドキュメント等) 管理
     Route::resource('documents', DocumentController::class)->except(['show']);

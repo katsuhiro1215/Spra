@@ -6,6 +6,7 @@ import Card from "@/Components/Card";
 import Badge from "@/Components/Badge";
 import { FlashMessage } from "@/Components/Notifications";
 import { DeleteAlert, ConfirmAlert } from "@/Components/Alerts";
+import SendingOverlay from "@/Components/Loading/SendingOverlay";
 import {
     PencilIcon,
     TrashIcon,
@@ -48,6 +49,7 @@ export default function Show({ receipt }) {
     // ========================================
     const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [showSendAlert, setShowSendAlert] = useState(false);
+    const [sending, setSending] = useState(false);
 
     // ========================================
     // Handlers - Actions
@@ -65,7 +67,12 @@ export default function Show({ receipt }) {
     const handleSend = () => setShowSendAlert(true);
 
     const confirmSend = () => {
-        router.post(route("admin.receipts.send", receipt.id));
+        setSending(true);
+        router.post(
+            route("admin.receipts.send", receipt.id),
+            {},
+            { onFinish: () => setSending(false) },
+        );
     };
 
     const handleDownload = () => {
@@ -119,6 +126,7 @@ export default function Show({ receipt }) {
             <Head title={`領収書: ${receipt.receipt_number}`} />
 
             <FlashMessage />
+            <SendingOverlay show={sending} />
 
             <DeleteAlert
                 show={showDeleteAlert}

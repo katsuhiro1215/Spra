@@ -12,6 +12,7 @@ export default function QuoteForm({
     onSubmit,
     cancelRoute,
     users = [],
+    companies = [],
     isEdit = false,
 }) {
     const handleSubmit = (e) => {
@@ -72,6 +73,10 @@ export default function QuoteForm({
                                             value: "",
                                             label: "会社を選択（任意）",
                                         },
+                                        ...companies.map((company) => ({
+                                            value: company.id,
+                                            label: company.name,
+                                        })),
                                     ]}
                                 />
                             </FormGroup>

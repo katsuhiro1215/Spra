@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('page_id')->references('id')->on('pages')->cascadeOnDelete();
             $table->string('name')->comment('セクション名');
             $table->string('role')->default('main')->comment('役割(header/footer/main/sidebar等)');
+            $table->json('content')->nullable()->comment('セクションコンテンツ(ブロックエディタ)');
             $table->unsignedInteger('sort_order')->default(0)->comment('表示順');
             $table->uuid('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('admins')->nullOnDelete();

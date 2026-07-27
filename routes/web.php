@@ -7,7 +7,7 @@ use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\User\AccountController as UserAccountController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ServiceController;
 use App\Http\Controllers\Public\FaqController;
@@ -32,7 +32,49 @@ use App\Http\Controllers\User\UserAddressController;
 use App\Http\Controllers\User\AppointmentController as UserAppointmentController;
 use App\Http\Controllers\User\CalendarController as UserCalendarController;
 use App\Http\Controllers\User\ContactController as UserContactController;
+use App\Http\Controllers\User\FaqController as UserFaqController;
+use App\Http\Controllers\User\AnnouncementController as UserAnnouncementController;
+use App\Http\Controllers\User\AtlasController as UserAtlasController;
+use App\Http\Controllers\Atlas\Auth\AuthenticatedSessionController as AtlasAuthenticatedSessionController;
+use App\Http\Controllers\Atlas\Auth\RegisteredUserController as AtlasRegisteredUserController;
+use App\Http\Controllers\Atlas\RoomController as AtlasRoomController;
 use Inertia\Inertia;
+
+// Atlas（富裕層向けサービス）: Private Preview + Private Room
+// メインサイトと切り離すため、サブドメイン（atlas.example.com）で配信する。
+// ローカルでは http://atlas.localhost:8000 のようにポート付きでアクセスする。
+// セッションもメインサイトとは共有しない（Atlas内で完結するログイン導線）。
+Route::domain(config('app.atlas_domain'))->group(function () {
+    Route::get('/', fn() => Inertia::render('Public/Atlas'))->name('atlas');
+    Route::get('/apply', fn() => Inertia::render('Public/AtlasComingSoon', [
+        'title' => '利用申請',
+        'message' => '利用申請フォームは、現在準備中です。',
+    ]))->name('atlas.apply');
+
+    Route::middleware('guest:users')->group(function () {
+        Route::controller(AtlasAuthenticatedSessionController::class)->group(function () {
+            Route::get('/login', 'create')->name('atlas.login');
+            Route::post('/login', 'store');
+        });
+        Route::controller(AtlasRegisteredUserController::class)->group(function () {
+            Route::get('/register', 'create')->name('atlas.register');
+            Route::post('/register', 'store');
+        });
+    });
+
+    Route::post('/logout', [AtlasAuthenticatedSessionController::class, 'destroy'])
+        ->middleware('auth:users')
+        ->name('atlas.logout');
+
+    Route::middleware('auth:users')->group(function () {
+        Route::get('/membership-required', [AtlasRoomController::class, 'membershipRequired'])
+            ->name('atlas.membership-required');
+
+        Route::middleware('atlas.member')->group(function () {
+            Route::get('/room', [AtlasRoomController::class, 'index'])->name('atlas.room');
+        });
+    });
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
@@ -57,6 +99,7 @@ Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('docu
 Route::get('/lp', fn() => Inertia::render('Public/LandingPage'))->name('landing.page');
 Route::get('/lp-minimal', fn() => Inertia::render('Public/LandingPageMinimal'))->name('landing.minimal');
 Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative'))->name('landing.creative');
+
 
 // Contact 送信
 Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
@@ -84,6 +127,9 @@ Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store
 Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Atlas会員資格の紹介カード用API（同一セッションでの利用が前提）
+    Route::get('/api/atlas/me', [UserAtlasController::class, 'me'])->name('atlas.me');
+
     // Onboarding routes (登録情報の完成)
     Route::get('/onboarding/profile', [UserProfileController::class, 'create'])->name('onboarding.profile');
     Route::post('/onboarding/profile', [UserProfileController::class, 'store'])->name('onboarding.profile.store');
@@ -92,9 +138,9 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::get('/onboarding/address', [AddressController::class, 'create'])->name('onboarding.address');
     Route::post('/onboarding/address', [AddressController::class, 'store'])->name('onboarding.address.store');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [UserAccountController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [UserAccountController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [UserAccountController::class, 'destroy'])->name('profile.destroy');
 
     // プロジェクト（クライアント向け）
     Route::get('/my/projects', [UserProjectController::class, 'index'])->name('projects.index');
@@ -116,6 +162,9 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
     Route::resource('/receipt', ReceiptController::class)->only(['index', 'show']);
     Route::get('/receipt/{receipt}/download', [ReceiptController::class, 'download'])->name('receipt.download');
     Route::get('/receipt/{receipt}/pdf/preview', [ReceiptController::class, 'previewPdf'])->name('receipt.pdf.preview');
+    // 複数の領収書をまとめて1つのPDFとして出力（/receipt/{receipt}系と衝突しないようパスを分ける）
+    Route::get('/receipts/bulk/preview', [ReceiptController::class, 'bulkPreview'])->name('receipt.bulk.preview');
+    Route::get('/receipts/bulk/download', [ReceiptController::class, 'bulkDownload'])->name('receipt.bulk.download');
 
     // ポイント（クライアント向け）
     Route::get('/points', [PointController::class, 'index'])->name('points.index');
@@ -193,6 +242,12 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
         Route::get('/', [UserContactController::class, 'index'])->name('index');
         Route::post('/', [UserContactController::class, 'send'])->name('send');
     });
+
+    // よくある質問（公開用の /faq とURIが衝突しないよう /my プレフィックスを付与）
+    Route::get('/my/faq', [UserFaqController::class, 'index'])->name('faq.index');
+
+    // お知らせ（Admin配信）
+    Route::resource('/announcement', UserAnnouncementController::class)->only(['index', 'show']);
 });
 
 Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->name('estimate.simulator.save');

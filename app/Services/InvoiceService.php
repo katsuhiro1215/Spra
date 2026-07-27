@@ -93,8 +93,18 @@ class InvoiceService
             $issueDate = now();
             $dueDate = now()->addDays($contract->payment_due_days ?? 15);
 
+            // 請求対象期間は「バッチが実行された日のカレンダー月」ではなく、
+            // 契約のstart_dateを起点に、これまで生成した月次請求書の件数分だけ
+            // 月を進めて計算する。バッチの実行タイミング（遅延等）に左右されず、
+            // 常に「契約開始月 + N ヶ月」が一意に決まるようにするため。
+            $billingSequence = $contract->invoices()->where('invoice_type', 'monthly')->count();
+            $periodStart = \Carbon\Carbon::parse($contract->start_date)->startOfMonth()->addMonths($billingSequence);
+            $periodEnd = $periodStart->copy()->endOfMonth();
+
             // 金額は契約の現行バージョンから取得(Contract自体にamount/tax_rateは存在しない)
-            $subtotal = (float) ($currentVersion->total_amount ?? 0);
+            // total_amountは税込済みのため、税抜のbase_amountをsubtotalとして使う
+            // (total_amountをsubtotalにすると、ここで税を再度加算し二重課税になる)
+            $subtotal = (float) ($currentVersion->base_amount ?? 0);
             $taxRate = (float) ($currentVersion->tax_rate ?? 0);
             $taxAmount = round($subtotal * $taxRate / 100, 2);
             $totalAmount = $subtotal + $taxAmount;
@@ -108,8 +118,8 @@ class InvoiceService
                 'company_id' => $contract->company_id,
                 'issue_date' => $issueDate,
                 'due_date' => $dueDate,
-                'billing_period_start' => $issueDate->copy()->startOfMonth(),
-                'billing_period_end' => $issueDate->copy()->endOfMonth(),
+                'billing_period_start' => $periodStart,
+                'billing_period_end' => $periodEnd,
                 'subtotal' => $subtotal,
                 'tax_rate' => $taxRate,
                 'tax_amount' => $taxAmount,
@@ -281,7 +291,11 @@ class InvoiceService
     public function generateInvoiceNumber(): string
     {
         $year = date('Y');
-        $lastInvoice = Invoice::whereYear('created_at', $year)
+        // invoice_numberのユニーク制約はソフトデリート済みの行にも及ぶため、
+        // 採番時もwithTrashed()で削除済みの番号を含めて確認しないと、
+        // 削除済みと同じ番号を再度生成して重複エラーになる
+        $lastInvoice = Invoice::withTrashed()
+            ->whereYear('created_at', $year)
             ->orderBy('invoice_number', 'desc')
             ->first();
 

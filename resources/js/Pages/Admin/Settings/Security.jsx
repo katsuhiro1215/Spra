@@ -18,16 +18,18 @@ export default function Security({
     const isTotp = twoFactorEnabled && twoFactorMethod === "totp" && totpConfirmed;
     const isEmail = twoFactorEnabled && !isTotp;
 
-    const { data, setData, put, processing } = useForm({
-        two_factor_enabled: twoFactorEnabled,
-    });
+    const [toggling, setToggling] = useState(false);
 
     const toggleEmail = () => {
-        const next = !twoFactorEnabled;
-        setData("two_factor_enabled", next);
-        put(route("admin.security.update"), {
-            data: { two_factor_enabled: next },
-        });
+        router.put(
+            route("admin.security.update"),
+            { two_factor_enabled: !twoFactorEnabled },
+            {
+                preserveScroll: true,
+                onStart: () => setToggling(true),
+                onFinish: () => setToggling(false),
+            },
+        );
     };
 
     const [settingUp, setSettingUp] = useState(false);
@@ -111,7 +113,7 @@ export default function Security({
                             <button
                                 type="button"
                                 onClick={toggleEmail}
-                                disabled={processing}
+                                disabled={toggling}
                                 className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
                                     twoFactorEnabled
                                         ? "bg-green-600"

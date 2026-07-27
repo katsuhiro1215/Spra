@@ -10,6 +10,7 @@ import QuoteForm from "./_components/Form";
 export default function Edit({
     quote,
     users,
+    companies = [],
     serviceCategories,
     services,
     serviceItems,
@@ -91,6 +92,7 @@ export default function Edit({
                     onSubmit={submit}
                     cancelRoute={route("admin.quote.show", quote.id)}
                     users={users}
+                    companies={companies}
                     serviceCategories={serviceCategories}
                     services={services}
                     serviceItems={serviceItems}

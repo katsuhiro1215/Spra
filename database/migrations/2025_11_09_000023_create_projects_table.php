@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('thumbnail')->nullable();
+            $table->string('repository_url')->nullable()->comment('GitHub等のリポジトリURL');
+            $table->string('production_url')->nullable()->comment('本番公開URL');
 
             // ステータス管理
             $table->enum('status', [

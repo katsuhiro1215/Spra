@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class RedirectIfAuthenticated
@@ -24,6 +25,9 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 if ($guard === self::GUARD_ADMIN) {
                     return redirect(admin_home_url());
+                } elseif (Route::is('atlas.*')) {
+                    // Atlasはメインサイトとセッションを共有しないため、Atlas内のリダイレクト先はAtlas側に閉じる
+                    return redirect()->route('atlas.room');
                 } elseif ($guard === self::GUARD_USER) {
                     return redirect(user_home_url());
                 } else {

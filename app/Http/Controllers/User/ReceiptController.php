@@ -94,4 +94,46 @@ class ReceiptController extends Controller
             'Content-Disposition' => "inline; filename=\"{$receipt->receipt_number}.pdf\"",
         ]);
     }
+
+    /**
+     * 選択した複数の領収書をまとめた1つのPDFをプレビュー表示
+     */
+    public function bulkPreview(Request $request): HttpResponse
+    {
+        return $this->bulkPdfResponse($request, 'inline');
+    }
+
+    /**
+     * 選択した複数の領収書をまとめた1つのPDFをダウンロード
+     */
+    public function bulkDownload(Request $request): HttpResponse
+    {
+        return $this->bulkPdfResponse($request, 'attachment');
+    }
+
+    private function bulkPdfResponse(Request $request, string $disposition): HttpResponse
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'string',
+        ]);
+
+        $userId = auth('users')->id();
+
+        $receipts = Receipt::forClient($userId)
+            ->issued()
+            ->whereIn('id', $validated['ids'])
+            ->orderBy('issued_at')
+            ->get();
+
+        abort_if($receipts->isEmpty(), 404);
+
+        $pdfContent = $this->service->generateBulkPdfContent($receipts);
+        $filename = 'receipts_bulk_' . now()->format('YmdHis') . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "{$disposition}; filename=\"{$filename}\"",
+        ]);
+    }
 }

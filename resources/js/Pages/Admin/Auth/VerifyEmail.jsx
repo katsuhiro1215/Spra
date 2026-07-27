@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from "@inertiajs/react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import { Card, CardBody } from "@/Components/Card";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 
@@ -14,7 +15,7 @@ export default function VerifyEmail({ status }) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-800 dark:via-gray-900 dark:to-black py-12 px-4 sm:px-6 lg:px-8">
             <Head title="メールアドレス認証" />
 
             {/* フラッシュメッセージ */}
@@ -24,9 +25,9 @@ export default function VerifyEmail({ status }) {
                 {/* ロゴとヘッダー */}
                 <div className="text-center">
                     <div className="flex justify-center">
-                        <ApplicationLogo className="h-16 w-auto fill-current text-gray-800" />
+                        <ApplicationLogo className="h-16 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </div>
-                    <h2 className="mt-6 text-3xl font-bold text-gray-900">
+                    <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
                         メールアドレス認証
                     </h2>
                     <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
@@ -45,45 +46,48 @@ export default function VerifyEmail({ status }) {
                 </div>
 
                 {/* フォーム */}
-                <div className="bg-white shadow-2xl rounded-2xl px-8 py-8 space-y-6">
-                    <div className="text-center space-y-4">
-                        <div className="text-6xl">📧</div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                アカウント登録ありがとうございます！
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                続行する前に、お送りしたメールアドレス認証リンクをクリックしてください。
-                                <br />
-                                メールが届いていない場合は、再送信いたします。
-                            </p>
-                        </div>
-                    </div>
-
-                    <form onSubmit={submit} className="space-y-6">
-                        <div className="flex flex-col space-y-4">
-                            <PrimaryButton
-                                className="bg-purple-600 hover:bg-purple-700 focus:ring-purple-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
-                                disabled={processing}
-                            >
-                                {processing
-                                    ? "送信中..."
-                                    : "認証メールを再送信"}
-                            </PrimaryButton>
-
-                            <div className="text-center">
-                                <Link
-                                    href={route("admin.logout")}
-                                    method="post"
-                                    as="button"
-                                    className="text-sm text-gray-600 hover:text-gray-900 underline font-medium transition duration-200"
-                                >
-                                    ログアウト
-                                </Link>
+                <Card>
+                    <CardBody className="px-8 py-8 space-y-6">
+                        <div className="text-center space-y-4">
+                            <div className="text-6xl">📧</div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    アカウント登録ありがとうございます！
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    続行する前に、お送りしたメールアドレス認証リンクをクリックしてください。
+                                    <br />
+                                    メールが届いていない場合は、再送信いたします。
+                                </p>
                             </div>
                         </div>
-                    </form>
-                </div>
+
+                        <form onSubmit={submit} className="space-y-6">
+                            <div className="flex flex-col space-y-4">
+                                <PrimaryButton
+                                    type="submit"
+                                    className="bg-purple-600 hover:bg-purple-700 focus:ring-purple-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
+                                    disabled={processing}
+                                >
+                                    {processing
+                                        ? "送信中..."
+                                        : "認証メールを再送信"}
+                                </PrimaryButton>
+
+                                <div className="text-center">
+                                    <Link
+                                        href={route("admin.logout")}
+                                        method="post"
+                                        as="button"
+                                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 underline font-medium transition duration-200"
+                                    >
+                                        ログアウト
+                                    </Link>
+                                </div>
+                            </div>
+                        </form>
+                    </CardBody>
+                </Card>
             </div>
         </div>
     );

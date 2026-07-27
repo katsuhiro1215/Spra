@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Invoice;
+use App\Models\Organization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -32,7 +33,7 @@ class InvoiceMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '【請求書送付】' . $this->invoice->invoice_number . ' - ' . config('app.name'),
+            subject: '【請求書送付】' . $this->invoice->invoice_number . ' - ' . Organization::displayName(),
         );
     }
 
@@ -42,7 +43,7 @@ class InvoiceMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.invoices.invoice',
+            view: 'emails.invoices.invoice',
         );
     }
 

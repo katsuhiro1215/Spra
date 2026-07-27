@@ -17,6 +17,8 @@ return new class extends Migration
       $table->foreignUuid('user_id')->nullable()->constrained('users')->cascadeOnDelete()->comment('予約者（ユーザー）');
       $table->foreignUuid('company_id')->nullable()->constrained('companies')->cascadeOnDelete()->comment('予約者（企業）');
       $table->foreignUuid('project_id')->nullable()->constrained('projects')->nullOnDelete()->comment('関連プロジェクト');
+      $table->string('source')->default('web')->comment('流入元: web, instagram');
+      $table->string('external_reference')->nullable()->comment('外部プラットフォームのユーザー識別子（InstagramのIGSID等）');
 
       // 一般クライアント（アカウントなし）の連絡先
       $table->string('guest_name')->nullable()->comment('ゲスト氏名（アカウントなしの一般クライアント用）');

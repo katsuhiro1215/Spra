@@ -13,13 +13,36 @@ use Inertia\Response as InertiaResponse;
 class QuoteController extends Controller
 {
   /**
+   * 自分自身が紐づく見積、または自分が所属する会社に紐づく見積であればアクセス許可。
+   * （見積作成時に管理者が会社のみを選択し、user_idが別の会社担当者になっているケースがあるため）
+   */
+  private function canAccess(Quote $quote): bool
+  {
+    $user = Auth::user();
+
+    if ($quote->user_id === $user->id) {
+      return true;
+    }
+
+    if ($quote->company_id && $user->companies()->where('companies.id', $quote->company_id)->exists()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Display a listing of quotes for the authenticated user.
    */
   public function index(Request $request): InertiaResponse
   {
     $user = Auth::user();
+    $companyIds = $user->companies()->pluck('companies.id');
 
-    $quotes = Quote::where('user_id', $user->id)
+    $quotes = Quote::where(function ($query) use ($user, $companyIds) {
+        $query->where('user_id', $user->id)
+          ->orWhereIn('company_id', $companyIds);
+      })
       ->with(['currentVersion.items', 'contact'])
       ->orderBy('created_at', 'desc')
       ->paginate($request->input('per_page', 20));
@@ -34,8 +57,7 @@ class QuoteController extends Controller
    */
   public function show(Quote $quote): InertiaResponse
   {
-    // 自分の見積書のみアクセス許可
-    if ($quote->user_id !== Auth::id()) {
+    if (!$this->canAccess($quote)) {
       abort(403, 'アクセス権限がありません。');
     }
 
@@ -47,18 +69,12 @@ class QuoteController extends Controller
   }
 
   /**
-   * Generate and download PDF of a quote.
+   * 見積PDFを生成
    */
-  public function pdf(Quote $quote)
+  private function buildPdf(Quote $quote)
   {
-    // 自分の見積書のみ生成許可
-    if ($quote->user_id !== Auth::id()) {
-      abort(403, 'アクセス権限がありません。');
-    }
-
     $quote->load('currentVersion.items', 'contact');
 
-    // PDFの生成（簡易版）
     $pdf = Pdf::loadView('user.quote.pdf', [
       'quote' => $quote,
     ])
@@ -67,7 +83,31 @@ class QuoteController extends Controller
       ->setOption('isHtml5ParserEnabled', true);
     \App\Support\PdfFontRegistrar::registerDomPdf($pdf);
 
-    return $pdf->download("quote_{$quote->quote_number}.pdf");
+    return $pdf;
+  }
+
+  /**
+   * Generate and download PDF of a quote.
+   */
+  public function pdf(Quote $quote)
+  {
+    if (!$this->canAccess($quote)) {
+      abort(403, 'アクセス権限がありません。');
+    }
+
+    return $this->buildPdf($quote)->download("quote_{$quote->quote_number}.pdf");
+  }
+
+  /**
+   * 見積PDFをプレビュー表示（ブラウザ内で確認してからダウンロードできる）
+   */
+  public function pdfPreview(Quote $quote)
+  {
+    if (!$this->canAccess($quote)) {
+      abort(403, 'アクセス権限がありません。');
+    }
+
+    return $this->buildPdf($quote)->stream("quote_{$quote->quote_number}.pdf");
   }
 
   /**
@@ -75,8 +115,7 @@ class QuoteController extends Controller
    */
   public function accept(Quote $quote)
   {
-    // 自分の見積書のみ受け入れ許可
-    if ($quote->user_id !== Auth::id()) {
+    if (!$this->canAccess($quote)) {
       abort(403, 'アクセス権限がありません。');
     }
 
@@ -103,8 +142,7 @@ class QuoteController extends Controller
    */
   public function reject(Quote $quote)
   {
-    // 自分の見積書のみ却下許可
-    if ($quote->user_id !== Auth::id()) {
+    if (!$this->canAccess($quote)) {
       abort(403, 'アクセス権限がありません。');
     }
 

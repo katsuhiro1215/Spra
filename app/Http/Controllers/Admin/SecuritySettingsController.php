@@ -53,10 +53,12 @@ class SecuritySettingsController extends Controller
             return back()->with('success', __('messages.two_factor.already_enabled_authenticator'));
         }
 
-        $admin->update([
-            'two_factor_enabled' => true,
-            'two_factor_method' => Admin::TWO_FACTOR_METHOD_EMAIL,
-        ]);
+        // two_factor_enabled/two_factor_method は $fillable に含めていない
+        // （2FAのマスタースイッチをまとめてマス代入可能にしたくないため）ので、
+        // update()ではなく直接プロパティ代入+save()で永続化する。
+        $admin->two_factor_enabled = true;
+        $admin->two_factor_method = Admin::TWO_FACTOR_METHOD_EMAIL;
+        $admin->save();
 
         return back()->with(
             'success',

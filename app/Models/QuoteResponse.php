@@ -22,11 +22,16 @@ class QuoteResponse extends Model
         'decided_by_admin_id',
         'user_id',
         'company_id',
+        'invitation_sent_at',
+        'admin_reviewed_at',
+        'reviewed_by_admin_id',
     ];
 
     protected $casts = [
         'responded_at' => 'datetime',
         'admin_notified_at' => 'datetime',
+        'invitation_sent_at' => 'datetime',
+        'admin_reviewed_at' => 'datetime',
     ];
 
     // Response types
@@ -67,6 +72,14 @@ class QuoteResponse extends Model
     public function decidedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'decided_by_admin_id');
+    }
+
+    /**
+     * この回答の内容を確認した管理者
+     */
+    public function reviewedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
     }
 
     /**
@@ -151,5 +164,21 @@ class QuoteResponse extends Model
     public function isAdminNotified(): bool
     {
         return $this->admin_notified_at !== null;
+    }
+
+    /**
+     * 招待メール送信済みかどうか（自動送信・手動送信を問わない）
+     */
+    public function isInvitationSent(): bool
+    {
+        return $this->invitation_sent_at !== null;
+    }
+
+    /**
+     * 管理者が内容を確認済みかどうか
+     */
+    public function isReviewed(): bool
+    {
+        return $this->admin_reviewed_at !== null;
     }
 }

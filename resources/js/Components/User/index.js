@@ -10,3 +10,4 @@ export { default as UserCardHeader } from "./UserCardHeader";
 export { default as UserCardBody } from "./UserCardBody";
 export { default as UserCardFooter } from "./UserCardFooter";
 export { default as UserCardTitle } from "./UserCardTitle";
+export { default as AtlasMembershipCard } from "./AtlasMembershipCard";

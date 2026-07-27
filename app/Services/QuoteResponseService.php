@@ -94,7 +94,7 @@ class QuoteResponseService extends BaseService
     }
 
     /**
-     * 招待メールを送信
+     * 招待メールを送信（自動送信・管理者による手動送信/再送信の両方から呼ばれる）
      *
      * @param QuoteResponse $quoteResponse
      * @return void
@@ -104,6 +104,25 @@ class QuoteResponseService extends BaseService
         Mail::to($quoteResponse->email)->send(
             new \App\Mail\SendQuoteResponseInvitationMail($quoteResponse)
         );
+
+        $quoteResponse->update(['invitation_sent_at' => now()]);
+    }
+
+    /**
+     * 管理者が内容を確認したことを記録する
+     *
+     * @param QuoteResponse $quoteResponse
+     * @param string $adminId
+     * @return QuoteResponse
+     */
+    public function markReviewed(QuoteResponse $quoteResponse, string $adminId): QuoteResponse
+    {
+        $quoteResponse->update([
+            'admin_reviewed_at' => now(),
+            'reviewed_by_admin_id' => $adminId,
+        ]);
+
+        return $quoteResponse->fresh();
     }
 
     /**
@@ -156,7 +175,7 @@ class QuoteResponseService extends BaseService
     public function getDetail(string $id): QuoteResponse
     {
         return $this->repository->getQuery()
-            ->with(['quote.contact', 'quote.currentVersion', 'user', 'company'])
+            ->with(['quote.contact', 'quote.currentVersion', 'user', 'company', 'reviewedByAdmin'])
             ->findOrFail($id);
     }
 

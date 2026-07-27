@@ -1,25 +1,87 @@
-import React from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import React, { useEffect, useMemo } from "react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
-import { Card } from "@/Components/Card";
+import { Card, CardBody } from "@/Components/Card";
 import { PrimaryButton, SecondaryButton } from "@/Components/Buttons";
-import { InputLabel, TextInput, InputError } from "@/Components/Forms";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { FormGroup, TextInput, SelectInput, TextArea } from "@/Components/Forms";
+import { ArrowLeftIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 
-export default function Edit({ appointmentSlot, admins, slotTypes, statuses }) {
+// DBのTIME型カラムは "10:00:00" のように秒付きで返るが、<input type="time"> は
+// 秒なし "10:00" を前提にしているため、フォームへ渡す前に切り詰めておく
+const toHm = (time) => (time ? time.substring(0, 5) : "");
+
+export default function Edit({ appointmentSlot, admins, slotTypes, statuses, shiftInfo }) {
     const { data, setData, put, processing, errors } = useForm({
         date: appointmentSlot.date || "",
-        start_time: appointmentSlot.start_time || "",
-        end_time: appointmentSlot.end_time || "",
+        start_time: toHm(appointmentSlot.start_time),
+        end_time: toHm(appointmentSlot.end_time),
         slot_type: appointmentSlot.slot_type || "meeting",
         max_capacity: appointmentSlot.max_capacity || 1,
         assigned_admin_id: appointmentSlot.assigned_admin_id || "",
         status: appointmentSlot.status || "available",
         notes: appointmentSlot.notes || "",
     });
+
+    // 担当者・日付を選んだら、その担当者のシフトを注意喚起表示用に取得する
+    useEffect(() => {
+        if (!data.assigned_admin_id || !data.date) return;
+
+        router.get(
+            route("admin.appointment-slots.edit", appointmentSlot.id),
+            {
+                assigned_admin_id: data.assigned_admin_id,
+                date: data.date,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ["shiftInfo"],
+            },
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.assigned_admin_id, data.date]);
+
+    // シフト外・シフト未登録の場合の注意喚起メッセージ（更新自体はブロックしない）
+    const shiftWarning = useMemo(() => {
+        if (!data.assigned_admin_id || !data.date || !shiftInfo) {
+            return null;
+        }
+
+        const shifts = shiftInfo.shifts || [];
+
+        if (shifts.length === 0) {
+            return "この担当者は指定した日のシフトが登録されていません。残業やイレギュラー対応で問題なければ、このまま更新できます。";
+        }
+
+        if (!data.start_time || !data.end_time) {
+            return null;
+        }
+
+        const withinAnyShift = shifts.some(
+            (shift) =>
+                data.start_time >= shift.start_time &&
+                data.end_time <= shift.end_time,
+        );
+
+        if (!withinAnyShift) {
+            const ranges = shifts
+                .map((shift) => `${shift.start_time}〜${shift.end_time}`)
+                .join("、");
+            return `選択した時間帯は担当者のシフト（${ranges}）の時間外です。残業等で問題なければ、このまま更新できます。`;
+        }
+
+        return null;
+    }, [
+        data.assigned_admin_id,
+        data.date,
+        data.start_time,
+        data.end_time,
+        shiftInfo,
+    ]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -63,248 +125,206 @@ export default function Edit({ appointmentSlot, admins, slotTypes, statuses }) {
 
             <div className="w-full sm:max-w-7xl lg:max-w-4xl">
                 <Card>
-                    <form onSubmit={submit} className="space-y-6">
-                        {/* 日付 */}
-                        <div>
-                            <InputLabel
+                    <CardBody>
+                        <form onSubmit={submit} className="space-y-6">
+                            {/* 日付 */}
+                            <FormGroup
+                                label="日付"
                                 htmlFor="date"
-                                value="日付 *"
                                 required
-                            />
-                            <TextInput
-                                id="date"
-                                type="date"
-                                value={data.date}
-                                onChange={(e) =>
-                                    setData("date", e.target.value)
-                                }
-                                className="mt-1 block w-full"
-                                required
-                            />
-                            <InputError
-                                message={errors.date}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        {/* 時間帯 */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <InputLabel
-                                    htmlFor="start_time"
-                                    value="開始時刻 *"
+                                error={errors.date}
+                            >
+                                <TextInput
+                                    id="date"
+                                    type="date"
+                                    value={data.date}
+                                    onChange={(e) =>
+                                        setData("date", e.target.value)
+                                    }
                                     required
                                 />
+                            </FormGroup>
+
+                            {/* 時間帯 */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormGroup
+                                    label="開始時刻"
+                                    htmlFor="start_time"
+                                    required
+                                    error={errors.start_time}
+                                >
+                                    <TextInput
+                                        id="start_time"
+                                        type="time"
+                                        value={data.start_time}
+                                        onChange={(e) =>
+                                            setData(
+                                                "start_time",
+                                                e.target.value,
+                                            )
+                                        }
+                                        required
+                                    />
+                                </FormGroup>
+                                <FormGroup
+                                    label="終了時刻"
+                                    htmlFor="end_time"
+                                    required
+                                    error={errors.end_time}
+                                >
+                                    <TextInput
+                                        id="end_time"
+                                        type="time"
+                                        value={data.end_time}
+                                        onChange={(e) =>
+                                            setData(
+                                                "end_time",
+                                                e.target.value,
+                                            )
+                                        }
+                                        required
+                                    />
+                                </FormGroup>
+                            </div>
+
+                            {/* シフト注意喚起（ブロックはしない） */}
+                            {shiftWarning && (
+                                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3">
+                                    <ExclamationTriangleIcon className="h-5 w-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                                        {shiftWarning}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* 予約タイプ */}
+                            <FormGroup
+                                label="予約タイプ"
+                                htmlFor="slot_type"
+                                required
+                                error={errors.slot_type}
+                            >
+                                <SelectInput
+                                    id="slot_type"
+                                    value={data.slot_type}
+                                    onChange={(e) =>
+                                        setData("slot_type", e.target.value)
+                                    }
+                                    options={slotTypes}
+                                    required
+                                />
+                            </FormGroup>
+
+                            {/* 最大予約数 */}
+                            <FormGroup
+                                label="最大予約数"
+                                htmlFor="max_capacity"
+                                required
+                                error={errors.max_capacity}
+                            >
                                 <TextInput
-                                    id="start_time"
-                                    type="time"
-                                    value={data.start_time}
+                                    id="max_capacity"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    value={data.max_capacity}
                                     onChange={(e) =>
                                         setData(
-                                            "start_time",
+                                            "max_capacity",
                                             e.target.value,
                                         )
                                     }
-                                    className="mt-1 block w-full"
                                     required
                                 />
-                                <InputError
-                                    message={errors.start_time}
-                                    className="mt-2"
-                                />
-                            </div>
-                            <div>
-                                <InputLabel
-                                    htmlFor="end_time"
-                                    value="終了時刻 *"
-                                    required
-                                />
-                                <TextInput
-                                    id="end_time"
-                                    type="time"
-                                    value={data.end_time}
-                                    onChange={(e) =>
-                                        setData("end_time", e.target.value)
-                                    }
-                                    className="mt-1 block w-full"
-                                    required
-                                />
-                                <InputError
-                                    message={errors.end_time}
-                                    className="mt-2"
-                                />
-                            </div>
-                        </div>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    この時間枠で受け付ける予約の最大数を設定します（1〜100）
+                                </p>
+                                <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">
+                                    現在の予約数: {appointmentSlot.current_bookings} /{" "}
+                                    {appointmentSlot.max_capacity}
+                                </p>
+                            </FormGroup>
 
-                        {/* 予約タイプ */}
-                        <div>
-                            <InputLabel
-                                htmlFor="slot_type"
-                                value="予約タイプ *"
-                                required
-                            />
-                            <select
-                                id="slot_type"
-                                value={data.slot_type}
-                                onChange={(e) =>
-                                    setData("slot_type", e.target.value)
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
-                            >
-                                {slotTypes.map((type) => (
-                                    <option
-                                        key={type.value}
-                                        value={type.value}
-                                    >
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <InputError
-                                message={errors.slot_type}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        {/* 最大予約数 */}
-                        <div>
-                            <InputLabel
-                                htmlFor="max_capacity"
-                                value="最大予約数 *"
-                                required
-                            />
-                            <TextInput
-                                id="max_capacity"
-                                type="number"
-                                min="1"
-                                max="100"
-                                value={data.max_capacity}
-                                onChange={(e) =>
-                                    setData("max_capacity", e.target.value)
-                                }
-                                className="mt-1 block w-full"
-                                required
-                            />
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                この時間枠で受け付ける予約の最大数を設定します（1〜100）
-                            </p>
-                            <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">
-                                現在の予約数:{" "}
-                                {appointmentSlot.current_bookings} /{" "}
-                                {appointmentSlot.max_capacity}
-                            </p>
-                            <InputError
-                                message={errors.max_capacity}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        {/* 担当者 */}
-                        <div>
-                            <InputLabel
+                            {/* 担当者 */}
+                            <FormGroup
+                                label="担当者"
                                 htmlFor="assigned_admin_id"
-                                value="担当者"
-                            />
-                            <select
-                                id="assigned_admin_id"
-                                value={data.assigned_admin_id}
-                                onChange={(e) =>
-                                    setData(
-                                        "assigned_admin_id",
-                                        e.target.value,
-                                    )
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                error={errors.assigned_admin_id}
                             >
-                                <option value="">未割り当て</option>
-                                {admins.map((admin) => (
-                                    <option
-                                        key={admin.value}
-                                        value={admin.value}
-                                    >
-                                        {admin.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <InputError
-                                message={errors.assigned_admin_id}
-                                className="mt-2"
-                            />
-                        </div>
+                                <SelectInput
+                                    id="assigned_admin_id"
+                                    value={data.assigned_admin_id}
+                                    onChange={(e) =>
+                                        setData(
+                                            "assigned_admin_id",
+                                            e.target.value,
+                                        )
+                                    }
+                                    options={[
+                                        { value: "", label: "未割り当て" },
+                                        ...admins,
+                                    ]}
+                                />
+                            </FormGroup>
 
-                        {/* ステータス */}
-                        <div>
-                            <InputLabel
+                            {/* ステータス */}
+                            <FormGroup
+                                label="ステータス"
                                 htmlFor="status"
-                                value="ステータス *"
                                 required
-                            />
-                            <select
-                                id="status"
-                                value={data.status}
-                                onChange={(e) =>
-                                    setData("status", e.target.value)
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                required
+                                error={errors.status}
                             >
-                                {statuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {status.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                ブロック中の枠は予約受付されません
-                            </p>
-                            <InputError
-                                message={errors.status}
-                                className="mt-2"
-                            />
-                        </div>
+                                <SelectInput
+                                    id="status"
+                                    value={data.status}
+                                    onChange={(e) =>
+                                        setData("status", e.target.value)
+                                    }
+                                    options={statuses}
+                                    required
+                                />
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    ブロック中の枠は予約受付されません
+                                </p>
+                            </FormGroup>
 
-                        {/* メモ */}
-                        <div>
-                            <InputLabel htmlFor="notes" value="メモ" />
-                            <textarea
-                                id="notes"
-                                value={data.notes}
-                                onChange={(e) =>
-                                    setData("notes", e.target.value)
-                                }
-                                rows="4"
-                                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                placeholder="この時間枠に関する補足事項があれば記入してください"
-                            />
-                            <InputError
-                                message={errors.notes}
-                                className="mt-2"
-                            />
-                        </div>
+                            {/* メモ */}
+                            <FormGroup
+                                label="メモ"
+                                htmlFor="notes"
+                                error={errors.notes}
+                            >
+                                <TextArea
+                                    id="notes"
+                                    value={data.notes}
+                                    onChange={(e) =>
+                                        setData("notes", e.target.value)
+                                    }
+                                    rows={4}
+                                    placeholder="この時間枠に関する補足事項があれば記入してください"
+                                />
+                            </FormGroup>
 
-                        {/* アクションボタン */}
-                        <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <Link
-                                href={route(
-                                    "admin.appointment-slots.index",
-                                )}
-                            >
-                                <SecondaryButton type="button">
-                                    キャンセル
-                                </SecondaryButton>
-                            </Link>
-                            <PrimaryButton
-                                type="submit"
-                                disabled={processing}
-                            >
-                                {processing ? "更新中..." : "更新"}
-                            </PrimaryButton>
-                        </div>
-                    </form>
+                            {/* アクションボタン */}
+                            <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <Link
+                                    href={route(
+                                        "admin.appointment-slots.index",
+                                    )}
+                                >
+                                    <SecondaryButton type="button">
+                                        キャンセル
+                                    </SecondaryButton>
+                                </Link>
+                                <PrimaryButton
+                                    type="submit"
+                                    disabled={processing}
+                                >
+                                    {processing ? "更新中..." : "更新"}
+                                </PrimaryButton>
+                            </div>
+                        </form>
+                    </CardBody>
                 </Card>
             </div>
         </AdminAuthenticatedLayout>

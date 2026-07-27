@@ -98,17 +98,17 @@ class CompanyController extends Controller
             ->get();
         // 請求書を取得
         $invoices = $company->invoices()
-            ->with('client_downloaded_by')
+            ->with('clientDownloadedBy')
             ->orderBy('issue_date', 'desc')
             ->get();
         // 領収書を取得
         $receipts = $company->receipts()
-            ->with(['invoice', 'client_downloaded_by'])
+            ->with(['invoice', 'clientDownloadedBy'])
             ->orderBy('issued_at', 'desc')
             ->get();
         // 決済を取得
         $payments = $company->payments()
-            ->with(['invoice', 'confirmed_by'])
+            ->with(['invoice', 'confirmedBy'])
             ->orderBy('payment_date', 'desc')
             ->get();
         // 統計情報を計算
