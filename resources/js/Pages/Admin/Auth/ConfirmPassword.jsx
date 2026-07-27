@@ -1,6 +1,7 @@
 import { Head, useForm } from "@inertiajs/react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import { InputError, InputLabel, TextInput } from "@/Components/Forms";
+import { Card, CardBody } from "@/Components/Card";
+import { TextInput, FormGroup } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
 import { FlashMessage } from "@/Components/Notifications";
 
@@ -19,7 +20,7 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-800 dark:via-gray-900 dark:to-black py-12 px-4 sm:px-6 lg:px-8">
             <Head title="パスワード確認" />
 
             {/* フラッシュメッセージ */}
@@ -29,9 +30,9 @@ export default function ConfirmPassword() {
                 {/* ロゴとヘッダー */}
                 <div className="text-center">
                     <div className="flex justify-center">
-                        <ApplicationLogo className="h-16 w-auto fill-current text-gray-800" />
+                        <ApplicationLogo className="h-16 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </div>
-                    <h2 className="mt-6 text-3xl font-bold text-gray-900">
+                    <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
                         パスワード確認
                     </h2>
                     <div className="mt-4 inline-flex items-center px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-full">
@@ -53,51 +54,49 @@ export default function ConfirmPassword() {
                 </div>
 
                 {/* フォーム */}
-                <div className="bg-white shadow-2xl rounded-2xl px-8 py-8 space-y-6">
-                    <div className="text-center">
-                        <p className="text-gray-600 text-sm">
-                            セキュリティ保護のため、パスワードを再度確認してください。
-                        </p>
-                    </div>
+                <Card>
+                    <CardBody className="px-8 py-8 space-y-6">
+                        <div className="text-center">
+                            <p className="text-gray-600 text-sm dark:text-gray-400">
+                                セキュリティ保護のため、パスワードを再度確認してください。
+                            </p>
+                        </div>
 
-                    <form onSubmit={submit} className="space-y-6">
-                        <div>
-                            <label
+                        <form onSubmit={submit} className="space-y-6">
+                            <FormGroup
+                                label="現在のパスワード"
                                 htmlFor="password"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                                error={errors.password}
                             >
-                                現在のパスワード
-                            </label>
-                            <TextInput
-                                id="password"
-                                type="password"
-                                name="password"
-                                value={data.password}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                                placeholder="パスワードを入力してください"
-                                isFocused={true}
-                                onChange={(e) =>
-                                    setData("password", e.target.value)
-                                }
-                                required
-                            />
-                            <InputError
-                                message={errors.password}
-                                className="mt-2"
-                            />
-                        </div>
+                                <TextInput
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    value={data.password}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                    placeholder="パスワードを入力してください"
+                                    isFocused={true}
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
+                                    required
+                                />
+                            </FormGroup>
 
-                        <div className="flex items-center justify-end">
-                            <PrimaryButton
-                                type="submit"
-                                className="bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
-                                disabled={processing}
-                            >
-                                {processing ? "確認中..." : "パスワードを確認"}
-                            </PrimaryButton>
-                        </div>
-                    </form>
-                </div>
+                            <div className="flex items-center justify-end">
+                                <PrimaryButton
+                                    type="submit"
+                                    className="bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 px-6 py-3 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 w-full"
+                                    disabled={processing}
+                                >
+                                    {processing
+                                        ? "確認中..."
+                                        : "パスワードを確認"}
+                                </PrimaryButton>
+                            </div>
+                        </form>
+                    </CardBody>
+                </Card>
             </div>
         </div>
     );

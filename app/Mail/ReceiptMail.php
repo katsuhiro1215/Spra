@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Organization;
 use App\Models\Receipt;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,7 +33,7 @@ class ReceiptMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '【領収書送付】' . $this->receipt->invoice->title . ' - ' . config('app.name'),
+            subject: '【領収書送付】' . $this->receipt->invoice->contract->title . ' - ' . Organization::displayName(),
         );
     }
 
@@ -42,7 +43,7 @@ class ReceiptMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.receipts.receipt',
+            view: 'emails.receipts.receipt',
         );
     }
 

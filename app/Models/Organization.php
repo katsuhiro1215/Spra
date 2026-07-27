@@ -45,4 +45,12 @@ class Organization extends Model
     {
         return $this->addresses()->where('is_default', true)->where('is_active', true);
     }
+
+    /**
+     * メール件名等で使う組織の表示名。未設定時は config('app.name') にフォールバックする。
+     */
+    public static function displayName(): string
+    {
+        return static::query()->value('name') ?? config('app.name');
+    }
 }

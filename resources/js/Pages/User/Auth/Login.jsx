@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
+import UserAuthLayout from "@/Layouts/UserAuthLayout";
+import { FlashMessage } from "@/Components/Notifications";
 import {
     EyeIcon,
     EyeSlashIcon,
@@ -7,7 +9,6 @@ import {
     EnvelopeIcon,
     LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import UserAuthLayout from "@/Layouts/UserAuthLayout";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -29,6 +30,9 @@ export default function Login({ status, canResetPassword }) {
     return (
         <UserAuthLayout>
             <Head title="ユーザーログイン | Smart Sprouts" />
+
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
             {/* Header Section */}
             <div className="text-center mb-8">

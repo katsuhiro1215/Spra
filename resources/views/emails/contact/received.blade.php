@@ -153,7 +153,7 @@
             <div class="greeting">
                 <p>{{ $contact->name }} 様</p>
                 <p>いつもご利用いただき、誠にありがとうございます。<br>
-                    このたびは {{ config('app.name') }} へお問い合わせいただき、ありがとうございます。</p>
+                    このたびはお問い合わせいただき、ありがとうございます。</p>
             </div>
 
             <p>以下の内容でお問い合わせを受け付けました。</p>
@@ -203,15 +203,14 @@
 
             <!-- ボタン -->
             <div class="button-group">
-                <a href="{{ route('contact.index') }}" class="button">お問い合わせ一覧へ</a>
+                <a href="{{ route('contact') }}" class="button">お問い合わせフォームへ</a>
             </div>
         </div>
 
         <!-- フッター -->
         <div class="footer">
-            <p><strong>{{ config('app.name') }}</strong></p>
+            @include('emails.partials.organization-footer')
             <p>このメールは自動送信されています</p>
-            <p>© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
         </div>
     </div>
 </body>

@@ -1,4 +1,8 @@
 import { Head, Link } from "@inertiajs/react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import UserPageHeader from "@/Components/Layout/UserPageHeader";
+import Badge from "@/Components/Badge";
+import { FlashMessage } from "@/Components/Notifications";
 import {
     DocumentTextIcon,
     CheckCircleIcon,
@@ -7,8 +11,6 @@ import {
     QuestionMarkCircleIcon,
     MegaphoneIcon,
 } from "@heroicons/react/24/outline";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import {
     UserCard,
     UserCardHeader,
@@ -16,7 +18,7 @@ import {
     UserCardTitle,
     AtlasMembershipCard,
 } from "@/Components/User";
-import Badge from "@/Components/Badge";
+
 
 const formatAmount = (amount) =>
     new Intl.NumberFormat("ja-JP", {
@@ -64,6 +66,9 @@ export default function Dashboard({
             }
         >
             <Head title="ダッシュボード" />
+
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
 
             <div className="space-y-6">
                 {/* 統計情報 */}

@@ -4,8 +4,6 @@ import { Card, CardBody } from "@/Components/Card";
 import {
     FormGroup,
     Checkbox,
-    InputError,
-    InputLabel,
     TextInput,
 } from "@/Components/Forms";
 import PrimaryButton from "@/Components/Buttons/PrimaryButton";
@@ -139,6 +137,7 @@ export default function Login({ status, canResetPassword }) {
                                         label="メールアドレス"
                                         htmlFor="email"
                                         help="管理者用のメールアドレスを入力してください"
+                                        error={errors.email}
                                     >
                                         <TextInput
                                             id="email"
@@ -153,13 +152,13 @@ export default function Login({ status, canResetPassword }) {
                                             }
                                             placeholder="admin@example.com"
                                         />
-                                        <InputError message={errors.email} />
                                     </FormGroup>
 
                                     <FormGroup
                                         label="パスワード"
                                         htmlFor="password"
                                         help="管理者用のパスワードを入力してください"
+                                        error={errors.password}
                                     >
                                         <TextInput
                                             id="password"
@@ -176,7 +175,6 @@ export default function Login({ status, canResetPassword }) {
                                             }
                                             placeholder="••••••••"
                                         />
-                                        <InputError message={errors.password} />
                                     </FormGroup>
 
                                     <div className="flex items-center justify-between">

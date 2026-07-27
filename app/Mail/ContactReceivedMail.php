@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Contact;
+use App\Models\Organization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -29,7 +30,7 @@ class ContactReceivedMail extends Mailable
   public function envelope(): Envelope
   {
     return new Envelope(
-      subject: 'お問い合わせを受け付けました - ' . config('app.name'),
+      subject: 'お問い合わせを受け付けました - ' . Organization::displayName(),
     );
   }
 
@@ -39,7 +40,7 @@ class ContactReceivedMail extends Mailable
   public function content(): Content
   {
     return new Content(
-      markdown: 'emails.contact.received',
+      view: 'emails.contact.received',
     );
   }
 

@@ -9,7 +9,7 @@
 ==================================================
 
 契約名: {{ $contract->title }}
-契約金額: ¥{{ number_format($contract->amount) }}
+契約金額: ¥{{ number_format($contract->currentVersion?->total_amount ?? 0) }}
 開始日: {{ $contract->start_date->format('Y年m月d日') }}
 @if ($contract->end_date)
     終了日: {{ $contract->end_date->format('Y年m月d日') }}
@@ -33,4 +33,4 @@
 
 よろしくお願いいたします。
 
-{{ config('app.name') }}
+@include('emails.partials.organization-footer-plain')

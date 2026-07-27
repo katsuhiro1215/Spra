@@ -125,8 +125,8 @@
     <div class="container">
         <div class="header">
             <p><strong>⚠️ お支払い期限が過ぎております</strong></p>
-            <p>{{ $invoice->user->name }} 様</p>
-            <p>いつも大変お世話になっております。{{ config('app.name') }}です。</p>
+            <p>{{ $invoice->user->profile?->full_name ?? $invoice->user->email }} 様</p>
+            <p>いつも大変お世話になっております。</p>
         </div>
 
         <div class="content">
@@ -214,7 +214,7 @@
                 <p style="margin-top: 0; font-size: 16px; font-weight: 600; color: #dc3545;">
                     ご請求書の詳細をご確認ください
                 </p>
-                <a href="{{ route('user.invoices.show', ['id' => $invoice->id]) }}" class="cta-button">
+                <a href="{{ route('user.invoice.show', $invoice->id) }}" class="cta-button">
                     ご請求書を確認する
                 </a>
             </div>
@@ -230,7 +230,7 @@
 
         <div class="footer">
             <p>今後とも何卒よろしくお願い申し上げます。</p>
-            <p>{{ config('app.name') }}</p>
+            @include('emails.partials.organization-footer')
         </div>
     </div>
 </body>
