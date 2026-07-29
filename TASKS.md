@@ -184,10 +184,10 @@ SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティ
 
 ### 3.5 docs記載の未実装機能群
 
-- [ ] ガントチャートのドラッグ&ドロップ編集・並び替え（`docs/ProjectWorkflowGuide.md`）
-- [ ] Projectのファイルアップロード機能、ProjectUpdate作成フォーム
-- [ ] 予約の繰り返し枠設定・クライアント向け予約UI・カレンダー連携（`docs/AppointmentSystemGuide.md`）
-- [ ] Search Console実連携への切替検証（`SEARCH_CONSOLE_DRIVER=google`、本番接続後）
+- [x] ガントチャートのドラッグ&ドロップ編集・並び替え（`docs/ProjectWorkflowGuide.md`）（2026-07-30）。日付・進捗のドラッグ編集は既に実装済みと判明。並び替え（sort_order保存）のみ未実装だったため、`ProjectItemController::reorder`を追加し`GanttChart/Show.jsx`のhandleTaskReorderをサーバー保存に接続
+- [x] Projectのファイルアップロード機能、ProjectUpdate作成フォーム（2026-07-30）。ファイルアップロードは`ProjectFile`モデル・Repository/Service・Controllerを新規実装（`private`ディスク保存）。ProjectUpdate作成フォームはバックエンドAPIが既に実装済みと判明したため、モーダルフォーム（フロントのみ）を追加
+- [ ] 予約の繰り返し枠設定・クライアント向け予約UI・カレンダー連携（`docs/AppointmentSystemGuide.md`）（2026-07-30調査）。クライアント向け予約UI（`User/AppointmentController`等）とカレンダーへの予約統合（`ScheduleController::calendar()`）は既に実装済みと判明（docsの「保留中」記載が古いだけ）。**繰り返し予約枠設定のみ実質未実装**で、`ScheduleDefault`の曜日パターン＋既存の`AppointmentSlotController::bulkCreate/bulkStore`を参考に対応予定
+- [ ] Search Console実連携への切替検証（`SEARCH_CONSOLE_DRIVER=google`、本番接続後）。本番環境無しでは検証不可のため保留
 
 ---
 

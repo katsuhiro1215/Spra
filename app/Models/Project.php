@@ -127,6 +127,11 @@ class Project extends Model
         return $this->hasMany(ProjectDocument::class);
     }
 
+    public function files(): HasMany
+    {
+        return $this->hasMany(ProjectFile::class)->orderBy('created_at', 'desc');
+    }
+
     public function currentVersion(): HasOne
     {
         return $this->hasOne(ProjectVersion::class)

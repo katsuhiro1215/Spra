@@ -132,7 +132,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 ### 5.4 Project（プロジェクト管理）
 - 詳細: `docs/ProjectWorkflowGuide.md`
 - Project作成時にVersion1が自動作成（`project_code`は`PRJ-YYYY-XXXXXXXX`形式で自動採番）。ContractItemからの取り込み・マイルストーン自動生成に対応。
-- ガントチャートのドラッグ&ドロップ編集・並び替え・ファイルアップロード・ProjectUpdate作成フォームは**未実装**（フェーズ2）。
+- ガントチャートのドラッグ&ドロップ編集（日付・進捗）・並び替え・ファイルアップロード（`ProjectFile`、`private`ディスク保存）・ProjectUpdate作成フォームは**実装済み**（2026-07-30、フェーズ2 3.5完了）。
 
 ### 5.5 Invoice / Payment / Receipt（請求）
 - `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-00000001`形式で自動採番。

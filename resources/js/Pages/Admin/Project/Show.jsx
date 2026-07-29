@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badge";
 import SecondaryButton from "@/Components/Buttons/SecondaryButton";
+import Button from "@/Components/Buttons/Button";
 import { FlashMessage } from "@/Components/Notifications";
+import ProjectUpdateModal from "./_components/ProjectUpdateModal";
+import { FormGroup, FileInput, TextInput, Checkbox } from "@/Components/Forms";
 import {
     ArrowLeftIcon,
     PencilIcon,
@@ -54,6 +57,133 @@ const ROLE_LABELS = {
 export default function Show({ project, currentVersion, progress = 0 }) {
     const [activeTab, setActiveTab] = useState("overview");
     const isCompleted = progress >= 100;
+
+    // ===== 更新履歴（ProjectUpdate）作成・編集モーダル =====
+    const emptyUpdateForm = () => ({
+        title: "",
+        content: "",
+        type: "general",
+        is_client_visible: false,
+    });
+
+    const {
+        data: updateData,
+        setData: setUpdateData,
+        post: postUpdate,
+        put: putUpdate,
+        processing: updateProcessing,
+        errors: updateErrors,
+        reset: resetUpdateForm,
+        clearErrors: clearUpdateErrors,
+    } = useForm(emptyUpdateForm());
+
+    const [updateModal, setUpdateModal] = useState({
+        show: false,
+        mode: "create",
+        updateId: null,
+    });
+
+    const openCreateUpdateModal = () => {
+        clearUpdateErrors();
+        resetUpdateForm();
+        setUpdateData(emptyUpdateForm());
+        setUpdateModal({ show: true, mode: "create", updateId: null });
+    };
+
+    const openEditUpdateModal = (update) => {
+        clearUpdateErrors();
+        setUpdateData({
+            title: update.title || "",
+            content: update.content || "",
+            type: update.type || "general",
+            is_client_visible: update.is_client_visible ?? false,
+        });
+        setUpdateModal({ show: true, mode: "edit", updateId: update.id });
+    };
+
+    const closeUpdateModal = () => {
+        setUpdateModal({ show: false, mode: "create", updateId: null });
+        resetUpdateForm();
+        clearUpdateErrors();
+    };
+
+    const handleUpdateModalSubmit = (e) => {
+        e.preventDefault();
+        if (updateModal.mode === "create") {
+            postUpdate(route("admin.project.updates.store", project.id), {
+                preserveScroll: true,
+                onSuccess: () => closeUpdateModal(),
+            });
+        } else {
+            putUpdate(
+                route("admin.project.updates.update", {
+                    project: project.id,
+                    update: updateModal.updateId,
+                }),
+                {
+                    preserveScroll: true,
+                    onSuccess: () => closeUpdateModal(),
+                },
+            );
+        }
+    };
+
+    const handleDeleteUpdate = (update) => {
+        if (confirm(`「${update.title}」を削除してもよろしいですか？`)) {
+            router.delete(
+                route("admin.project.updates.destroy", {
+                    project: project.id,
+                    update: update.id,
+                }),
+                { preserveScroll: true },
+            );
+        }
+    };
+
+    // ===== ファイルアップロード =====
+    const {
+        data: fileData,
+        setData: setFileData,
+        post: postFile,
+        processing: fileProcessing,
+        errors: fileErrors,
+        reset: resetFileForm,
+    } = useForm({
+        file: null,
+        description: "",
+        is_client_visible: false,
+    });
+
+    const handleFileUpload = (e) => {
+        e.preventDefault();
+        postFile(route("admin.project.files.store", project.id), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => resetFileForm(),
+        });
+    };
+
+    const handleDeleteFile = (file) => {
+        if (confirm(`「${file.original_filename}」を削除してもよろしいですか？`)) {
+            router.delete(
+                route("admin.project.files.destroy", {
+                    project: project.id,
+                    file: file.id,
+                }),
+                { preserveScroll: true },
+            );
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (!bytes) return "0 B";
+        const units = ["B", "KB", "MB", "GB"];
+        const exponent = Math.min(
+            Math.floor(Math.log(bytes) / Math.log(1024)),
+            units.length - 1,
+        );
+        return `${(bytes / 1024 ** exponent).toFixed(1)} ${units[exponent]}`;
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return null;
@@ -765,6 +895,16 @@ export default function Show({ project, currentVersion, progress = 0 }) {
 
                 {activeTab === "updates" && (
                     <div className="space-y-6">
+                        <div className="flex justify-end">
+                            <Button
+                                variant="primary"
+                                icon={<PlusIcon className="w-4 h-4" />}
+                                onClick={openCreateUpdateModal}
+                            >
+                                更新情報を追加
+                            </Button>
+                        </div>
+
                         {project.updates?.length > 0 ? (
                             <div className="space-y-4">
                                 {project.updates.map((update) => (
@@ -774,18 +914,34 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                                                 <h3 className="font-medium text-slate-900 dark:text-slate-100">
                                                     {update.title}
                                                 </h3>
-                                                <span className="text-xs text-slate-500 dark:text-slate-500">
-                                                    {formatDate(update.created_at)}
-                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                                                        {formatDate(update.created_at)}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openEditUpdateModal(update)}
+                                                        className="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                                                    >
+                                                        編集
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteUpdate(update)}
+                                                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                                                    >
+                                                        削除
+                                                    </button>
+                                                </div>
                                             </div>
                                             {update.content && (
                                                 <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
                                                     {update.content}
                                                 </p>
                                             )}
-                                            {update.created_by_admin && (
+                                            {update.admin && (
                                                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
-                                                    投稿者: {update.created_by_admin.profile?.full_name || update.created_by_admin.email}
+                                                    投稿者: {update.admin.profile?.full_name || update.admin.email}
                                                 </p>
                                             )}
                                         </CardBody>
@@ -901,15 +1057,161 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                 )}
 
                 {activeTab === "files" && (
-                    <Card>
-                        <CardBody>
-                            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                                ファイル機能は準備中です
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                                    ファイルをアップロード
+                                </h3>
+                            </CardHeader>
+                            <CardBody>
+                                <form
+                                    onSubmit={handleFileUpload}
+                                    className="space-y-4"
+                                >
+                                    <FormGroup label="ファイル" error={fileErrors.file} required>
+                                        <FileInput
+                                            onChange={(e) =>
+                                                setFileData(
+                                                    "file",
+                                                    e.target.files[0] ?? null,
+                                                )
+                                            }
+                                            maxSize={20 * 1024 * 1024}
+                                        />
+                                    </FormGroup>
+
+                                    <FormGroup
+                                        label="説明"
+                                        error={fileErrors.description}
+                                    >
+                                        <TextInput
+                                            value={fileData.description}
+                                            onChange={(e) =>
+                                                setFileData(
+                                                    "description",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </FormGroup>
+
+                                    <label className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={fileData.is_client_visible}
+                                            onChange={(e) =>
+                                                setFileData(
+                                                    "is_client_visible",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <span className="text-sm text-gray-700 dark:text-slate-300">
+                                            クライアントに公開する
+                                        </span>
+                                    </label>
+
+                                    <div className="flex justify-end">
+                                        <Button
+                                            type="submit"
+                                            variant="primary"
+                                            disabled={
+                                                fileProcessing || !fileData.file
+                                            }
+                                        >
+                                            アップロード
+                                        </Button>
+                                    </div>
+                                </form>
+                            </CardBody>
+                        </Card>
+
+                        {project.files?.length > 0 ? (
+                            <div className="space-y-3">
+                                {project.files.map((file) => (
+                                    <Card key={file.id}>
+                                        <CardBody>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <a
+                                                        href={route(
+                                                            "admin.project.files.download",
+                                                            {
+                                                                project: project.id,
+                                                                file: file.id,
+                                                            },
+                                                        )}
+                                                        className="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                                                    >
+                                                        {file.original_filename}
+                                                    </a>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                                                        {formatFileSize(file.file_size)}
+                                                        {" ・ "}
+                                                        {formatDate(file.created_at)}
+                                                        {file.uploaded_by && (
+                                                            <>
+                                                                {" ・ "}
+                                                                {file.uploaded_by.profile
+                                                                    ?.full_name ||
+                                                                    file.uploaded_by.email}
+                                                            </>
+                                                        )}
+                                                        {file.is_client_visible && (
+                                                            <>
+                                                                {" ・ "}
+                                                                <Badge
+                                                                    variant="info"
+                                                                    size="sm"
+                                                                >
+                                                                    クライアント公開
+                                                                </Badge>
+                                                            </>
+                                                        )}
+                                                    </p>
+                                                    {file.description && (
+                                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                                            {file.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteFile(file)
+                                                    }
+                                                    className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                                                >
+                                                    削除
+                                                </button>
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                ))}
                             </div>
-                        </CardBody>
-                    </Card>
+                        ) : (
+                            <Card>
+                                <CardBody>
+                                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                        ファイルはまだアップロードされていません
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        )}
+                    </div>
                 )}
             </div>
+
+            <ProjectUpdateModal
+                show={updateModal.show}
+                mode={updateModal.mode}
+                data={updateData}
+                setData={setUpdateData}
+                errors={updateErrors}
+                processing={updateProcessing}
+                onSubmit={handleUpdateModalSubmit}
+                onClose={closeUpdateModal}
+            />
         </AdminAuthenticatedLayout>
     );
 }

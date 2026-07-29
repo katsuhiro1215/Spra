@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Project\ProjectVersionController;
 use App\Http\Controllers\Admin\Project\ProjectMilestoneController;
 use App\Http\Controllers\Admin\Project\ProjectItemController;
 use App\Http\Controllers\Admin\Project\ProjectUpdateController;
+use App\Http\Controllers\Admin\Project\ProjectFileController;
 use App\Http\Controllers\Admin\Project\GanttChartController;
 use App\Http\Controllers\Admin\Project\ProjectDocumentController;
 use App\Http\Controllers\Admin\Project\ProjectDocumentVersionController;
@@ -50,8 +51,14 @@ Route::prefix('project/{project}')->name('project.')->group(function () {
     Route::prefix('versions/{version}')->name('versions.')->group(function () {
         Route::resource('milestones', ProjectMilestoneController::class)->except(['index']);
         // ProjectItem ネストされたリソース
+        Route::post('items/reorder', [ProjectItemController::class, 'reorder'])->name('items.reorder');
         Route::resource('items', ProjectItemController::class)->except(['index']);
     });
+
+    // ProjectFile（添付ファイル）
+    Route::post('files', [ProjectFileController::class, 'store'])->name('files.store');
+    Route::get('files/{file}/download', [ProjectFileController::class, 'download'])->name('files.download');
+    Route::delete('files/{file}', [ProjectFileController::class, 'destroy'])->name('files.destroy');
 
     // ProjectDocument（設計文書の中央管理）
     Route::resource('documents', ProjectDocumentController::class)->except(['create', 'edit']);

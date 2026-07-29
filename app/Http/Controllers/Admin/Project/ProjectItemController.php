@@ -10,6 +10,8 @@ use App\Models\ProjectItem;
 use App\Models\ServiceItem;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -138,5 +140,24 @@ class ProjectItemController extends Controller
         $item->delete();
 
         return back()->with('success', __('messages.deleted', ['attribute' => 'アイテム']));
+    }
+
+    /**
+     * ガントチャート上でのドラッグ&ドロップによる並び替えをsort_orderへ反映する
+     */
+    public function reorder(Request $request, Project $project, ProjectVersion $version): RedirectResponse
+    {
+        $data = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'string',
+        ]);
+
+        DB::transaction(function () use ($version, $data) {
+            foreach ($data['order'] as $index => $itemId) {
+                $version->items()->whereKey($itemId)->update(['sort_order' => $index]);
+            }
+        });
+
+        return back();
     }
 }

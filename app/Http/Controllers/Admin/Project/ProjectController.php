@@ -94,6 +94,9 @@ class ProjectController extends Controller
             'contract',
             'versions',
             'updates',
+            'updates.admin.profile',
+            'files',
+            'files.uploadedBy.profile',
             'technologies',
             'documents.currentVersion',
         ]);
