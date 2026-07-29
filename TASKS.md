@@ -83,10 +83,10 @@
   - 内容: `$request->all()`やパスワード・トークンをそのまま出力していないか監査し、該当箇所があれば修正する。
   - 完了の定義: 監査結果をSPEC.md §6.1に反映。→ `$request->all()`/`$request`/モデルの`->toArray()`を直接渡している箇所は無く、いずれもID・ステータス・エラーメッセージ等の構造化されたコンテキストのみを渡す一貫したパターンだった。DBに保存する操作ログ（`ActivityLogMiddleware::sanitizeRequestData()`）は既に`password`/`token`/`api_key`等を`[FILTERED]`に置換する仕組みが実装済みで問題なし。
 
-- [ ] **T12: 本番用セッションCookie設定の確定**
+- [x] **T12: 本番用セッションCookie設定の確定**（完了: 2026-07-29、`docs/production-session-cookie-checklist`）
   - 対象ファイル: 本番用`.env`（TASKS 2.3で作成）、`config/session.php`
   - 内容: `SESSION_SECURE_COOKIE=true`等、本番用.envチェックリストに明記する。
-  - 完了の定義: 本番`.env`テンプレートに反映済み。
+  - 完了の定義: 本番`.env`テンプレートに反映済み。→ `docs/ProductionDeploymentGuide.md`の`.env`本番設定チェックリストに`SESSION_SECURE_COOKIE=true`を追記済み。実際の本番`.env`作成はT20で行う。
 
 - [ ] **T13: Spatie権限・2FA適用範囲の棚卸し**
   - 内容: 全adminロールに2FAが強制されているか、バイパス経路が無いか確認する。
