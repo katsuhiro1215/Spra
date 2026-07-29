@@ -59,9 +59,20 @@ class GenerateMonthlyInvoices extends Command
 
         $successCount = 0;
         $errorCount = 0;
+        $skippedCount = 0;
         $errors = [];
 
         foreach ($contracts as $contract) {
+            // 上のクエリ条件はContract::shouldGenerateInvoice()と同じ判定を
+            // クエリとして重複実装したもの。将来どちらか一方だけ条件を変更して
+            // 判定がずれることを防ぐため、生成直前にモデル側のメソッドでも
+            // 再検証する(通常は常にtrueになるはずの安全網)。
+            if (!$contract->shouldGenerateInvoice()) {
+                $skippedCount++;
+                $progressBar->advance();
+                continue;
+            }
+
             try {
                 if (!$isDryRun) {
                     $invoice = $invoiceService->generateMonthlyInvoice($contract);
@@ -95,6 +106,7 @@ class GenerateMonthlyInvoices extends Command
             [
                 ['処理対象', $contracts->count()],
                 ['成功', $successCount],
+                ['スキップ(対象外)', $skippedCount],
                 ['エラー', $errorCount],
             ]
         );
