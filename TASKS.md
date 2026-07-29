@@ -61,6 +61,11 @@
   - 内容: 税額計算・合計金額算出・採番ロジック（`quote_number`/`invoice_number`/`project_code`）に自動テストが無い。主要な計算メソッドにUnitテストを追加する。
   - 完了の定義: 主要計算メソッドにテストが存在しGreen。
 
+- [x] **T8b: `User::primaryCompany()`のリレーション定義修正**（完了: 2026-07-29、`fix/user-primary-company-relation`。SPEC.md §7 K18として発見、ユーザー指示によりフェーズ2から繰り上げ対応）
+  - 対象ファイル: `app/Models/User.php`
+  - 内容: `hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。
+  - 完了の定義: 既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換え。`tests/Unit/UserPrimaryCompanyTest.php`で確認済み。
+
 ### 2.2 個人情報保護・セキュリティの最低限の担保
 
 - [x] **T9: `UpdateMediaRequest`にMIMEタイプ制限を追加**（完了: 2026-07-29、`fix/media-request-guard-and-mime`）

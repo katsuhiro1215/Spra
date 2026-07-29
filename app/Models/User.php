@@ -105,10 +105,18 @@ class User extends Authenticatable
             ->wherePivot('is_primary', true);
     }
 
-    public function primaryCompany(): HasOne
+    /**
+     * Primary company (アクセサ) - is_primaryピボットがtrueの会社を1件返す。
+     *
+     * 旧実装は hasOne(Company::class, 'company_user', 'user_id') という誤った
+     * リレーション定義で、company_user はピボットテーブル名であって companies
+     * テーブルの外部キーカラムではないため、実際には常に空を返す不具合があった
+     * （例外は発生せず気づきにくい）。company_user 中間テーブル経由のため
+     * BelongsToMany の company() を使い、先頭1件をアクセサとして返す形に修正。
+     */
+    public function getPrimaryCompanyAttribute(): ?Company
     {
-        return $this->hasOne(Company::class, 'company_user', 'user_id')
-            ->wherePivot('is_primary', true);
+        return $this->company()->first();
     }
 
     public function projects(): HasMany
