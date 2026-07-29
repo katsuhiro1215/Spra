@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Mail\ContractApprovedMail;
 use App\Mail\AccountApprovedMail;
 use App\Mail\PaymentRequestMail;
+use App\Services\ContractService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Mail;
@@ -17,6 +18,10 @@ use Illuminate\Support\Facades\DB;
 
 class OnboardingController extends Controller
 {
+    public function __construct(
+        private ContractService $contractService,
+    ) {}
+
     /**
      * Show list of pending onboarding registrations
      */
@@ -64,7 +69,7 @@ class OnboardingController extends Controller
             'company' => [
                 'id' => $company?->id,
                 'name' => $company?->name,
-                'type' => $company?->type,
+                'type' => $company?->company_type,
                 'phone' => $company?->phone,
                 'legal_name' => $company?->legal_name,
                 'representative_name' => $company?->representative_name,
@@ -116,14 +121,61 @@ class OnboardingController extends Controller
             $user->update(['status' => 'active']);
             $company->update(['status' => 'active']);
 
+            // invoicesテーブルはcontract_id/user_idが必須のため、Invoiceを発行する前に
+            // Quoteの内容を引き継いだContractを自動作成する(承認と同時に契約成立とみなす)。
+            // 電子署名フローは別途Contract管理画面で行う想定のため、signature_statusは
+            // デフォルト(pending)のままにする。
+            $quoteVersion = $quote->currentVersion;
+
+            $contract = $this->contractService->createContract([
+                'quote_id' => $quote->id,
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'title' => $quote->title,
+                'type' => 'one_time',
+                'start_date' => now()->toDateString(),
+                'status' => 'active',
+                'discount_amount' => $quoteVersion?->discount_amount ?? 0,
+                'tax_rate' => $quoteVersion?->tax_rate ?? 10,
+            ]);
+
+            // Quoteの明細をContractの明細としてそのまま引き継ぐ
+            if ($quoteVersion) {
+                foreach ($quoteVersion->items as $quoteItem) {
+                    $contract->currentVersion->items()->create([
+                        'service_id' => $quoteItem->service_id,
+                        'service_item_id' => $quoteItem->service_item_id,
+                        'name' => $quoteItem->name,
+                        'description' => $quoteItem->description,
+                        'item_type' => $quoteItem->item_type,
+                        'billing_type' => $quoteItem->billing_type,
+                        'quantity' => $quoteItem->quantity,
+                        'unit_price' => $quoteItem->unit_price,
+                        'amount' => $quoteItem->amount,
+                        'estimated_days' => $quoteItem->estimated_days,
+                        'sort_order' => $quoteItem->sort_order,
+                    ]);
+                }
+
+                // 金額もQuoteVersionの内容にそのまま合わせる
+                $contract->currentVersion->update([
+                    'base_amount' => $quoteVersion->base_amount,
+                    'tax_amount' => $quoteVersion->tax_amount,
+                    'total_amount' => $quoteVersion->total_amount,
+                ]);
+            }
+
             // Create invoice with payment terms
             // Payment term calculation: 50% due on contract, 30% on delivery, 20% on completion
             // We'll create the first invoice for the 50% deposit
             // 金額は Quote 自体ではなく currentVersion 側にある
-            $invoiceAmount = ($quote->currentVersion?->total_amount ?? 0) * 0.5;
+            $invoiceAmount = ($quoteVersion?->total_amount ?? 0) * 0.5;
 
             $invoice = Invoice::create([
+                'contract_id' => $contract->id,
+                'user_id' => $user->id,
                 'company_id' => $company->id,
+                'invoice_type' => 'deposit',
                 'invoice_number' => $this->generateInvoiceNumber(),
                 'subtotal' => $invoiceAmount,
                 'total_amount' => $invoiceAmount,
@@ -185,10 +237,13 @@ class OnboardingController extends Controller
                 return back()->with('error', __('messages.onboarding.already_processed'));
             }
 
-            // Delete user and company
-            // Since we have foreign key constraints, deleting the user will cascade to related records
-            $company->delete();
-            $user->delete();
+            // User/Companyを完全に削除する（論理削除ではなく物理削除）。
+            // company_userピボットはON DELETE CASCADEのため物理削除で正しく片付く。
+            // 通常のdelete()はSoftDeletesにより論理削除になり、emailのunique制約が
+            // 残り続けて却下後に同じメールアドレスで再登録できなくなるため、
+            // 意図通りの挙動にするにはforceDelete()が必要。
+            $company->forceDelete();
+            $user->forceDelete();
 
             DB::commit();
 

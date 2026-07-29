@@ -55,11 +55,16 @@
 - `detail($userId)`: 対象User・Company・関連する最新QuoteResponse/Quoteの詳細を表示
 - `approve($userId)`:
   - `User.status`・`Company.status`を`active`に更新
-  - `Quote.currentVersion.total_amount`の50%でInvoiceを作成（`INV-00000001`形式の連番）
+  - **Quoteの内容（明細・金額）を引き継いだContractを`ContractService::createContract()`で自動作成**（承認と同時に契約成立とみなす。電子署名は別途Contract管理画面で行う想定のため`signature_status`はデフォルトの`pending`のまま）
+  - 作成したContractの`Quote.currentVersion.total_amount`の50%でInvoiceを作成（`INV-00000001`形式の連番、`invoice_type=deposit`）
   - `ContractApprovedMail`（代表者宛）、`AccountApprovedMail`（本人宛）、`PaymentRequestMail`を送信
-- `reject($userId, reason)`: **User/Companyを削除する**(却下 = 論理的な状態変更ではなく物理削除。設計案にあった「却下理由を保存してinactiveにする」という挙動ではないので注意)
+- `reject($userId, reason)`: **User/Companyを`forceDelete()`で物理削除する**（却下 = 論理的な状態変更ではなく物理削除。設計案にあった「却下理由を保存してinactiveにする」という挙動ではないので注意。`company_user`ピボットはON DELETE CASCADEのため物理削除で正しく片付く）
 
-> ⚠️ 要確認: `Company`テーブルの`status` enumには`'pending'`が定義されておらず(`active`/`inactive`/`suspended`のみ)、第一段階の登録時にも`Company.status`は`'active'`で作成される。一方`approve()`は`$company->status !== 'pending'`を却下条件にしている。この条件の実際の挙動(常にtrueになり承認できないのでは、等)は未検証。実際に承認フローを通す際は要動作確認。
+> ✅ 2026-07-29 検証済み: `Company`テーブルの`status` enumには`'pending'`が定義されている（`active`/`inactive`/`suspended`/`pending`）。第一段階の登録時（`QuoteResponseController::registerStore`）も`Company.status`は`'pending'`で作成されており、`approve()`の`$company->status !== 'pending'`という却下条件は正しく機能する。上記の懸念は誤りだったことを確認済み。
+>
+> ✅ 2026-07-29 修正済み（重大バグ2件、`tests/Feature/Admin/OnboardingApprovalTest.php`で回帰テスト追加）:
+> 1. `reject()`は元々`delete()`を使っておりUser/CompanyともSoftDeletesモデルのため論理削除にしかならず、`users.email`のunique制約が残ったままになるせいで**却下後に同じメールアドレスで二度と再登録できない**バグがあった。`forceDelete()`に修正。
+> 2. `approve()`は元々Contractを作らずQuoteから直接Invoiceを作成しようとしており、`invoices.contract_id`/`user_id`が必須のDB制約に反して**承認ボタンを押すと必ず失敗する**バグがあった。上記の通りContract自動作成を追加して解消。
 
 ## 関連ドキュメント
 
