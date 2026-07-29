@@ -73,10 +73,10 @@
   - 内容: `StoreMediaRequest`（`mimes:jpeg,jpg,png,gif,webp`）と異なり制限が無く、任意拡張子がアップロード可能。同水準の制限を追加する。
   - 完了の定義: 許可外拡張子でバリデーションエラーになることをテストで確認。→ Featureテストで確認済み。
 
-- [ ] **T10: 公開フォームへのthrottleミドルウェア追加**
+- [x] **T10: 公開フォームへのthrottleミドルウェア追加**（完了: 2026-07-29、`fix/public-form-throttle`）
   - 対象ファイル: `routes/web.php`（`contact.store` L105、`quote.response.register.store` L119、`invoice.payment.store` L123）
   - 内容: 個人情報を伴うエンドポイントに`throttle`が無い（`consultation.store`のみ L110 で`throttle:5,1`設定済み）。同水準のthrottleを追加する。
-  - 完了の定義: 各エンドポイントで超過時429が返ることをテストで確認。
+  - 完了の定義: 各エンドポイントで超過時429が返ることをテストで確認。→ `contact.store`/`quote.response.store`/`quote.response.register.store`/`invoice.payment.store`に`throttle:5,1`を追加（`quote.response.store`は元のタスク一覧に無かったが、同じ公開トークン系エンドポイント群のため合わせて対応）。`tests/Feature/Public/PublicFormThrottleTest.php`で確認済み。
 
 - [ ] **T11: ログ出力への個人情報混入監査**
   - 対象: app全体の`Log::info/error/debug`呼び出し

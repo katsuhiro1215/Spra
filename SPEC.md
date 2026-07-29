@@ -163,7 +163,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 ### 6.1 セキュリティ・個人情報保護方針
 - 扱う個人情報: 氏名・メールアドレス・電話番号・住所・契約金額・支払情報等。
 - アクセス制御はガード（`admins`/`users`）+ Spatie権限で行う。ログ出力（`Log::info/error`等）に個人情報・パスワード・トークンをそのまま出力しないこと。
-- 公開フォーム（問い合わせ・見積回答登録・入金報告等）にはレート制限（`throttle`）を設定する（現状一部未設定、TASKS.md参照）。
+- 公開フォーム（問い合わせ・見積回答登録・入金報告等）にはレート制限（`throttle:5,1`）を設定する（設定済み、SPEC.md §7 K7参照）。
 - ファイルアップロードはMIMEタイプ制限を必ず設ける（現状一部未設定、TASKS.md参照）。
 - 電子帳簿保存法・インボイス制度・電子署名法等の法令適合性は**本書のスコープ外**（ユーザー判断により明記しない方針）。
 
@@ -193,7 +193,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テスト追加済み（`tests/Feature/Invoice/MonthlyInvoiceGenerationTest.php`） | フェーズ1（完了） |
 | K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **修正済み**（2026-07-29、`admins`に修正、回帰テスト追加） | フェーズ1（完了） |
 | K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | **修正済み**（2026-07-29、`mimes:jpeg,jpg,png,gif,webp`を追加、回帰テスト追加） | フェーズ1（完了） |
-| K7 | 公開フォーム（`contact.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | `consultation.store`のみ設定済み | フェーズ1（セキュリティ） |
+| K7 | 公開フォーム（`contact.store`/`quote.response.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | **修正済み**（2026-07-29、全て`throttle:5,1`を追加、回帰テスト追加） | フェーズ1（完了） |
 | K8 | `.env`に`MAIL_ADMIN_ADDRESS`が未設定 | **設定済み**（2026-07-29、`MAIL_FROM_ADDRESS`と同じ`info@katsucode.jp`。`.env`は追跡対象外のためコミットなし） | フェーズ1（完了） |
 | K9 | Repository/Serviceの基盤クラス移行が未完了 | 残りは**Contract・Invoice・Payment・Projectの4エンティティのみ**（他は移行済み、`docs/RepositoryServiceMigrationGuide.md`は未更新） | フェーズ2 |
 | K10 | 旧Button/CrudButtons→新Buttonコンポーネントへの統一が未完了 | 旧コンポーネント使用ファイルが多数残存（`docs/ButtonRefactoringGuide.md`参照） | フェーズ2 |

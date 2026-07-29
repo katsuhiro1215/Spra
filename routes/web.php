@@ -102,7 +102,9 @@ Route::get('/lp-creative', fn() => Inertia::render('Public/LandingPageCreative')
 
 
 // Contact 送信
-Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
+Route::post('/contact', [PublicContactController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('contact.store');
 
 // 無料相談予約（Public - ログイン不要、一般クライアント向け）
 Route::get('/consultation', [AppointmentController::class, 'create'])->name('consultation');
@@ -114,13 +116,19 @@ Route::get('/estimate-simulator', [EstimateSimulatorController::class, 'index'])
 
 // Quote Response (public, no auth required) - Display & Submit
 Route::get('/quote-response/{token}', [QuoteResponseController::class, 'show'])->name('quote.response.show');
-Route::post('/quote-response/{token}', [QuoteResponseController::class, 'store'])->name('quote.response.store');
+Route::post('/quote-response/{token}', [QuoteResponseController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('quote.response.store');
 Route::get('/quote-response/{token}/register', [QuoteResponseController::class, 'registerShow'])->name('quote.response.register');
-Route::post('/quote-response/{token}/register', [QuoteResponseController::class, 'registerStore'])->name('quote.response.register.store');
+Route::post('/quote-response/{token}/register', [QuoteResponseController::class, 'registerStore'])
+    ->middleware('throttle:5,1')
+    ->name('quote.response.register.store');
 
 // 請求書メールからの入金報告（Public - ログイン不要）
 Route::get('/invoice-payment/{token}', [InvoicePaymentController::class, 'show'])->name('invoice.payment.show');
-Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store'])->name('invoice.payment.store');
+Route::post('/invoice-payment/{token}', [InvoicePaymentController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('invoice.payment.store');
 
 
 // Public routes - define authenticated routes FIRST before public routes
