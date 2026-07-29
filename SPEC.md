@@ -1,0 +1,244 @@
+# SPEC.md — Spra 中央管理システム 仕様書
+
+最終更新: 2026-07-29
+
+## 1. はじめに
+
+本書は Spra（中央管理システム）の全体像を新規参加者・将来のPM/開発者向けにまとめた仕様書である。このリポジトリのドキュメントは以下の4層構造になっている。
+
+| ドキュメント | 役割 |
+|---|---|
+| **SPEC.md**（本書） | システム全体像・ドメイン仕様サマリ・非機能要件・既知の課題一覧 |
+| **docs/ 配下（12本）** | 各機能の実装詳細ガイド（本書からリンクする。§9参照） |
+| **TASKS.md** | 今やるべきこと（フェーズ1: 1ヶ月必達MVP／フェーズ2: 継続タスク） |
+| **CLAUDE.md** | AIエージェント（Claude Code）がこのリポジトリで作業する際の規約 |
+
+**更新ルール**: 仕様に影響する変更を行った場合は、同じPRでSPEC.mdの該当セクションも更新すること。`docs/` 配下の既存ガイドは実装当時の記述のまま更新されていないことがあるため、**本書および docs/ の記述より、常に実際のコードを優先して確認する**（詳細は §7）。
+
+## 2. システム概要・事業背景
+
+Spra は、以下2つの事業ドメインを1つのシステムで管理する。
+
+1. **クライアント企業向け受託契約・プロジェクト管理**: 問い合わせ・見積もり・契約・プロジェクト（納品）・請求までを一気通貫で管理する。事業内容としてはWeb制作・システム開発の受託（SES的な性質を含む）を行う会社が、顧客企業との契約とプロジェクト進行を管理するための業務システムである。
+2. **自社Webサイトの管理（CMS）**: 自社の企業サイト（会社概要・ブログ・FAQ・お問い合わせ等）を管理する。**クライアント企業のWebサイト自体をホスティング・保守する機能ではない**（誤解しやすいポイント）。
+
+これに加えて、**Atlas** という会員制サブプロダクト（富裕層向けコンシェルジュ的サービス、専用サブドメインで配信）が同一システム内に存在する。
+
+### 利用者ロール
+
+| ガード | 利用者 | 説明 |
+|---|---|---|
+| `admins` | 自社スタッフ | `owner` / `super_admin` / `admin` / `editor` / `viewer` の5ロール（Spatie Permissionで実権限管理、`Admin::ROLES`定数参照） |
+| `users` | クライアント企業側の担当者 | 見積回答・契約閲覧・署名・プロジェクト確認・請求書確認等を行う |
+| （未認証） | 見込み客・一般訪問者 | 公開サイト閲覧、問い合わせ・見積依頼・予約・Atlas申込み等 |
+
+### 現在の完成度
+
+- 約8割完成。**開発環境のみで稼働中、本番未リリース（実データなし）**。
+- そのため、破壊的なスキーマ変更・データ初期化は現時点では自由に行える（TASKS.mdフェーズ1で本番リリースを予定しているため、リリース後は方針が変わる）。
+- リポジトリ名は `Spra`。正式なプロダクト名・`APP_NAME`は `composer.json`/`.env` 上まだ `Laravel` のままで未確定（TASKS.mdフェーズ2で統一予定、§7参照）。
+
+## 3. アーキテクチャ全体像
+
+### 技術スタック
+
+**バックエンド**
+- Laravel 12（PHP ^8.2）
+- Inertia.js v2（`inertiajs/inertia-laravel`）— Blade主体ではなく、Reactにリクエスト/レスポンスを橋渡し
+- 認証・認可: Laravel Sanctum、Spatie Laravel Permission（ロール/権限）、pragmarx/google2fa（TOTP 2FA）
+- キュー/スケジューラ: Laravel Horizon（Redisバックエンド、`/admin/horizon`、owner/super_admin限定）、`routes/console.php` によるスケジュール定義
+- 文書生成: dompdf / snappy / mpdf / tcpdf が機能ごとに混在（契約書・請求書・領収書・プロジェクト仕様書）
+- Excel出力: maatwebsite/excel。QRコード: bacon/bacon-qr-code。画像処理: intervention/image
+- 開発環境: Laravel Sail（`compose.yaml`: app + MySQL + phpMyAdmin + Redis）
+
+**フロントエンド**
+- React 18 + Inertia Reactアダプタ、Vite、Tailwind CSS 3
+- 主要ライブラリ: `@dnd-kit`（ガントチャート等のドラッグ&ドロップ）、`@tinymce/tinymce-react`（リッチテキスト）、`gsap`、`mermaid`、`japanmap`/`yubinbango-core2`（住所・郵便番号）、`react-signature-canvas`（契約電子署名）
+- Blade は `resources/views/emails/`・`pdfs/`・`contracts/`・`project_documents/` の生成専用（画面UIには使わない）
+
+**インフラ**
+- 開発: Docker（Laravel Sail）
+- 本番: AWS Lightsail（VM）+ Docker Compose、コスト最小構成（MySQLもコンテナ内運用）。詳細は `docs/ProductionDeploymentGuide.md`、TASKS.mdフェーズ1で構築予定
+
+### ディレクトリ構成の要点
+
+```
+app/Http/Controllers/{Admin,User,Public,Atlas,Api}/  — ガード・公開範囲別に分離
+app/Repositories/ + app/Repositories/Contracts/       — データアクセス層（BaseRepository移行中、§7参照）
+app/Services/                                          — ビジネスロジック層（BaseService移行中）
+app/Models/                                            — 約100モデル
+resources/js/Pages/{Admin,User,Public,Atlas}/          — Inertiaページ（ルート構成とほぼ1:1対応）
+resources/js/Components/                               — 共有UIキット（docs/ComponentsStructureGuide.md参照）
+docs/                                                  — 実装詳細ガイド12本（§9参照）
+```
+
+### ドメイン間データフロー
+
+```
+Contact（問い合わせ） / EstimateSimulator（概算見積もり）
+   ↓
+Quote（見積もり、status: draft→negotiating→approved/rejected→contracted、cancelled）
+   ↓
+QuoteResponse（クライアントがトークン付き公開ページで回答）
+   ↓ response_type='request' の場合、招待メール自動送信
+本登録（User作成 status=pending、Company作成 status=pending）
+   ↓
+Admin Onboarding承認（Admin\OnboardingController::approve/reject）
+   ↓
+Contract（バージョン/明細/電子署名/特典チケット、status: draft→pending_signature→active→suspended/completed/cancelled）
+   ↓
+Project（バージョン/マイルストーン/アイテム/ガントチャート）
+   ↓
+Invoice（status: draft→sent→viewed→paid、または overdue/cancelled）→ Payment → Receipt
+
+横断的なドメイン: Points/CompanyMembership/MembershipRank、自社サイトCMS（Page/Section/Post/Menu/Faq）、
+Media（画像アップロード＋バリアント自動生成）、Analytics（Search Console連携含む）
+```
+
+### Atlas サブドメイン構成
+
+- `config('app.atlas_domain')` によるサブドメイン配信（ローカルは `atlas.localhost:8000`）。メインサイトとは**セッションを共有しない**独立したログイン導線（`Atlas\Auth\*`）。
+- `AtlasMembership`（brand: `concierge`/`life`/`japan`、status: `pending`/`active`/`paused`/`revoked`）と `AtlasInviteCode`（使い切り・失効可能な10桁招待コード）で会員登録を制御。
+- 公開の「/apply」申込みフォームは未実装（現状 `Public/AtlasComingSoon` を表示するのみ）。TASKS.mdフェーズ1で実装予定（審査・承認・課金プランは対象外、申込み受付のみ）。
+
+## 4. 認証・権限モデル
+
+- `config/auth.php` に `users`（デフォルトガード）・`admins` の2ガード。未ログインは実質ゲスト扱い。
+- 新規実装では **必ずどちらのガードかを明示**すること（`auth('admins')`/`auth('users')`）。ガード名の取り違えは実際にバグの原因になっている（§7・TASKS.md参照）。
+- Spatie Permission: `Admin::ROLES` = `owner`（オーナー）/ `super_admin`（スーパー管理者）/ `admin`（管理者）/ `editor`（編集者）/ `viewer`（閲覧者）。`owner`/`super_admin` は個別制限の対象外、それ以外（`Admin::RESTRICTABLE_ROLES`）は管理者ごとの個別権限上書きが可能。権限定義を変更したら `php artisan admin:sync-permissions` を実行すること。
+- Google2FA（TOTP）を admins に適用。
+- Laravel Horizonダッシュボード（`/admin/horizon`）は `owner`/`super_admin` のみアクセス可能。
+
+## 5. 主要ドメイン仕様サマリ
+
+各ドメインの詳細な実装ガイドは `docs/` 配下を参照。ここでは目的・主要モデル・状態遷移の要点のみ記す。
+
+### 5.1 Contact / Quote
+- `Contact`（問い合わせ、`source`/IP/UTM等のトラッキング情報を保持）→ `Quote`（見積もり、`quote_number`自動採番）。
+- `QuoteObserver` はContactのメールアドレスからUser/Companyを自動特定するロジックを持つが、**現状どこにも登録（`observe()`呼び出し）されておらず動作していない**（§7・TASKS.md参照）。
+
+### 5.2 Onboarding（顧客登録承認）
+- 詳細: `docs/OnboardingSystemGuide.md`
+- `QuoteResponse::registerStore()` でUser（status=`pending`）とCompany（status=`pending`）を作成し、元のQuoteにもuser_id/company_idを同期する（`QuoteResponseController.php` L192-197 で実装済み）。
+- 管理者が `Admin\OnboardingController::approve/reject` で承認・却下。**reject() は物理削除である**点に注意。
+
+### 5.3 Contract（契約）
+- `Contract`: `TYPES`（`one_time`一括払い / `monthly`月額 / `annual`年額）、`STATUSES`（`draft`下書き→`pending_signature`署名待ち→`active`契約中→`suspended`一時停止/`completed`完了/`cancelled`キャンセル）、`signature_status`（`pending`→`user_signed`/`admin_signed`→`fully_signed`）。
+- バージョン管理（`ContractVersion`）・明細（`ContractItem`）・電子署名（`ContractSignature`、`react-signature-canvas`）・特典チケット（`ContractBenefit`/`ContractBenefitUsage`、予約で消費）・監査履歴（`ContractHistory`、`action`カラムは実運用で不足が発覚しVARCHAR化済み）。
+- 月額契約は `Contract::shouldGenerateInvoice()` の条件（自動生成ON・type=monthly・status=active・次回請求日到来）を満たすと `GenerateMonthlyInvoices` コマンドで自動請求される。
+
+### 5.4 Project（プロジェクト管理）
+- 詳細: `docs/ProjectWorkflowGuide.md`
+- Project作成時にVersion1が自動作成（`project_code`は`PRJ-YYYY-XXXXXXXX`形式で自動採番）。ContractItemからの取り込み・マイルストーン自動生成に対応。
+- ガントチャートのドラッグ&ドロップ編集・並び替え・ファイルアップロード・ProjectUpdate作成フォームは**未実装**（フェーズ2）。
+
+### 5.5 Invoice / Payment / Receipt（請求）
+- `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-00000001`形式で自動採番。
+- 月次自動請求（`GenerateMonthlyInvoices`）・督促（`SendOverdueInvoiceReminders`）・下書き未送信分の送付（`SendPendingInvoices`）をバッチで実行。
+- クライアントは `/invoice-payment/{token}` の公開ページから入金報告が可能。
+
+### 5.6 Points / Membership
+- `PointTransaction`/`PointRedemption`/`PointReward`/`PointCatalogItem`、`CompanyMembership`+`MembershipRank`（年間利用額に応じたランク自動再計算バッチあり）。
+
+### 5.7 Website CMS（自社サイト管理）
+- `Page`/`Section`（ブロックエディタ）/`Menu`/`MenuItem`/`Post`/`PostCategory`/`Faq`/`FaqCategory`/`SiteSetting`/`Portfolio`/`Voice`（お客様の声）/`Document`（利用規約・プライバシーポリシー等、バージョン管理・同意取得あり）。
+
+### 5.8 Appointment（予約）
+- 詳細: `docs/AppointmentSystemGuide.md`
+- `ScheduleDefault`（曜日ごとの営業時間テンプレート）/`ScheduleException`/`Holiday`/`AppointmentSlot`/`Appointment`（status: `pending`/`confirmed`/`completed`/`cancelled`/`no_show`）。
+- 繰り返し枠設定・クライアント向け予約UI・カレンダー連携・SMS通知・一括インポート/エクスポートは**未実装**（フェーズ2）。
+
+### 5.9 Atlas
+- §3参照。「/apply」フォーム実装がフェーズ1スコープ、審査・承認・課金プラン管理はスコープ外。
+
+### 5.10 Media（メディア管理）
+- `Media`（原本、S3/publicディスクURL）+ `MediaVariant`（Large/Medium/Small、WebP自動生成、`GenerateMediaVariantsJob`）+ `MediaSetting`（圧縮/サイズ上限の単一設定）。
+- アップロードのMIME制限・認可ガード名に不整合があり是正予定（§7・TASKS.md参照）。
+
+### 5.11 Analytics
+- `AnalyticsDaily`/`AnalyticsDimension`/`AnalyticsEvent`/`AnalyticsKpi`/`AnalyticsReport`。Search Console連携は現状 `SEARCH_CONSOLE_DRIVER=dummy` でダミーデータ表示、本番切替（`google`）は未検証。
+
+## 6. 非機能要件
+
+### 6.1 セキュリティ・個人情報保護方針
+- 扱う個人情報: 氏名・メールアドレス・電話番号・住所・契約金額・支払情報等。
+- アクセス制御はガード（`admins`/`users`）+ Spatie権限で行う。ログ出力（`Log::info/error`等）に個人情報・パスワード・トークンをそのまま出力しないこと。
+- 公開フォーム（問い合わせ・見積回答登録・入金報告等）にはレート制限（`throttle`）を設定する（現状一部未設定、TASKS.md参照）。
+- ファイルアップロードはMIMEタイプ制限を必ず設ける（現状一部未設定、TASKS.md参照）。
+- 電子帳簿保存法・インボイス制度・電子署名法等の法令適合性は**本書のスコープ外**（ユーザー判断により明記しない方針）。
+
+### 6.2 本番環境構成
+- AWS Lightsail（VM）+ Docker Compose、コスト最小構成（MySQLもコンテナ内運用、RDS等マネージドサービスは使わない）。
+- 詳細手順・費用注意点・チェックリストは `docs/ProductionDeploymentGuide.md` を参照（TASKS.mdフェーズ1でこの手順に沿って実施）。
+- ドメインはXserverで管理継続、AレコードのみAWS側を指す（ネームサーバー移管なし）。
+
+### 6.3 テスト方針
+- 「リファクタリング・機能追加で触った箇所から順次テストを追加する」方針（一括での網羅的テスト整備は行わない）。
+- 現状 `tests/` はLaravel Breezeの認証スキャフォールディング＋権限テスト（`PermissionEnforcementTest`）＋ロケールテストのみで、Contract/Invoice/Quote/Project/Appointment等の中核ビジネスロジックへの自動テストは無い。
+
+### 6.4 バックアップ・運用
+- 本番はDBダンプ（`mysqldump`）の定期取得、保持世代数を絞ってコストを抑える方針。
+- Laravel HorizonダッシュボードでSequential/失敗ジョブを目視監視。
+- AWS Budgetsで想定月額の1.5倍を超えたら通知するアラートを設定。
+
+## 7. 既知の課題・技術的負債
+
+**重要**: 以下の表は2026-07-29時点でコードを直接確認して検証済みの状態を記載している。`docs/` 配下の一部ガイドはこれより古い状態を記述しているため、今後この表と食い違うdocsの記述を見つけた場合は、コードを正としてdocsを修正すること。
+
+| ID | 概要 | 現状ステータス | 対象フェーズ |
+|---|---|---|---|
+| K1 | Quote⇔QuoteResponseのuser_id/company_id同期 | **実装済み**（`QuoteResponseController.php` L192-197）。`docs/QuoteUserCompanyIdAnalysis.md`の記述は古い。回帰テスト未整備 | フェーズ1（検証＋テスト＋doc更新） |
+| K2 | Company.status enumに`pending`が無くonboarding承認をブロックする懸念 | **懸念は解消済み**（`pending`はenumに定義済み、`docs/OnboardingSystemGuide.md`の記述が誤り）。実地検証のみ要 | フェーズ1（検証＋doc訂正） |
+| K3 | QuoteObserverが未登録のデッドコード | **未解決の実バグ**。登録するか削除するか要決定 | フェーズ1（最優先） |
+| K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テストが無い | フェーズ1（テスト追加） |
+| K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **未解決の実バグ**。正しくは`admins`。メディア更新時に認可エラーで機能しない可能性がある | フェーズ1（最優先） |
+| K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | 他のMedia系Requestと不整合、任意拡張子アップロードが可能 | フェーズ1（セキュリティ） |
+| K7 | 公開フォーム（`contact.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | `consultation.store`のみ設定済み | フェーズ1（セキュリティ） |
+| K8 | `.env`に`MAIL_ADMIN_ADDRESS`が未設定 | バッチ失敗通知等が実際には届かない | フェーズ1（最優先） |
+| K9 | Repository/Serviceの基盤クラス移行が未完了 | 残りは**Contract・Invoice・Payment・Projectの4エンティティのみ**（他は移行済み、`docs/RepositoryServiceMigrationGuide.md`は未更新） | フェーズ2 |
+| K10 | 旧Button/CrudButtons→新Buttonコンポーネントへの統一が未完了 | 旧コンポーネント使用ファイルが多数残存（`docs/ButtonRefactoringGuide.md`参照） | フェーズ2 |
+| K11 | `RichTextEditor.jsx`の重複 | `resources/js/Components/RichTextEditor.jsx`は`<textarea>`のTODOスタブ。実体は`Components/Forms/RichTextEditor.jsx` | フェーズ2 |
+| K12 | `ScheduleDefaultController`の未使用stub | create/store/show/edit/update/destroyが空実装（index/bulkUpdateのみ実使用） | フェーズ2 |
+| K13 | アプリ名の不一致 | `composer.json`/`.env`は`Laravel`のまま、docsには`SmartSprouts`表記、リポジトリ名は`Spra` | フェーズ2 |
+| K14 | `routes/web.php`/`api.php`のコメントアウト済みルート | `/plans`・`/careers`・トークン式オンボーディング・`auth:api`ガード | フェーズ2 |
+| K15 | Search Console連携が本番未検証 | `SEARCH_CONSOLE_DRIVER=dummy`のまま、`google`切替後の動作未確認 | フェーズ2 |
+| K16 | 未参照の`User\OnboardingController` | `docs/OnboardingSystemGuide.md`に削除候補として記載済み | フェーズ2 |
+
+## 8. 用語集
+
+- **ULID主体キー**: `HasUlid`トレイト使用モデルは`incrementing=false`・`keyType=string`で、作成時に`Str::ulid()`を自動採番。
+- **quote_number**: `QuoteService`で自動採番（見積番号）。
+- **invoice_number**: `INV-00000001`形式で自動採番（`InvoiceService::generateInvoiceNumber()`）。
+- **project_code**: `PRJ-YYYY-XXXXXXXX`形式（年+タイムスタンプ+ランダム文字）で自動採番。
+- **Quoteステータス**: `draft`（下書き）/`negotiating`（交渉中）/`approved`（承認済み）/`rejected`（却下）/`contracted`（契約済み）/`cancelled`（キャンセル）。
+- **Contractステータス**: `draft`/`pending_signature`/`active`/`suspended`/`completed`/`cancelled`。署名状況は別カラム`signature_status`（`pending`/`user_signed`/`admin_signed`/`fully_signed`）。
+- **Invoiceステータス**: `draft`/`sent`/`viewed`/`paid`/`overdue`/`cancelled`。
+- **Companyステータス**: `active`/`inactive`/`suspended`/`pending`。`company_type`: `individual`/`corporate`。
+- **Adminロール**: `owner`/`super_admin`/`admin`/`editor`/`viewer`（`Admin::ROLES`）。
+- **Atlas brand**: `concierge`/`life`/`japan`。**Atlas membership status**: `pending`/`active`/`paused`/`revoked`。
+- **Appointmentステータス**: `pending`/`confirmed`/`completed`/`cancelled`/`no_show`。
+
+## 9. docs/ 配下ガイド索引
+
+凡例: ✅=実装済み範囲を扱う ／ 🟡=既知の懸念・要注意点を含む ／ ❌=未実装機能の記述を含む
+
+| ファイル | 扱う範囲 |
+|---|---|
+| `docs/AlertSystemGuide.md` | フロントエンドのアラート/ダイアログコンポーネント（BaseAlert, DeleteAlert等） ✅ |
+| `docs/AppointmentSystemGuide.md` | 予約システム全体（枠・ステータス・通知・DBスキーマ）、未実装機能チェックリスト ✅🟡❌ |
+| `docs/BatchAutomationOverview.md` | 全スケジュールコマンド・キュージョブの一覧、過去に発見・修正した実バグの記録 ✅🟡 |
+| `docs/ButtonRefactoringGuide.md` | 旧→新Buttonコンポーネント移行ガイド、移行未完了 🟡 |
+| `docs/ComponentsStructureGuide.md` | Reactコンポーネントのディレクトリ構成規約 ✅ |
+| `docs/OnboardingSystemGuide.md` | QuoteResponse→登録→承認の全体フロー、既知の懸念点（一部は本書§7で解消と確認済み） 🟡 |
+| `docs/ProductionDeploymentGuide.md` | AWS Lightsail本番デプロイ手順・チェックリスト・費用注意点 ❌（未実施） |
+| `docs/ProjectWorkflowGuide.md` | Project→Version→Milestone/Item→ガントチャートのフロー、未実装機能チェックリスト ✅❌ |
+| `docs/PublicContactSubmissionGuide.md` | 公開お問い合わせフォームの実装詳細（バリデーション・メール・トラッキング） ✅ |
+| `docs/QuoteUserCompanyIdAnalysis.md` | Quote⇔QuoteResponseのuser_id/company_id同期に関する調査（**記述が古い、本書§7 K1参照**） 🟡 |
+| `docs/RepositoryServiceMigrationGuide.md` | Repository/Service基盤クラス移行ガイド（**進捗記述が古い、本書§7 K9参照**） 🟡 |
+| `docs/RouteNamingAndStructure.md` | ルート命名規則（`public.`/`user.`/`admin.`）、既知のルーティングバグ 🟡 |
+
+## 10. 変更履歴
+
+| 日付 | 変更内容 |
+|---|---|
+| 2026-07-29 | SPEC.md初版作成。コードベース調査＋ユーザーヒアリング＋独立検証に基づく |
