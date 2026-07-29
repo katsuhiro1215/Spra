@@ -6,7 +6,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Contract;
 use App\Models\ContractVersion;
-use App\Repositories\InvoiceRepository;
+use App\Repositories\Contracts\InvoiceRepositoryInterface;
 use App\Repositories\PaymentRepository;
 use App\Mail\InvoiceMail;
 use App\Mail\InvoiceReminderMail;
@@ -18,41 +18,28 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class InvoiceService
+class InvoiceService extends BaseService
 {
     public function __construct(
-        private InvoiceRepository $invoiceRepository,
+        InvoiceRepositoryInterface $repository,
         private PaymentRepository $paymentRepository,
-    ) {}
+    ) {
+        parent::__construct($repository);
+    }
 
-    public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    protected function getEntityName(): string
     {
-        return $this->invoiceRepository->paginate($perPage, $filters);
+        return 'Invoice';
     }
 
     public function getPaginatedForClient(string $userId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        return $this->invoiceRepository->paginateForClient($userId, $perPage, $filters);
-    }
-
-    public function findById(string $id): ?Invoice
-    {
-        return $this->invoiceRepository->findById($id);
+        return $this->repository->paginateForClient($userId, $perPage, $filters);
     }
 
     public function findByIdForClient(string $id, string $userId): ?Invoice
     {
-        return $this->invoiceRepository->findByIdForClient($id, $userId);
-    }
-
-    public function create(array $data): Invoice
-    {
-        return $this->invoiceRepository->create($data);
-    }
-
-    public function update(Invoice $invoice, array $data): Invoice
-    {
-        return $this->invoiceRepository->update($invoice, $data);
+        return $this->repository->findByIdForClient($id, $userId);
     }
 
     /**
@@ -60,7 +47,7 @@ class InvoiceService
      */
     public function markAsSent(Invoice $invoice): Invoice
     {
-        return $this->invoiceRepository->update($invoice, [
+        return $this->repository->update($invoice, [
             'status' => 'sent',
             'sent_at' => now(),
         ]);
@@ -68,12 +55,12 @@ class InvoiceService
 
     public function getUnpaidByUser(string $userId): Collection
     {
-        return $this->invoiceRepository->getUnpaidByUser($userId);
+        return $this->repository->getUnpaidByUser($userId);
     }
 
     public function getOverdueInvoices(): Collection
     {
-        return $this->invoiceRepository->getOverdueInvoices();
+        return $this->repository->getOverdueInvoices();
     }
 
     /**
@@ -110,7 +97,7 @@ class InvoiceService
             $totalAmount = $subtotal + $taxAmount;
 
             // 請求書作成
-            $invoice = $this->invoiceRepository->create([
+            $invoice = $this->repository->create([
                 'invoice_number' => $this->generateInvoiceNumber(),
                 'invoice_type' => 'monthly',
                 'contract_id' => $contract->id,
@@ -208,7 +195,7 @@ class InvoiceService
                 Mail::to($invoice->user->email)->send(new InvoiceMail($invoice));
 
                 // ステータスを送付済みに更新
-                $this->invoiceRepository->update($invoice, [
+                $this->repository->update($invoice, [
                     'status' => 'sent',
                     'sent_at' => now(),
                 ]);
@@ -252,7 +239,7 @@ class InvoiceService
                 Mail::to($invoice->user->email)->send(new InvoiceReminderMail($invoice));
 
                 // 再送カウントと最終再送日時を更新
-                $this->invoiceRepository->update($invoice, [
+                $this->repository->update($invoice, [
                     'resend_count' => $invoice->resend_count + 1,
                     'last_resent_at' => now(),
                 ]);

@@ -160,7 +160,7 @@
 SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティのみ**（`docs/RepositoryServiceMigrationGuide.md`の記述は古い。User/Service/Company/Faq/Contact/Quote/Post/PostCategory/Adminは移行済み）。1エンティティ1タスクとして扱う。
 
 - [x] `ContractRepository`/`ContractService` → `SoftDeletableRepository`/`BaseService`へ移行（Contractは`SoftDeletes`使用）（完了: 2026-07-29、`chore/migrate-contract-repository-service`）。既存の`getPaginated($filters, 20)`呼び出し（`Admin\Contract\ContractController`）はBaseServiceの`getPaginated(filters, sort, perPage)`とシグネチャ非互換だったため、呼び出し側を名前付き引数`getPaginated($filters, perPage: 20)`に修正して対応。
-- [ ] `InvoiceRepository`/`InvoiceService` → `SoftDeletableRepository`/`BaseService`へ移行
+- [x] `InvoiceRepository`/`InvoiceService` → `SoftDeletableRepository`/`BaseService`へ移行（完了: 2026-07-30、`chore/migrate-invoice-repository-service`）。Contract移行時と同様、`Admin\Invoice\InvoiceController`の`getPaginated($filters, 20)`呼び出しを`getPaginated($filters, perPage: 20)`に修正。旧`paginate()`が使っていた`sort['column']`キーは実際にはどこからも使われていなかったため、他の移行済みリポジトリと同じ`sort['field']`規約に統一した。
 - [ ] `PaymentRepository`/`PaymentService` → `BaseRepository`/`BaseService`へ移行（`SoftDeletes`未使用）
 - [ ] `ProjectRepository`/`ProjectService` → `SoftDeletableRepository`/`BaseService`へ移行
 - [ ] 全エンティティ移行完了後、`docs/RepositoryServiceMigrationGuide.md`の進捗記述を更新
