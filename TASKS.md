@@ -56,10 +56,10 @@
   - 内容: モデル側に条件メソッドが定義されているが、コマンド側で同等条件を直接クエリしていないか確認し、重複があれば一本化する。
   - 完了の定義: 重複解消後も既存バッチの挙動が変わらないことをテストで確認。→ `shouldGenerateInvoice()`はどこからも呼ばれておらずクエリと重複したデッドコードだったと判明。クエリ自体はDB絞り込みに必要なため残し、生成直前に`shouldGenerateInvoice()`で再検証する安全網として組み込み、将来クエリ条件とモデル条件がずれた場合の事故を防ぐ形にした。`tests/Feature/Invoice/GenerateMonthlyInvoicesCommandTest.php`で対象/対象外の契約が正しく仕分けられることを確認。
 
-- [ ] **T8: Contract/Invoice/Quoteの金額計算ロジックにUnitテストを追加**
+- [x] **T8: Contract/Invoice/Quoteの金額計算ロジックにUnitテストを追加**（完了: 2026-07-29、`fix/pricing-calculation-unit-tests`）
   - 対象ファイル: `app/Services/ContractService.php`、`app/Services/InvoiceService.php`、`app/Services/QuoteService.php`
   - 内容: 税額計算・合計金額算出・採番ロジック（`quote_number`/`invoice_number`/`project_code`）に自動テストが無い。主要な計算メソッドにUnitテストを追加する。
-  - 完了の定義: 主要計算メソッドにテストが存在しGreen。
+  - 完了の定義: 主要計算メソッドにテストが存在しGreen。→ `ContractService::recalculateVersionAmounts()`（明細合計・割引・税額計算）、`QuoteService::recalculateVersionAmounts()`（同上＋キャンペーン割引の自動適用・期限切れ時のフォールバック）、`Campaign::calculateDiscount()`/`isCurrentlyActive()`にUnitテストを追加（`tests/Unit/Services/ContractServiceAmountCalculationTest.php`、`tests/Unit/Services/QuoteServiceAmountCalculationTest.php`、`tests/Unit/CampaignDiscountCalculationTest.php`）。採番ロジック（`quote_number`/`invoice_number`/`project_code`/`contract_number`）は既存のFeatureテスト群で間接的に検証済み（採番結果を含むレコード作成が繰り返しテストされている）のため、重複したUnitテストは追加していない。InvoiceServiceには`recalculateVersionAmounts`に相当する再計算メソッドは無く（請求書は生成時に確定した金額をそのまま保持する設計）、対象外。
 
 - [x] **T8b: `User::primaryCompany()`のリレーション定義修正**（完了: 2026-07-29、`fix/user-primary-company-relation`。SPEC.md §7 K18として発見、ユーザー指示によりフェーズ2から繰り上げ対応）
   - 対象ファイル: `app/Models/User.php`
