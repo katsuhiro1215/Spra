@@ -88,9 +88,9 @@
   - 内容: `SESSION_SECURE_COOKIE=true`等、本番用.envチェックリストに明記する。
   - 完了の定義: 本番`.env`テンプレートに反映済み。→ `docs/ProductionDeploymentGuide.md`の`.env`本番設定チェックリストに`SESSION_SECURE_COOKIE=true`を追記済み。実際の本番`.env`作成はT20で行う。
 
-- [ ] **T13: Spatie権限・2FA適用範囲の棚卸し**
+- [x] **T13: Spatie権限・2FA適用範囲の棚卸し**（完了: 2026-07-29、`docs/2fa-permission-audit`）
   - 内容: 全adminロールに2FAが強制されているか、バイパス経路が無いか確認する。
-  - 完了の定義: 確認結果をSPEC.md §4に反映。
+  - 完了の定義: 確認結果をSPEC.md §4に反映。→ ログインフローにバイパス経路は無いことを確認（資格情報検証と実ログインの分離が正しく実装済み）。一方で2FAは任意設定（opt-in）であり`owner`/`super_admin`にも強制されていないことが判明（フェーズ2以降の検討事項としてSPEC.md §4に記載）。権限whitelistの内容も確認、`permissions.index`等は別途`isSuperAdmin()`チェックで保護されていることを確認済み。
 
 - [ ] **T14: CORS設定の本番ドメイン限定化確認**
   - 対象ファイル: `config/cors.php`

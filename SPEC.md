@@ -106,7 +106,9 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - `config/auth.php` に `users`（デフォルトガード）・`admins` の2ガード。未ログインは実質ゲスト扱い。
 - 新規実装では **必ずどちらのガードかを明示**すること（`auth('admins')`/`auth('users')`）。ガード名の取り違えは実際にバグの原因になっている（§7・TASKS.md参照）。
 - Spatie Permission: `Admin::ROLES` = `owner`（オーナー）/ `super_admin`（スーパー管理者）/ `admin`（管理者）/ `editor`（編集者）/ `viewer`（閲覧者）。`owner`/`super_admin` は個別制限の対象外、それ以外（`Admin::RESTRICTABLE_ROLES`）は管理者ごとの個別権限上書きが可能。権限定義を変更したら `php artisan admin:sync-permissions` を実行すること。
-- Google2FA（TOTP）を admins に適用。
+- Google2FA（TOTP、またはメールOTP）を admins/users 双方に適用可能。ログインフロー（`AdminLoginRequest::authenticate()`）は資格情報検証と実ログイン(`Auth::guard('admins')->login()`)を分離しており、`two_factor_enabled`な管理者は`2fa_pending`セッションに保持されるだけで、2段階目のコード確認が完了するまでガードの認証状態にはならない（2FAバイパスの経路なし、2026-07-29検証済み）。
+  - ただし**2FAは各管理者の任意設定（opt-in）であり、`owner`/`super_admin`を含めどのロールにも強制する仕組みは無い**。組織として2FAを必須にしたい場合は別途ポリシー・実装が必要（本書のスコープ外、要判断）。
+- 管理画面の権限制御は`EnsureAdminPermission`ミドルウェア＋`config/admin_permissions.php`の`whitelist`（ダッシュボード・自分のプロフィール/セキュリティ設定・自分の勤怠打刻・通知既読等、ロールに関係なく安全な自己サービス系アクションのみ）で構成。権限管理画面自体（`permissions.index`/`permissions.update`等）はwhitelistで権限カタログ対象外にしつつ、`PermissionController`側で`abort_unless($admin->isSuperAdmin(), 403, ...)`により別途保護されていることを確認済み。
 - Laravel Horizonダッシュボード（`/admin/horizon`）は `owner`/`super_admin` のみアクセス可能。
 
 ## 5. 主要ドメイン仕様サマリ
@@ -206,6 +208,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K17 | `Admin\MediaController::update()`/`destroy()`の引数名`$media`がリソースルートの実パラメータ名`{medium}`と不一致 | **修正済み**（2026-07-29）。**新規発見の実バグ**: 暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた。`show()`/`edit()`は`$medium`で正しく動作していたが、`update()`/`destroy()`はメディア情報の更新・削除が実質常に失敗していた可能性が高い（K5のガード修正でテストを書いたところ発覚） | フェーズ1（完了） |
 | K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **修正済み**（2026-07-29）。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換えて修正 | フェーズ1（完了、優先度を上げて対応） |
 | K19 | `Admin\OnboardingController::approve()`がContractを作成せずInvoiceを発行しようとし必ず失敗 | **修正済み**（2026-07-29）。`invoices.contract_id`/`user_id`はDB上必須だが、approve()はQuoteから直接Invoiceを作っておりContract作成が完全に欠落していた。**承認ボタンが一度も正常動作していなかった可能性が高い実質的な機能停止バグ**。ユーザー判断により、`ContractService::createContract()`でQuoteの内容（明細・金額）を引き継いだContractを自動作成してからInvoiceを発行するよう修正 | フェーズ1（完了） |
+| K20 | 2FAが`owner`/`super_admin`を含め全adminロールで任意設定（opt-in）、組織として強制する仕組みが無い | バグではなくポリシー上の懸念（2026-07-29棚卸しで判明）。ログイン自体にバイパス経路は無い。2FA必須化を行うかはビジネス判断が必要 | フェーズ2（要判断） |
 
 ## 8. 用語集
 
