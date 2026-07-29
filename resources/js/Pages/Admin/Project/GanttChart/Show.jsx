@@ -298,7 +298,7 @@ export default function Show({
         }
     };
 
-    // タスクの順序変更・階層変更（表示上の並び替えのみ、保存は未対応）
+    // タスクの順序変更（ドラッグ&ドロップ）。並び替え結果はsort_orderとしてサーバーに保存する
     const handleTaskReorder = ({ draggedTask, targetTask, dropPosition }) => {
         const cloneTasks = JSON.parse(JSON.stringify(tasks));
 
@@ -345,6 +345,30 @@ export default function Show({
         insertTask(cloneTasks);
 
         setTasks(cloneTasks);
+        persistTaskOrder(cloneTasks);
+    };
+
+    // 表示中の並び順（トップレベル・ネスト先とも上から順）をフラットなID配列にしてサーバーへ保存する
+    const persistTaskOrder = (taskList) => {
+        if (!currentVersion) return;
+
+        const flattenIds = (list) =>
+            list.reduce((ids, task) => {
+                ids.push(task.id);
+                if (task.children && task.children.length > 0) {
+                    ids.push(...flattenIds(task.children));
+                }
+                return ids;
+            }, []);
+
+        router.post(
+            route("admin.project.versions.items.reorder", {
+                project: project.id,
+                version: currentVersion.id,
+            }),
+            { order: flattenIds(taskList) },
+            { preserveScroll: true, preserveState: true },
+        );
     };
 
     // ガントチャートのイベントハンドラー
