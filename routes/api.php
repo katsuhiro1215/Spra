@@ -65,9 +65,4 @@ Route::middleware('api')->group(function () {
                 ->middleware('instagram.signature')
                 ->name('handle');
         });
-
-    // 認証が必要な API ルートは以下に追加
-    // Route::middleware('auth:api')->group(function () {
-    //     // ...
-    // });
 });
