@@ -27,10 +27,10 @@
   - 内容: `QuoteObserver`はContactのメールアドレスからUser/Companyを自動特定するロジックを持つが、現状どこにも`Quote::observe()`や`#[ObservedBy]`属性で登録されておらず、**唯一の真に未解決の既知バグ**。運用実態を確認したところ、`resources/js/Pages/Admin/Contact/Show.jsx`(L236)から`contact_id`のみを渡してQuote作成画面に遷移する実際のUI導線があり、Observerの自動紐付けロジックは実用上必要と判断。`Quote`モデルに`#[ObservedBy(QuoteObserver::class)]`属性を追加して登録した。
   - 完了の定義: 登録する場合は動作確認テストを追加。→ `tests/Unit/QuoteObserverTest.php`で確認済み（自動紐付け／明示的user_idの尊重／マッチなしの場合にnullのまま、の3パターン）。
 
-- [ ] **T3: Quote⇔QuoteResponseのuser_id/company_id同期を検証し回帰テストを追加**
+- [x] **T3: Quote⇔QuoteResponseのuser_id/company_id同期を検証し回帰テストを追加**（完了: 2026-07-29、`fix/quote-response-sync-regression-test`）
   - 対象ファイル: `app/Http/Controllers/QuoteResponseController.php`(L158-198)、`docs/QuoteUserCompanyIdAnalysis.md`
   - 内容: 現行コードには既にQuote本体への同期処理（L192-197）が実装済み。実際にDBで動作確認し、`quote_id`が無いケース（シミュレーター経由等）の扱いを洗い出した上でFeatureテストを追加し、`docs/QuoteUserCompanyIdAnalysis.md`を実態に合わせて更新する。
-  - 完了の定義: テストGreen、docs更新済み。
+  - 完了の定義: テストGreen、docs更新済み。→ `tests/Feature/QuoteResponseRegistrationSyncTest.php`で確認済み（同期動作／トークン再使用時の安全な失敗の2パターン）。なお`quote_responses.quote_id`はDB制約上NOT NULLのため「quote_idが無いケース」は実際には発生し得ないことを確認（コード中の`if ($quoteResponse->quote_id)`は常にtrueとなる冗長なガード節）。`docs/QuoteUserCompanyIdAnalysis.md`に解消済みの旨を追記。
 
 - [ ] **T4: Onboarding承認/却下フロー（Company.status='pending'）の実地検証**
   - 対象ファイル: `app/Http/Controllers/Admin/OnboardingController.php`、`docs/OnboardingSystemGuide.md`
