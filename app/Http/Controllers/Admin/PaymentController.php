@@ -30,7 +30,7 @@ class PaymentController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->only(['status', 'payment_method']);
-        $payments = $this->service->getPaginated($filters, 20);
+        $payments = $this->service->getPaginated($filters, perPage: 20);
         $stats = $this->service->getStats();
 
         return Inertia::render('Admin/Payments/Index', [
