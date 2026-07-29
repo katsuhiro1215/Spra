@@ -201,12 +201,12 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K8 | `.env`に`MAIL_ADMIN_ADDRESS`が未設定 | **設定済み**（2026-07-29、`MAIL_FROM_ADDRESS`と同じ`info@katsucode.jp`。`.env`は追跡対象外のためコミットなし） | フェーズ1（完了） |
 | K9 | Repository/Serviceの基盤クラス移行が未完了 | **解消済み**（2026-07-30）。Contract・Invoice・Payment・Projectを含む全エンティティの移行が完了。`docs/RepositoryServiceMigrationGuide.md`も更新済み | フェーズ2（完了） |
 | K10 | 旧Button/CrudButtons→新Buttonコンポーネントへの統一が未完了 | 旧コンポーネント使用ファイルが多数残存（`docs/ButtonRefactoringGuide.md`参照） | フェーズ2 |
-| K11 | `RichTextEditor.jsx`の重複 | `resources/js/Components/RichTextEditor.jsx`は`<textarea>`のTODOスタブ。実体は`Components/Forms/RichTextEditor.jsx` | フェーズ2 |
-| K12 | `ScheduleDefaultController`の未使用stub | create/store/show/edit/update/destroyが空実装（index/bulkUpdateのみ実使用） | フェーズ2 |
-| K13 | アプリ名の不一致 | `composer.json`/`.env`は`Laravel`のまま、docsには`SmartSprouts`表記、リポジトリ名は`Spra` | フェーズ2 |
-| K14 | `routes/web.php`/`api.php`のコメントアウト済みルート | `/plans`・`/careers`・トークン式オンボーディング・`auth:api`ガード | フェーズ2 |
+| K11 | `RichTextEditor.jsx`の重複 | **解消済み**（2026-07-30）。スタブへの参照がゼロだったことを確認し削除。実体の`Components/Forms/RichTextEditor.jsx`のみが残存 | フェーズ2（完了） |
+| K12 | `ScheduleDefaultController`の未使用stub | **解消済み**（2026-07-30）。`routes/admin/schedule.php`で実際にルーティングされているのは`index`/`bulkUpdate`のみと確認し、未使用stub（create/store/show/edit/update/destroy）と、参照がなくなった`ScheduleDefaultRequest`を削除 | フェーズ2（完了） |
+| K13 | アプリ名の不一致 | `composer.json`/`.env`は`Laravel`のまま、docsには`SmartSprouts`表記、フロントエンド（Sidebar/Footer）には`Spra`がハードコード。2026-07-30、正式名称の決定をユーザー判断により保留 | フェーズ2（要判断） |
+| K14 | `routes/web.php`/`api.php`のコメントアウト済みルート | **一部解消**（2026-07-30）。トークン式オンボーディング（`/onboarding/{token}`）は`quote.response.register.*`に実質置き換わっており未使用と確認し削除、`auth:api`ガードのプレースホルダーも本プロジェクトでは未使用（2ガード構成）のため削除。`/plans`・`/careers`は画面実装済みだが公開判断待ちのためコメントアウトのまま保留 | フェーズ2（要判断） |
 | K15 | Search Console連携が本番未検証 | `SEARCH_CONSOLE_DRIVER=dummy`のまま、`google`切替後の動作未確認 | フェーズ2 |
-| K16 | 未参照の`User\OnboardingController` | `docs/OnboardingSystemGuide.md`に削除候補として記載済み | フェーズ2 |
+| K16 | 未参照の`User\OnboardingController` | **解消済み**（2026-07-30）。参照元ゼロを確認し削除。調査の結果、トップレベルの`app/Http/Controllers/OnboardingController.php`も参照元がなくなっていたため合わせて削除 | フェーズ2（完了） |
 | K17 | `Admin\MediaController::update()`/`destroy()`の引数名`$media`がリソースルートの実パラメータ名`{medium}`と不一致 | **修正済み**（2026-07-29）。**新規発見の実バグ**: 暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた。`show()`/`edit()`は`$medium`で正しく動作していたが、`update()`/`destroy()`はメディア情報の更新・削除が実質常に失敗していた可能性が高い（K5のガード修正でテストを書いたところ発覚） | フェーズ1（完了） |
 | K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **修正済み**（2026-07-29）。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換えて修正 | フェーズ1（完了、優先度を上げて対応） |
 | K19 | `Admin\OnboardingController::approve()`がContractを作成せずInvoiceを発行しようとし必ず失敗 | **修正済み**（2026-07-29）。`invoices.contract_id`/`user_id`はDB上必須だが、approve()はQuoteから直接Invoiceを作っておりContract作成が完全に欠落していた。**承認ボタンが一度も正常動作していなかった可能性が高い実質的な機能停止バグ**。ユーザー判断により、`ContractService::createContract()`でQuoteの内容（明細・金額）を引き継いだContractを自動作成してからInvoiceを発行するよう修正 | フェーズ1（完了） |

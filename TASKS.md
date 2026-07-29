@@ -172,11 +172,11 @@ SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティ
 
 ### 3.3 コード衛生・デッドコード整理
 
-- [ ] `resources/js/Components/RichTextEditor.jsx`（`<textarea>`のTODOスタブ）のimport先を全て`Components/Forms/RichTextEditor.jsx`へ向け直し、スタブを削除
-- [ ] `app/Http/Controllers/Admin/Schedule/ScheduleDefaultController.php`の未使用stub（create/store/show/edit/update/destroy）を削除、または実装するか判断
-- [ ] アプリ名統一: 正式名称を決定し、`composer.json`(`name`)・`.env`/`.env.example`(`APP_NAME`)・`docs/`内の"SmartSprouts"表記を統一する
-- [ ] `routes/web.php`・`routes/api.php`のコメントアウト済みルート（`/plans`、`/careers`、トークン式オンボーディング、`auth:api`ガード）を実装するか削除するか判断
-- [ ] 未参照の`app/Http/Controllers/User/OnboardingController.php`を削除（`docs/OnboardingSystemGuide.md`に削除候補として記載済み）
+- [x] `resources/js/Components/RichTextEditor.jsx`（`<textarea>`のTODOスタブ）を削除。既存のimportは全て`Components/Forms/RichTextEditor.jsx`を参照済みで、スタブへの参照はゼロだったことを確認済み（2026-07-30, `chore/code-hygiene-cleanup`）
+- [x] `app/Http/Controllers/Admin/Schedule/ScheduleDefaultController.php`の未使用stub（create/store/show/edit/update/destroy）を削除。`routes/admin/schedule.php`で実際にルーティングされているのは`index`/`bulkUpdate`のみと確認済み。使用箇所がなくなった`app/Http/Requests/ScheduleDefaultRequest.php`も合わせて削除（2026-07-30）
+- [ ] アプリ名統一: 正式名称を決定し、`composer.json`(`name`)・`.env`/`.env.example`(`APP_NAME`)・`docs/`内の"SmartSprouts"表記を統一する（2026-07-30: ユーザー判断により対応保留。決定後に再着手）
+- [x] `routes/web.php`・`routes/api.php`のコメントアウト済みルートを整理（2026-07-30）。トークン式オンボーディング（`/onboarding/{token}`）は`QuoteResponseController::registerShow`/`registerStore`（`quote.response.register.*`）に実質置き換わっており未使用と確認、コメントごと削除。`api.php`の`auth:api`ガードのプレースホルダーも本プロジェクトでは未使用（`admins`/`users`の2ガード構成）のため削除。`/plans`・`/careers`は画面実装済みだが公開判断が未了のため、コメントアウトのまま保留
+- [x] 未参照の`app/Http/Controllers/User/OnboardingController.php`を削除（2026-07-30）。調査の結果、トップレベルの`app/Http/Controllers/OnboardingController.php`も参照元がなくなっていたため合わせて削除
 
 ### 3.4 テストカバレッジ拡充
 
