@@ -1,5 +1,7 @@
 # Interface・Repository・Service 移行ガイド
 
+> ✅ **2026-07-30時点で全エンティティの移行が完了しました**（Contract/Invoice/Payment/Projectを含む）。本ドキュメントは移行パターンの参考資料として残す。新規実装時は必ずBaseRepository/BaseService（またはSoftDeletableRepository）パターンに従うこと。
+
 ## ✅ 完了した実装
 
 ### Phase 1: 基底クラス作成 ✅
@@ -421,27 +423,29 @@ $stats = $this->serviceService->getStats();
 
 ## 🎯 移行優先順位
 
+> ✅ 2026-07-30時点で全エンティティの移行が完了。以下は移行時の優先順位の記録として残す。
+
 ### 高優先度（SoftDeletes + よく使う）
 
 1. ✅ AdminRepository/Service - 完了
-2. UserRepository/Service
-3. ServiceRepository/Service
-4. ServiceCategoryRepository/Service
-5. ProjectRepository/Service
+2. ✅ UserRepository/Service - 完了
+3. ✅ ServiceRepository/Service - 完了
+4. ✅ ServiceCategoryRepository/Service - 完了
+5. ✅ ProjectRepository/Service - 完了（2026-07-30）
 
 ### 中優先度（SoftDeletes）
 
-6. CompanyRepository/Service
-7. ContractRepository/Service
-8. InvoiceRepository/Service
-9. BlogRepository/Service
-10. FaqRepository/Service
+6. ✅ CompanyRepository/Service - 完了
+7. ✅ ContractRepository/Service - 完了（2026-07-29）
+8. ✅ InvoiceRepository/Service - 完了（2026-07-30）
+9. ✅ BlogRepository/Service - 完了
+10. ✅ FaqRepository/Service - 完了
 
 ### 低優先度（通常モデル）
 
-11. ContactRepository/Service
-12. PaymentRepository/Service
-13. QuoteRepository/Service
+11. ✅ ContactRepository/Service - 完了
+12. ✅ PaymentRepository/Service - 完了（2026-07-30、SoftDeletes未使用のためBaseRepository/BaseServiceへ移行）
+13. ✅ QuoteRepository/Service - 完了
 
 ---
 
