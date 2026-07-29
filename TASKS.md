@@ -149,7 +149,7 @@
 
 ### 補足: ゼロ工数の即時クリーンアップ
 
-- [ ] **T35**: git作業ツリー上で削除済み・unstagedのままの`app/Http/Controllers/{LoginLog,MediaSetting,MediaVariant}Controller.php`（未使用の空stub、ルーティング依存ゼロ確認済み）をフェーズ1着手前にコミットする。
+- [x] **T35**（完了: 2026-07-29、PR #27）: git作業ツリー上で削除済み・unstagedのままの`app/Http/Controllers/{LoginLog,MediaSetting,MediaVariant}Controller.php`（未使用の空stub、ルーティング依存ゼロ確認済み）をフェーズ1着手前にコミットする。
 
 ---
 
