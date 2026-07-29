@@ -23,8 +23,8 @@ Spra は Laravel 12 + Inertia.js + React による社内向け中央管理シス
 ## 3. Repository/Serviceパターンの規約
 
 - 新規実装は必ず`app/Repositories/BaseRepository`（または`SoftDeletableRepositoryInterface`等）と`app/Services/BaseService`を継承する。Repository=データアクセス、Service=ビジネスロジック、Controller=プレゼンテーションの役割分担を厳守する（詳細は`docs/RepositoryServiceMigrationGuide.md`のパターン例）。
-- 2026-07-29時点で`Contract`/`Invoice`/`Payment`/`Project`の4エンティティのみ未移行（TASKS.mdフェーズ2 §3.1参照）。これらを触る際は、無関係な変更のついでに移行まで行うか、TASKS.mdの該当タスクとして別途着手するか判断する。
-- 既に移行済みの`UserRepository`/`ContactRepository`/`QuoteRepository`/`ServiceRepository`等を参考実装として読むこと。
+- 2026-07-30時点で全エンティティの移行が完了している（Contract/Invoice/Payment/Projectを含む）。既存の`ContractRepository`/`InvoiceRepository`/`PaymentRepository`/`ProjectRepository`等を参考実装として読むこと。
+- `BaseService`の`update(mixed $model, array $data)`/`delete(mixed $model)`をオーバーライドする際、PHPの引数共変性制約により第一引数を具体的なモデル型に狭めることはできない（`mixed`のまま受け取り、関数内で目的の型として扱う）。
 
 ## 4. Inertia + React + Blade の使い分け
 
@@ -36,7 +36,7 @@ Spra は Laravel 12 + Inertia.js + React による社内向け中央管理シス
 
 ## 5. 既知の技術的負債に触れる際の注意
 
-- TASKS.mdフェーズ2に列挙された項目（Repository/Service残り4エンティティ、Button統一、RichTextEditor重複、ScheduleDefaultController等の空stub、アプリ名不一致）は、**関連するファイルを触った場合についでに直す**範囲に留める。無関係な大規模一括置換はスコープ外。
+- TASKS.mdフェーズ2に列挙された項目（Button統一、RichTextEditor重複、ScheduleDefaultController等の空stub、アプリ名不一致）は、**関連するファイルを触った場合についでに直す**範囲に留める。無関係な大規模一括置換はスコープ外。
 - **`docs/`配下のガイドやSPEC.md/TASKS.mdの記述を無条件に信用せず、必ず現在のコードを読んで実態を確認してから作業する。** 2026-07-29の検証で、docsに「未修正の既知バグ」と記載されていたものの一部（Quote⇔QuoteResponse同期、Company.statusのenum、下書き請求書のsent化）が実際には既に解消済みだったことが判明している（SPEC.md §7参照）。ドキュメントは実装当時のスナップショットであり、後から直っていても更新されていないことがある。
 - Onboarding/Quote/Invoice/Contract等、金銭・法的リスクが絡む変更を行う場合は、関連するFeatureテスト（TASKS.mdフェーズ1のT3・T5・T8等で追加予定）を実行してから完了とする。
 

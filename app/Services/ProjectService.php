@@ -8,7 +8,7 @@ use App\Models\ProjectMilestone;
 use App\Models\ProjectUpdate;
 use App\Models\ProjectItem;
 use App\Models\ProjectTemplate;
-use App\Repositories\ProjectRepository;
+use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\ProjectVersionRepository;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,26 +16,23 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class ProjectService
+class ProjectService extends BaseService
 {
   public function __construct(
-    private ProjectRepository $repository,
+    ProjectRepositoryInterface $repository,
     private ProjectVersionRepository $versionRepository
-  ) {}
+  ) {
+    parent::__construct($repository);
+  }
 
-  public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+  protected function getEntityName(): string
   {
-    return $this->repository->paginate($perPage, $filters);
+    return 'Project';
   }
 
   public function getPaginatedForClient(string $userId, array $filters = [], int $perPage = 20): LengthAwarePaginator
   {
     return $this->repository->paginateForClient($userId, $perPage, $filters);
-  }
-
-  public function findById(string $id): ?Project
-  {
-    return $this->repository->findById($id);
   }
 
   public function findByIdForClient(string $id, string $userId): ?Project
@@ -207,9 +204,13 @@ class ProjectService
     });
   }
 
-  public function update(Project $project, array $data, array $categoryIds = []): Project
+  /**
+   * @param Project $model
+   */
+  public function update(mixed $model, array $data, array $categoryIds = []): mixed
   {
-    return DB::transaction(function () use ($project, $data, $categoryIds) {
+    return DB::transaction(function () use ($model, $data, $categoryIds) {
+      $project = $model;
       $technologyIds = $data['technology_ids'] ?? null;
       unset($data['technology_ids']);
 
@@ -265,9 +266,12 @@ class ProjectService
     $project->admins()->sync($syncData);
   }
 
-  public function delete(Project $project): bool
+  /**
+   * @param Project $model
+   */
+  public function delete(mixed $model): bool
   {
-    return $this->repository->delete($project);
+    return $this->repository->delete($model);
   }
 
   public function getActiveByUser(string $userId): Collection
