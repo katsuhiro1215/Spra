@@ -190,7 +190,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K1 | Quote⇔QuoteResponseのuser_id/company_id同期 | **解消済み**（`QuoteResponseController.php` L192-197で実装済み、回帰テスト追加済み、`docs/QuoteUserCompanyIdAnalysis.md`に解消済みの旨を追記済み） | フェーズ1（完了） |
 | K2 | Company.status enumに`pending`が無くonboarding承認をブロックする懸念 | **懸念は解消済み**（`pending`はenumに定義済み、`docs/OnboardingSystemGuide.md`の記述が誤り）。実地検証済み、docs訂正済み | フェーズ1（完了） |
 | K3 | QuoteObserverが未登録のデッドコード | **修正済み**（2026-07-29）。`Admin/Contact/Show.jsx`から`contact_id`のみを渡してQuoteを作成する実際のUI導線があり、Observerのメール一致による自動User/Company紐付けは実用上必要と判断。`Quote`モデルに`#[ObservedBy(QuoteObserver::class)]`属性を追加して登録し、動作確認テストを追加 | フェーズ1（完了） |
-| K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テストが無い | フェーズ1（テスト追加） |
+| K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テスト追加済み（`tests/Feature/Invoice/MonthlyInvoiceGenerationTest.php`） | フェーズ1（完了） |
 | K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **修正済み**（2026-07-29、`admins`に修正、回帰テスト追加） | フェーズ1（完了） |
 | K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | **修正済み**（2026-07-29、`mimes:jpeg,jpg,png,gif,webp`を追加、回帰テスト追加） | フェーズ1（完了） |
 | K7 | 公開フォーム（`contact.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | `consultation.store`のみ設定済み | フェーズ1（セキュリティ） |

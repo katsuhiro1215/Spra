@@ -41,10 +41,10 @@
     3. 副次的に`detail()`で存在しない`$company->type`を参照していた点（正しくは`company_type`）も修正。
     - `tests/Feature/Admin/OnboardingApprovalTest.php`で承認・却下の両方を確認済み。全テストスイート実行で新規失敗なし。
 
-- [ ] **T5: 月次自動請求書のsent化を保証する回帰テストを追加**
+- [x] **T5: 月次自動請求書のsent化を保証する回帰テストを追加**（完了: 2026-07-29、`fix/monthly-invoice-sent-regression-test`）
   - 対象ファイル: `app/Services/InvoiceService.php`、`app/Console/Commands/GenerateMonthlyInvoices.php`、`app/Console/Commands/SendPendingInvoices.php`
   - 内容: 2026-07-21付けで既に修正済み（`docs/BatchAutomationOverview.md`記載）だが自動テストが無い。月次自動生成・契約承認時自動生成の両経路でstatus=sent・PDF生成・メール送信・契約履歴記録までを保証するFeatureテストを追加する。
-  - 完了の定義: 両経路のテストがGreen。
+  - 完了の定義: 両経路のテストがGreen。→ `tests/Feature/Invoice/MonthlyInvoiceGenerationTest.php`で`InvoiceService::generateMonthlyInvoice()`を確認（status=sent・pdf_path・契約履歴`invoice_sent`・次回請求日更新まで）。`GenerateInvoiceJob`（契約承認時自動生成）も同じ`InvoiceService::sendInvoice()`を呼ぶ共通経路のため、二重にテストを書かず1本に集約した。
 
 - [ ] **T6: `MAIL_ADMIN_ADDRESS`を実際に届くアドレスに設定**
   - 対象ファイル: `.env`
