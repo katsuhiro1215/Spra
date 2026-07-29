@@ -3,22 +3,42 @@
 namespace App\Repositories;
 
 use App\Models\Contract;
-use App\Models\Quote;
-use App\Models\Service;
+use App\Models\ContractVersion;
 use App\Repositories\Contracts\ContractRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
-class ContractRepository implements ContractRepositoryInterface
+class ContractRepository extends SoftDeletableRepository implements ContractRepositoryInterface
 {
-    public function query(): Builder
+    protected function getModelClass(): string
     {
-        return Contract::query();
+        return Contract::class;
     }
 
-    public function findById(string $id): ?Contract
+    protected function getSearchableFields(): array
+    {
+        return [
+            'title',
+            'contract_number',
+        ];
+    }
+
+    protected function getSortableFields(): array
+    {
+        return ['created_at', 'title', 'contract_number', 'status', 'end_date'];
+    }
+
+    protected function getDefaultRelations(): array
+    {
+        return ['user.profile', 'company', 'project', 'currentVersion'];
+    }
+
+    /**
+     * 詳細画面向けに全関連データを読み込んで取得する（一覧用のgetDefaultRelations()より重いため個別実装）
+     */
+    public function findById(string $id): mixed
     {
         return Contract::with([
             'user.profile',
@@ -51,24 +71,7 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function findWithFilters(array $filters): Builder
     {
-        $query = Contract::query()->with([
-            'user.profile',
-            'company',
-            'project',
-            'currentVersion'
-        ]);
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('contract_number', 'like', "%{$search}%");
-            });
-        }
-
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
+        $query = parent::findWithFilters($filters);
 
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);
@@ -85,18 +88,6 @@ class ContractRepository implements ContractRepositoryInterface
         return $query;
     }
 
-    public function paginate(int $perPage = 20, array $filters = [], array $sort = []): LengthAwarePaginator
-    {
-        $query = $this->findWithFilters($filters);
-        $query = $this->applySorting(
-            $query,
-            $sort['field'] ?? 'created_at',
-            $sort['direction'] ?? 'desc'
-        );
-
-        return $query->paginate($perPage)->withQueryString();
-    }
-
     public function paginateForClient(string $userId, int $perPage = 20, array $filters = [], array $sort = []): LengthAwarePaginator
     {
         $query = Contract::where('user_id', $userId)
@@ -104,11 +95,7 @@ class ContractRepository implements ContractRepositoryInterface
             ->with(['project', 'documents', 'invoices']);
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('contract_number', 'like', "%{$search}%");
-            });
+            $query = $this->buildSearchQuery($query, $filters['search']);
         }
 
         if (!empty($filters['status'])) {
@@ -121,36 +108,9 @@ class ContractRepository implements ContractRepositoryInterface
 
         return $this->applySorting(
             $query,
-            $sort['field'] ?? 'created_at',
+            $sort['field'] ?? $this->getDefaultSortField(),
             $sort['direction'] ?? 'desc'
         )->paginate($perPage)->withQueryString();
-    }
-
-    public function buildSearchQuery(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('contract_number', 'like', "%{$search}%");
-        });
-    }
-
-    public function buildStatusFilter(Builder $query, string $status): Builder
-    {
-        return $query->where('status', $status);
-    }
-
-    public function applySorting(Builder $query, string $field, string $direction = 'desc'): Builder
-    {
-        $allowed = ['created_at', 'title', 'contract_number', 'status', 'end_date'];
-        $field = in_array($field, $allowed) ? $field : 'created_at';
-        $direction = $direction === 'asc' ? 'asc' : 'desc';
-
-        return $query->orderBy($field, $direction);
-    }
-
-    public function create(array $data): Contract
-    {
-        return Contract::create($data);
     }
 
     /**
@@ -163,13 +123,11 @@ class ContractRepository implements ContractRepositoryInterface
         $month = date('m');
         $prefix = "C{$year}{$month}";
 
-        // 今月の最新の契約番号を取得
         $latestContract = Contract::where('contract_number', 'like', "{$prefix}%")
             ->orderBy('contract_number', 'desc')
             ->first();
 
         if ($latestContract) {
-            // 最後の4桁を取得してインクリメント
             $lastNumber = (int) substr($latestContract->contract_number, -4);
             $newNumber = $lastNumber + 1;
         } else {
@@ -177,17 +135,6 @@ class ContractRepository implements ContractRepositoryInterface
         }
 
         return sprintf('%s%04d', $prefix, $newNumber);
-    }
-
-    public function update(Contract $contract, array $data): Contract
-    {
-        $contract->update($data);
-        return $contract->fresh();
-    }
-
-    public function delete(Contract $contract): bool
-    {
-        return $contract->delete();
     }
 
     public function getActiveByUser(string $userId): Collection
@@ -218,17 +165,18 @@ class ContractRepository implements ContractRepositoryInterface
 
     public function getStats(): array
     {
-        return [
-            'total' => Contract::count(),
+        $baseStats = parent::getStats();
+
+        return array_merge($baseStats, [
             'active' => Contract::where('status', 'active')->count(),
             'pending' => Contract::where('status', 'pending_signature')->count(),
             'completed' => Contract::where('status', 'completed')->count(),
             'draft' => Contract::where('status', 'draft')->count(),
             'suspended' => Contract::where('status', 'suspended')->count(),
             'cancelled' => Contract::where('status', 'cancelled')->count(),
-            'total_amount' => \App\Models\ContractVersion::whereHas('contract', function ($query) {
+            'total_amount' => ContractVersion::whereHas('contract', function ($query) {
                 $query->whereIn('status', ['active', 'pending_signature']);
             })->where('is_current', true)->sum('total_amount'),
-        ];
+        ]);
     }
 }

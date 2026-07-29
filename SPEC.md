@@ -199,7 +199,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | **修正済み**（2026-07-29、`mimes:jpeg,jpg,png,gif,webp`を追加、回帰テスト追加） | フェーズ1（完了） |
 | K7 | 公開フォーム（`contact.store`/`quote.response.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | **修正済み**（2026-07-29、全て`throttle:5,1`を追加、回帰テスト追加） | フェーズ1（完了） |
 | K8 | `.env`に`MAIL_ADMIN_ADDRESS`が未設定 | **設定済み**（2026-07-29、`MAIL_FROM_ADDRESS`と同じ`info@katsucode.jp`。`.env`は追跡対象外のためコミットなし） | フェーズ1（完了） |
-| K9 | Repository/Serviceの基盤クラス移行が未完了 | 残りは**Contract・Invoice・Payment・Projectの4エンティティのみ**（他は移行済み、`docs/RepositoryServiceMigrationGuide.md`は未更新） | フェーズ2 |
+| K9 | Repository/Serviceの基盤クラス移行が未完了 | Contract移行済み（2026-07-29）。残りは**Invoice・Payment・Projectの3エンティティ**（他は移行済み、`docs/RepositoryServiceMigrationGuide.md`は未更新） | フェーズ2 |
 | K10 | 旧Button/CrudButtons→新Buttonコンポーネントへの統一が未完了 | 旧コンポーネント使用ファイルが多数残存（`docs/ButtonRefactoringGuide.md`参照） | フェーズ2 |
 | K11 | `RichTextEditor.jsx`の重複 | `resources/js/Components/RichTextEditor.jsx`は`<textarea>`のTODOスタブ。実体は`Components/Forms/RichTextEditor.jsx` | フェーズ2 |
 | K12 | `ScheduleDefaultController`の未使用stub | create/store/show/edit/update/destroyが空実装（index/bulkUpdateのみ実使用） | フェーズ2 |
