@@ -29,7 +29,7 @@ class InvoiceController extends Controller
     {
         $filters = $request->only(['search', 'status', 'user_id', 'company_id']);
 
-        $invoices = $this->service->getPaginated($filters, 20);
+        $invoices = $this->service->getPaginated($filters, perPage: 20);
 
         $stats = [
             'total' => Invoice::count(),
