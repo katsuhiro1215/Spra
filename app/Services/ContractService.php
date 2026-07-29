@@ -6,22 +6,24 @@ use App\Models\Campaign;
 use App\Models\Contract;
 use App\Models\ContractVersion;
 use App\Models\Quote;
-use App\Repositories\ContractRepository;
+use App\Repositories\Contracts\ContractRepositoryInterface;
 use App\Services\ContractBenefitService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
-class ContractService
+class ContractService extends BaseService
 {
     public function __construct(
-        private ContractRepository $repository,
+        ContractRepositoryInterface $repository,
         private ContractBenefitService $benefitService,
-    ) {}
+    ) {
+        parent::__construct($repository);
+    }
 
-    public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    protected function getEntityName(): string
     {
-        return $this->repository->paginate($perPage, $filters);
+        return 'Contract';
     }
 
     /**
@@ -37,24 +39,9 @@ class ContractService
         return $this->repository->paginateForClient($userId, $perPage, $filters);
     }
 
-    public function findById(string $id): ?Contract
-    {
-        return $this->repository->findById($id);
-    }
-
     public function findByIdForClient(string $id, string $userId): ?Contract
     {
         return $this->repository->findByIdForClient($id, $userId);
-    }
-
-    public function create(array $data): Contract
-    {
-        return $this->repository->create($data);
-    }
-
-    public function update(Contract $contract, array $data): Contract
-    {
-        return $this->repository->update($contract, $data);
     }
 
     /**
@@ -146,14 +133,6 @@ class ContractService
     }
 
     /**
-     * 契約の統計情報を取得
-     */
-    public function getStats(): array
-    {
-        return $this->repository->getStats();
-    }
-
-    /**
      * 新しい契約を作成
      *
      * Contract作成 → ContractVersion v1 作成 → ContractItems作成
@@ -166,7 +145,7 @@ class ContractService
         return DB::transaction(function () use ($data) {
             // 契約番号を自動生成
             if (empty($data['contract_number'])) {
-                $data['contract_number'] = $this->generateContractNumber();
+                $data['contract_number'] = $this->repository->generateContractNumber();
             }
 
             // 作成者を設定
@@ -387,15 +366,5 @@ class ContractService
             'tax_amount' => $taxAmount,
             'total_amount' => $totalAmount,
         ]);
-    }
-
-    /**
-     * 契約番号を生成
-     *
-     * @return string
-     */
-    private function generateContractNumber(): string
-    {
-        return $this->repository->generateContractNumber();
     }
 }

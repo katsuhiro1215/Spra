@@ -34,7 +34,7 @@ class ContractController extends Controller
     {
         $filters = $request->only(['search', 'status', 'type', 'user_id', 'company_id']);
 
-        $contracts = $this->service->getPaginated($filters, 20);
+        $contracts = $this->service->getPaginated($filters, perPage: 20);
         $stats = $this->service->getStats();
 
         return Inertia::render('Admin/Contracts/Index', [
