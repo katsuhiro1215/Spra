@@ -32,10 +32,14 @@
   - 内容: 現行コードには既にQuote本体への同期処理（L192-197）が実装済み。実際にDBで動作確認し、`quote_id`が無いケース（シミュレーター経由等）の扱いを洗い出した上でFeatureテストを追加し、`docs/QuoteUserCompanyIdAnalysis.md`を実態に合わせて更新する。
   - 完了の定義: テストGreen、docs更新済み。→ `tests/Feature/QuoteResponseRegistrationSyncTest.php`で確認済み（同期動作／トークン再使用時の安全な失敗の2パターン）。なお`quote_responses.quote_id`はDB制約上NOT NULLのため「quote_idが無いケース」は実際には発生し得ないことを確認（コード中の`if ($quoteResponse->quote_id)`は常にtrueとなる冗長なガード節）。`docs/QuoteUserCompanyIdAnalysis.md`に解消済みの旨を追記。
 
-- [ ] **T4: Onboarding承認/却下フロー（Company.status='pending'）の実地検証**
+- [x] **T4: Onboarding承認/却下フロー（Company.status='pending'）の実地検証**（完了: 2026-07-29、`fix/onboarding-approval-verification`）
   - 対象ファイル: `app/Http/Controllers/Admin/OnboardingController.php`、`docs/OnboardingSystemGuide.md`
   - 内容: migration・登録処理は既に整合しているため実質バグではない。実際に承認・却下双方を通し、`reject()`が物理削除である仕様を最終確認した上でSPEC.mdの記述と合わせる。
-  - 完了の定義: 承認・却下双方をFeatureテストで確認、docs訂正。
+  - 完了の定義: 承認・却下双方をFeatureテストで確認、docs訂正。→ **検証の結果、想定より深刻な2件の実バグを発見・修正**:
+    1. `reject()`は`delete()`でUser/Companyを削除していたが両モデルとも`SoftDeletes`のため論理削除にしかならず、`users.email`のunique制約が残ったままになり**却下後に同じメールアドレスで再登録が永久にできなくなる**バグがあった。`forceDelete()`に変更して物理削除に修正（コード内コメントが元々想定していた「FK cascadeで片付く」という意図とも一致）。
+    2. `approve()`は`invoices`テーブルが必須とする`contract_id`/`user_id`を渡さずInvoiceを作成しようとしており、**承認ボタンを押すと必ずSQLエラーで失敗する**バグがあった（ユーザーに確認の上、`ContractService::createContract()`でQuoteの内容を引き継いだContractを自動作成してからInvoiceを発行するよう修正、SPEC.md §7 K19参照）。
+    3. 副次的に`detail()`で存在しない`$company->type`を参照していた点（正しくは`company_type`）も修正。
+    - `tests/Feature/Admin/OnboardingApprovalTest.php`で承認・却下の両方を確認済み。全テストスイート実行で新規失敗なし。
 
 - [ ] **T5: 月次自動請求書のsent化を保証する回帰テストを追加**
   - 対象ファイル: `app/Services/InvoiceService.php`、`app/Console/Commands/GenerateMonthlyInvoices.php`、`app/Console/Commands/SendPendingInvoices.php`
