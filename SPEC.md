@@ -211,7 +211,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **修正済み**（2026-07-29）。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換えて修正 | フェーズ1（完了、優先度を上げて対応） |
 | K19 | `Admin\OnboardingController::approve()`がContractを作成せずInvoiceを発行しようとし必ず失敗 | **修正済み**（2026-07-29）。`invoices.contract_id`/`user_id`はDB上必須だが、approve()はQuoteから直接Invoiceを作っておりContract作成が完全に欠落していた。**承認ボタンが一度も正常動作していなかった可能性が高い実質的な機能停止バグ**。ユーザー判断により、`ContractService::createContract()`でQuoteの内容（明細・金額）を引き継いだContractを自動作成してからInvoiceを発行するよう修正 | フェーズ1（完了） |
 | K20 | 2FAが`owner`/`super_admin`を含め全adminロールで任意設定（opt-in）、組織として強制する仕組みが無い | バグではなくポリシー上の懸念（2026-07-29棚卸しで判明）。ログイン自体にバイパス経路は無い。2FA必須化を行うかはビジネス判断が必要 | フェーズ2（要判断） |
-| K21 | `emails/contact/notification.blade.php`が存在しないルート名`admin.homepage.contacts.show`を参照 | **未修正・新規発見**（2026-07-29、Atlas申込みフォームの実地確認中に発見）。正しくは`admin.contact.show`。`route()`が`RouteNotFoundException`を投げ、`ContactService::sendNotificationEmails()`のtry/catchで警告ログのみ記録され握りつぶされるため、**Contact（Atlas申込みも含む）作成時の管理者通知メールが常に送信失敗している**。DBの通知（ベルアイコン）は別経路のため気づきにくい | フェーズ1（次PRで対応） |
+| K21 | `emails/contact/notification.blade.php`が存在しないルート名`admin.homepage.contacts.show`を参照 | **修正済み**（2026-07-29）。正しい`admin.contact.show`に修正。`route()`が`RouteNotFoundException`を投げ、`ContactService::sendNotificationEmails()`のtry/catchで警告ログのみ記録され握りつぶされていたため、**Contact（Atlas申込みも含む）作成時の管理者通知メールが常に送信失敗していた**。DBの通知（ベルアイコン）は別経路のため気づきにくかった | フェーズ1（完了） |
 
 ## 8. 用語集
 

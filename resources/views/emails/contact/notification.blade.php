@@ -50,7 +50,7 @@
 
     ---
 
-    @component('mail::button', ['url' => route('admin.homepage.contacts.show', $contact->id)])
+    @component('mail::button', ['url' => route('admin.contact.show', $contact->id)])
         お問い合わせを確認する
     @endcomponent
 
