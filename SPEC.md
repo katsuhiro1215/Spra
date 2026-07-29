@@ -204,7 +204,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K15 | Search Console連携が本番未検証 | `SEARCH_CONSOLE_DRIVER=dummy`のまま、`google`切替後の動作未確認 | フェーズ2 |
 | K16 | 未参照の`User\OnboardingController` | `docs/OnboardingSystemGuide.md`に削除候補として記載済み | フェーズ2 |
 | K17 | `Admin\MediaController::update()`/`destroy()`の引数名`$media`がリソースルートの実パラメータ名`{medium}`と不一致 | **修正済み**（2026-07-29）。**新規発見の実バグ**: 暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた。`show()`/`edit()`は`$medium`で正しく動作していたが、`update()`/`destroy()`はメディア情報の更新・削除が実質常に失敗していた可能性が高い（K5のガード修正でテストを書いたところ発覚） | フェーズ1（完了） |
-| K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **未修正・新規発見**。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返す（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっている可能性が高い | フェーズ2（要対応、次点で優先度高） |
+| K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **修正済み**（2026-07-29）。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換えて修正 | フェーズ1（完了、優先度を上げて対応） |
 | K19 | `Admin\OnboardingController::approve()`がContractを作成せずInvoiceを発行しようとし必ず失敗 | **修正済み**（2026-07-29）。`invoices.contract_id`/`user_id`はDB上必須だが、approve()はQuoteから直接Invoiceを作っておりContract作成が完全に欠落していた。**承認ボタンが一度も正常動作していなかった可能性が高い実質的な機能停止バグ**。ユーザー判断により、`ContractService::createContract()`でQuoteの内容（明細・金額）を引き継いだContractを自動作成してからInvoiceを発行するよう修正 | フェーズ1（完了） |
 
 ## 8. 用語集
