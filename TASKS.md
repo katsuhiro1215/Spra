@@ -78,10 +78,10 @@
   - 内容: 個人情報を伴うエンドポイントに`throttle`が無い（`consultation.store`のみ L110 で`throttle:5,1`設定済み）。同水準のthrottleを追加する。
   - 完了の定義: 各エンドポイントで超過時429が返ることをテストで確認。→ `contact.store`/`quote.response.store`/`quote.response.register.store`/`invoice.payment.store`に`throttle:5,1`を追加（`quote.response.store`は元のタスク一覧に無かったが、同じ公開トークン系エンドポイント群のため合わせて対応）。`tests/Feature/Public/PublicFormThrottleTest.php`で確認済み。
 
-- [ ] **T11: ログ出力への個人情報混入監査**
-  - 対象: app全体の`Log::info/error/debug`呼び出し
+- [x] **T11: ログ出力への個人情報混入監査**（完了: 2026-07-29、`docs/log-pii-audit`。問題なし、修正不要）
+  - 対象: app全体の`Log::info/error/debug`呼び出し（165箇所）
   - 内容: `$request->all()`やパスワード・トークンをそのまま出力していないか監査し、該当箇所があれば修正する。
-  - 完了の定義: 監査結果をSPEC.md §6.1に反映。
+  - 完了の定義: 監査結果をSPEC.md §6.1に反映。→ `$request->all()`/`$request`/モデルの`->toArray()`を直接渡している箇所は無く、いずれもID・ステータス・エラーメッセージ等の構造化されたコンテキストのみを渡す一貫したパターンだった。DBに保存する操作ログ（`ActivityLogMiddleware::sanitizeRequestData()`）は既に`password`/`token`/`api_key`等を`[FILTERED]`に置換する仕組みが実装済みで問題なし。
 
 - [ ] **T12: 本番用セッションCookie設定の確定**
   - 対象ファイル: 本番用`.env`（TASKS 2.3で作成）、`config/session.php`
