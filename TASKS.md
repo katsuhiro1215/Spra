@@ -51,10 +51,10 @@
   - 内容: 現状キー自体が未設定（`.env.example`のダミー値`admin@example.com`にフォールバックする状態）。バッチ失敗通知・督促メール等の管理者宛通知が実際には届かない。
   - 完了の定義: バッチを意図的に失敗させ、通知が実アドレスに届くことを確認。→ `MAIL_FROM_ADDRESS`と同じ`info@katsucode.jp`をユーザー指示で設定し、`config('mail.admin_address')`が正しく反映されることを確認済み。実際のバッチ失敗時の受信確認は本番環境（フェーズ1 T15-T27）で行う。
 
-- [ ] **T7: `Contract::shouldGenerateInvoice()`と`GenerateMonthlyInvoices`の重複ロジックを整理**
+- [x] **T7: `Contract::shouldGenerateInvoice()`と`GenerateMonthlyInvoices`の重複ロジックを整理**（完了: 2026-07-29、`chore/contract-invoice-eligibility-consolidation`）
   - 対象ファイル: `app/Models/Contract.php`(L339-358)、`app/Console/Commands/GenerateMonthlyInvoices.php`
   - 内容: モデル側に条件メソッドが定義されているが、コマンド側で同等条件を直接クエリしていないか確認し、重複があれば一本化する。
-  - 完了の定義: 重複解消後も既存バッチの挙動が変わらないことをテストで確認。
+  - 完了の定義: 重複解消後も既存バッチの挙動が変わらないことをテストで確認。→ `shouldGenerateInvoice()`はどこからも呼ばれておらずクエリと重複したデッドコードだったと判明。クエリ自体はDB絞り込みに必要なため残し、生成直前に`shouldGenerateInvoice()`で再検証する安全網として組み込み、将来クエリ条件とモデル条件がずれた場合の事故を防ぐ形にした。`tests/Feature/Invoice/GenerateMonthlyInvoicesCommandTest.php`で対象/対象外の契約が正しく仕分けられることを確認。
 
 - [ ] **T8: Contract/Invoice/Quoteの金額計算ロジックにUnitテストを追加**
   - 対象ファイル: `app/Services/ContractService.php`、`app/Services/InvoiceService.php`、`app/Services/QuoteService.php`
