@@ -78,6 +78,7 @@
 | `APP_URL` | 本番ドメイン（https://…） | |
 | `DB_*` | 本番DB接続情報 | コンテナ内MySQLを使う場合はホスト名をサービス名に |
 | `SESSION_DOMAIN` | 本番ドメイン | |
+| `SESSION_SECURE_COOKIE` | `true` | HTTPS化必須（本ガイドの手順9でnginx+Let's Encryptを設定済み前提）。未設定のままだとCookieがHTTP経由でも送信されうる |
 | `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` / `INSTAGRAM_PAGE_ACCESS_TOKEN` / `INSTAGRAM_VERIFY_TOKEN` | Meta Developer Consoleで取得した実値 | Webhook購読はHTTPS到達可能な本番URLでないと登録不可 |
 | `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま |
 | `SEARCH_CONSOLE_SITE_URL` / `SEARCH_CONSOLE_CREDENTIALS_PATH` | Search Console連携用の実値 | 本番でのみ検証可能 |
