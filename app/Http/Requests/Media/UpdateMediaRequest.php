@@ -12,7 +12,7 @@ class UpdateMediaRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::guard('admin')->check();
+        return Auth::guard('admins')->check();
     }
 
     /**
@@ -24,9 +24,9 @@ class UpdateMediaRequest extends FormRequest
     {
         return [
             // 単一ファイルまたは複数ファイルに対応
-            'file' => ['nullable', 'file', 'max:51200'], // 単一ファイル（Modal用）
+            'file' => ['nullable', 'file', 'mimes:jpeg,jpg,png,gif,webp', 'max:51200'], // 単一ファイル（Modal用）
             'files' => ['nullable', 'array'],
-            'files.*' => ['required', 'file', 'max:51200'], // 50MB
+            'files.*' => ['required', 'file', 'mimes:jpeg,jpg,png,gif,webp', 'max:51200'], // 50MB
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'alt_text' => ['nullable', 'string', 'max:255'],

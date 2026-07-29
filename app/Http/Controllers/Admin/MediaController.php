@@ -130,10 +130,10 @@ class MediaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMediaRequest $request, Media $media)
+    public function update(UpdateMediaRequest $request, Media $medium)
     {
         try {
-            $this->mediaRepository->update($media->id, $request->validated());
+            $this->mediaRepository->update($medium->id, $request->validated());
 
             return back()->with('success', __('messages.updated', ['attribute' => 'メディア情報']));
         } catch (\Exception $e) {
@@ -146,10 +146,10 @@ class MediaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Media $media)
+    public function destroy(Media $medium)
     {
         try {
-            $this->mediaService->deleteMedia($media->id);
+            $this->mediaService->deleteMedia($medium->id);
 
             return redirect()
                 ->route('admin.media.index')
