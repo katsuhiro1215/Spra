@@ -1,5 +1,12 @@
 # Quote の user_id と company_id 設定方法 - 調査報告書
 
+> **✅ 2026-07-29追記: 本書§3.2/§4.2/§5/§6で指摘していた同期漏れは解消済みです。**
+> `QuoteResponseController::registerStore()`（`app/Http/Controllers/QuoteResponseController.php` L192-197）に、
+> QuoteResponse登録完了時に元のQuoteへ`user_id`/`company_id`を同期する処理が既に実装されています
+> （本書§5で提案していたEvent/Listenerパターンではなく、コントローラー内で直接同期する形）。
+> 回帰テストは `tests/Feature/QuoteResponseRegistrationSyncTest.php` を参照。
+> 以下は解消前の調査記録として残していますが、**現状のコードの動作とは異なる**点に注意してください（SPEC.md §7 K1参照）。
+
 ## 概要
 
 見積もり（Quote）作成時の user_id と company_id がどのように設定されているかの調査結果を以下にまとめます。
