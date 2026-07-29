@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUlid;
+use App\Observers\QuoteObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy(QuoteObserver::class)]
 class Quote extends Model
 {
     use HasUlid, SoftDeletes;

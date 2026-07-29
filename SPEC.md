@@ -115,7 +115,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 
 ### 5.1 Contact / Quote
 - `Contact`（問い合わせ、`source`/IP/UTM等のトラッキング情報を保持）→ `Quote`（見積もり、`quote_number`自動採番）。
-- `QuoteObserver` はContactのメールアドレスからUser/Companyを自動特定するロジックを持つが、**現状どこにも登録（`observe()`呼び出し）されておらず動作していない**（§7・TASKS.md参照）。
+- `QuoteObserver`（`Quote`モデルに`#[ObservedBy]`属性で登録済み）は、`contact_id`のみを指定してQuoteを作成した場合（`Admin/Contact/Show.jsx`からの「見積もり作成」導線）に、Contactのメールアドレスと一致する既存Userを自動的に`user_id`/`company_id`へ紐付ける。
 
 ### 5.2 Onboarding（顧客登録承認）
 - 詳細: `docs/OnboardingSystemGuide.md`
@@ -189,7 +189,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 |---|---|---|---|
 | K1 | Quote⇔QuoteResponseのuser_id/company_id同期 | **実装済み**（`QuoteResponseController.php` L192-197）。`docs/QuoteUserCompanyIdAnalysis.md`の記述は古い。回帰テスト未整備 | フェーズ1（検証＋テスト＋doc更新） |
 | K2 | Company.status enumに`pending`が無くonboarding承認をブロックする懸念 | **懸念は解消済み**（`pending`はenumに定義済み、`docs/OnboardingSystemGuide.md`の記述が誤り）。実地検証のみ要 | フェーズ1（検証＋doc訂正） |
-| K3 | QuoteObserverが未登録のデッドコード | **未解決の実バグ**。登録するか削除するか要決定 | フェーズ1（最優先） |
+| K3 | QuoteObserverが未登録のデッドコード | **修正済み**（2026-07-29）。`Admin/Contact/Show.jsx`から`contact_id`のみを渡してQuoteを作成する実際のUI導線があり、Observerのメール一致による自動User/Company紐付けは実用上必要と判断。`Quote`モデルに`#[ObservedBy(QuoteObserver::class)]`属性を追加して登録し、動作確認テストを追加 | フェーズ1（完了） |
 | K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テストが無い | フェーズ1（テスト追加） |
 | K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **修正済み**（2026-07-29、`admins`に修正、回帰テスト追加） | フェーズ1（完了） |
 | K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | **修正済み**（2026-07-29、`mimes:jpeg,jpg,png,gif,webp`を追加、回帰テスト追加） | フェーズ1（完了） |

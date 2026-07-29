@@ -22,10 +22,10 @@
   - 完了の定義: 実際に管理画面からメディア更新を実行しエラーが出ないことを確認。→ Featureテスト（`tests/Feature/Admin/MediaUpdateRequestTest.php`）で確認済み。
   - **副次的発見（T1対応中に判明、あわせて修正済み）**: `Admin\MediaController::update()`/`destroy()`の引数名が`$media`だったが、リソースルートの実パラメータ名は`{medium}`（`show()`/`edit()`は`$medium`で正しい）。名前不一致で暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた＝**メディア更新・削除が実質常に失敗していた実バグ**。`$medium`に統一して修正（SPEC.md §7 K17参照）。
 
-- [ ] **T2: QuoteObserverの扱いを決定し実装する（登録 or 削除）**
-  - 対象ファイル: `app/Observers/QuoteObserver.php`、`app/Models/Quote.php`、`app/Providers/AppServiceProvider.php`（または適切なProvider）
-  - 内容: `QuoteObserver`はContactのメールアドレスからUser/Companyを自動特定するロジックを持つが、現状どこにも`Quote::observe()`や`#[ObservedBy]`属性で登録されておらず、**唯一の真に未解決の既知バグ**。運用実態（管理者がcontact_idのみでQuoteを作成するケースがあるか）を確認し、必要なら登録、不要なら削除する。
-  - 完了の定義: 登録する場合は動作確認テストを追加。削除する場合は参照ゼロを確認してコミット。
+- [x] **T2: QuoteObserverの扱いを決定し実装する（登録 or 削除）**（完了: 2026-07-29、`fix/register-quote-observer`）
+  - 対象ファイル: `app/Observers/QuoteObserver.php`、`app/Models/Quote.php`
+  - 内容: `QuoteObserver`はContactのメールアドレスからUser/Companyを自動特定するロジックを持つが、現状どこにも`Quote::observe()`や`#[ObservedBy]`属性で登録されておらず、**唯一の真に未解決の既知バグ**。運用実態を確認したところ、`resources/js/Pages/Admin/Contact/Show.jsx`(L236)から`contact_id`のみを渡してQuote作成画面に遷移する実際のUI導線があり、Observerの自動紐付けロジックは実用上必要と判断。`Quote`モデルに`#[ObservedBy(QuoteObserver::class)]`属性を追加して登録した。
+  - 完了の定義: 登録する場合は動作確認テストを追加。→ `tests/Unit/QuoteObserverTest.php`で確認済み（自動紐付け／明示的user_idの尊重／マッチなしの場合にnullのまま、の3パターン）。
 
 - [ ] **T3: Quote⇔QuoteResponseのuser_id/company_id同期を検証し回帰テストを追加**
   - 対象ファイル: `app/Http/Controllers/QuoteResponseController.php`(L158-198)、`docs/QuoteUserCompanyIdAnalysis.md`
