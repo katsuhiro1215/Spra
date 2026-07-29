@@ -18,6 +18,7 @@ class AppointmentSlot extends Model
    * @var array<int, string>
    */
   protected $fillable = [
+    'recurrence_id',
     'date',
     'start_time',
     'end_time',
@@ -134,6 +135,14 @@ class AppointmentSlot extends Model
   public function appointments(): HasMany
   {
     return $this->hasMany(Appointment::class);
+  }
+
+  /**
+   * この予約枠を生成した繰り返し設定（手動作成の場合はnull）
+   */
+  public function recurrence(): BelongsTo
+  {
+    return $this->belongsTo(AppointmentSlotRecurrence::class, 'recurrence_id');
   }
 
   /**

@@ -148,7 +148,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 ### 5.8 Appointment（予約）
 - 詳細: `docs/AppointmentSystemGuide.md`
 - `ScheduleDefault`（曜日ごとの営業時間テンプレート）/`ScheduleException`/`Holiday`/`AppointmentSlot`/`Appointment`（status: `pending`/`confirmed`/`completed`/`cancelled`/`no_show`）。
-- 繰り返し枠設定・クライアント向け予約UI・カレンダー連携・SMS通知・一括インポート/エクスポートは**未実装**（フェーズ2）。
+- 繰り返し枠設定（`AppointmentSlotRecurrence`、曜日パターン→`AppointmentSlot`自動生成）・クライアント向け予約UI（`User/AppointmentController`）・カレンダー連携（`ScheduleController::calendar()`）は**実装済み**（2026-07-30、フェーズ2 3.5完了。クライアント向けUI・カレンダー連携は調査の結果既に実装済みだったと判明）。SMS通知・一括インポート/エクスポートは引き続き**未実装**（フェーズ2）。
 
 ### 5.9 Atlas
 - §3参照。「/apply」フォーム実装がフェーズ1スコープ、審査・承認・課金プラン管理はスコープ外。
