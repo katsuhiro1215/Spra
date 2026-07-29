@@ -191,8 +191,9 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K2 | Company.status enumに`pending`が無くonboarding承認をブロックする懸念 | **懸念は解消済み**（`pending`はenumに定義済み、`docs/OnboardingSystemGuide.md`の記述が誤り）。実地検証のみ要 | フェーズ1（検証＋doc訂正） |
 | K3 | QuoteObserverが未登録のデッドコード | **未解決の実バグ**。登録するか削除するか要決定 | フェーズ1（最優先） |
 | K4 | 下書き請求書が送信済みにならない | **2026-07-21付けで修正済み**（`docs/BatchAutomationOverview.md`に記載）。回帰防止テストが無い | フェーズ1（テスト追加） |
-| K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **未解決の実バグ**。正しくは`admins`。メディア更新時に認可エラーで機能しない可能性がある | フェーズ1（最優先） |
-| K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | 他のMedia系Requestと不整合、任意拡張子アップロードが可能 | フェーズ1（セキュリティ） |
+| K5 | `UpdateMediaRequest::authorize()`が存在しないガード名`admin`（単数形）を参照 | **修正済み**（2026-07-29、`admins`に修正、回帰テスト追加） | フェーズ1（完了） |
+| K6 | `UpdateMediaRequest`にMIMEタイプ制限が無い | **修正済み**（2026-07-29、`mimes:jpeg,jpg,png,gif,webp`を追加、回帰テスト追加） | フェーズ1（完了） |
+| K17 | `Admin\MediaController::update()`/`destroy()`の引数名`$media`がリソースルートの実パラメータ名`{medium}`と不一致 | **修正済み**（2026-07-29）。**新規発見の実バグ**: 暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた。`show()`/`edit()`は`$medium`で正しく動作していたが、`update()`/`destroy()`はメディア情報の更新・削除が実質常に失敗していた可能性が高い（K5のガード修正でテストを書いたところ発覚） | フェーズ1（完了） |
 | K7 | 公開フォーム（`contact.store`/`quote.response.register.store`/`invoice.payment.store`）にthrottleが無い | `consultation.store`のみ設定済み | フェーズ1（セキュリティ） |
 | K8 | `.env`に`MAIL_ADMIN_ADDRESS`が未設定 | バッチ失敗通知等が実際には届かない | フェーズ1（最優先） |
 | K9 | Repository/Serviceの基盤クラス移行が未完了 | 残りは**Contract・Invoice・Payment・Projectの4エンティティのみ**（他は移行済み、`docs/RepositoryServiceMigrationGuide.md`は未更新） | フェーズ2 |

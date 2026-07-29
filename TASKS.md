@@ -16,10 +16,11 @@
 
 ### 2.1 金銭・法的リスクの検証と是正（最優先）
 
-- [ ] **T1: `UpdateMediaRequest`の認可ガード名の誤りを修正**
+- [x] **T1: `UpdateMediaRequest`の認可ガード名の誤りを修正**（完了: 2026-07-29、`fix/media-request-guard-and-mime`）
   - 対象ファイル: `app/Http/Requests/Media/UpdateMediaRequest.php`（`authorize()`）
   - 内容: `Auth::guard('admin')`（存在しないガード名、単数形）となっており、`config/auth.php`で定義されているのは`admins`（複数形）のみ。このままだと`Auth guard [admin] is not defined.`で例外が発生し、メディア更新（画像差し替え・メタデータ編集）が機能しない可能性が高い。`StoreMediaRequest`に合わせて`admins`に修正する。
-  - 完了の定義: 実際に管理画面からメディア更新を実行しエラーが出ないことを確認。
+  - 完了の定義: 実際に管理画面からメディア更新を実行しエラーが出ないことを確認。→ Featureテスト（`tests/Feature/Admin/MediaUpdateRequestTest.php`）で確認済み。
+  - **副次的発見（T1対応中に判明、あわせて修正済み）**: `Admin\MediaController::update()`/`destroy()`の引数名が`$media`だったが、リソースルートの実パラメータ名は`{medium}`（`show()`/`edit()`は`$medium`で正しい）。名前不一致で暗黙のルートモデルバインディングが効かず、常に空の未保存Mediaインスタンスが注入されていた＝**メディア更新・削除が実質常に失敗していた実バグ**。`$medium`に統一して修正（SPEC.md §7 K17参照）。
 
 - [ ] **T2: QuoteObserverの扱いを決定し実装する（登録 or 削除）**
   - 対象ファイル: `app/Observers/QuoteObserver.php`、`app/Models/Quote.php`、`app/Providers/AppServiceProvider.php`（または適切なProvider）
@@ -58,10 +59,10 @@
 
 ### 2.2 個人情報保護・セキュリティの最低限の担保
 
-- [ ] **T9: `UpdateMediaRequest`にMIMEタイプ制限を追加**
+- [x] **T9: `UpdateMediaRequest`にMIMEタイプ制限を追加**（完了: 2026-07-29、`fix/media-request-guard-and-mime`）
   - 対象ファイル: `app/Http/Requests/Media/UpdateMediaRequest.php`(L27,29)
   - 内容: `StoreMediaRequest`（`mimes:jpeg,jpg,png,gif,webp`）と異なり制限が無く、任意拡張子がアップロード可能。同水準の制限を追加する。
-  - 完了の定義: 許可外拡張子でバリデーションエラーになることをテストで確認。
+  - 完了の定義: 許可外拡張子でバリデーションエラーになることをテストで確認。→ Featureテストで確認済み。
 
 - [ ] **T10: 公開フォームへのthrottleミドルウェア追加**
   - 対象ファイル: `routes/web.php`（`contact.store` L105、`quote.response.register.store` L119、`invoice.payment.store` L123）
