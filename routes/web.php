@@ -5,7 +5,6 @@ use App\Http\Controllers\Public\AppointmentController;
 use App\Services\ContactCategoryService;
 use App\Http\Controllers\QuoteResponseController;
 use App\Http\Controllers\InvoicePaymentController;
-use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\EstimateSimulatorController;
 use App\Http\Controllers\User\AccountController as UserAccountController;
 use App\Http\Controllers\Public\HomeController;
@@ -261,14 +260,10 @@ Route::middleware(['auth:users', 'verified'])->name('user.')->group(function () 
 
 Route::post('/estimate-simulator/save', [EstimateSimulatorController::class, 'save'])->name('estimate.simulator.save');
 
-// Public routes
+// Public routes（/plans, /careers: 画面は実装済みだが公開タイミング未定のため保留）
 // Route::group(['prefix' => '', 'name' => 'public.'], function () {
 //     Route::get('/plans', fn() => inertiaPublic('Plans'))->name('plans');
 //     Route::get('/careers', fn() => inertiaPublic('Careers'))->name('careers');
-
-//     // Onboarding (public, no auth required)
-//     Route::get('/onboarding/{token}', [OnboardingController::class, 'show'])->name('onboarding.show');
-//     Route::post('/onboarding/{token}', [OnboardingController::class, 'store'])->name('onboarding.store');
 // });
 
 // Auth routes

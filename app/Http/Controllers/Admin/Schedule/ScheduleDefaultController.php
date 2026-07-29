@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin\Schedule;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ScheduleDefaultRequest;
 use App\Models\ScheduleDefault;
 use App\Services\ScheduleService;
 use Illuminate\Http\RedirectResponse;
@@ -64,46 +63,6 @@ class ScheduleDefaultController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ScheduleDefaultRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(ScheduleDefault $scheduleDefault)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ScheduleDefault $scheduleDefault)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ScheduleDefaultRequest $request, ScheduleDefault $scheduleDefault)
-    {
-        //
-    }
-
-    /**
      * Bulk update all schedules
      */
     public function bulkUpdate(Request $request): RedirectResponse
@@ -153,13 +112,5 @@ class ScheduleDefaultController extends Controller
 
         return redirect()->route('admin.schedules.defaults.index')
             ->with('success', __('messages.updated', ['attribute' => 'デフォルトスケジュール']));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ScheduleDefault $scheduleDefault)
-    {
-        //
     }
 }
