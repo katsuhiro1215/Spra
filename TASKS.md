@@ -46,10 +46,10 @@
   - 内容: 2026-07-21付けで既に修正済み（`docs/BatchAutomationOverview.md`記載）だが自動テストが無い。月次自動生成・契約承認時自動生成の両経路でstatus=sent・PDF生成・メール送信・契約履歴記録までを保証するFeatureテストを追加する。
   - 完了の定義: 両経路のテストがGreen。→ `tests/Feature/Invoice/MonthlyInvoiceGenerationTest.php`で`InvoiceService::generateMonthlyInvoice()`を確認（status=sent・pdf_path・契約履歴`invoice_sent`・次回請求日更新まで）。`GenerateInvoiceJob`（契約承認時自動生成）も同じ`InvoiceService::sendInvoice()`を呼ぶ共通経路のため、二重にテストを書かず1本に集約した。
 
-- [ ] **T6: `MAIL_ADMIN_ADDRESS`を実際に届くアドレスに設定**
+- [x] **T6: `MAIL_ADMIN_ADDRESS`を実際に届くアドレスに設定**（完了: 2026-07-29、`.env`は追跡対象外のためコミットなし）
   - 対象ファイル: `.env`
   - 内容: 現状キー自体が未設定（`.env.example`のダミー値`admin@example.com`にフォールバックする状態）。バッチ失敗通知・督促メール等の管理者宛通知が実際には届かない。
-  - 完了の定義: バッチを意図的に失敗させ、通知が実アドレスに届くことを確認。
+  - 完了の定義: バッチを意図的に失敗させ、通知が実アドレスに届くことを確認。→ `MAIL_FROM_ADDRESS`と同じ`info@katsucode.jp`をユーザー指示で設定し、`config('mail.admin_address')`が正しく反映されることを確認済み。実際のバッチ失敗時の受信確認は本番環境（フェーズ1 T15-T27）で行う。
 
 - [ ] **T7: `Contract::shouldGenerateInvoice()`と`GenerateMonthlyInvoices`の重複ロジックを整理**
   - 対象ファイル: `app/Models/Contract.php`(L339-358)、`app/Console/Commands/GenerateMonthlyInvoices.php`
