@@ -3,11 +3,14 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Payment;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-interface PaymentRepositoryInterface
+/**
+ * 支払いリポジトリインターフェース
+ *
+ * BaseRepositoryInterfaceを継承し、Payment固有のメソッドを追加
+ * （PaymentはSoftDeletes未使用のためSoftDeletableRepositoryInterfaceは継承しない）
+ */
+interface PaymentRepositoryInterface extends BaseRepositoryInterface
 {
-    public function query(): Builder;
     public function confirm(Payment $payment, string $confirmedByAdminId): Payment;
 }

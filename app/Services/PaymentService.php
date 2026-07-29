@@ -4,35 +4,26 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\Invoice;
-use App\Repositories\PaymentRepository;
+use App\Repositories\Contracts\PaymentRepositoryInterface;
 use App\Repositories\InvoiceRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class PaymentService
+class PaymentService extends BaseService
 {
   public function __construct(
-    private PaymentRepository $paymentRepository,
+    PaymentRepositoryInterface $repository,
     private InvoiceRepository $invoiceRepository,
     private ReceiptService $receiptService,
-  ) {}
-
-  /**
-   * ページネーション付きで支払い一覧を取得
-   */
-  public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
-  {
-    return $this->paymentRepository->paginate($perPage, $filters);
+  ) {
+    parent::__construct($repository);
   }
 
-  /**
-   * IDで支払いを検索
-   */
-  public function findById(string $id): ?Payment
+  protected function getEntityName(): string
   {
-    return $this->paymentRepository->findById($id);
+    return 'Payment';
   }
 
   /**
@@ -41,7 +32,7 @@ class PaymentService
   public function create(array $data): Payment
   {
     return DB::transaction(function () use ($data) {
-      $payment = $this->paymentRepository->create($data);
+      $payment = $this->repository->create($data);
 
       // 請求書が存在する場合、支払い状況を確認して更新
       if ($payment->invoice_id) {
@@ -56,11 +47,14 @@ class PaymentService
 
   /**
    * 支払いを更新し、請求書のステータスを更新
+   *
+   * @param Payment $model
    */
-  public function update(Payment $payment, array $data): Payment
+  public function update(mixed $model, array $data): mixed
   {
-    return DB::transaction(function () use ($payment, $data) {
-      $updated = $this->paymentRepository->update($payment, $data);
+    return DB::transaction(function () use ($model, $data) {
+      $payment = $model;
+      $updated = $this->repository->update($payment, $data);
 
       // 請求書のステータスを更新
       if ($updated->invoice_id) {
@@ -79,7 +73,7 @@ class PaymentService
   public function confirm(Payment $payment, string $confirmedByAdminId): Payment
   {
     return DB::transaction(function () use ($payment, $confirmedByAdminId) {
-      $confirmed = $this->paymentRepository->confirm($payment, $confirmedByAdminId);
+      $confirmed = $this->repository->confirm($payment, $confirmedByAdminId);
 
       // 請求書のステータスを更新
       if ($confirmed->invoice_id) {
@@ -97,10 +91,13 @@ class PaymentService
 
   /**
    * 支払いを削除
+   *
+   * @param Payment $model
    */
-  public function delete(Payment $payment): bool
+  public function delete(mixed $model): bool
   {
-    return DB::transaction(function () use ($payment) {
+    return DB::transaction(function () use ($model) {
+      $payment = $model;
       $invoice = $payment->invoice;
       $deleted = $payment->delete();
 
