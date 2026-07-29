@@ -29,10 +29,26 @@
 
 ## 🔧 本番投入までに用意すべきもの（未着手・今後作成）
 
-- [ ] 本番用 `Dockerfile.prod`（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）
+- [x] 本番用 `Dockerfile.prod`（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）（2026-07-30完了、詳細はTASKS.md T15参照）
 - [ ] 本番用 `compose.prod.yaml`（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon/スケジューラ用サービス追加。Redisは`compose.yaml`に追加済みのものを流用可）
 - [ ] Lightsailインスタンスの作成・初期設定（後述）
 - [ ] バックアップ方式の決定（DBダンプの定期取得・保存先）
+
+### ⚠️ ビルド時メモリ要件（2026-07-30、Dockerfile.prod検証で判明）
+
+`npm run build`（Vite）が`mermaid`/`cytoscape`等の重量級ライブラリを含む大きなバンドルをビルドするため、**利用可能メモリが2GB程度だとビルド中にJavaScriptヒープ不足でOOMし、`docker compose build`が失敗する**ことをローカル検証で確認した（Docker Desktopのデフォルト割当2GBで実際に再現。8GBに増やして解消）。
+
+このため、本ガイドの「2GBメモリ以上のプランを推奨」という記載は**ビルドを実行する環境については不十分な可能性が高い**。以下のいずれかで対応すること：
+
+- Lightsailインスタンス自体を**4GB以上のプラン**にする（最も単純だが月額コストが上がる）
+- 2GBプランのまま、**ビルド専用のswapファイルを一時的に追加**してから`docker compose -f compose.prod.yaml up -d --build`を実行する（ビルド後はswapを無効化・削除してもよい）
+  ```bash
+  sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile \
+    && sudo mkswap /swapfile && sudo swapon /swapfile
+  ```
+- CI（GitHub Actions等）でイメージをビルドしてレジストリにpushし、Lightsail側は`docker compose pull`のみ行う（ビルドをLightsailインスタンス上で行わない）方式に変える
+
+いずれを採用するかはT16（`compose.prod.yaml`作成）〜T17（Lightsailインスタンス作成）着手時に決定する。
 
 ## 🖥️ AWS Lightsail 構成手順（想定フロー）
 
