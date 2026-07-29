@@ -117,35 +117,35 @@
 
 ### 2.4 Atlas「/apply」フォーム実装
 
-- [ ] **T28: データ設計を決定する**
+- [x] **T28: データ設計を決定する**（完了: 2026-07-29、`feat/atlas-apply-form`）
   - 対象ファイル: `app/Models/Contact.php`、`app/Models/AtlasMembership.php`、`app/Models/AtlasInviteCode.php`
   - 内容: 審査・承認・課金は対象外のため「応募データを保存し管理者に通知する」最小構成でよい。`Contact.source`はenum制約の無いstring型のため、`source='atlas_apply'`として既存`Contact`テーブルを流用するか、新規モデルを作るかを決定する。決定内容をSPEC.md §5.9に追記する。
-  - 完了の定義: 方針をSPEC.mdに明記。
+  - 完了の定義: 方針をSPEC.mdに明記。→ 既存`Contact`テーブルを流用する方針を採用。専用の`ContactCategory`（slug: `atlas-apply`、`ContactCategory::SLUG_ATLAS_APPLY`定数）を新設し、`source='atlas_apply'`で識別する。既存のContact通知メール・管理画面をそのまま流用できるメリットを優先。
 
-- [ ] **T29: リクエストバリデーション実装**
+- [x] **T29: リクエストバリデーション実装**（完了: 2026-07-29）
   - 対象ファイル: `app/Http/Requests/StoreContactRequest.php`（流用の場合は拡張）または新規`StoreAtlasApplicationRequest`
-  - 完了の定義: バリデーションルール実装、公開フォームなので`authorize()`は`true`。
+  - 完了の定義: バリデーションルール実装、公開フォームなので`authorize()`は`true`。→ 新規`StoreAtlasApplicationRequest`を作成（name/email必須、phone/message任意）。
 
-- [ ] **T30: Publicコントローラー実装・ルート差し替え**
+- [x] **T30: Publicコントローラー実装・ルート差し替え**（完了: 2026-07-29）
   - 対象ファイル: `routes/web.php`（L49-52の`atlas.apply`を実フォーム表示・POST処理に変更）
-  - 完了の定義: `/apply`が実際にフォームを表示し送信を受け付ける。
+  - 完了の定義: `/apply`が実際にフォームを表示し送信を受け付ける。→ 新規`Atlas\ApplicationController`を作成。`atlas.apply`(GET)/`atlas.apply.store`(POST、`throttle:5,1`)を追加。
 
-- [ ] **T31: `Public/AtlasApply.jsx`フォーム画面実装**
+- [x] **T31: `Public/AtlasApply.jsx`フォーム画面実装**（完了: 2026-07-29）
   - 対象ファイル: `resources/js/Pages/Public/AtlasApply.jsx`（新規）
   - 内容: 既存`Public/AtlasComingSoon.jsx`の配色・トーン（富裕層向けサービスのダークテーマ系）を踏襲する。`docs/PublicContactSubmissionGuide.md`のフォーム実装パターン（`Contact.jsx`）を参考にする。
-  - 完了の定義: フォームがAtlasのトーンに合った見た目で表示される。
+  - 完了の定義: フォームがAtlasのトーンに合った見た目で表示される。→ Playwrightで実ブラウザ表示・送信を確認済み。
 
-- [ ] **T32: 申込み受付メール実装**
+- [x] **T32: 申込み受付メール実装**（完了: 2026-07-29）
   - 内容: `docs/PublicContactSubmissionGuide.md`の`ContactReceivedMail`/`ContactNotificationMail`パターンを踏襲し、自動返信＋管理者通知の2通を実装。
-  - 完了の定義: 送信キュー投入を確認。
+  - 完了の定義: 送信キュー投入を確認。→ 新規メールクラスは作らず、既存の`ContactService::sendNotificationEmails()`（`ContactReceivedMail`/`ContactNotificationMail`）をそのまま呼び出す形で実装（T28の方針通り）。
 
-- [ ] **T33: 管理者が申込みを確認できる導線を用意**
+- [x] **T33: 管理者が申込みを確認できる導線を用意**（完了: 2026-07-29、追加実装なし）
   - 内容: 既存Contact管理画面の拡張、または新設モデルの場合は簡易一覧画面を用意する。
-  - 完了の定義: 管理画面から申込み内容が閲覧できる。
+  - 完了の定義: 管理画面から申込み内容が閲覧できる。→ `Admin\Contact\ContactController::index()`はカテゴリを動的に取得しており、新設した「Atlas利用申込み」カテゴリも既存のContact一覧・詳細画面にそのまま表示される。追加のUI実装は不要と判断。
 
-- [ ] **T34: Featureテスト追加・動作確認**
+- [x] **T34: Featureテスト追加・動作確認**（完了: 2026-07-29）
   - 内容: フォーム送信→レコード作成→メールキュー投入までのFeatureテストを追加し、`atlas.localhost`サブドメインでの実アクセスを確認する。
-  - 完了の定義: テストGreen、実アクセス確認済み。
+  - 完了の定義: テストGreen、実アクセス確認済み。→ `tests/Feature/Atlas/AtlasApplicationTest.php`（4パターン）。Playwrightで`atlas.localhost/apply`への実アクセス・フォーム送信・成功表示を確認。この過程で`contacts.message`がNOT NULL制約のため未入力時にDBエラーになる不具合を発見し、既定文言で補完するよう修正済み（テストにも反映）。
 
 ### 補足: ゼロ工数の即時クリーンアップ
 

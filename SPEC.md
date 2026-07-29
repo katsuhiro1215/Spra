@@ -152,6 +152,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 
 ### 5.9 Atlas
 - §3参照。「/apply」フォーム実装がフェーズ1スコープ、審査・承認・課金プラン管理はスコープ外。
+- **実装済み（2026-07-29）**: 既存の`Contact`テーブルを流用する方針を採用（新規モデルは作らない）。専用の`ContactCategory`（slug: `ContactCategory::SLUG_ATLAS_APPLY` = `atlas-apply`）を新設し、`source='atlas_apply'`で識別する。`Atlas\ApplicationController`（`atlas.apply`/`atlas.apply.store`）が`Public/AtlasApply.jsx`のフォームを処理し、既存の`ContactService::createContact()`/`sendNotificationEmails()`をそのまま呼び出すことで、通知メール（`ContactReceivedMail`/`ContactNotificationMail`）と管理画面（`Admin/Contact`）を追加実装なしで流用している。審査・承認・課金プランの管理機能は引き続き未実装（意図的にスコープ外）。
 
 ### 5.10 Media（メディア管理）
 - `Media`（原本、S3/publicディスクURL）+ `MediaVariant`（Large/Medium/Small、WebP自動生成、`GenerateMediaVariantsJob`）+ `MediaSetting`（圧縮/サイズ上限の単一設定）。
@@ -210,6 +211,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K18 | `User::primaryCompany()`のリレーション定義が壊れており常に空を返す | **修正済み**（2026-07-29）。`hasOne(Company::class, 'company_user', 'user_id')`はピボットテーブル名を外部キー名として誤用しており、生成されるSQLが自己矛盾する条件になり常に空を返していた（例外は出ないため気づきにくい）。`app/Http/Controllers/User/ContactController.php`(L40)と`app/Http/Controllers/User/AppointmentController.php`(L99)で使用されており、ログイン済みユーザーのお問い合わせ・予約フォームで会社情報が常に空になっていた。既存の`company()`（`is_primary`ピボットで絞ったBelongsToMany）を使うアクセサ`getPrimaryCompanyAttribute()`に置き換えて修正 | フェーズ1（完了、優先度を上げて対応） |
 | K19 | `Admin\OnboardingController::approve()`がContractを作成せずInvoiceを発行しようとし必ず失敗 | **修正済み**（2026-07-29）。`invoices.contract_id`/`user_id`はDB上必須だが、approve()はQuoteから直接Invoiceを作っておりContract作成が完全に欠落していた。**承認ボタンが一度も正常動作していなかった可能性が高い実質的な機能停止バグ**。ユーザー判断により、`ContractService::createContract()`でQuoteの内容（明細・金額）を引き継いだContractを自動作成してからInvoiceを発行するよう修正 | フェーズ1（完了） |
 | K20 | 2FAが`owner`/`super_admin`を含め全adminロールで任意設定（opt-in）、組織として強制する仕組みが無い | バグではなくポリシー上の懸念（2026-07-29棚卸しで判明）。ログイン自体にバイパス経路は無い。2FA必須化を行うかはビジネス判断が必要 | フェーズ2（要判断） |
+| K21 | `emails/contact/notification.blade.php`が存在しないルート名`admin.homepage.contacts.show`を参照 | **未修正・新規発見**（2026-07-29、Atlas申込みフォームの実地確認中に発見）。正しくは`admin.contact.show`。`route()`が`RouteNotFoundException`を投げ、`ContactService::sendNotificationEmails()`のtry/catchで警告ログのみ記録され握りつぶされるため、**Contact（Atlas申込みも含む）作成時の管理者通知メールが常に送信失敗している**。DBの通知（ベルアイコン）は別経路のため気づきにくい | フェーズ1（次PRで対応） |
 
 ## 8. 用語集
 

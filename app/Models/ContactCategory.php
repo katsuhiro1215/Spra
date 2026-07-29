@@ -16,6 +16,11 @@ class ContactCategory extends Model
      */
     const SLUG_QUOTE_REQUEST = 'quote-request';
 
+    /**
+     * Atlas利用申込み用カテゴリのslug。Atlas\ApplicationControllerからの送信先として使用する。
+     */
+    const SLUG_ATLAS_APPLY = 'atlas-apply';
+
     protected $fillable = [
         'name',
         'slug',
