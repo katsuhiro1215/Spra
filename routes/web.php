@@ -38,6 +38,7 @@ use App\Http\Controllers\User\AtlasController as UserAtlasController;
 use App\Http\Controllers\Atlas\Auth\AuthenticatedSessionController as AtlasAuthenticatedSessionController;
 use App\Http\Controllers\Atlas\Auth\RegisteredUserController as AtlasRegisteredUserController;
 use App\Http\Controllers\Atlas\RoomController as AtlasRoomController;
+use App\Http\Controllers\Atlas\ApplicationController as AtlasApplicationController;
 use Inertia\Inertia;
 
 // Atlas（富裕層向けサービス）: Private Preview + Private Room
@@ -46,10 +47,10 @@ use Inertia\Inertia;
 // セッションもメインサイトとは共有しない（Atlas内で完結するログイン導線）。
 Route::domain(config('app.atlas_domain'))->group(function () {
     Route::get('/', fn() => Inertia::render('Public/Atlas'))->name('atlas');
-    Route::get('/apply', fn() => Inertia::render('Public/AtlasComingSoon', [
-        'title' => '利用申請',
-        'message' => '利用申請フォームは、現在準備中です。',
-    ]))->name('atlas.apply');
+    Route::get('/apply', [AtlasApplicationController::class, 'create'])->name('atlas.apply');
+    Route::post('/apply', [AtlasApplicationController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('atlas.apply.store');
 
     Route::middleware('guest:users')->group(function () {
         Route::controller(AtlasAuthenticatedSessionController::class)->group(function () {

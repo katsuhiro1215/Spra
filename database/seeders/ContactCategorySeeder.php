@@ -48,6 +48,13 @@ class ContactCategorySeeder extends Seeder
                 'sort_order' => 5,
                 'is_active' => true,
             ],
+            [
+                'name' => 'Atlas利用申込み',
+                'slug' => ContactCategory::SLUG_ATLAS_APPLY,
+                'description' => 'Atlas会員制サービスの利用申込みに関するカテゴリです。',
+                'sort_order' => 6,
+                'is_active' => true,
+            ],
         ];
 
         foreach ($categories as $category) {
