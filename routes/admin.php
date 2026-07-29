@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\Document\DocumentController;
 use App\Http\Controllers\Admin\Document\DocumentCategoryController;
 use App\Http\Controllers\Admin\Document\UserAcceptanceController;
 use App\Http\Controllers\Admin\AppointmentSlotController;
+use App\Http\Controllers\Admin\AppointmentSlotRecurrenceController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\Batch\ReminderExecutionController;
 use App\Http\Controllers\Admin\LogController;
@@ -259,6 +260,16 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
         Route::post('/quick-store', [AppointmentSlotController::class, 'quickStore'])->name('quick-store');
     });
     Route::resource('appointment-slots', AppointmentSlotController::class);
+
+    // 予約枠の繰り返しパターン設定
+    Route::prefix('appointment-slot-recurrences')->name('appointment-slot-recurrences.')->group(function () {
+        Route::get('/', [AppointmentSlotRecurrenceController::class, 'index'])->name('index');
+        Route::get('/create', [AppointmentSlotRecurrenceController::class, 'create'])->name('create');
+        Route::post('/', [AppointmentSlotRecurrenceController::class, 'store'])->name('store');
+        Route::post('/{appointmentSlotRecurrence}/pause', [AppointmentSlotRecurrenceController::class, 'pause'])->name('pause');
+        Route::post('/{appointmentSlotRecurrence}/resume', [AppointmentSlotRecurrenceController::class, 'resume'])->name('resume');
+        Route::delete('/{appointmentSlotRecurrence}', [AppointmentSlotRecurrenceController::class, 'destroy'])->name('destroy');
+    });
 
     // 予約管理
     Route::resource('appointments', AppointmentController::class);

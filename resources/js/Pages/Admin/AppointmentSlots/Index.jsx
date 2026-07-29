@@ -152,6 +152,12 @@ export default function Index({
     // ========================================
     const headerActions = [
         {
+            label: "繰り返し設定",
+            icon: Squares2X2Icon,
+            variant: "secondary",
+            route: route("admin.appointment-slot-recurrences.index"),
+        },
+        {
             label: "まとめて作成",
             icon: Squares2X2Icon,
             variant: "secondary",

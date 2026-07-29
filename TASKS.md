@@ -186,7 +186,7 @@ SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティ
 
 - [ ] ガントチャートのドラッグ&ドロップ編集・並び替え（`docs/ProjectWorkflowGuide.md`）
 - [ ] Projectのファイルアップロード機能、ProjectUpdate作成フォーム
-- [ ] 予約の繰り返し枠設定・クライアント向け予約UI・カレンダー連携（`docs/AppointmentSystemGuide.md`）
+- [x] 予約の繰り返し枠設定・クライアント向け予約UI・カレンダー連携（`docs/AppointmentSystemGuide.md`）（2026-07-30）。クライアント向け予約UI（`User/AppointmentController`等）とカレンダーへの予約統合（`ScheduleController::calendar()`）は既に実装済みと判明（docsの「保留中」記載が古いだけ）。繰り返し予約枠設定は`AppointmentSlotRecurrence`（曜日・時間帯パターン）を新規実装。作成時に90日先まで先行生成し、以降は`appointments:generate-recurring-slots`コマンド（毎日6:00実行）が継ぎ足す方式とした
 - [ ] Search Console実連携への切替検証（`SEARCH_CONSOLE_DRIVER=google`、本番接続後）
 
 ---

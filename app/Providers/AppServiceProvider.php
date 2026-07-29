@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Repositories\AdminRepository;
+use App\Repositories\AppointmentSlotRecurrenceRepository;
 use App\Repositories\CompanyRepository;
 use App\Repositories\ContactRepository;
 use App\Repositories\ContractRepository;
@@ -20,6 +21,7 @@ use App\Repositories\ServiceRepository;
 use App\Repositories\ServicePlanRepository;
 use App\Repositories\ServiceItemRepository;
 use App\Repositories\Contracts\AdminRepositoryInterface;
+use App\Repositories\Contracts\AppointmentSlotRecurrenceRepositoryInterface;
 use App\Repositories\Contracts\CompanyRepositoryInterface;
 use App\Repositories\Contracts\ContactRepositoryInterface;
 use App\Repositories\Contracts\ContractRepositoryInterface;
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(AdminRepositoryInterface::class, AdminRepository::class);
+        $this->app->bind(AppointmentSlotRecurrenceRepositoryInterface::class, AppointmentSlotRecurrenceRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
         $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);

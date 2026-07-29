@@ -17,6 +17,9 @@ $alertOnFailure(Schedule::command('contracts:send-renewal-notices')->dailyAt('08
 // 予約リマインダーを毎日午前9時に送信（24時間後の予約）
 $alertOnFailure(Schedule::command('appointments:send-reminders')->dailyAt('09:00'));
 
+// 繰り返し予約枠設定から、先行生成分の予約枠を毎日午前6時に穴埋め
+$alertOnFailure(Schedule::command('appointments:generate-recurring-slots')->dailyAt('06:00'));
+
 // 月額請求書を毎日午前9時に自動生成
 $alertOnFailure(Schedule::command('invoices:generate-monthly')->dailyAt('09:00'));
 

@@ -133,7 +133,16 @@ $notificationService->sendReminderNotification($appointment);
 $count = $notificationService->sendUpcomingReminders(24); // 24時間前
 ```
 
-### 4. 自動リマインダー送信
+### 4a. 予約枠の繰り返し設定（Recurrences）
+
+`AppointmentSlotRecurrence`（曜日・時間帯・タイプ・担当者・繰り返し期間を保持する「生成ルール」）を作成すると、その場で90日先までの`AppointmentSlot`が自動生成される。以降は`appointments:generate-recurring-slots`コマンド（毎日6:00実行、`routes/console.php`）が先行生成の穴埋めを行う。
+
+- ルート: `/admin/appointment-slot-recurrences`（index/create/store/pause/resume/destroy）
+- 一時停止（`pause`）すると新規生成が止まる（既存の生成済み枠は残る）。`resume`で再開すると即座に不足分を生成する。
+- 削除（ソフトデリート）しても、既に生成済みの`AppointmentSlot`とその`recurrence_id`は残る（過去の紐付けを追跡できるようにするため）。
+- 営業日判定は`ScheduleService::isBusinessDay()`を利用し、休日・非営業日には生成しない。
+
+### 4b. 自動リマインダー送信
 
 Laravelのタスクスケジューラーで毎日自動実行されます。
 
@@ -359,12 +368,12 @@ MAIL_FROM_NAME="${APP_NAME}"
 - ✅ 担当者割り当て
 - ✅ 自動通知システム
 - ✅ リマインダー機能
+- ✅ クライアント側からの予約申込UI（`User/AppointmentController`、`Pages/User/Appointments/*`。2026-07-30調査で判明、本項目は元々実装済みだった）
+- ✅ カレンダーへの予約表示統合（`ScheduleController::calendar()`が`Appointment`を日付グループ化して各カレンダーコンポーネントに渡す。2026-07-30調査で判明、本項目は元々実装済みだった）
+- ✅ 定期パターン予約枠（毎週火曜日など）（2026-07-30実装。`AppointmentSlotRecurrence`で曜日・時間帯パターンを登録すると、作成時に90日先まで先行して`AppointmentSlot`を自動生成し、以降は`appointments:generate-recurring-slots`コマンド（毎日6:00実行）が先行生成分を継ぎ足す）
 
 ### 保留中の機能
 
-- ⏸️ 定期パターン予約枠（毎週火曜日など）
-- ⏸️ クライアント側からの予約申込UI
-- ⏸️ カレンダーへの予約表示統合
 - ⏸️ Zoom/Google Meetリンク自動生成
 - ⏸️ SMS通知
 - ⏸️ 予約の一括インポート/エクスポート
@@ -408,12 +417,19 @@ MAIL_FROM_NAME="${APP_NAME}"
 - `app/Mail/AppointmentCancelledMail.php`
 - `app/Mail/AppointmentNotificationMail.php`
 - `app/Console/Commands/SendAppointmentReminders.php`
+- `app/Models/AppointmentSlotRecurrence.php`
+- `app/Repositories/AppointmentSlotRecurrenceRepository.php`
+- `app/Services/AppointmentSlotRecurrenceService.php`
+- `app/Http/Controllers/Admin/AppointmentSlotRecurrenceController.php`
+- `app/Console/Commands/GenerateRecurringAppointmentSlots.php`
 
 ### フロントエンド
 
 - `resources/js/Pages/Admin/AppointmentSlots/Index.jsx`
 - `resources/js/Pages/Admin/AppointmentSlots/Create.jsx`
 - `resources/js/Pages/Admin/AppointmentSlots/Edit.jsx`
+- `resources/js/Pages/Admin/AppointmentSlots/Recurrences/Index.jsx`
+- `resources/js/Pages/Admin/AppointmentSlots/Recurrences/Create.jsx`
 - `resources/js/Pages/Admin/Appointments/Index.jsx`
 - `resources/js/Pages/Admin/Appointments/Create.jsx`
 - `resources/js/Pages/Admin/Appointments/Edit.jsx`
@@ -424,6 +440,8 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 - `database/migrations/2026_06_21_000001_create_appointment_slots_table.php`
 - `database/migrations/2026_06_21_000002_create_appointments_table.php`
+- `database/migrations/2026_07_30_014953_create_appointment_slot_recurrences_table.php`
+- `database/migrations/2026_07_30_014954_add_recurrence_id_to_appointment_slots_table.php`
 
 ### ルート・設定
 
