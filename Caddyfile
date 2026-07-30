@@ -1,0 +1,31 @@
+{
+	email {$CADDY_ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	root * /var/www/html/public
+
+	encode gzip
+
+	# Atlasサブドメイン等、メインサイトとセッションを共有しないため個別に扱う場合は
+	# APP_DOMAINをワイルドカードやカンマ区切りで複数指定してもこの設定をそのまま使い回せる。
+
+	php_fastcgi app:9000
+
+	file_server
+
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+
+	header {
+		# HSTS: HTTPS強制（本番ドメイン確定後に有効化）
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
