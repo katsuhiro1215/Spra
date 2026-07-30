@@ -110,7 +110,12 @@
   - 対象ファイル: `compose.prod.yaml`（新規）、`Caddyfile`（新規）、`Dockerfile.prod`（`caddy`ステージ追加）、`.env.example`（`APP_DOMAIN`/`CADDY_ACME_EMAIL`追加）
   - 内容: HTTPS終端はnginx+Certbotではなく**Caddy**を採用（ユーザー判断。個人運用規模のため自動証明書取得・更新の運用負荷が低い方を優先）。`app`（php-fpm）・`caddy`（リバースプロキシ）・`horizon`（キューワーカー常駐）・`scheduler`（`schedule:run`を60秒間隔で呼ぶループ、Alpineベースのため通常cronは使わず）・`mysql`・`redis`の6サービス構成。詳細は`docs/ProductionDeploymentGuide.md`に追記済み。
   - 完了の定義: `docker compose -f compose.prod.yaml up -d --build`がローカルで完走し、Caddy経由でリクエストがphp-fpmまで到達すること。→ 確認済み（`localhost`ドメインでCaddyの自動HTTPS・HTTP→HTTPSリダイレクト・fastcgi疎通を確認。本番ドメインでの実証明書取得確認はT17以降で行う）。
-  - **副次的発見（T16検証中に判明、優先度を上げて別途対応）**: `bootstrap/app.php`の例外ハンドラが本番環境（`APP_ENV=production`）で常に`errors.500`ビューを描画しようとするが、`resources/views/errors/`が存在せず**あらゆる例外が真っ白な500レスポンスになる**実バグを発見（`fix/production-error-page-missing`で対応、SPEC.md §7 K23参照）。
+
+- [x] **T16b: 本番環境で例外発生時にエラーページが表示されない（真っ白な500レスポンス）バグを修正**（完了: 2026-07-30、`fix/production-error-page-missing`。SPEC.md §7 K23として発見、T16検証中にユーザー指示により優先度を上げて対応）
+  - 対象ファイル: `bootstrap/app.php`（汎用例外ハンドラ）、`resources/views/errors/`（新規）
+  - 内容: `bootstrap/app.php`の汎用`Throwable`ハンドラが、本番環境で常に`response()->view('errors.500', [], 500)`を呼んでいたが、`resources/views/errors/`ディレクトリ自体が存在せず、**原因を問わずあらゆる例外（404/419/403含む）が空の500レスポンスになっていた**。ハンドラを実際のHTTPステータスコード（`HttpExceptionInterface::getStatusCode()`）に応じて`errors.{code}`ビューを描画し、専用ビューが無ければ`errors.500`にフォールバックするよう修正。共通レイアウト`errors/minimal.blade.php`を作り、`404`/`403`/`419`/`429`/`500`/`503`の各ビューはそこに委譲する形にした。
+  - 完了の定義: 本番相当の環境（`APP_ENV=production`かつ`APP_DEBUG=false`相当）で404・未処理例外の両方が正しいステータスコード・空でないレスポンスになることをテストで確認。→ `tests/Feature/ProductionErrorPageTest.php`で確認済み（`$this->app->detectEnvironment()`でproduction環境を模擬）。
+
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
 - [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
 - [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
