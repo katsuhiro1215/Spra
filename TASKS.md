@@ -101,7 +101,11 @@
 
 `docs/ProductionDeploymentGuide.md`の未着手チェックリストをそのままタスク化する。
 
-- [ ] **T15**: `Dockerfile.prod`作成（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）
+- [x] **T15**: `Dockerfile.prod`作成（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）（完了: 2026-07-30、`feat/dockerfile-prod`）
+  - 対象ファイル: `Dockerfile.prod`（新規）、`.dockerignore`（新規）
+  - 内容: `composer`イメージでの依存解決（`--ignore-platform-reqs`で拡張チェックを一旦無視、実行時拡張は最終イメージ側で用意）、`node:22-alpine`でのViteビルド、`php:8.4-fpm-alpine`ベースの実行イメージ（`pdo_mysql`/`gd`/`intl`/`bcmath`/`exif`/`zip`/`opcache`/`pcntl`/`redis`を導入）の3段階マルチステージ構成。php-fpmで9000番待受、リバースプロキシ（T16）から接続する想定。
+  - **重要な発見**: ローカル検証中、`npm run build`単体でJavaScriptヒープ不足によるOOMが発生した（Docker Desktopのデフォルト割当2GBのため）。`mermaid`/`cytoscape`等の重量級ライブラリを含むバンドルのため、**本番のLightsailインスタンスも最低2GBでは同様にビルド時OOMのリスクが高い**と判明。ローカル検証はDocker Desktopのメモリ割当を8GBに増やして解消した。本番側の対応は`docs/ProductionDeploymentGuide.md`に追記済み（後述）。
+  - 完了の定義: `docker build -f Dockerfile.prod .`がローカルで完走し、生成イメージで`php artisan --version`が正常に動作すること。→ 確認済み（`vendor/`が`--no-dev`で構築されていること、`public/build/manifest.json`が存在すること、`bootstrap/cache/*.php`のようなローカル生成物混入がないよう`.dockerignore`で除外済みであることも確認）。
 - [ ] **T16**: `compose.prod.yaml`作成（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon常駐サービス、スケジューラ用cronコンテナ）
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
 - [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
