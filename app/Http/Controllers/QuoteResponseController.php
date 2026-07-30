@@ -11,6 +11,7 @@ use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rules\Password;
 
 class QuoteResponseController extends Controller
 {
@@ -147,7 +148,7 @@ class QuoteResponseController extends Controller
 
             // Validate - Stage 1: Only essential information
             $validated = $request->validate([
-                'password' => 'required|string|min:8|confirmed',
+                'password' => ['required', 'confirmed', Password::defaults()],
                 'company_name' => 'required|string|max:255',
                 'company_type' => 'required|in:individual,corporate',
                 'agreed' => 'accepted',

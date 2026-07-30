@@ -41,8 +41,8 @@ class QuoteResponseRegistrationSyncTest extends TestCase
         ]);
 
         $response = $this->post(route('quote.response.register.store', $quoteResponse->token), [
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1234',
+            'password_confirmation' => 'Password1234',
             'company_name' => '同期テスト株式会社',
             'company_type' => 'corporate',
             'agreed' => true,
@@ -82,8 +82,8 @@ class QuoteResponseRegistrationSyncTest extends TestCase
         ]);
 
         $response = $this->post(route('quote.response.register.store', $quoteResponse->token), [
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1234',
+            'password_confirmation' => 'Password1234',
             'company_name' => '再登録テスト株式会社',
             'company_type' => 'corporate',
             'agreed' => true,
