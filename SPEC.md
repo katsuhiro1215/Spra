@@ -169,6 +169,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - 公開フォーム（問い合わせ・見積回答登録・入金報告等）にはレート制限（`throttle:5,1`）を設定する（設定済み、SPEC.md §7 K7参照）。
 - ファイルアップロードはMIMEタイプ制限を必ず設ける（設定済み、SPEC.md §7 K6参照）。
 - CORS（`config/cors.php`）は`allowed_origins`を自ドメインのみに限定済み（ワイルドカードなし）。対象は`api/*`・`sanctum/csrf-cookie`のみで、Inertiaの通常ページ遷移は対象外。本番では`APP_URL`を本番ドメインに設定すれば自動的に限定される。
+- パスワードポリシー（2026-07-30強化、SPEC.md §7 K25参照）: `AppServiceProvider::boot()`で`Password::defaults()`を一元設定（12文字以上・英大小文字混在・数字必須、本番環境では漏洩済みパスワードチェック`uncompromised()`も実施）。`admins`/`users`/`atlas`いずれのガードの登録・パスワード変更もこの1箇所に集約されている。管理者・クライアント企業担当者アカウントを社内から作成する際の自動生成パスワード（`AdminService`/`UserService`）も`Str::password()`でこのポリシーを満たすよう生成する。
 - 電子帳簿保存法・インボイス制度・電子署名法等の法令適合性は**本書のスコープ外**（ユーザー判断により明記しない方針）。
 
 ### 6.2 本番環境構成
@@ -215,6 +216,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K22 | 本番ビルド時、`npm run build`がメモリ不足でOOMするリスク | `Dockerfile.prod`検証（2026-07-30）で判明。`mermaid`/`cytoscape`等を含む大きなバンドルのため、2GB程度のメモリではビルド中にOOMする（ローカルのDocker Desktop 2GB割当で実際に再現、8GBで解消）。本ガイドが従来推奨していた「Lightsail 2GBプラン」はビルド用途には不十分な可能性が高い。対応方針（4GB以上のプラン／ビルド時のみswap追加／CI側でビルドしてイメージをpull）は`docs/ProductionDeploymentGuide.md`に記載、T16/T17着手時に決定 | フェーズ1（要判断、T16/T17着手時） |
 | K23 | 本番環境（`APP_ENV=production`）で例外発生時、エラーページが表示できず真っ白な500レスポンスになる | **修正済み**（2026-07-30）。`compose.prod.yaml`（T16）検証中に発見。`bootstrap/app.php`の汎用例外ハンドラが`APP_DEBUG`に関わらず必ず`response()->view('errors.500', [], 500)`を呼ぶが、`resources/views/errors/`ディレクトリ自体が存在せず、**原因を問わずあらゆる例外（404/419/403含む）が本番では空の500レスポンスになっていた**。`resources/views/errors/{404,403,419,429,500,503}.blade.php`（共通レイアウト`errors/minimal.blade.php`を共有）を追加し、ハンドラも実際のHTTPステータスコードに応じた専用ビュー（無ければ500にフォールバック）を描画するよう修正 | フェーズ1（完了、優先度を上げて対応） |
 | K24 | 公開サイト共通Footerに実装されていないルート（`/plans`・`/careers`・`/sitemap`）へのリンクが残存 | **修正済み**（2026-07-30）。本番リリース前の最終確認（Public/User配下のリンク切れ調査）で発見。3つとも`routes/web.php`に未登録またはルート自体が存在せず、クリックすると404になっていた。全公開ページ共通のFooterコンポーネントに現れるため影響範囲が広く、ユーザー判断により3本ともリンクを削除して対応 | フェーズ1（完了） |
+| K25 | Admin/Userともにログインパスワードの複雑性要件が緩い（8文字以上のみ） | **修正済み**（2026-07-30）。ユーザー指示により強化。`AppServiceProvider::boot()`で`Password::defaults()`を一元設定（12文字以上・英大小文字混在・数字必須、本番のみ`uncompromised()`で漏洩チェック）。従来`Rules\Password::defaults()`を使っていなかった`QuoteResponseController`のオンボーディング登録（`min:8`のみ）もこのポリシーに統一。管理者・クライアント企業担当者アカウントの自動生成パスワード（`AdminService`/`UserService`）も`Str::random()`から`Str::password()`に変更しポリシーを確実に満たすようにした | フェーズ1（完了） |
 
 ## 8. 用語集
 

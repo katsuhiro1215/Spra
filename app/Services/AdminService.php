@@ -48,7 +48,8 @@ class AdminService extends BaseService
     public function createAdmin(array $data): array
     {
         return DB::transaction(function () use ($data) {
-            $randomPassword = Str::random(12);
+            // パスワードポリシー（英大小文字・数字必須）を確実に満たすよう生成する
+            $randomPassword = Str::password(12, letters: true, numbers: true, symbols: false);
 
             $admin = $this->repository->create([
                 'email'    => $data['email'],

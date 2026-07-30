@@ -97,6 +97,11 @@
   - 内容: 許可オリジンが本番ドメイン・Atlasサブドメインのみに絞られているか検証する。
   - 完了の定義: 設定内容を確認、必要なら修正。→ `allowed_origins`は既に`CORS_ALLOWED_ORIGINS`環境変数（未設定時は`config('app.url')`にフォールバック）で自ドメインのみに限定されており、ワイルドカードではない。`paths`も`api/*`・`sanctum/csrf-cookie`のみが対象でInertiaの通常ページ遷移は対象外。Atlas関連のJSがメインドメインのAPIをクロスオリジンでfetchしている箇所は無く、Atlas用のCORS追加設定は不要と判断。本番では`APP_URL`を本番ドメインに設定すれば自動的にCORSも本番ドメインに限定される。
 
+- [x] **T14b: Admin/Userのログインパスワードポリシーを強化**（完了: 2026-07-30、`fix/password-policy-strengthening`。ユーザー指示、SPEC.md §7 K25参照）
+  - 対象ファイル: `app/Providers/AppServiceProvider.php`、`app/Http/Controllers/QuoteResponseController.php`、`app/Services/AdminService.php`、`app/Services/UserService.php`
+  - 内容: `Rules\Password::defaults()`にカスタム設定が無く、Laravelの素の既定値（8文字以上のみ、複雑性要件なし）のままだった。`AppServiceProvider::boot()`で`Password::min(12)->mixedCase()->numbers()`（本番のみ`uncompromised()`追加）を一元設定。`QuoteResponseController`のオンボーディング登録（`min:8`のみのインラインルールで中央ポリシーを迂回していた）もこれに統一。管理者・クライアント企業担当者の自動生成パスワード（`Str::random(12)`）も、たまたま数字や大文字を含まない可能性があったため`Str::password(12, letters: true, numbers: true, symbols: false)`に変更しポリシーを確実に満たすようにした。
+  - 完了の定義: 弱いパスワードが拒否され、強いパスワードが通ることをテストで確認。→ `tests/Feature/PasswordPolicyTest.php`で確認済み（ポリシー未達の拒否・充足時の許可・Admin/UserServiceの自動生成パスワードがポリシーを満たすことの3点）。既存の`tests/Feature/Auth/PasswordUpdateTest.php`・`tests/Feature/QuoteResponseRegistrationSyncTest.php`のテストデータもポリシー準拠のパスワードに更新。
+
 ### 2.3 AWS Lightsail 本番デプロイ
 
 `docs/ProductionDeploymentGuide.md`の未着手チェックリストをそのままタスク化する。
