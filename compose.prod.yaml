@@ -1,0 +1,147 @@
+# 本番用Docker Compose構成（T16）。
+#
+# 開発用のcompose.yaml（Laravel Sail生成）との主な違い:
+# - ソースはバインドマウントせずイメージに焼き込む（Dockerfile.prod）
+# - phpMyAdminは含めない
+# - リバースプロキシ（Caddy）でHTTPS終端（Let's Encrypt証明書は自動取得・更新）
+# - Horizon（キューワーカー）・スケジューラを常駐サービスとして追加
+#
+# 起動:
+#   docker compose -f compose.prod.yaml up -d --build
+# マイグレーション・権限同期・キャッシュ最適化は起動後に別途実行する
+# （docs/ProductionDeploymentGuide.md参照）。
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+            target: app
+        image: spra-app-prod
+        restart: always
+        env_file:
+            - .env
+        volumes:
+            - app-storage:/var/www/html/storage
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        networks:
+            - prod
+
+    caddy:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+            target: caddy
+        image: spra-caddy-prod
+        restart: always
+        env_file:
+            - .env
+        ports:
+            - '80:80'
+            - '443:443'
+        volumes:
+            - caddy-data:/data
+            - caddy-config:/config
+        depends_on:
+            - app
+        networks:
+            - prod
+
+    horizon:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+            target: app
+        image: spra-app-prod
+        restart: always
+        env_file:
+            - .env
+        command: ['php', 'artisan', 'horizon']
+        volumes:
+            - app-storage:/var/www/html/storage
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        networks:
+            - prod
+
+    scheduler:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+            target: app
+        image: spra-app-prod
+        restart: always
+        env_file:
+            - .env
+        # 本番イメージ（Alpine）にはcronを積んでいないため、schedule:runを毎分実行するループで代替する
+        entrypoint: ['sh', '-c']
+        command:
+            - 'while true; do php artisan schedule:run --no-interaction; sleep 60; done'
+        volumes:
+            - app-storage:/var/www/html/storage
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        networks:
+            - prod
+
+    mysql:
+        image: 'mysql:8.0'
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+        volumes:
+            - prod-mysql-data:/var/lib/mysql
+        networks:
+            - prod
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-p${DB_PASSWORD}'
+            retries: 3
+            timeout: 5s
+
+    redis:
+        image: 'redis:alpine'
+        restart: always
+        volumes:
+            - prod-redis-data:/data
+        networks:
+            - prod
+        healthcheck:
+            test:
+                - CMD
+                - redis-cli
+                - ping
+            retries: 3
+            timeout: 5s
+
+networks:
+    prod:
+        driver: bridge
+
+volumes:
+    app-storage:
+        driver: local
+    prod-mysql-data:
+        driver: local
+    prod-redis-data:
+        driver: local
+    caddy-data:
+        driver: local
+    caddy-config:
+        driver: local
