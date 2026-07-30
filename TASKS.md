@@ -117,7 +117,7 @@
   - 完了の定義: 本番相当の環境（`APP_ENV=production`かつ`APP_DEBUG=false`相当）で404・未処理例外の両方が正しいステータスコード・空でないレスポンスになることをテストで確認。→ `tests/Feature/ProductionErrorPageTest.php`で確認済み（`$this->app->detectEnvironment()`でproduction環境を模擬）。
 
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
-- [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
+- [ ] **T18**: Xserver側DNS設定（本番ドメインと`ATLAS_DOMAIN`サブドメインの両方でAレコードを静的IPに向ける、ネームサーバー移管なし、MX/TXT等メール関連レコードは変更しない）
 - [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
 - [ ] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）
 - [ ] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）

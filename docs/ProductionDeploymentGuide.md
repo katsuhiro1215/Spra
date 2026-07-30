@@ -41,6 +41,7 @@
 - 永続化: `app-storage`（アップロードファイル等、app/horizon/schedulerで共有）、`prod-mysql-data`、`prod-redis-data`、`caddy-data`/`caddy-config`（証明書・Caddy内部状態）。
 - 新規`.env`変数: `APP_DOMAIN`（Caddyがリバースプロキシする本番ドメイン）、`CADDY_ACME_EMAIL`（Let's Encrypt証明書失効通知の宛先）。`.env.example`に追記済み。
 - ローカル検証は`localhost`ドメインで実施（CaddyがLet's Encryptの代わりに内部CAで自己署名証明書を自動発行する挙動を利用）。実ドメインでの動作確認はT17（Lightsailインスタンス作成、DNS設定後）で行う。
+- **Atlasサブドメイン（`ATLAS_DOMAIN`）も同時に公開する場合**（2026-07-30追記）: `Caddyfile`は`{$APP_DOMAIN}, {$ATLAS_DOMAIN}`の1ブロックで両ドメインを同じ`app:9000`バックエンドへ振り分ける構成にしている（Atlasはメインサイトとセッションを共有しない別ログイン導線だが、同一Laravelアプリ内でHostヘッダーを見て振り分けているため、Caddy側の設定は共通でよい）。DNS側でも`ATLAS_DOMAIN`（例: `atlas.example.com`）のAレコードをLightsailの静的IPに向ける必要がある（T18で`APP_DOMAIN`と同時に設定する）。
 
 ### ⚠️ ビルド時メモリ要件（2026-07-30、Dockerfile.prod検証で判明）
 
@@ -66,7 +67,7 @@
    - リージョン: 東京（ap-northeast-1）を選択（レイテンシ最小化）
 2. **静的IPを取得してインスタンスにアタッチ**（Lightsailの「ネットワーキング」から作成）
 3. **ファイアウォール設定**（Lightsailの「ネットワーキング」タブ）: 80(HTTP)/443(HTTPS)/22(SSH、可能なら自分のIPのみに制限)を許可。3306(MySQL)は外部公開しない。
-4. **Xserver側でDNS設定**: 管理画面のDNSレコード編集で、Aレコードを追加しLightsailの静的IPを指す（ネームサーバーの変更は不要）。
+4. **Xserver側でDNS設定**: 管理画面のDNSレコード編集で、本番ドメインと`ATLAS_DOMAIN`サブドメイン（例: `atlas.example.com`）両方のAレコードを追加・変更しLightsailの静的IPを指す（ネームサーバーの変更は不要）。MX/SPF/DKIM等のメール関連レコードには触れない。
 5. **サーバーにDocker / Docker Composeをインストール**
 6. **リポジトリを取得**（git clone、以降は`git pull`で更新）
 7. **`.env`を本番用に設定**（下記チェックリスト参照）
