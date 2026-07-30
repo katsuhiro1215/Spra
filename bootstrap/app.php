@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -108,7 +109,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 'exception_class' => get_class($e)
             ]);
 
-            // 本番環境では一般的なエラーページを表示
-            return response()->view('errors.500', [], 500);
+            // 本番環境ではステータスコードに応じたエラーページを表示
+            // （resources/views/errors/ に専用ビューが無いコードは500ページにフォールバックする）
+            $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
+            $view = view()->exists("errors.{$status}") ? "errors.{$status}" : 'errors.500';
+
+            return response()->view($view, ['status' => $status], $status);
         });
     })->create();

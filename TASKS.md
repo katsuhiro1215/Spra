@@ -107,6 +107,12 @@
   - **重要な発見**: ローカル検証中、`npm run build`単体でJavaScriptヒープ不足によるOOMが発生した（Docker Desktopのデフォルト割当2GBのため）。`mermaid`/`cytoscape`等の重量級ライブラリを含むバンドルのため、**本番のLightsailインスタンスも最低2GBでは同様にビルド時OOMのリスクが高い**と判明。ローカル検証はDocker Desktopのメモリ割当を8GBに増やして解消した。本番側の対応は`docs/ProductionDeploymentGuide.md`に追記済み（後述）。
   - 完了の定義: `docker build -f Dockerfile.prod .`がローカルで完走し、生成イメージで`php artisan --version`が正常に動作すること。→ 確認済み（`vendor/`が`--no-dev`で構築されていること、`public/build/manifest.json`が存在すること、`bootstrap/cache/*.php`のようなローカル生成物混入がないよう`.dockerignore`で除外済みであることも確認）。
 - [ ] **T16**: `compose.prod.yaml`作成（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon常駐サービス、スケジューラ用cronコンテナ）
+
+- [x] **T16b: 本番環境で例外発生時にエラーページが表示されない（真っ白な500レスポンス）バグを修正**（完了: 2026-07-30、`fix/production-error-page-missing`。SPEC.md §7 K23として発見、T16検証中にユーザー指示により優先度を上げて対応）
+  - 対象ファイル: `bootstrap/app.php`（汎用例外ハンドラ）、`resources/views/errors/`（新規）
+  - 内容: `bootstrap/app.php`の汎用`Throwable`ハンドラが、本番環境で常に`response()->view('errors.500', [], 500)`を呼んでいたが、`resources/views/errors/`ディレクトリ自体が存在せず、**原因を問わずあらゆる例外（404/419/403含む）が空の500レスポンスになっていた**。ハンドラを実際のHTTPステータスコード（`HttpExceptionInterface::getStatusCode()`）に応じて`errors.{code}`ビューを描画し、専用ビューが無ければ`errors.500`にフォールバックするよう修正。共通レイアウト`errors/minimal.blade.php`を作り、`404`/`403`/`419`/`429`/`500`/`503`の各ビューはそこに委譲する形にした。
+  - 完了の定義: 本番相当の環境（`APP_ENV=production`かつ`APP_DEBUG=false`相当）で404・未処理例外の両方が正しいステータスコード・空でないレスポンスになることをテストで確認。→ `tests/Feature/ProductionErrorPageTest.php`で確認済み（`$this->app->detectEnvironment()`でproduction環境を模擬）。
+
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
 - [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
 - [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
