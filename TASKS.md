@@ -122,7 +122,7 @@
   - 完了の定義: 本番相当の環境（`APP_ENV=production`かつ`APP_DEBUG=false`相当）で404・未処理例外の両方が正しいステータスコード・空でないレスポンスになることをテストで確認。→ `tests/Feature/ProductionErrorPageTest.php`で確認済み（`$this->app->detectEnvironment()`でproduction環境を模擬）。
 
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
-- [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
+- [ ] **T18**: Xserver側DNS設定（本番ドメインと`ATLAS_DOMAIN`サブドメインの両方でAレコードを静的IPに向ける、ネームサーバー移管なし、MX/TXT等メール関連レコードは変更しない）
 - [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
 - [ ] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）
 - [ ] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）
@@ -132,6 +132,11 @@
 - [ ] **T25**: DBバックアップ運用実装（`mysqldump`定期実行、保持世代数を絞る＝例: 直近7日分のみ）
 - [ ] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）
 - [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、Search Console実データ取得、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
+
+- [x] **T27b: 公開サイトFooterの壊れたリンクを修正**（完了: 2026-07-30、`fix/public-footer-broken-links`。本番リリース前の最終確認としてユーザー指示によりPublic/User配下のリンク切れを調査、SPEC.md §7 K24として発見・優先度を上げて対応）
+  - 対象ファイル: `resources/js/Components/Public/Footer.jsx`
+  - 内容: 全公開ページ共通のFooterに、`routes/web.php`で未実装（コメントアウトのまま）の`/plans`・`/careers`、およびルート自体が存在しない`/sitemap`へのリンクが残っており、クリックすると404になっていた。ユーザー判断により3本ともリンクを削除して対応（`/careers`は`Careers.jsx`ページ自体は実装済みだが、ルート有効化は別途の機能判断が必要なため今回は見送り）。
+  - 完了の定義: `route()`呼び出し・ハードコードされたhrefが実在するルートと一致していることを確認。→ Public/User配下71種類の`route()`呼び出しを全数照合（Explore調査）、Userは問題なし、Publicはこの3件のみが該当。`npm run build`でビルドエラーが無いことも確認。
 
 ### 2.4 Atlas「/apply」フォーム実装
 

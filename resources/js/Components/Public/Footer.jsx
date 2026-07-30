@@ -35,14 +35,12 @@ export default function Footer() {
             { name: "Web制作", href: "/service" },
             { name: "システム開発", href: "/service" },
             { name: "アプリ開発", href: "/service" },
-            { name: "料金プラン", href: "/plans" },
             { name: "ランディングページ", href: "/lp" },
         ],
         company: [
             { name: "会社概要", href: "/company" },
             { name: "お知らせ", href: "/news" },
             { name: "ブログ", href: "/blog" },
-            { name: "採用情報", href: "/careers" },
         ],
         support: [
             { name: "お問い合わせ", href: "/contact" },
@@ -258,12 +256,6 @@ export default function Footer() {
                             © {currentYear} Smart Sprouts. All rights reserved.
                         </p>
                         <div className="flex items-center gap-6">
-                            <Link
-                                href="/sitemap"
-                                className="hover:text-white transition-colors"
-                            >
-                                サイトマップ
-                            </Link>
                             <Link
                                 href="/terms"
                                 className="hover:text-white transition-colors"
