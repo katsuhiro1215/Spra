@@ -128,6 +128,11 @@
 - [ ] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）
 - [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、Search Console実データ取得、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
 
+- [x] **T27b: 公開サイトFooterの壊れたリンクを修正**（完了: 2026-07-30、`fix/public-footer-broken-links`。本番リリース前の最終確認としてユーザー指示によりPublic/User配下のリンク切れを調査、SPEC.md §7 K24として発見・優先度を上げて対応）
+  - 対象ファイル: `resources/js/Components/Public/Footer.jsx`
+  - 内容: 全公開ページ共通のFooterに、`routes/web.php`で未実装（コメントアウトのまま）の`/plans`・`/careers`、およびルート自体が存在しない`/sitemap`へのリンクが残っており、クリックすると404になっていた。ユーザー判断により3本ともリンクを削除して対応（`/careers`は`Careers.jsx`ページ自体は実装済みだが、ルート有効化は別途の機能判断が必要なため今回は見送り）。
+  - 完了の定義: `route()`呼び出し・ハードコードされたhrefが実在するルートと一致していることを確認。→ Public/User配下71種類の`route()`呼び出しを全数照合（Explore調査）、Userは問題なし、Publicはこの3件のみが該当。`npm run build`でビルドエラーが無いことも確認。
+
 ### 2.4 Atlas「/apply」フォーム実装
 
 - [x] **T28: データ設計を決定する**（完了: 2026-07-29、`feat/atlas-apply-form`）
