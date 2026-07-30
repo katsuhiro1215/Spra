@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 #
-# 本番用マルチステージビルド（T15）。
+# 本番用マルチステージビルド（T15/T16）。
 # 開発環境（compose.yaml / vendor/laravel/sail/runtimes/8.4）はソースをバインドマウントする方式だが、
-# 本番ではイメージにコードを焼き込む。php-fpmで待ち受け、リバースプロキシ（nginx等、T16のcompose.prod.yamlで追加）
-# から9000番ポートへ接続する構成を想定している。
+# 本番ではイメージにコードを焼き込む。appステージ（php-fpm）が9000番で待ち受け、
+# caddyステージ（リバースプロキシ + 自動HTTPS）から接続する構成（compose.prod.yaml参照）。
 
 ########################################
 # Stage 1: PHP依存関係のインストール
@@ -96,3 +96,19 @@ USER www-data
 EXPOSE 9000
 
 CMD ["php-fpm"]
+
+########################################
+# Stage 4: Caddy（リバースプロキシ + 静的ファイル配信、T16）
+########################################
+# php-fpm（appステージ）へfastcgiで接続するには、Caddy側のrootパスとphp-fpm側の実ファイルパスが
+# 一致している必要がある（SCRIPT_FILENAMEの解決に使われるため）。そのため、appステージと同じ
+# /var/www/html/public にpublicディレクトリ（ソース資材＋Viteビルド成果物）を配置する。
+FROM caddy:2-alpine AS caddy
+
+WORKDIR /var/www/html
+
+COPY --from=vendor /app/public ./public
+COPY --from=frontend /app/public/build ./public/build
+
+COPY Caddyfile /etc/caddy/Caddyfile
+

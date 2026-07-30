@@ -106,12 +106,16 @@
   - 内容: `composer`イメージでの依存解決（`--ignore-platform-reqs`で拡張チェックを一旦無視、実行時拡張は最終イメージ側で用意）、`node:22-alpine`でのViteビルド、`php:8.4-fpm-alpine`ベースの実行イメージ（`pdo_mysql`/`gd`/`intl`/`bcmath`/`exif`/`zip`/`opcache`/`pcntl`/`redis`を導入）の3段階マルチステージ構成。php-fpmで9000番待受、リバースプロキシ（T16）から接続する想定。
   - **重要な発見**: ローカル検証中、`npm run build`単体でJavaScriptヒープ不足によるOOMが発生した（Docker Desktopのデフォルト割当2GBのため）。`mermaid`/`cytoscape`等の重量級ライブラリを含むバンドルのため、**本番のLightsailインスタンスも最低2GBでは同様にビルド時OOMのリスクが高い**と判明。ローカル検証はDocker Desktopのメモリ割当を8GBに増やして解消した。本番側の対応は`docs/ProductionDeploymentGuide.md`に追記済み（後述）。
   - 完了の定義: `docker build -f Dockerfile.prod .`がローカルで完走し、生成イメージで`php artisan --version`が正常に動作すること。→ 確認済み（`vendor/`が`--no-dev`で構築されていること、`public/build/manifest.json`が存在すること、`bootstrap/cache/*.php`のようなローカル生成物混入がないよう`.dockerignore`で除外済みであることも確認）。
-- [ ] **T16**: `compose.prod.yaml`作成（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon常駐サービス、スケジューラ用cronコンテナ）
+- [x] **T16**: `compose.prod.yaml`作成（バインドマウント無し、phpMyAdmin除外、Caddyによる自動HTTPS、Horizon常駐サービス、スケジューラ用ループコンテナ）（完了: 2026-07-30、`feat/compose-prod`）
+  - 対象ファイル: `compose.prod.yaml`（新規）、`Caddyfile`（新規）、`Dockerfile.prod`（`caddy`ステージ追加）、`.env.example`（`APP_DOMAIN`/`CADDY_ACME_EMAIL`追加）
+  - 内容: HTTPS終端はnginx+Certbotではなく**Caddy**を採用（ユーザー判断。個人運用規模のため自動証明書取得・更新の運用負荷が低い方を優先）。`app`（php-fpm）・`caddy`（リバースプロキシ）・`horizon`（キューワーカー常駐）・`scheduler`（`schedule:run`を60秒間隔で呼ぶループ、Alpineベースのため通常cronは使わず）・`mysql`・`redis`の6サービス構成。詳細は`docs/ProductionDeploymentGuide.md`に追記済み。
+  - 完了の定義: `docker compose -f compose.prod.yaml up -d --build`がローカルで完走し、Caddy経由でリクエストがphp-fpmまで到達すること。→ 確認済み（`localhost`ドメインでCaddyの自動HTTPS・HTTP→HTTPSリダイレクト・fastcgi疎通を確認。本番ドメインでの実証明書取得確認はT17以降で行う）。
+  - **副次的発見（T16検証中に判明、優先度を上げて別途対応）**: `bootstrap/app.php`の例外ハンドラが本番環境（`APP_ENV=production`）で常に`errors.500`ビューを描画しようとするが、`resources/views/errors/`が存在せず**あらゆる例外が真っ白な500レスポンスになる**実バグを発見（`fix/production-error-page-missing`で対応、SPEC.md §7 K23参照）。
 - [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
 - [ ] **T18**: Xserver側DNS設定（Aレコードで静的IPを指す、ネームサーバー移管なし）
 - [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
 - [ ] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）
-- [ ] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（nginx+Certbot、証明書自動更新）
+- [ ] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）
 - [ ] **T22**: マイグレーション適用（`migrate --force`）・`admin:sync-permissions`実行・新規権限の管理者への付与
 - [ ] **T23**: キャッシュ最適化（`config:cache`, `route:cache`, `view:cache`）
 - [ ] **T24**: Horizon常駐・スケジューラ（`schedule:run`毎分cron）稼働確認

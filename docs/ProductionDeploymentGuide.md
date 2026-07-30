@@ -22,7 +22,7 @@
 | フロントエンド | `npm run dev`（Vite HMR） | `npm run build`済みの`public/build`をイメージに含める |
 | phpMyAdmin | 起動している | 本番では起動しない、または外部公開しない（SSHポートフォワード経由のみ） |
 | `.env` | `APP_ENV=local`, `APP_DEBUG=true` | `APP_ENV=production`, `APP_DEBUG=false` |
-| SSL/リバースプロキシ | なし（localhost） | nginx（またはCaddy）コンテナ + Let's Encryptで HTTPS終端 |
+| SSL/リバースプロキシ | なし（localhost） | Caddyコンテナで自動HTTPS終端（Let's Encrypt証明書の取得・更新を自動化） |
 | キュー | Redis導入済み（`compose.yaml`の`redis`サービス）。ワーカーは手動で`sail artisan horizon` | Horizonを常駐コンテナ（`restart: always`）として稼働。監視は`/admin/horizon`（owner/super_admin限定） |
 | スケジューラ | 未実行 | `schedule:run`を毎分実行するcron（ホスト側 or 専用コンテナ） |
 | バッチ失敗通知 | `MAIL_ADMIN_ADDRESS`宛にメール送信（`routes/console.php`で全コマンドに設定済み） | 本番でも同様。実際に届く宛先を`.env`の`MAIL_ADMIN_ADDRESS`に設定すること |
@@ -30,9 +30,17 @@
 ## 🔧 本番投入までに用意すべきもの（未着手・今後作成）
 
 - [x] 本番用 `Dockerfile.prod`（マルチステージ: `composer install --no-dev --optimize-autoloader` → `npm run build` → 実行用イメージにCOPY）（2026-07-30完了、詳細はTASKS.md T15参照）
-- [ ] 本番用 `compose.prod.yaml`（バインドマウント無し、phpMyAdmin除外、nginx+Let's Encrypt、Horizon/スケジューラ用サービス追加。Redisは`compose.yaml`に追加済みのものを流用可）
+- [x] 本番用 `compose.prod.yaml`（バインドマウント無し、phpMyAdmin除外、Caddyによる自動HTTPS、Horizon/スケジューラ常駐サービス。Redisは専用の永続ボリュームを新設）（2026-07-30完了、詳細はTASKS.md T16参照）
 - [ ] Lightsailインスタンスの作成・初期設定（後述）
 - [ ] バックアップ方式の決定（DBダンプの定期取得・保存先）
+
+### 🧩 compose.prod.yamlの構成（2026-07-30、T16で作成）
+
+- `Dockerfile.prod`に`caddy`ステージを追加し、`app`（php-fpm）ステージと同じ絶対パス（`/var/www/html/public`）にビルド済み静的資材を配置している。これはCaddyの`php_fastcgi`がfastcgi経由でphp-fpmへ`SCRIPT_FILENAME`を渡す際、Caddy側のrootパスとphp-fpm側の実ファイルパスが一致している必要があるため（ボリューム共有はしていない。両イメージが同じビルドコンテキストから同じ内容をそれぞれ焼き込む方式）。
+- サービス構成: `app`（php-fpm）、`caddy`（リバースプロキシ＋自動HTTPS、80/443番を公開）、`horizon`（`php artisan horizon`常駐）、`scheduler`（`schedule:run`を60秒間隔で呼び出すループ。Alpineベースのため通常のcronは使わない）、`mysql`、`redis`。
+- 永続化: `app-storage`（アップロードファイル等、app/horizon/schedulerで共有）、`prod-mysql-data`、`prod-redis-data`、`caddy-data`/`caddy-config`（証明書・Caddy内部状態）。
+- 新規`.env`変数: `APP_DOMAIN`（Caddyがリバースプロキシする本番ドメイン）、`CADDY_ACME_EMAIL`（Let's Encrypt証明書失効通知の宛先）。`.env.example`に追記済み。
+- ローカル検証は`localhost`ドメインで実施（CaddyがLet's Encryptの代わりに内部CAで自己署名証明書を自動発行する挙動を利用）。実ドメインでの動作確認はT17（Lightsailインスタンス作成、DNS設定後）で行う。
 
 ### ⚠️ ビルド時メモリ要件（2026-07-30、Dockerfile.prod検証で判明）
 
@@ -66,21 +74,21 @@
    ```
    docker compose -f compose.prod.yaml up -d --build
    ```
-9. **HTTPS設定**（nginxコンテナ + Certbot でLet's Encrypt証明書を取得、自動更新をcron/コンテナで設定）
+9. **HTTPS設定**（Caddyコンテナが`APP_DOMAIN`宛のLet's Encrypt証明書を初回起動時に自動取得・以降自動更新する。手動でのCertbot操作は不要）
 10. **マイグレーション適用**
     ```
-    docker compose exec laravel.test php artisan migrate --force
+    docker compose -f compose.prod.yaml exec app php artisan migrate --force
     ```
 11. **管理者権限カタログの同期**
     ```
-    docker compose exec laravel.test php artisan admin:sync-permissions
+    docker compose -f compose.prod.yaml exec app php artisan admin:sync-permissions
     ```
     → 同期後、管理画面から新規権限（例: `schedules.history`）を必要な管理者に付与する。
 12. **キャッシュ最適化**
     ```
-    docker compose exec laravel.test php artisan config:cache
-    docker compose exec laravel.test php artisan route:cache
-    docker compose exec laravel.test php artisan view:cache
+    docker compose -f compose.prod.yaml exec app php artisan config:cache
+    docker compose -f compose.prod.yaml exec app php artisan route:cache
+    docker compose -f compose.prod.yaml exec app php artisan view:cache
     ```
 13. **キューワーカー・スケジューラが正常に稼働しているか確認**
 14. **DBバックアップの定期実行を設定**（cronで`mysqldump`をS3等へアップロードする、等）
@@ -92,9 +100,11 @@
 | `APP_ENV` | `production` | |
 | `APP_DEBUG` | `false` | エラー詳細を公開しない |
 | `APP_URL` | 本番ドメイン（https://…） | |
-| `DB_*` | 本番DB接続情報 | コンテナ内MySQLを使う場合はホスト名をサービス名に |
+| `DB_*` | 本番DB接続情報 | コンテナ内MySQLを使う場合はホスト名をサービス名（`mysql`）に |
+| `APP_DOMAIN` | 本番ドメイン（スキーム無し） | `compose.prod.yaml`のCaddyがこのドメイン宛の証明書を自動取得する |
+| `CADDY_ACME_EMAIL` | Let's Encrypt通知用メールアドレス | 証明書の期限切れ等の通知が届く |
 | `SESSION_DOMAIN` | 本番ドメイン | |
-| `SESSION_SECURE_COOKIE` | `true` | HTTPS化必須（本ガイドの手順9でnginx+Let's Encryptを設定済み前提）。未設定のままだとCookieがHTTP経由でも送信されうる |
+| `SESSION_SECURE_COOKIE` | `true` | HTTPS化必須（本ガイドの手順9でCaddyが自動的にHTTPS終端する前提）。未設定のままだとCookieがHTTP経由でも送信されうる |
 | `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` / `INSTAGRAM_PAGE_ACCESS_TOKEN` / `INSTAGRAM_VERIFY_TOKEN` | Meta Developer Consoleで取得した実値 | Webhook購読はHTTPS到達可能な本番URLでないと登録不可 |
 | `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま |
 | `SEARCH_CONSOLE_SITE_URL` / `SEARCH_CONSOLE_CREDENTIALS_PATH` | Search Console連携用の実値 | 本番でのみ検証可能 |

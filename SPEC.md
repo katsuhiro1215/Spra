@@ -213,6 +213,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K20 | 2FAが`owner`/`super_admin`を含め全adminロールで任意設定（opt-in）、組織として強制する仕組みが無い | バグではなくポリシー上の懸念（2026-07-29棚卸しで判明）。ログイン自体にバイパス経路は無い。2FA必須化を行うかはビジネス判断が必要 | フェーズ2（要判断） |
 | K21 | `emails/contact/notification.blade.php`が存在しないルート名`admin.homepage.contacts.show`を参照 | **修正済み**（2026-07-29）。正しい`admin.contact.show`に修正。`route()`が`RouteNotFoundException`を投げ、`ContactService::sendNotificationEmails()`のtry/catchで警告ログのみ記録され握りつぶされていたため、**Contact（Atlas申込みも含む）作成時の管理者通知メールが常に送信失敗していた**。DBの通知（ベルアイコン）は別経路のため気づきにくかった | フェーズ1（完了） |
 | K22 | 本番ビルド時、`npm run build`がメモリ不足でOOMするリスク | `Dockerfile.prod`検証（2026-07-30）で判明。`mermaid`/`cytoscape`等を含む大きなバンドルのため、2GB程度のメモリではビルド中にOOMする（ローカルのDocker Desktop 2GB割当で実際に再現、8GBで解消）。本ガイドが従来推奨していた「Lightsail 2GBプラン」はビルド用途には不十分な可能性が高い。対応方針（4GB以上のプラン／ビルド時のみswap追加／CI側でビルドしてイメージをpull）は`docs/ProductionDeploymentGuide.md`に記載、T16/T17着手時に決定 | フェーズ1（要判断、T16/T17着手時） |
+| K23 | 本番環境（`APP_ENV=production`）で例外発生時、エラーページが表示できず真っ白な500レスポンスになる | `compose.prod.yaml`（T16）検証中に発見。`bootstrap/app.php`の汎用例外ハンドラが`APP_DEBUG`に関わらず必ず`response()->view('errors.500', [], 500)`を呼ぶが、`resources/views/errors/`ディレクトリ自体が存在しない。**原因を問わずあらゆる例外（404/419/403含む）が本番では空の500レスポンスになる**、本番投入前に必ず塞ぐべき重大な問題。ユーザー判断により優先度を上げて`fix/production-error-page-missing`で対応 | フェーズ1（対応中、優先度を上げて対応） |
 
 ## 8. 用語集
 
