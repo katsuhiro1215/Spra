@@ -2,13 +2,14 @@
 	email {$CADDY_ACME_EMAIL}
 }
 
-{$APP_DOMAIN} {
+{$APP_DOMAIN}, {$ATLAS_DOMAIN} {
 	root * /var/www/html/public
 
 	encode gzip
 
-	# Atlasサブドメイン等、メインサイトとセッションを共有しないため個別に扱う場合は
-	# APP_DOMAINをワイルドカードやカンマ区切りで複数指定してもこの設定をそのまま使い回せる。
+	# Atlas（atlas.本番ドメイン）はメインサイトとセッションを共有しない別ログイン導線だが、
+	# 同一Laravelアプリ（同じapp:9000）内でリクエストのHostヘッダーを見て振り分けているため、
+	# Caddy側は同じバックエンドに向けるだけでよい。
 
 	php_fastcgi app:9000
 
