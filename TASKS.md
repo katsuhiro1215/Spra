@@ -130,6 +130,11 @@
   - 内容: Ubuntu公式手順でDocker CE・Composeプラグインを導入。GitHub CLI（`gh`）をインストールしdevice flow認証、`gh repo clone`でプライベートリポジトリを取得。
 - [x] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）（完了: 2026-07-31）
   - 内容: `APP_NAME`を懸案だったK13（アプリ名不一致）を機に`SmartSprouts`に確定（フロントエンドのハードコード「Spra」表記統一は引き続きフェーズ2で対応）。`DB_PASSWORD`はサーバー上で`openssl rand`により生成しチャットには残さない運用とした。`QUEUE_CONNECTION`は本ガイドのチェックリスト記載`database`ではなく、実際の`.env.example`・Horizon運用に合わせ`redis`のまま維持（チェックリストの記載が実態と異なっていたため、`docs/ProductionDeploymentGuide.md`を訂正）。`MAIL_*`（Xserver SMTP）は本番投入後に別途設定する方針でユーザー承認済み。
+  - **`MAIL_*`設定を実施（2026-08-01）**: Xserverのメールアカウント（`info@smartsprouts.jp`）のSMTP情報を設定。当初メールが実際に届かず、原因切り分けに手間取った。判明した落とし穴は次の3点。
+    1. このLaravelバージョン（12）では`MAIL_ENCRYPTION`は`config/mail.php`のどこからも参照されておらず無効。ポート465（暗黙的TLS）を使う場合は`MAIL_SCHEME=smtps`が必要（`config/mail.php`のsmtpドライバ定義参照）。
+    2. `.env`更新後は`config:clear`＋`config:cache`の実行が必須（`config:cache`済みの状態だと`.env`変更が反映されない）。
+    3. **最大の原因**: `docker compose restart app horizon`は既存コンテナをそのまま再起動するだけで、`compose.prod.yaml`の`env_file: .env`で読み込まれる環境変数は**コンテナ作成時点のまま凍結**されており、`.env`ファイル自体を更新しても反映されない。Laravelは`.env`ファイルより既存のOS環境変数を優先するため、`config:cache`をやり直しても解決しなかった。`docker compose up -d --force-recreate app horizon`でコンテナを作り直して解消。**教訓**: 本番で`.env`の値（特にコンテナ作成時にenv_file経由で読み込まれる変数）を変更した際は、`restart`ではなく`up -d --force-recreate`（またはコンテナの再作成を伴う操作）が必要。
+    - 実際にWordPressのお問い合わせフォームから送信し、自動返信・管理者通知の両方が届くことを確認済み。
 - [x] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）（完了: 2026-07-31）
   - **副次的発見・修正**: `compose.prod.yaml`の`app`/`horizon`/`scheduler`が`env_file: .env`のみで`.env`ファイル自体をコンテナにマウントしておらず、`php artisan key:generate`（ファイルへの直接書き込みが必要）が失敗することが判明。3サービスの`volumes`に`./.env:/var/www/html/.env:ro`を追加して解消（本番サーバー側で緊急対応、リポジトリへの反映は別途）。APP_KEYはコンテナ経由ではなく`openssl rand -base64 32`で生成しサーバー上の`.env`に直接設定。DNS伝播直後はCaddyの証明書取得が長いバックオフに入り自動リトライが遅延したため、`docker compose restart caddy`で強制的に再試行させ取得に成功。
 - [x] **T22**: マイグレーション適用（`migrate --force`）・`admin:sync-permissions`実行・新規権限の管理者への付与（完了: 2026-07-31）
