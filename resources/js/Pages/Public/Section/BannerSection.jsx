@@ -113,7 +113,7 @@ export default function BannerSection() {
                         <div className="relative w-full max-w-lg mx-auto">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 opacity-20 rounded-3xl blur-2xl"></div>
                             <img
-                                src="/upload/test2.jpg"
+                                src="/upload/test4.jpg"
                                 alt="Digital Transformation"
                                 className="relative w-full h-auto rounded-2xl shadow-2xl"
                             />
