@@ -48,7 +48,7 @@ class MembershipRankSeeder extends Seeder
             [
                 'key' => 'diamonds',
                 'name' => 'Diamonds',
-                'min_annual_amount' => 3000000,
+                'min_annual_amount' => 1500000,
                 'description' => '通常サポート\nオンライン相談 年5回無料\n新サービス優先案内\n専用担当者によるサポート',
                 'sort_order' => 5,
                 'is_active' => true,

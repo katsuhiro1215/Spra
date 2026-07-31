@@ -21,6 +21,20 @@ class AddressSeeder extends Seeder
         // 1. Admin用Address作成（主要な管理者のみ）
         // =============================================
         $adminAddresses = [
+            'info@smartsprouts.jp' => [
+                [
+                    'type' => 'home',
+                    'label' => '自宅',
+                    'postal_code' => '6308303',
+                    'prefecture' => '奈良県',
+                    'city' => '奈良市',
+                    'district' => '南紀寺町',
+                    'address_other' => '2丁目274-3 萠黄アパート103号',
+                    'phone' => '090-9580-9257',
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
             'katsuhiro.k1215@gmail.com' => [
                 [
                     'type' => 'home',
@@ -31,46 +45,6 @@ class AddressSeeder extends Seeder
                     'district' => '南紀寺町',
                     'address_other' => '2丁目274-3 萠黄アパート103号',
                     'phone' => '090-9580-9257',
-                    'is_default' => false,
-                    'is_active' => true,
-                ],
-                [
-                    'type' => 'office',
-                    'label' => 'オフィス',
-                    'postal_code' => '6308303',
-                    'prefecture' => '奈良県',
-                    'city' => '奈良市',
-                    'district' => '南紀寺町',
-                    'address_other' => '2丁目274-3 萠黄アパート103号',
-                    'phone' => '090-9580-9257',
-                    'is_default' => true,
-                    'is_active' => true,
-                ],
-            ],
-            'kakoi100@smartsprouts.jp' => [
-                [
-                    'type' => 'home',
-                    'label' => '自宅',
-                    'postal_code' => '1600023',
-                    'prefecture' => '東京都',
-                    'city' => '新宿区',
-                    'district' => '西新宿',
-                    'address_other' => '1-1-1 新宿タワー303',
-                    'phone' => '03-2345-6789',
-                    'is_default' => true,
-                    'is_active' => true,
-                ],
-            ],
-            'kakoi101@smartsprouts.jp' => [
-                [
-                    'type' => 'home',
-                    'label' => '自宅',
-                    'postal_code' => '1350064',
-                    'prefecture' => '東京都',
-                    'city' => '江東区',
-                    'district' => '青海',
-                    'address_other' => '1-3-15 オーシャンビュー202',
-                    'phone' => '03-3456-7890',
                     'is_default' => true,
                     'is_active' => true,
                 ],
