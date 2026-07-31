@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use App\Models\UserActivityLog;
+use App\Notifications\ContactReceived;
 use App\Services\ContactCategoryService;
 use App\Services\ContactService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * 外部サイト(WordPress等)からのお問い合わせAPI連携コントローラー
@@ -73,6 +77,17 @@ class ContactApiController extends Controller
             ]);
 
             $this->contactService->sendNotificationEmails($contact);
+
+            // 管理者への通知（ベルアイコン）。Public/ContactControllerと同様
+            Notification::send(Admin::all(), new ContactReceived($contact));
+
+            UserActivityLog::logActivity([
+                'action' => UserActivityLog::ACTION_CONTACT_RECEIVED,
+                'description' => "{$contact->name}様よりお問い合わせを受信しました（{$contact->subject}、外部API連携）",
+                'ip_address' => $validated['visitor_ip'] ?? $request->ip(),
+                'user_agent' => $validated['visitor_user_agent'] ?? $request->userAgent(),
+                'status' => UserActivityLog::STATUS_SUCCESS,
+            ]);
 
             Log::info('外部API経由でお問い合わせを受信しました', [
                 'contact_id' => $contact->id,
