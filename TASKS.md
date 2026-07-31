@@ -142,7 +142,10 @@
   - 完了の定義: 手動実行でバックアップファイルが作成されることを確認し、cron登録まで行う。→ 本番サーバーで手動実行（43KBのバックアップファイル生成を確認）、`crontab -e`で毎日AM4:00実行を登録済み（`crontab -l`で反映確認済み）。
 - [x] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）（完了: 2026-07-31）
   - 内容: Cost budget（Monthly）を作成。アラートは「実績コストが80%超過」「予測コストが100%超過」の2つを設定、通知先メールアドレスを登録。「アラートにアクションを追加」（しきい値超過時のリソース自動停止等）は、本番稼働中にコスト超過を理由に自動でインスタンスが止まるリスクを避けるためあえて設定しなかった。
-- [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、Search Console実データ取得、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
+- [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、~~Search Console実データ取得~~、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
+  - Search Console実データ取得は完了（2026-07-31）。ドメイン所有権のDNS TXT確認、サービスアカウント作成・権限付与、本番`.env`設定、鍵ファイルのコンテナ内配置まで完了し`analytics:sync-search-console`が正常終了（新規ドメインのため現時点はクエリ0件、データ反映まで数日想定）。詳細は`docs/ProductionDeploymentGuide.md`参照
+  - Instagram連携はMeta for Developers側の一時的な不具合（アクセストークン生成時に「開発者の役割が不十分です」からの`We're working on getting this fixed as soon as we can.`表示）により保留中
+  - お問い合わせについては、既存WordPressサイト（Contact Form 7）からSpra API（`POST /api/contacts`）への切替を実施（2026-07-31、`docs/katsucode`のWordPressテーマ側で対応、Spra側のコード変更なし）。動作確認済み
 
 - [x] **T27b: 公開サイトFooterの壊れたリンクを修正**（完了: 2026-07-30、`fix/public-footer-broken-links`。本番リリース前の最終確認としてユーザー指示によりPublic/User配下のリンク切れを調査、SPEC.md §7 K24として発見・優先度を上げて対応）
   - 対象ファイル: `resources/js/Components/Public/Footer.jsx`
