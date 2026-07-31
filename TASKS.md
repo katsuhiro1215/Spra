@@ -129,7 +129,10 @@
 - [ ] **T22**: マイグレーション適用（`migrate --force`）・`admin:sync-permissions`実行・新規権限の管理者への付与
 - [ ] **T23**: キャッシュ最適化（`config:cache`, `route:cache`, `view:cache`）
 - [ ] **T24**: Horizon常駐・スケジューラ（`schedule:run`毎分cron）稼働確認
-- [ ] **T25**: DBバックアップ運用実装（`mysqldump`定期実行、保持世代数を絞る＝例: 直近7日分のみ）
+- [x] **T25**: DBバックアップ運用実装（`mysqldump`定期実行、保持世代数を絞る＝例: 直近7日分のみ）（完了: 2026-07-31、`chore/db-backup-script`）
+  - 対象ファイル: `scripts/backup-db.sh`（新規）
+  - 内容: ユーザー判断により、保存先はS3等の外部ストレージではなく**Lightsailインスタンス内のみ**（`~/db-backups`）とした（追加コスト・IAM設定不要、シンプルさを優先）。`compose.prod.yaml`のmysqlサービスに対して`mysqldump`を実行しgzip圧縮、直近7日分より古いものは自動削除。cronで毎日実行する想定（`crontab -e`で`0 4 * * * /home/ubuntu/Spra/scripts/backup-db.sh >> /home/ubuntu/db-backups/backup.log 2>&1`を登録）。
+  - 完了の定義: 手動実行でバックアップファイルが作成されることを確認し、cron登録まで行う。→ 本番サーバー上で確認予定（デプロイ作業と並行して実施）。
 - [ ] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）
 - [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、Search Console実データ取得、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
 
