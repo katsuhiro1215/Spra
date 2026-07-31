@@ -8,10 +8,8 @@ use Carbon\CarbonInterface;
 /**
  * Search Console未接続時のダミー実装。
  *
- * 本番移行時は SearchConsoleServiceInterface を実装した
- * Google API クライアント版（例: GoogleSearchConsoleService）を用意し、
- * config('services.search_console.driver') を 'google' に切り替え、
- * AppServiceProvider のバインディングを差し替えるだけで移行できる。
+ * 本番移行時は config('services.search_console.driver') を 'google' に切り替えると、
+ * AppServiceProvider のバインディングにより自動的に GoogleSearchConsoleService に切り替わる。
  */
 class DummySearchConsoleService implements SearchConsoleServiceInterface
 {

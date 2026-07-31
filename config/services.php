@@ -38,9 +38,14 @@ return [
     'search_console' => [
         // 'dummy'（デフォルト）または 'google'。本番移行時に 'google' へ切り替える
         'driver' => env('SEARCH_CONSOLE_DRIVER', 'dummy'),
+        // Search Console上のプロパティ名。ドメインプロパティなら 'sc-domain:example.com'、
+        // URLプレフィックスプロパティなら 'https://example.com/' の形式で設定する
         'site_url' => env('SEARCH_CONSOLE_SITE_URL'),
-        // サービスアカウントJSON鍵のパス（'google'ドライバ用、未実装）
-        'credentials_path' => env('SEARCH_CONSOLE_CREDENTIALS_PATH'),
+        // サービスアカウントJSON鍵ファイルのパス（'google'ドライバ用）
+        'credentials_path' => env(
+            'SEARCH_CONSOLE_CREDENTIALS_PATH',
+            storage_path('app/private/google-search-console-service-account.json')
+        ),
     ],
 
     'instagram' => [

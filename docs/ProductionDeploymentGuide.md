@@ -112,8 +112,9 @@
 | `SESSION_DOMAIN` | 本番ドメイン | |
 | `SESSION_SECURE_COOKIE` | `true` | HTTPS化必須（本ガイドの手順9でCaddyが自動的にHTTPS終端する前提）。未設定のままだとCookieがHTTP経由でも送信されうる |
 | `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` / `INSTAGRAM_PAGE_ACCESS_TOKEN` / `INSTAGRAM_VERIFY_TOKEN` | Meta Developer Consoleで取得した実値 | Webhook購読はHTTPS到達可能な本番URLでないと登録不可 |
-| `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま |
-| `SEARCH_CONSOLE_SITE_URL` / `SEARCH_CONSOLE_CREDENTIALS_PATH` | Search Console連携用の実値 | 本番でのみ検証可能 |
+| `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま。`google`は`GoogleSearchConsoleService`として実装済み（2026-07-31） |
+| `SEARCH_CONSOLE_SITE_URL` | Search Consoleのプロパティ名 | ドメインプロパティなら`sc-domain:example.com`、URLプレフィックスなら`https://example.com/` |
+| `SEARCH_CONSOLE_CREDENTIALS_PATH` | サービスアカウントJSON鍵ファイルのパス | 未設定時は`storage/app/private/google-search-console-service-account.json`（`storage/app/private/`はgit管理外）。GCPでサービスアカウントを作成し、そのメールアドレスをSearch Console側の「設定→ユーザーと権限」で「フル」権限のユーザーとして追加しておく必要がある |
 | `MAIL_*` (Postmark/Resend/SES) | 本番用APIキー | 予約通知・お問い合わせメール送信に必須 |
 | `QUEUE_CONNECTION` | `redis`（現状踏襲） | Horizonがredisバックエンドを前提とするため。本チェックリストは以前`database`と誤記していたが、`.env.example`・Horizon運用の実態に合わせて訂正した（2026-07-31） |
 
