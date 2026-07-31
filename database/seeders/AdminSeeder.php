@@ -17,37 +17,37 @@ class AdminSeeder extends Seeder
         $admins = [
             // Owner - 最高権限
             [
-                'email' => 'katsuhiro.k1215@gmail.com',
+                'email' => 'info@smartsprouts.jp',
                 'role' => 'owner',
                 'status' => 'active',
             ],
             // Super Admin - システム管理者
             [
-                'email' => 'kakoi100@smartsprouts.jp',
+                'email' => 'katsuhiro.k1215@gmail.com',
                 'role' => 'super_admin',
                 'status' => 'active',
             ],
             // Admin - 一般管理者（3名）
-            [
-                'email' => 'kakoi101@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi102@smartsprouts.jp',
-                'role' => 'admin',
-                'status' => 'inactive',
-            ],
-            [
-                'email' => 'kakoi103@smartsprouts.jp',
-                'role' => 'editor',
-                'status' => 'active',
-            ],
-            [
-                'email' => 'kakoi104@smartsprouts.jp',
-                'role' => 'viewer',
-                'status' => 'active',
-            ],
+            // [
+            //     'email' => 'kakoi101@smartsprouts.jp',
+            //     'role' => 'admin',
+            //     'status' => 'active',
+            // ],
+            // [
+            //     'email' => 'kakoi102@smartsprouts.jp',
+            //     'role' => 'admin',
+            //     'status' => 'inactive',
+            // ],
+            // [
+            //     'email' => 'kakoi103@smartsprouts.jp',
+            //     'role' => 'editor',
+            //     'status' => 'active',
+            // ],
+            // [
+            //     'email' => 'kakoi104@smartsprouts.jp',
+            //     'role' => 'viewer',
+            //     'status' => 'active',
+            // ],
         ];
 
         foreach ($admins as $adminData) {

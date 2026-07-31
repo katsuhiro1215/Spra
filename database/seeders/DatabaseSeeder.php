@@ -23,10 +23,10 @@ class DatabaseSeeder extends Seeder
             OrganizationHistorySeeder::class,
 
             // 会社（ユーザーより先に作成 → company_user で参照される）
-            CompanySeeder::class,
+            // CompanySeeder::class,
 
             // ユーザー（会社への紐付け・住所含む）
-            UserSeeder::class,
+            // UserSeeder::class,
 
             // プロフィール（Admin, User統合）
             ProfileSeeder::class,
@@ -35,20 +35,20 @@ class DatabaseSeeder extends Seeder
             AddressSeeder::class,
 
             // メディア
-            MediaSeeder::class,
+            // MediaSeeder::class,
 
             // ポイント関連
             MembershipRankSeeder::class,
-            PointCatalogItemSeeder::class,
+            // PointCatalogItemSeeder::class,
 
             // アクセス解析（デモ用のpageviewイベント）
-            AnalyticsEventSeeder::class,
+            // AnalyticsEventSeeder::class,
 
             // お問い合わせ
             ContactCategorySeeder::class,
-            ContactSeeder::class,
+            // ContactSeeder::class,
             ResponseTemplateSeeder::class,
-            ResponseSeeder::class,
+            // ResponseSeeder::class,
 
             // サービス関連
             ServiceCategorySeeder::class,
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             // PortfolioSeeder::class,
 
             // キャンペーン（メディア作成後に実行し、サムネイルを紐付け）
-            CampaignSeeder::class,
+            // CampaignSeeder::class,
 
             // 祝日・面談枠
             ScheduleDefaultSeeder::class,
@@ -75,22 +75,22 @@ class DatabaseSeeder extends Seeder
             DocumentSeeder::class,
 
             // 見積（Quote）
-            QuoteSeeder::class,
+            // QuoteSeeder::class,
 
             // 契約（Contract）
-            ContractSeeder::class,
+            // ContractSeeder::class,
 
             // プロジェクト関連
             ProjectTemplateSeeder::class,
-            ProjectSeeder::class,
+            // ProjectSeeder::class,
 
             // 請求・入金・領収書
-            InvoiceSeeder::class,
-            PaymentSeeder::class,
-            ReceiptSeeder::class,
+            // InvoiceSeeder::class,
+            // PaymentSeeder::class,
+            // ReceiptSeeder::class,
 
             // 予約（面談）
-            AppointmentSeeder::class,
+            // AppointmentSeeder::class,
 
             // Webサイト管理（ページタイプ・ページ・セクション・FAQ・ヘッダーメニュー）
             PageTypeSeeder::class,
