@@ -115,8 +115,18 @@
 | `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま。`google`は`GoogleSearchConsoleService`として実装済み（2026-07-31） |
 | `SEARCH_CONSOLE_SITE_URL` | Search Consoleのプロパティ名 | ドメインプロパティなら`sc-domain:example.com`、URLプレフィックスなら`https://example.com/` |
 | `SEARCH_CONSOLE_CREDENTIALS_PATH` | サービスアカウントJSON鍵ファイルのパス | 未設定時は`storage/app/private/google-search-console-service-account.json`（`storage/app/private/`はgit管理外）。GCPでサービスアカウントを作成し、そのメールアドレスをSearch Console側の「設定→ユーザーと権限」で「フル」権限のユーザーとして追加しておく必要がある |
-| `MAIL_*` (Postmark/Resend/SES) | 本番用APIキー | 予約通知・お問い合わせメール送信に必須 |
+| `MAIL_*` | 実際のSMTP認証情報（例: Xserverのメールアカウント） | 予約通知・お問い合わせメール送信に必須。`MAIL_ENCRYPTION`はこのLaravelバージョン（12）の`config/mail.php`から参照されず無効。暗号化方式は`MAIL_SCHEME`で指定する（ポート465/暗黙的TLSなら`MAIL_SCHEME=smtps`、ポート587/STARTTLSなら未設定のままでよい） |
 | `QUEUE_CONNECTION` | `redis`（現状踏襲） | Horizonがredisバックエンドを前提とするため。本チェックリストは以前`database`と誤記していたが、`.env.example`・Horizon運用の実態に合わせて訂正した（2026-07-31） |
+
+### ⚠️ `.env`変更後の反映方法（重要）
+
+`compose.prod.yaml`の`app`/`horizon`/`scheduler`は`env_file: .env`で環境変数を読み込むが、これは**コンテナ作成時点の値で固定**される。`.env`ファイルを更新して`docker compose restart <service>`しても、既存コンテナの環境変数は更新されない（Laravelは`.env`ファイルより既存のOS環境変数を優先するため、`config:clear`→`config:cache`をやり直しても解決しない）。
+
+`.env`の値を変更した場合は、必ず以下でコンテナを作り直すこと。
+
+```bash
+docker compose -f compose.prod.yaml up -d --force-recreate app horizon scheduler
+```
 
 ## 💰 費用が発生するポイント（要注意）
 
