@@ -135,6 +135,6 @@
 - [ ] 予約が実際に飛んできて通知メールが届くか
 - [ ] 予約リマインダーバッチが定刻に動作するか（キューワーカー・スケジューラ双方の稼働確認）
 - [ ] Instagram DMからの導線が `source=instagram` として正しく記録されるか（Webhook購読・署名検証含む）
-- [ ] Search Console連携が実データを取得できているか（`SEARCH_CONSOLE_DRIVER=google`切替後）
+- [x] Search Console連携（2026-07-31）。DNS所有権確認（TXT）完了、サービスアカウント作成・Search Console側への権限付与・本番`.env`設定（`SEARCH_CONSOLE_DRIVER=google`/`SEARCH_CONSOLE_SITE_URL=sc-domain:smartsprouts.jp`）・鍵ファイル配置（`docker cp`でコンテナ内`storage/app/private/`へ、named volumeのためホスト側配置では反映されない点に注意）まで完了し、`analytics:sync-search-console`が正常終了することを確認（新規ドメインのためクエリ0件、データ反映まで数日のラグは想定通り）
 - [ ] スケジュール変更履歴・営業中判定APIが本番データで正しく機能するか
 - [ ] AWS請求ダッシュボードで想定通りの金額になっているか（初週は特にこまめに確認）
