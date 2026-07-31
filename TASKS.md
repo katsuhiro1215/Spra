@@ -121,19 +121,27 @@
   - 内容: `bootstrap/app.php`の汎用`Throwable`ハンドラが、本番環境で常に`response()->view('errors.500', [], 500)`を呼んでいたが、`resources/views/errors/`ディレクトリ自体が存在せず、**原因を問わずあらゆる例外（404/419/403含む）が空の500レスポンスになっていた**。ハンドラを実際のHTTPステータスコード（`HttpExceptionInterface::getStatusCode()`）に応じて`errors.{code}`ビューを描画し、専用ビューが無ければ`errors.500`にフォールバックするよう修正。共通レイアウト`errors/minimal.blade.php`を作り、`404`/`403`/`419`/`429`/`500`/`503`の各ビューはそこに委譲する形にした。
   - 完了の定義: 本番相当の環境（`APP_ENV=production`かつ`APP_DEBUG=false`相当）で404・未処理例外の両方が正しいステータスコード・空でないレスポンスになることをテストで確認。→ `tests/Feature/ProductionErrorPageTest.php`で確認済み（`$this->app->detectEnvironment()`でproduction環境を模擬）。
 
-- [ ] **T17**: Lightsailインスタンス作成（Ubuntu 22.04/24.04、2GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）
-- [ ] **T18**: Xserver側DNS設定（本番ドメインと`ATLAS_DOMAIN`サブドメインの両方でAレコードを静的IPに向ける、ネームサーバー移管なし、MX/TXT等メール関連レコードは変更しない）
-- [ ] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone
-- [ ] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）
-- [ ] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）
-- [ ] **T22**: マイグレーション適用（`migrate --force`）・`admin:sync-permissions`実行・新規権限の管理者への付与
-- [ ] **T23**: キャッシュ最適化（`config:cache`, `route:cache`, `view:cache`）
-- [ ] **T24**: Horizon常駐・スケジューラ（`schedule:run`毎分cron）稼働確認
+- [x] **T17**: Lightsailインスタンス作成（Ubuntu 24.04 LTS、4GB以上、東京リージョン）・静的IP取得・ファイアウォール設定（80/443/22のみ、3306は非公開）（完了: 2026-07-31）
+  - 内容: インスタンス名`smartsprouts-production`。K22の発見（ビルド時OOMリスク）を踏まえ、2GBではなく**4GB以上**のプランを選択。静的IPを取得・アタッチ、ファイアウォールで80/443を「Any IPv4」で許可（22はデフォルトのSSH許可のまま）。
+- [x] **T18**: Xserver側DNS設定（本番ドメインと`ATLAS_DOMAIN`サブドメインの両方でAレコードを静的IPに向ける、ネームサーバー移管なし、MX/TXT等メール関連レコードは変更しない）（完了: 2026-07-31）
+  - 内容: `smartsprouts.jp`・`www.smartsprouts.jp`・`*.smartsprouts.jp`（ワイルドカードが`atlas`を含め全サブドメインをカバー）の3つのAレコードを静的IPに変更。切替前にTTLを3600→300に短縮し、半日待ってから実施、安定確認後に3600へ復元。
+  - **重要な教訓（本番切替で発生した実障害）**: MXレコードが`smartsprouts.jp`自体（ドメイン本体）を指す設定だったため、Web用Aレコードの変更が**メール受信を停止させてしまった**（AWSのMFA確認メールが届かず一時ログイン不能に）。原因はMXの参照先が独立したホスト名ではなくドメイン本体だったこと。`mail.smartsprouts.jp`という専用サブドメインを新設しXserverの元IP（`202.254.239.146`）を割り当て、MXの参照先をそちらに変更して復旧した。**教訓**: DNS移行時は「AレコードとMXレコードが同じホスト名を共有していないか」を事前に必ず確認すること。SPEC.md §7 K26として記録。
+- [x] **T19**: サーバーへのDocker/Docker Composeインストール・リポジトリclone（完了: 2026-07-31）
+  - 内容: Ubuntu公式手順でDocker CE・Composeプラグインを導入。GitHub CLI（`gh`）をインストールしdevice flow認証、`gh repo clone`でプライベートリポジトリを取得。
+- [x] **T20**: 本番用`.env`作成（`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_DOMAIN`, `INSTAGRAM_*`, `SEARCH_CONSOLE_DRIVER=google`, `MAIL_*`, `MAIL_ADMIN_ADDRESS`, `QUEUE_CONNECTION=database`をチェックリストに沿って設定。T12のセッション設定も含む）（完了: 2026-07-31）
+  - 内容: `APP_NAME`を懸案だったK13（アプリ名不一致）を機に`SmartSprouts`に確定（フロントエンドのハードコード「Spra」表記統一は引き続きフェーズ2で対応）。`DB_PASSWORD`はサーバー上で`openssl rand`により生成しチャットには残さない運用とした。`QUEUE_CONNECTION`は本ガイドのチェックリスト記載`database`ではなく、実際の`.env.example`・Horizon運用に合わせ`redis`のまま維持（チェックリストの記載が実態と異なっていたため、`docs/ProductionDeploymentGuide.md`を訂正）。`MAIL_*`（Xserver SMTP）は本番投入後に別途設定する方針でユーザー承認済み。
+- [x] **T21**: `docker compose -f compose.prod.yaml up -d --build`で起動、HTTPS化（Caddyが`APP_DOMAIN`宛の証明書を自動取得・更新するため追加作業は基本不要）（完了: 2026-07-31）
+  - **副次的発見・修正**: `compose.prod.yaml`の`app`/`horizon`/`scheduler`が`env_file: .env`のみで`.env`ファイル自体をコンテナにマウントしておらず、`php artisan key:generate`（ファイルへの直接書き込みが必要）が失敗することが判明。3サービスの`volumes`に`./.env:/var/www/html/.env:ro`を追加して解消（本番サーバー側で緊急対応、リポジトリへの反映は別途）。APP_KEYはコンテナ経由ではなく`openssl rand -base64 32`で生成しサーバー上の`.env`に直接設定。DNS伝播直後はCaddyの証明書取得が長いバックオフに入り自動リトライが遅延したため、`docker compose restart caddy`で強制的に再試行させ取得に成功。
+- [x] **T22**: マイグレーション適用（`migrate --force`）・`admin:sync-permissions`実行・新規権限の管理者への付与（完了: 2026-07-31）
+- [x] **T23**: キャッシュ最適化（`config:cache`, `route:cache`, `view:cache`）（完了: 2026-07-31）
+- [x] **T24**: Horizon常駐・スケジューラ（`schedule:run`毎分cron）稼働確認（完了: 2026-07-31）
+  - 内容: 起動直後、マイグレーション未実行の状態でHorizonが`cache`テーブル不在エラーを出していたが、マイグレーション完了後は安定稼働を確認（`restart: always`のため起動直後の一時的なエラーは想定内）。スケジューラは`schedule:run`ループが正常に動作（実行対象コマンド無しの状態を確認）。
 - [x] **T25**: DBバックアップ運用実装（`mysqldump`定期実行、保持世代数を絞る＝例: 直近7日分のみ）（完了: 2026-07-31、`chore/db-backup-script`）
   - 対象ファイル: `scripts/backup-db.sh`（新規）
-  - 内容: ユーザー判断により、保存先はS3等の外部ストレージではなく**Lightsailインスタンス内のみ**（`~/db-backups`）とした（追加コスト・IAM設定不要、シンプルさを優先）。`compose.prod.yaml`のmysqlサービスに対して`mysqldump`を実行しgzip圧縮、直近7日分より古いものは自動削除。cronで毎日実行する想定（`crontab -e`で`0 4 * * * /home/ubuntu/Spra/scripts/backup-db.sh >> /home/ubuntu/db-backups/backup.log 2>&1`を登録）。
-  - 完了の定義: 手動実行でバックアップファイルが作成されることを確認し、cron登録まで行う。→ 本番サーバー上で確認予定（デプロイ作業と並行して実施）。
-- [ ] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）
+  - 内容: ユーザー判断により、保存先はS3等の外部ストレージではなく**Lightsailインスタンス内のみ**（`~/db-backups`）とした（追加コスト・IAM設定不要、シンプルさを優先）。`compose.prod.yaml`のmysqlサービスに対して`mysqldump`を実行しgzip圧縮、直近7日分より古いものは自動削除。
+  - 完了の定義: 手動実行でバックアップファイルが作成されることを確認し、cron登録まで行う。→ 本番サーバーで手動実行（43KBのバックアップファイル生成を確認）、`crontab -e`で毎日AM4:00実行を登録済み（`crontab -l`で反映確認済み）。
+- [x] **T26**: AWS Budgetsで金額アラート設定（想定月額の1.5倍等）（完了: 2026-07-31）
+  - 内容: Cost budget（Monthly）を作成。アラートは「実績コストが80%超過」「予測コストが100%超過」の2つを設定、通知先メールアドレスを登録。「アラートにアクションを追加」（しきい値超過時のリソース自動停止等）は、本番稼働中にコスト超過を理由に自動でインスタンスが止まるリスクを避けるためあえて設定しなかった。
 - [ ] **T27**: 1週間の自己検証チェックリスト実施（予約通知到達、リマインダーバッチ定刻動作、Instagram Webhookの`source=instagram`記録、Search Console実データ取得、スケジュール変更履歴・営業中判定APIの本番動作、AWS請求ダッシュボード確認）
 
 - [x] **T27b: 公開サイトFooterの壊れたリンクを修正**（完了: 2026-07-30、`fix/public-footer-broken-links`。本番リリース前の最終確認としてユーザー指示によりPublic/User配下のリンク切れを調査、SPEC.md §7 K24として発見・優先度を上げて対応）

@@ -62,20 +62,25 @@
 ## 🖥️ AWS Lightsail 構成手順（想定フロー）
 
 1. **Lightsailインスタンス作成**
-   - OS: Ubuntu 22.04/24.04 LTS の「OSのみ」テンプレート（Dockerは自前でインストールし、既存の`compose.yaml`をベースに構成する）
-   - プラン: Laravel + MySQL + Node ビルドを1台で動かすため、最低でも **2GBメモリ以上のプラン**を推奨（512MB/1GBプランはビルド時にOOMになりやすい）
+   - OS: Ubuntu 24.04 LTS の「OSのみ」テンプレート（Dockerは自前でインストールし、既存の`compose.yaml`をベースに構成する）
+   - プラン: **4GB以上のメモリのプランを選択する**（K22参照。2GBプランは`npm run build`でOOMになるリスクが高いことをローカル検証で確認済みのため、2026-07-31の実デプロイでは4GBプランを選択した）
    - リージョン: 東京（ap-northeast-1）を選択（レイテンシ最小化）
 2. **静的IPを取得してインスタンスにアタッチ**（Lightsailの「ネットワーキング」から作成）
-3. **ファイアウォール設定**（Lightsailの「ネットワーキング」タブ）: 80(HTTP)/443(HTTPS)/22(SSH、可能なら自分のIPのみに制限)を許可。3306(MySQL)は外部公開しない。
-4. **Xserver側でDNS設定**: 管理画面のDNSレコード編集で、本番ドメインと`ATLAS_DOMAIN`サブドメイン（例: `atlas.example.com`）両方のAレコードを追加・変更しLightsailの静的IPを指す（ネームサーバーの変更は不要）。MX/SPF/DKIM等のメール関連レコードには触れない。
-5. **サーバーにDocker / Docker Composeをインストール**
-6. **リポジトリを取得**（git clone、以降は`git pull`で更新）
-7. **`.env`を本番用に設定**（下記チェックリスト参照）
+3. **ファイアウォール設定**（Lightsailの「ネットワーキング」タブ）: 80(HTTP)/443(HTTPS)を「Any IPv4」で許可、22(SSH)はデフォルト許可のまま。3306(MySQL)は外部公開しない。
+4. **Xserver側でDNS設定**: 管理画面のDNSレコード編集で、本番ドメインと`ATLAS_DOMAIN`サブドメイン（例: `atlas.example.com`）両方のAレコードを追加・変更しLightsailの静的IPを指す（ネームサーバーの変更は不要）。
+   - **⚠️ 重要（K26、実デプロイで発生した障害）**: 切替前に、**MXレコードの参照先ホスト名を必ず確認すること**。MXが独立したサブドメイン（`mail.example.com`等）ではなく**ドメイン本体（`example.com`）自体**を指している場合、Web用のAレコードを書き換えるとメール受信も同時に止まる。該当する場合は、切替前に`mail.example.com`のような専用サブドメインを新設してXserverの元のサーバーIPを割り当て、MXの参照先をそちらに変更してからAレコードを切り替えること。
+   - 切替の少なくとも半日〜1日前に対象AレコードのTTLを短く（300秒程度）しておき、安定確認後に元のTTL（3600等）に戻す。
+5. **サーバーにDocker / Docker Composeをインストール**（Docker公式リポジトリ経由。`git`・GitHub CLI（`gh`）も併せてインストールし、プライベートリポジトリの認証に使う）
+6. **リポジトリを取得**（`gh repo clone`、以降は`git pull`で更新）
+7. **`.env`を本番用に設定**（下記チェックリスト参照。`DB_PASSWORD`はサーバー上で`openssl rand -base64 24`等で生成し、チャットやコミットに残さないこと）
 8. **本番用コンテナのビルド・起動**
    ```
-   docker compose -f compose.prod.yaml up -d --build
+   docker compose -f compose.prod.yaml build
+   docker compose -f compose.prod.yaml run --rm app php artisan key:generate
+   docker compose -f compose.prod.yaml up -d
    ```
-9. **HTTPS設定**（Caddyコンテナが`APP_DOMAIN`宛のLet's Encrypt証明書を初回起動時に自動取得・以降自動更新する。手動でのCertbot操作は不要）
+   - `compose.prod.yaml`の`app`/`horizon`/`scheduler`サービスは`.env`ファイル自体を`/var/www/html/.env`にマウントしている（`env_file`だけだとコンテナ内に実ファイルが存在せず、`key:generate`等ファイルへの直接書き込みを行うコマンドが失敗するため）。
+9. **HTTPS設定**（Caddyコンテナが`APP_DOMAIN`/`ATLAS_DOMAIN`宛のLet's Encrypt証明書を初回起動時に自動取得・以降自動更新する。手動でのCertbot操作は不要）。DNS切替直後は証明書取得が失敗し長いバックオフに入ることがあるため、DNS伝播を確認した後に`docker compose -f compose.prod.yaml restart caddy`で再試行させると早く解決する。
 10. **マイグレーション適用**
     ```
     docker compose -f compose.prod.yaml exec app php artisan migrate --force
@@ -92,7 +97,7 @@
     docker compose -f compose.prod.yaml exec app php artisan view:cache
     ```
 13. **キューワーカー・スケジューラが正常に稼働しているか確認**
-14. **DBバックアップの定期実行を設定**（cronで`mysqldump`をS3等へアップロードする、等）
+14. **DBバックアップの定期実行を設定**（`scripts/backup-db.sh`を使用。保存先はLightsailインスタンス内`~/db-backups`のみ、直近7日分を自動保持。`crontab -e`で`0 4 * * * /home/ubuntu/Spra/scripts/backup-db.sh >> /home/ubuntu/db-backups/backup.log 2>&1`を登録）
 
 ## ✅ `.env` 本番設定チェックリスト
 
@@ -110,7 +115,7 @@
 | `SEARCH_CONSOLE_DRIVER` | `google` | `dummy`のままだと分析ダッシュボードの検索キーワードがダミー表示のまま |
 | `SEARCH_CONSOLE_SITE_URL` / `SEARCH_CONSOLE_CREDENTIALS_PATH` | Search Console連携用の実値 | 本番でのみ検証可能 |
 | `MAIL_*` (Postmark/Resend/SES) | 本番用APIキー | 予約通知・お問い合わせメール送信に必須 |
-| `QUEUE_CONNECTION` | `database`（現状踏襲） | ワーカー常駐が前提 |
+| `QUEUE_CONNECTION` | `redis`（現状踏襲） | Horizonがredisバックエンドを前提とするため。本チェックリストは以前`database`と誤記していたが、`.env.example`・Horizon運用の実態に合わせて訂正した（2026-07-31） |
 
 ## 💰 費用が発生するポイント（要注意）
 
