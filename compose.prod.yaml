@@ -17,6 +17,8 @@ services:
             context: .
             dockerfile: Dockerfile.prod
             target: app
+            args:
+                VITE_APP_NAME: ${APP_NAME}
         image: spra-app-prod
         restart: always
         env_file:
@@ -37,6 +39,8 @@ services:
             context: .
             dockerfile: Dockerfile.prod
             target: caddy
+            args:
+                VITE_APP_NAME: ${APP_NAME}
         image: spra-caddy-prod
         restart: always
         env_file:
@@ -58,6 +62,8 @@ services:
             context: .
             dockerfile: Dockerfile.prod
             target: app
+            args:
+                VITE_APP_NAME: ${APP_NAME}
         image: spra-app-prod
         restart: always
         env_file:
@@ -79,6 +85,8 @@ services:
             context: .
             dockerfile: Dockerfile.prod
             target: app
+            args:
+                VITE_APP_NAME: ${APP_NAME}
         image: spra-app-prod
         restart: always
         env_file:
