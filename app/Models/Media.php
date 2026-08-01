@@ -87,13 +87,11 @@ class Media extends Model
     }
 
     /**
-     * オリジナル画像のURL取得（S3またはpublic）
+     * オリジナル画像のURL取得
      */
     public function getOriginalUrlAttribute(): string
     {
-        // 本番環境ではS3、開発環境ではpublicディスクを使用
-        $disk = config('app.env') === 'production' ? 's3' : 'public';
-        return Storage::disk($disk)->url($this->original_path);
+        return Storage::disk('public')->url($this->original_path);
     }
 
     /**
@@ -114,9 +112,7 @@ class Media extends Model
             return null;
         }
 
-        // 本番環境ではS3、開発環境ではpublicディスクを使用
-        $disk = config('app.env') === 'production' ? 's3' : 'public';
-        return Storage::disk($disk)->url($variant->path);
+        return Storage::disk('public')->url($variant->path);
     }
 
     /**
