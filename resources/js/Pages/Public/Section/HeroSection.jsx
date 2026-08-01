@@ -173,15 +173,6 @@ export default function HeroSection({ images }) {
                             <CalculatorIcon className="w-5 h-5" />
                             料金シミュレーター
                         </Link>
-                        <Link
-                            href="/lp"
-                            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 font-semibold"
-                        >
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full mr-1">
-                                NEW
-                            </span>
-                            LP確認
-                        </Link>
                     </div>
                 </div>
                 {/* Right - スライドショー画像 */}
