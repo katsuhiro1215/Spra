@@ -110,5 +110,11 @@ WORKDIR /var/www/html
 COPY --from=vendor /app/public ./public
 COPY --from=frontend /app/public/build ./public/build
 
+# アップロードされたメディア（storage/app/public、compose.prod.yamlのapp-storageボリューム経由で
+# appコンテナと共有）をCaddyのfile_serverが配信できるよう、public/storageシンボリックリンクを
+# 作成する（php artisan storage:linkと同じ相対パス）。ビルド時点ではリンク先は存在しないが、
+# 実行時にapp-storageボリュームがマウントされることで解決される。
+RUN ln -sfn ../storage/app/public public/storage
+
 COPY Caddyfile /etc/caddy/Caddyfile
 

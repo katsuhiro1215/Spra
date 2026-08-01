@@ -45,6 +45,7 @@ services:
             - '80:80'
             - '443:443'
         volumes:
+            - app-storage:/var/www/html/storage
             - caddy-data:/data
             - caddy-config:/config
         depends_on:
