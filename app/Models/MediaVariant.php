@@ -53,12 +53,10 @@ class MediaVariant extends Model
     }
 
     /**
-     * バリアントのURL取得（S3またはpublic）
+     * バリアントのURL取得
      */
     public function getUrlAttribute(): string
     {
-        // 本番環境ではS3、開発環境ではpublicディスクを使用
-        $disk = config('app.env') === 'production' ? 's3' : 'public';
-        return Storage::disk($disk)->url($this->path);
+        return Storage::disk('public')->url($this->path);
     }
 }
