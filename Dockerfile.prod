@@ -35,6 +35,11 @@ FROM node:22-alpine AS frontend
 
 WORKDIR /app
 
+# .envはビルドコンテキストから除外している（.dockerignore）ため、Viteが読むVITE_*変数は
+# ビルド時にARG経由で明示的に渡す必要がある（compose.prod.yamlのbuild.args参照）
+ARG VITE_APP_NAME=Laravel
+ENV VITE_APP_NAME=$VITE_APP_NAME
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
