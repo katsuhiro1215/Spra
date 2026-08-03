@@ -25,3 +25,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Superpowers subagent-driven-development scratch workspace
+.superpowers/
