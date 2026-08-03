@@ -28,7 +28,8 @@ class TaskRequest extends FormRequest
             'due_time' => ['nullable', 'date_format:H:i'],
             'recurrence_rule' => ['nullable', 'array'],
             'recurrence_rule.freq' => ['required_with:recurrence_rule', Rule::in(['daily', 'weekly'])],
-            'recurrence_rule.byweekday' => ['nullable', 'array'],
+            'recurrence_rule.byweekday' => ['nullable', 'array', 'min:1'],
+            'recurrence_rule.byweekday.*' => [Rule::in(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])],
         ];
     }
 

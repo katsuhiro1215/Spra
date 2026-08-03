@@ -1,7 +1,27 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SelectInput, TextInput } from "@/Components/Forms";
 
 export default function TaskFilterBar({ filters, categories, admins, onChange }) {
+    const [tagInput, setTagInput] = useState(filters.tag || "");
+    const debounceRef = useRef(null);
+
+    useEffect(() => {
+        setTagInput(filters.tag || "");
+    }, [filters.tag]);
+
+    const handleTagChange = (e) => {
+        const value = e.target.value;
+        setTagInput(value);
+
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+
+        debounceRef.current = setTimeout(() => {
+            onChange("tag", value);
+        }, 400);
+    };
+
     return (
         <div className="mb-4 flex gap-3">
             <SelectInput
@@ -25,9 +45,9 @@ export default function TaskFilterBar({ filters, categories, admins, onChange })
                 ]}
             />
             <TextInput
-                value={filters.tag || ""}
-                onChange={(e) => onChange("tag", e.target.value)}
-                placeholder="タグで絞り込み"
+                value={tagInput}
+                onChange={handleTagChange}
+                placeholder="タグで絞り込み（完全一致）"
             />
         </div>
     );

@@ -39,11 +39,18 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter(Boolean),
-            recurrence_rule: recurrenceEnabled
-                ? { freq, ...(freq === "weekly" ? { byweekday } : {}) }
-                : null,
+            ...(isEdit
+                ? {}
+                : {
+                      recurrence_rule: recurrenceEnabled
+                          ? { freq, ...(freq === "weekly" ? { byweekday } : {}) }
+                          : null,
+                  }),
         };
     });
+
+    const weeklyRecurrenceMissingWeekday =
+        data.recurrenceEnabled && data.freq === "weekly" && data.byweekday.length === 0;
 
     const toggleWeekday = (value) => {
         setData(
@@ -114,7 +121,7 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
                         options={[{ value: "", label: "未割当" }, ...admins.map((a) => ({ value: a.id, label: a.email }))]}
                     />
                 </FormGroup>
-                <FormGroup label="タグ" htmlFor="tagsInput" error={errors.tags}>
+                <FormGroup label="タグ" htmlFor="tagsInput" error={errors.tags || errors["tags.0"]}>
                     <TextInput
                         id="tagsInput"
                         value={data.tagsInput}
@@ -141,7 +148,15 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
                                     />
                                 </FormGroup>
                                 {data.freq === "weekly" && (
-                                    <FormGroup label="曜日" htmlFor="byweekday">
+                                    <FormGroup
+                                        label="曜日"
+                                        htmlFor="byweekday"
+                                        error={
+                                            weeklyRecurrenceMissingWeekday
+                                                ? "少なくとも1つの曜日を選択してください"
+                                                : errors["recurrence_rule.byweekday"]
+                                        }
+                                    >
                                         <div className="flex flex-wrap gap-3">
                                             {WEEKDAYS.map((day) => (
                                                 <Checkbox
@@ -161,7 +176,12 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
                 )}
                 <div className="flex justify-end gap-3">
                     <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
-                    <CrudButton type="submit" action={isEdit ? "update" : "store"} loading={processing}>
+                    <CrudButton
+                        type="submit"
+                        action={isEdit ? "update" : "store"}
+                        loading={processing}
+                        disabled={weeklyRecurrenceMissingWeekday}
+                    >
                         {isEdit ? "更新" : "作成"}
                     </CrudButton>
                 </div>

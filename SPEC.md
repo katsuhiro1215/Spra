@@ -167,7 +167,9 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - `Task::STATUSES` = `todo`（未着手）/`in_progress`（進行中）/`done`（完了）の3値、`Task::PRIORITIES` = `high`/`medium`/`low`の3値（いずれもenumカラム）。
 - 担当者は`admin_id`（`admins`テーブル参照、単一担当のみ・共同担当は非対応）、作成者は`created_by`で別カラムに分離。カテゴリ（`task_category_id`、削除時`set null`）に加え、`tags`（JSON配列）で自由なタグ付けも可能。期限は`due_date`（必須）＋`due_time`（任意）。
 - 繰り返しタスクは自己参照（`parent_task_id`）で表現する。`parent_task_id`が`null`かつ`recurrence_rule`（JSON、`freq`/`byweekday`等）が設定された行が「テンプレート行」、そこから生成される実体タスクは`parent_task_id`でテンプレートを参照し`recurrence_rule`は持たない（`Task::isRecurringTemplate()`で判定）。
-- 管理画面UIは`/admin/task`（ルート名`admin.task.*`、`Route::resource('task', TaskController::class)`）。未着手/進行中/完了の3カラム固定のカンバンボード（`resources/js/Pages/Admin/Tasks/_components/TaskBoard.jsx`）で、`@dnd-kit`によるドラッグ&ドロップでステータス変更（`PATCH admin.task.status`）ができる。担当者・カテゴリ・優先度での絞り込みに対応（`TaskFilterBar.jsx`）。カテゴリマスタ管理は`/admin/task-category`（`admin.task-category.*`）。
+- 管理画面UIは`/admin/task`（ルート名`admin.task.*`、`Route::resource('task', TaskController::class)`）。未着手/進行中/完了の3カラム固定のカンバンボード（`resources/js/Pages/Admin/Tasks/_components/TaskBoard.jsx`）で、`@dnd-kit`によるドラッグ&ドロップでステータス変更（`PATCH admin.task.status`）ができる。担当者・カテゴリ・優先度・タグ（完全一致、前後空白はサーバー側で自動トリム）での絞り込みに対応（`TaskFilterBar.jsx`、タグ入力は連打による過剰なリクエストを避けるため400msデバウンス）。カテゴリマスタ管理は`/admin/task-category`（`admin.task-category.*`）。
+- 繰り返しタスクは作成モーダル（`TaskFormModal.jsx`）のUIから設定可能（頻度＝毎日/毎週、毎週の場合は曜日を1つ以上選択、`recurrence_rule.byweekday`が空配列だとバックエンド`min:1`バリデーションで422になる）。ただし編集UIは無く、作成時のみ設定できる（既存テンプレート行の繰り返し設定を後から変更する導線は未実装）。
+- 繰り返しタスクのテンプレート行を作成した当日分の実体タスクは、`TaskService::createTask()`内で即時生成される（`due_date`が今日の場合のみ）。従来はバッチ（`tasks:generate-recurring`、毎日06:10）を待つ必要があり、当日作成したタスクがその日のカンバンボードに一切表示されない問題があったため対応。
 - ダッシュボードの「今日やること」ウィジェット（`resources/js/Components/Tasks/TodayTaskList.jsx`）はログイン中Adminの本日期限タスクを表示、Admin詳細画面には「担当タスク」タブ（`resources/js/Pages/Admin/Admin/_components/AdminAssignedTasks.jsx`）でそのAdminが担当する全タスクを一覧表示する。
 - バッチは2種類、いずれも`routes/console.php`でスケジュール登録済み。
   - `tasks:generate-recurring`（毎日06:10）: `TaskService::generateUpcomingOccurrences()`がテンプレート行を走査し、既定14日先までの実体タスクを未生成分のみ穴埋め生成する。
@@ -274,3 +276,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 |---|---|
 | 2026-07-29 | SPEC.md初版作成。コードベース調査＋ユーザーヒアリング＋独立検証に基づく |
 | 2026-08-03 | §5.12にAdmin向けタスク管理機能（カンバンボード・繰り返しタスク・リマインダー）のドメイン仕様を追記。§7にK29（`AdminController::destroy()`のガード名取り違え、未修正）を追加 |
+| 2026-08-04 | §5.12を更新。`feat/task-recurrence-ui`（繰り返しタスク作成UI・タグ絞り込みUI）の最終コードレビューで、`byweekday`が空配列だと該当テンプレートが永久に実体タスクを生成しなくなる不具合を発見・修正（フロントエンド無効化＋バックエンド`min:1`バリデーション＋サービス層のフォールバックの三重対策）。あわせてタグ絞り込みへの言及、繰り返しタスクの作成専用UI（編集UI無し）と当日分の即時生成についての注記を追加 |

@@ -28,7 +28,7 @@ class TaskController extends Controller
             'admin_id' => $request->input('admin_id'),
             'task_category_id' => $request->input('task_category_id'),
             'priority' => $request->input('priority'),
-            'tag' => $request->input('tag'),
+            'tag' => trim((string) $request->input('tag')) ?: null,
         ];
 
         $tasks = $this->service->getForBoard(array_filter($filters));

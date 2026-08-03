@@ -47,6 +47,22 @@ class TaskControllerTest extends TestCase
         $this->assertNotNull($task->fresh()->completed_at);
     }
 
+    public function test_creating_weekly_recurring_task_without_weekday_fails_validation(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+
+        $this->actingAs($admin, 'admins')
+            ->post(route('admin.task.store'), [
+                'title' => '週次投稿',
+                'due_date' => today()->toDateString(),
+                'priority' => 'medium',
+                'recurrence_rule' => ['freq' => 'weekly', 'byweekday' => []],
+            ])
+            ->assertSessionHasErrors('recurrence_rule.byweekday');
+
+        $this->assertDatabaseMissing('tasks', ['title' => '週次投稿']);
+    }
+
     public function test_editor_cannot_delete_task(): void
     {
         $editor = Admin::factory()->create(['role' => 'editor', 'status' => 'active']);

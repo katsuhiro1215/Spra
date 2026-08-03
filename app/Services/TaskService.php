@@ -94,7 +94,7 @@ class TaskService extends BaseService
     {
         $rule = $template->recurrence_rule;
         $freq = $rule['freq'] ?? 'daily';
-        $byWeekday = $rule['byweekday'] ?? null;
+        $byWeekday = ($rule['byweekday'] ?? null) ?: null;
 
         $existingDates = Task::where('parent_task_id', $template->id)
             ->pluck('due_date')
@@ -102,7 +102,7 @@ class TaskService extends BaseService
             ->all();
 
         $created = 0;
-        $cursor = today();
+        $cursor = today()->greaterThan($template->due_date) ? today()->copy() : $template->due_date->copy();
         $until = today()->addDays($horizonDays);
 
         while ($cursor->lte($until)) {
