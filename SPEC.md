@@ -1,6 +1,6 @@
 # SPEC.md — Spra 中央管理システム 仕様書
 
-最終更新: 2026-07-29
+最終更新: 2026-08-03
 
 ## 1. はじめに
 
@@ -161,6 +161,19 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 ### 5.11 Analytics
 - `AnalyticsDaily`/`AnalyticsDimension`/`AnalyticsEvent`/`AnalyticsKpi`/`AnalyticsReport`。Search Console連携は`SearchConsoleServiceInterface`経由（`config('services.search_console.driver')`で`dummy`/`google`を切替）。`google`は`GoogleSearchConsoleService`（サービスアカウントJWT認証）で実装済み、本番`.env`設定後の実データ取得確認はK15参照。
 
+### 5.12 Task（Admin向けタスク管理）
+- 詳細な実装ガイドは無く、本節がサマリを兼ねる。
+- `TaskCategory`（`name`一意・`color`カラーコード・`sort_order`、ULID主体）と`Task`（ULID主体、`SoftDeletes`）の2テーブル構成。
+- `Task::STATUSES` = `todo`（未着手）/`in_progress`（進行中）/`done`（完了）の3値、`Task::PRIORITIES` = `high`/`medium`/`low`の3値（いずれもenumカラム）。
+- 担当者は`admin_id`（`admins`テーブル参照、単一担当のみ・共同担当は非対応）、作成者は`created_by`で別カラムに分離。カテゴリ（`task_category_id`、削除時`set null`）に加え、`tags`（JSON配列）で自由なタグ付けも可能。期限は`due_date`（必須）＋`due_time`（任意）。
+- 繰り返しタスクは自己参照（`parent_task_id`）で表現する。`parent_task_id`が`null`かつ`recurrence_rule`（JSON、`freq`/`byweekday`等）が設定された行が「テンプレート行」、そこから生成される実体タスクは`parent_task_id`でテンプレートを参照し`recurrence_rule`は持たない（`Task::isRecurringTemplate()`で判定）。
+- 管理画面UIは`/admin/task`（ルート名`admin.task.*`、`Route::resource('task', TaskController::class)`）。未着手/進行中/完了の3カラム固定のカンバンボード（`resources/js/Pages/Admin/Tasks/_components/TaskBoard.jsx`）で、`@dnd-kit`によるドラッグ&ドロップでステータス変更（`PATCH admin.task.status`）ができる。担当者・カテゴリ・優先度での絞り込みに対応（`TaskFilterBar.jsx`）。カテゴリマスタ管理は`/admin/task-category`（`admin.task-category.*`）。
+- ダッシュボードの「今日やること」ウィジェット（`resources/js/Components/Tasks/TodayTaskList.jsx`）はログイン中Adminの本日期限タスクを表示、Admin詳細画面には「担当タスク」タブ（`resources/js/Pages/Admin/Admin/_components/AdminAssignedTasks.jsx`）でそのAdminが担当する全タスクを一覧表示する。
+- バッチは2種類、いずれも`routes/console.php`でスケジュール登録済み。
+  - `tasks:generate-recurring`（毎日06:10）: `TaskService::generateUpcomingOccurrences()`がテンプレート行を走査し、既定14日先までの実体タスクを未生成分のみ穴埋め生成する。
+  - `tasks:send-reminders`（15分おき、デフォルト30分前）: `TaskService::getTasksNeedingReminder()`で本日期限・未完了・繰り返しテンプレート以外・`due_time`設定済みのタスクのうち期限が指定分数以内に迫っているものを抽出し、`TaskDueReminder`通知（`database`チャンネルのみ、キューワーカー不要の同期実行）を担当Adminへ送信する。
+- スコープ外（意図的に見送り）: タスクへのコメント・添付ファイル、複数Admin共同担当、既存シフト/予約カレンダーとの統合表示、カスタムステータス列。TASKS.mdフェーズ2に候補として記載。
+
 ## 6. 非機能要件
 
 ### 6.1 セキュリティ・個人情報保護方針
@@ -220,6 +233,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K26 | DNS本番切替時、MXレコードがドメイン本体を指していたためWeb用Aレコード変更でメール受信が停止 | **修正済み**（2026-07-31、実デプロイ中に発生・即時対応）。`smartsprouts.jp`のMXレコードが独立したホスト名ではなくドメイン本体自体を指す設定だったため、AWS Lightsailへの移行でAレコードを書き換えた際に**メール受信も同時に停止**（AWSのMFA確認メールが届かず一時ログイン不能になった）。`mail.smartsprouts.jp`を新設しXserverの元IPを割り当て、MXの参照先をそちらに変更して復旧。今後同様のドメイン移行を行う際は、事前にMXレコードの参照先ホスト名を必ず確認する（`docs/ProductionDeploymentGuide.md`に手順を明記済み） | フェーズ1（完了、実運用で顕在化） |
 | K27 | 本番`.env`の`env_file`経由の値を変更しても`docker compose restart`では反映されない | **修正済み**（2026-08-01、実運用で発覚）。本番の`MAIL_*`（Xserver SMTP）設定時に発覚。`compose.prod.yaml`の`app`/`horizon`/`scheduler`は`env_file: .env`で環境変数を読み込むが、これは**コンテナ作成時点の値で固定**され、`.env`ファイルを更新して`restart`しても反映されない（Laravelは`.env`ファイルより既存のOS環境変数を優先するため、`config:cache`をやり直しても解決しない）。あわせて、このLaravelバージョン（12）では`MAIL_ENCRYPTION`は`config/mail.php`から参照されず無効で、暗号化方式の指定には`MAIL_SCHEME`（ポート465なら`smtps`）を使う必要があることも判明。`docker compose up -d --force-recreate <service>`でコンテナを作り直すことで解消。今後`.env`の値（特に`env_file`経由の変数）を本番で変更する際は、`restart`ではなく`up -d --force-recreate`が必要（`docs/ProductionDeploymentGuide.md`に追記済み） | フェーズ1（完了、実運用で顕在化） |
 | K28 | 本番環境でメディアアップロードが失敗・表示されない（原因が3つ重なっていた） | **修正済み**（2026-08-01、実運用で発覚）。実際には3つの問題が重なっていた。**(1)** 本番`app`イメージのGD拡張がWebP非対応でビルドされており（`--with-webp`未指定・`libwebp-dev`未インストール）、Intervention ImageがWebPバリアントを生成しようとする際に`imagewebp()`未定義エラーでアップロード自体が失敗していた（開発環境のSailイメージはWebP対応済みのため気づかなかった）。`libwebp`/`libwebp-dev`追加・`--with-webp`付与で解消。**(2)** `caddy`コンテナが`app`/`horizon`/`scheduler`間で共有される`app-storage`ボリュームも`public/storage`シンボリックリンクも持っておらず、`/storage/xxx`へのアクセスが404になる状態だった。`compose.prod.yaml`のcaddyサービスへの`app-storage`ボリュームマウント追加、`Dockerfile.prod`のcaddyステージへの相対シンボリックリンク作成で解消。**(3)** `Media`/`MediaVariant`モデルの`getOriginalUrlAttribute()`/`getUrlAttribute()`/`getVariantUrl()`に`config('app.env') === 'production' ? 's3' : 'public'`というハードコードされた分岐があり、S3連携が実装・設定されていないにもかかわらず本番では常に`s3`ディスクを参照しようとして`Class "League\Flysystem\AwsS3V3\PortableVisibilityConverter" not found`で例外になっていた（アップロード自体が成功しても詳細画面表示時にここで落ちる）。3箇所とも無条件に`public`ディスクを使うよう修正、回帰テスト（`tests/Unit/MediaUrlAccessorTest.php`）追加。いずれも例外・404はログに出るがブラウザ上は無言で失敗するため気づきにくかった | フェーズ1（完了、実運用で顕在化） |
+| K29 | `Admin\Admin\AdminController::destroy()`が存在しないガード名`admin`（単数形）を参照 | **未修正**（2026-08-03、タスク管理機能のドキュメント整備中に発見。本タスクのスコープ外のため修正は別タスクとする）。K5（`UpdateMediaRequest`）と同一パターンの取り違えが`auth('admin')->id()`という形で残存しており、管理者削除を実行すると`Auth guard [admin] is not defined.`例外が`catch (\Exception $e)`で握りつぶされ、エラーメッセージがフラッシュされるだけで**管理者の削除が常に失敗する**可能性が高い。`admins`への修正が必要 | フェーズ2（要対応） |
 
 ## 8. 用語集
 
@@ -259,3 +273,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | 日付 | 変更内容 |
 |---|---|
 | 2026-07-29 | SPEC.md初版作成。コードベース調査＋ユーザーヒアリング＋独立検証に基づく |
+| 2026-08-03 | §5.12にAdmin向けタスク管理機能（カンバンボード・繰り返しタスク・リマインダー）のドメイン仕様を追記。§7にK29（`AdminController::destroy()`のガード名取り違え、未修正）を追加 |

@@ -1,6 +1,6 @@
 # TASKS.md — Spra 実装タスク一覧
 
-最終更新: 2026-07-29
+最終更新: 2026-08-03
 
 ## 1. 本書の使い方
 
@@ -230,6 +230,17 @@ SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティ
 - [x] Projectのファイルアップロード機能、ProjectUpdate作成フォーム（2026-07-30）。ファイルアップロードは`ProjectFile`モデル・Repository/Service・Controllerを新規実装（`private`ディスク保存）。ProjectUpdate作成フォームはバックエンドAPIが既に実装済みと判明したため、モーダルフォーム（フロントのみ）を追加
 - [x] 予約の繰り返し枠設定・クライアント向け予約UI・カレンダー連携（`docs/AppointmentSystemGuide.md`）（2026-07-30）。クライアント向け予約UI（`User/AppointmentController`等）とカレンダーへの予約統合（`ScheduleController::calendar()`）は既に実装済みと判明（docsの「保留中」記載が古いだけ）。繰り返し予約枠設定は`AppointmentSlotRecurrence`（曜日・時間帯パターン）を新規実装。作成時に90日先まで先行生成し、以降は`appointments:generate-recurring-slots`コマンド（毎日6:00実行）が継ぎ足す方式とした
 - [x] Search Console実連携の実装（2026-07-31）。`SEARCH_CONSOLE_DRIVER=google`は従来コード未実装（`RuntimeException`を投げるダミー）だったと判明。`GoogleSearchConsoleService`（サービスアカウントJWT認証、追加依存なし）を新規実装し単体テスト追加。本番`.env`設定・実データ取得確認はT27で実施
+
+### 3.6 Admin向けタスク管理機能（新規実装）
+
+- [x] Admin向けタスク管理機能一式を実装（完了: 2026-08-03、`feat/task-management`）。`tasks`/`task_categories`テーブル、Repository/Service層、3カラム固定のカンバンボードUI（`/admin/task`、`@dnd-kit`でドラッグ&ドロップ）、繰り返しタスク生成バッチ（`tasks:generate-recurring`、毎日06:10）、期限リマインダー通知バッチ（`tasks:send-reminders`、15分おき）、ダッシュボード「今日やること」ウィジェット、Admin詳細画面「担当タスク」タブまで実装済み。詳細はSPEC.md §5.12参照
+
+以下はスコープ外として意図的に見送った項目。フェーズ2の新規候補として記録する。
+
+- [ ] タスクへのコメント・添付ファイル機能
+- [ ] 複数Admin共同担当（現状は単一担当者のみ）
+- [ ] 既存のシフト/予約カレンダーとの統合表示
+- [ ] カスタムステータス列（現状は未着手/進行中/完了の3列固定）
 
 ---
 
