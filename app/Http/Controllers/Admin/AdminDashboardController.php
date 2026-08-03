@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\QuoteResponse;
 use App\Models\User;
 use App\Models\UserActivityLog;
+use App\Services\TaskService;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,6 +20,8 @@ use Inertia\Response;
 class AdminDashboardController extends Controller
 {
     private const ACTIVE_PROJECT_STATUSES = ['planning', 'design', 'development', 'testing', 'review'];
+
+    public function __construct(private TaskService $taskService) {}
 
     /**
      * 管理者ダッシュボード
@@ -30,6 +33,7 @@ class AdminDashboardController extends Controller
             'kpis' => $this->getKpis(),
             'trends' => $this->getTrends(),
             'logs' => $this->getRecentLogs(),
+            'todayTasks' => $this->taskService->getTodayForAdmin(auth('admins')->id()),
         ]);
     }
 
