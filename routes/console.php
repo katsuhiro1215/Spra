@@ -19,6 +19,7 @@ $alertOnFailure(Schedule::command('appointments:send-reminders')->dailyAt('09:00
 
 // 繰り返し予約枠設定から、先行生成分の予約枠を毎日午前6時に穴埋め
 $alertOnFailure(Schedule::command('appointments:generate-recurring-slots')->dailyAt('06:00'));
+$alertOnFailure(Schedule::command('tasks:generate-recurring')->dailyAt('06:10'));
 
 // 月額請求書を毎日午前9時に自動生成
 $alertOnFailure(Schedule::command('invoices:generate-monthly')->dailyAt('09:00'));
