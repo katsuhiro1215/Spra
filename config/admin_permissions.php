@@ -45,6 +45,7 @@ return [
         'destroy' => '削除',
         'restore' => '復元',
         'history' => '変更履歴',
+        'status' => 'ステータス変更',
     ],
 
     /*
