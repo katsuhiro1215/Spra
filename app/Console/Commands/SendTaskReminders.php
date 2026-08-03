@@ -20,6 +20,7 @@ class SendTaskReminders extends Command
 
         foreach ($tasks as $task) {
             Notification::send($task->admin, new TaskDueReminder($task));
+            $task->update(['reminder_sent_at' => now()]);
         }
 
         $this->info("{$tasks->count()}件のリマインダーを送信しました。");

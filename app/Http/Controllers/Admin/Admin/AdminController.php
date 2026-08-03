@@ -170,7 +170,7 @@ class AdminController extends Controller
     public function destroy(Admin $admin): RedirectResponse
     {
         try {
-            $this->adminService->deleteAdmin($admin, auth('admin')->id());
+            $this->adminService->deleteAdmin($admin, auth('admins')->id());
 
             return redirect()
                 ->route('admin.admin.index')

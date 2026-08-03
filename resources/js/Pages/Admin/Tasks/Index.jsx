@@ -54,6 +54,7 @@ export default function Index({ tasks, categories, admins, filters }) {
             <TaskFilterBar filters={filters} categories={categories} admins={admins} onChange={handleFilterChange} />
             <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} onCardClick={openEditModal} />
             <TaskFormModal
+                key={editingTask?.id ?? "new"}
                 show={showModal}
                 onClose={() => setShowModal(false)}
                 task={editingTask}

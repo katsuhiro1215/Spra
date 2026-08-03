@@ -1,5 +1,5 @@
 import React from "react";
-import { DndContext, closestCorners } from "@dnd-kit/core";
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import TaskColumn from "./TaskColumn";
 
 const COLUMNS = [
@@ -9,6 +9,10 @@ const COLUMNS = [
 ];
 
 export default function TaskBoard({ tasks, onStatusChange, onCardClick }) {
+    // ポインタが一定距離動くまではドラッグと判定しない（クリックでの編集モーダル起動と競合しないように）
+    // resources/js/Components/BlockUI/BlockEditor.jsx の実装に合わせて distance: 4 を使用
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over) return;
@@ -24,7 +28,7 @@ export default function TaskBoard({ tasks, onStatusChange, onCardClick }) {
     };
 
     return (
-        <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
             <div className="flex gap-4 overflow-x-auto">
                 {COLUMNS.map((column) => (
                     <TaskColumn

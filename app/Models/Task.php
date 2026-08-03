@@ -31,6 +31,7 @@ class Task extends Model
         'due_date',
         'due_time',
         'completed_at',
+        'reminder_sent_at',
         'recurrence_rule',
         'parent_task_id',
     ];
@@ -38,8 +39,11 @@ class Task extends Model
     protected $casts = [
         'tags' => 'array',
         'recurrence_rule' => 'array',
-        'due_date' => 'date',
+        // 'date'のみだとJSON化の際にUTC変換され、日本時間の日付が前日にズレてしまうため
+        // 出力フォーマットを明示し、日付のみを保持する（AppointmentSlot::$casts['date']と同じ対処）
+        'due_date' => 'date:Y-m-d',
         'completed_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function isDone(): bool

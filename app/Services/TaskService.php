@@ -60,6 +60,7 @@ class TaskService extends BaseService
             ->whereDate('due_date', today())
             ->where('status', '!=', 'done')
             ->whereNull('recurrence_rule')
+            ->whereNull('reminder_sent_at')
             ->get()
             ->filter(function (Task $task) use ($now, $windowEnd) {
                 $dueAt = \Carbon\Carbon::parse($task->due_date->format('Y-m-d') . ' ' . $task->due_time);
