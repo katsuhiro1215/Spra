@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "@inertiajs/react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -41,6 +42,13 @@ export default function TaskCard({ task, onClick }) {
                 </span>
             )}
             {task.admin && <div className="mt-1 text-xs text-gray-400">{task.admin.email}</div>}
+            <Link
+                href={route("admin.task.show", task.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="mt-2 block text-xs text-indigo-600 hover:underline"
+            >
+                詳細を見る
+            </Link>
         </div>
     );
 }

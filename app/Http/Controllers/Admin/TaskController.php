@@ -40,6 +40,15 @@ class TaskController extends Controller
         ]);
     }
 
+    public function show(Task $task): Response
+    {
+        $task->load(['category', 'admin', 'creator']);
+
+        return Inertia::render('Admin/Tasks/Show', [
+            'task' => $task,
+        ]);
+    }
+
     public function store(TaskRequest $request): RedirectResponse
     {
         $this->service->createTask($request->validated(), Auth::guard('admins')->id());

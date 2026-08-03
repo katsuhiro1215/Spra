@@ -9,5 +9,5 @@ use App\Http\Controllers\Admin\TaskController;
 
 Route::resource('task-category', TaskCategoryController::class)->parameters(['task-category' => 'task_category'])->except(['show']);
 
-Route::resource('task', TaskController::class)->except(['create', 'edit', 'show']);
+Route::resource('task', TaskController::class)->except(['create', 'edit']);
 Route::patch('/task/{task}/status', [TaskController::class, 'updateStatus'])->name('task.status');
