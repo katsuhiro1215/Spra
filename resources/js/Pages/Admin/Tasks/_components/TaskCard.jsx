@@ -5,7 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 const PRIORITY_LABEL = { high: "高", medium: "中", low: "低" };
 const PRIORITY_COLOR = { high: "bg-red-100 text-red-700", medium: "bg-yellow-100 text-yellow-700", low: "bg-gray-100 text-gray-600" };
 
-export default function TaskCard({ task }) {
+export default function TaskCard({ task, onClick }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
 
     const style = {
@@ -19,6 +19,7 @@ export default function TaskCard({ task }) {
             style={style}
             {...attributes}
             {...listeners}
+            onClick={() => onClick?.(task)}
             className="cursor-grab rounded border bg-white p-3 shadow-sm"
         >
             <div className="flex items-center justify-between">

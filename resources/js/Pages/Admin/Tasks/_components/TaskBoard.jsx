@@ -8,7 +8,7 @@ const COLUMNS = [
     { status: "done", label: "完了" },
 ];
 
-export default function TaskBoard({ tasks, onStatusChange }) {
+export default function TaskBoard({ tasks, onStatusChange, onCardClick }) {
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over) return;
@@ -32,6 +32,7 @@ export default function TaskBoard({ tasks, onStatusChange }) {
                         status={column.status}
                         label={column.label}
                         tasks={tasks.filter((t) => t.status === column.status)}
+                        onCardClick={onCardClick}
                     />
                 ))}
             </div>
