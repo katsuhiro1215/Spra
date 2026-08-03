@@ -61,6 +61,10 @@ class TaskRepository extends BaseRepository implements TaskRepositoryInterface
             $query->where('priority', $filters['priority']);
         }
 
+        if (!empty($filters['tag'])) {
+            $query->whereJsonContains('tags', $filters['tag']);
+        }
+
         return $query->orderBy('due_date')->orderBy('due_time')->get();
     }
 }

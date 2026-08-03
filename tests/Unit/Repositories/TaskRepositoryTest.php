@@ -40,4 +40,18 @@ class TaskRepositoryTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertSame($today->id, $result->first()->id);
     }
+
+    public function test_find_for_board_filters_by_tag(): void
+    {
+        $repository = app(TaskRepositoryInterface::class);
+        $admin = Admin::factory()->create();
+
+        $matching = Task::factory()->for($admin, 'creator')->create(['tags' => ['SNS', '投稿']]);
+        Task::factory()->for($admin, 'creator')->create(['tags' => ['事務']]);
+
+        $result = $repository->findForBoard(['tag' => 'SNS']);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($matching->id, $result->first()->id);
+    }
 }
