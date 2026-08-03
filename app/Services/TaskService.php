@@ -50,6 +50,24 @@ class TaskService extends BaseService
         return $this->repository->findForBoard($filters);
     }
 
+    public function getTasksNeedingReminder(int $withinMinutes = 30): Collection
+    {
+        $now = now();
+        $windowEnd = $now->copy()->addMinutes($withinMinutes);
+
+        return Task::whereNotNull('admin_id')
+            ->whereNotNull('due_time')
+            ->whereDate('due_date', today())
+            ->where('status', '!=', 'done')
+            ->whereNull('recurrence_rule')
+            ->get()
+            ->filter(function (Task $task) use ($now, $windowEnd) {
+                $dueAt = \Carbon\Carbon::parse($task->due_date->format('Y-m-d') . ' ' . $task->due_time);
+
+                return $dueAt->between($now, $windowEnd);
+            });
+    }
+
     public function generateUpcomingOccurrences(int $horizonDays = 14): int
     {
         $templates = Task::whereNull('parent_task_id')

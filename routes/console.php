@@ -21,6 +21,9 @@ $alertOnFailure(Schedule::command('appointments:send-reminders')->dailyAt('09:00
 $alertOnFailure(Schedule::command('appointments:generate-recurring-slots')->dailyAt('06:00'));
 $alertOnFailure(Schedule::command('tasks:generate-recurring')->dailyAt('06:10'));
 
+// タスク期限のリマインダー通知を15分おきに送信（--minutes=30のデフォルト窓と組み合わせて期限30分前までに捕捉）
+$alertOnFailure(Schedule::command('tasks:send-reminders')->everyFifteenMinutes());
+
 // 月額請求書を毎日午前9時に自動生成
 $alertOnFailure(Schedule::command('invoices:generate-monthly')->dailyAt('09:00'));
 
