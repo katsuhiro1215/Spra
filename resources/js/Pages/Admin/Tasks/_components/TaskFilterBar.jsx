@@ -1,5 +1,5 @@
 import React from "react";
-import { SelectInput } from "@/Components/Forms";
+import { SelectInput, TextInput } from "@/Components/Forms";
 
 export default function TaskFilterBar({ filters, categories, admins, onChange }) {
     return (
@@ -23,6 +23,11 @@ export default function TaskFilterBar({ filters, categories, admins, onChange })
                     { value: "medium", label: "中" },
                     { value: "low", label: "低" },
                 ]}
+            />
+            <TextInput
+                value={filters.tag || ""}
+                onChange={(e) => onChange("tag", e.target.value)}
+                placeholder="タグで絞り込み"
             />
         </div>
     );
