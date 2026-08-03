@@ -50,6 +50,12 @@ export default function QuoteItemForm({
         }).format(amount || 0);
     };
 
+    // 表示用の金額は常にその場で数量×単価から計算する（保存済みのitem.amountを
+    // 参照すると、直近の再計算がdata.itemsにしか反映されずローカルstateの
+    // itemsが更新されないため、画面表示が数量・単価の変更に追従しない不具合になる）
+    const calculateItemAmount = (item) =>
+        (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+
     const handleAddEmptyItem = () => {
         setItems([
             ...items,
@@ -215,7 +221,7 @@ export default function QuoteItemForm({
 
     // 合計金額計算
     const totalAmount = items.reduce(
-        (sum, item) => sum + (parseFloat(item.amount) || 0),
+        (sum, item) => sum + calculateItemAmount(item),
         0,
     );
 
@@ -444,7 +450,7 @@ export default function QuoteItemForm({
                                             <TextInput
                                                 id={`items[${index}].quantity`}
                                                 type="number"
-                                                step="0.01"
+                                                step="1"
                                                 min="0"
                                                 value={item.quantity}
                                                 onChange={(e) =>
@@ -509,7 +515,7 @@ export default function QuoteItemForm({
                                                     金額
                                                 </label>
                                                 <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                    {formatAmount(item.amount)}
+                                                    {formatAmount(calculateItemAmount(item))}
                                                 </div>
                                             </div>
                                         </div>
