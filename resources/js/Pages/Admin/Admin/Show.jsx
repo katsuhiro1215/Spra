@@ -15,6 +15,7 @@ import { getRoleBadge, getStatusBadge } from "@/Constants/Badges";
 import AdminBasicInfo from "./_components/AdminBasicInfo";
 import AdminLoginHistory from "./_components/AdminLoginHistory";
 import AdminSettings from "./_components/AdminSettings";
+import AdminAssignedTasks from "./_components/AdminAssignedTasks";
 
 export default function Show({
     admin,
@@ -23,6 +24,7 @@ export default function Show({
     loginLogs = [],
     employmentTypes = [],
     payTypes = [],
+    assignedTasks = [],
 }) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
@@ -39,6 +41,11 @@ export default function Show({
             count: loginLogs.length,
         },
         {
+            key: "tasks",
+            label: "担当タスク",
+            count: assignedTasks.length,
+        },
+        {
             key: "settings",
             label: "設定",
         },
@@ -50,6 +57,8 @@ export default function Show({
                 return <AdminBasicInfo admin={admin} />;
             case "login-history":
                 return <AdminLoginHistory loginLogs={loginLogs} />;
+            case "tasks":
+                return <AdminAssignedTasks tasks={assignedTasks} />;
             case "settings":
                 return (
                     <AdminSettings

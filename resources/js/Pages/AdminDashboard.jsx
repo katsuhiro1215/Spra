@@ -5,6 +5,7 @@ import PageHeader from "@/Components/Layout/PageHeader";
 import { FlashMessage } from "@/Components/Notifications";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import LineChart, { CHART_COLORS } from "@/Components/Charts/LineChart";
+import TodayTaskList from "@/Components/Tasks/TodayTaskList";
 // Constants
 import { PageConfig } from "@/Constants/PageConfig";
 // Dashboard Components
@@ -67,6 +68,7 @@ export default function Dashboard({
     kpis = [],
     trends = [],
     logs = {},
+    todayTasks = [],
 }) {
     const headerActions = [
         {
@@ -93,6 +95,18 @@ export default function Dashboard({
 
             <div className="w-full mx-auto flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 space-y-6 min-w-0">
+                    {/* 今日やること */}
+                    <div>
+                        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                            今日やること
+                        </h2>
+                        <Card>
+                            <CardBody>
+                                <TodayTaskList tasks={todayTasks} />
+                            </CardBody>
+                        </Card>
+                    </div>
+
                     {/* 要対応キュー */}
                     <div>
                         <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">
