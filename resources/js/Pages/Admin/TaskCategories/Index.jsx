@@ -42,10 +42,10 @@ export default function Index({ categories }) {
                             </div>
                             <div className="flex gap-2">
                                 <Link href={route("admin.task-category.edit", category.id)}>
-                                    <IconButton icon={<PencilIcon className="h-4 w-4" />} />
+                                    <IconButton icon={PencilIcon} />
                                 </Link>
                                 <IconButton
-                                    icon={<TrashIcon className="h-4 w-4" />}
+                                    icon={TrashIcon}
                                     variant="danger-text"
                                     onClick={() => handleDelete(category)}
                                 />

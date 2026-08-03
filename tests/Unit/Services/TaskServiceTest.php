@@ -78,4 +78,23 @@ class TaskServiceTest extends TestCase
 
         $this->assertSame(0, Task::where('parent_task_id', $task->id)->count());
     }
+
+    public function test_create_task_with_recurrence_rule_due_in_the_future_immediately_generates_its_first_occurrence(): void
+    {
+        $admin = Admin::factory()->create();
+        $futureDate = today()->addDays(2)->format('Y-m-d');
+
+        $service = app(TaskService::class);
+        $template = $service->createTask([
+            'title' => '毎日Facebook投稿',
+            'due_date' => $futureDate,
+            'admin_id' => $admin->id,
+            'recurrence_rule' => ['freq' => 'daily'],
+        ], $admin->id);
+
+        $this->assertSame(1, Task::where('parent_task_id', $template->id)->count());
+
+        $child = Task::where('parent_task_id', $template->id)->first();
+        $this->assertSame($futureDate, $child->due_date->format('Y-m-d'));
+    }
 }

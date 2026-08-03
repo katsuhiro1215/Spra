@@ -26,8 +26,8 @@ class TaskService extends BaseService
 
         $task = $this->repository->create($data);
 
-        if ($task->recurrence_rule && $task->due_date->isToday()) {
-            $this->generateOccurrencesForTemplate($task, 0);
+        if ($task->recurrence_rule) {
+            $this->generateInitialOccurrence($task);
         }
 
         return $task;
@@ -96,10 +96,7 @@ class TaskService extends BaseService
         $freq = $rule['freq'] ?? 'daily';
         $byWeekday = ($rule['byweekday'] ?? null) ?: null;
 
-        $existingDates = Task::where('parent_task_id', $template->id)
-            ->pluck('due_date')
-            ->map(fn ($date) => $date->format('Y-m-d'))
-            ->all();
+        $existingDates = $this->existingOccurrenceDates($template);
 
         $created = 0;
         $cursor = today()->greaterThan($template->due_date) ? today()->copy() : $template->due_date->copy();
@@ -113,19 +110,8 @@ class TaskService extends BaseService
             };
 
             if ($matches && ! in_array($cursor->format('Y-m-d'), $existingDates, true)) {
-                $this->repository->create([
-                    'title' => $template->title,
-                    'description' => $template->description,
-                    'priority' => $template->priority,
-                    'task_category_id' => $template->task_category_id,
-                    'tags' => $template->tags,
-                    'admin_id' => $template->admin_id,
-                    'created_by' => $template->created_by,
-                    'due_date' => $cursor->format('Y-m-d'),
-                    'due_time' => $template->due_time,
-                    'parent_task_id' => $template->id,
-                    'status' => 'todo',
-                ]);
+                $this->createOccurrence($template, $cursor->format('Y-m-d'));
+                $existingDates[] = $cursor->format('Y-m-d');
                 $created++;
             }
 
@@ -133,5 +119,47 @@ class TaskService extends BaseService
         }
 
         return $created;
+    }
+
+    /**
+     * 繰り返しタスク作成直後、テンプレート自身のdue_date分を即時に1件だけ生成する。
+     * テンプレート行はカンバンボード等の一覧から常に除外される設計のため、これが無いと
+     * 日次バッチ（06:10）が走るまで、作成したタスクがdue_dateの当日・将来日を問わず
+     * どこにも表示されなくなってしまう。
+     */
+    private function generateInitialOccurrence(Task $template): void
+    {
+        $dueDate = $template->due_date->format('Y-m-d');
+
+        if (in_array($dueDate, $this->existingOccurrenceDates($template), true)) {
+            return;
+        }
+
+        $this->createOccurrence($template, $dueDate);
+    }
+
+    private function existingOccurrenceDates(Task $template): array
+    {
+        return Task::where('parent_task_id', $template->id)
+            ->pluck('due_date')
+            ->map(fn ($date) => $date->format('Y-m-d'))
+            ->all();
+    }
+
+    private function createOccurrence(Task $template, string $dueDate): void
+    {
+        $this->repository->create([
+            'title' => $template->title,
+            'description' => $template->description,
+            'priority' => $template->priority,
+            'task_category_id' => $template->task_category_id,
+            'tags' => $template->tags,
+            'admin_id' => $template->admin_id,
+            'created_by' => $template->created_by,
+            'due_date' => $dueDate,
+            'due_time' => $template->due_time,
+            'parent_task_id' => $template->id,
+            'status' => 'todo',
+        ]);
     }
 }
