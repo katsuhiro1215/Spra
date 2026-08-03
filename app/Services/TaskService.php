@@ -24,7 +24,13 @@ class TaskService extends BaseService
         $data['status'] ??= 'todo';
         $data['priority'] ??= 'medium';
 
-        return $this->repository->create($data);
+        $task = $this->repository->create($data);
+
+        if ($task->recurrence_rule && $task->due_date->isToday()) {
+            $this->generateOccurrencesForTemplate($task, 0);
+        }
+
+        return $task;
     }
 
     public function updateStatus(Task $task, string $status): Task
@@ -90,11 +96,9 @@ class TaskService extends BaseService
         $freq = $rule['freq'] ?? 'daily';
         $byWeekday = $rule['byweekday'] ?? null;
 
-        // テンプレート自身のdue_dateはその日の実体を兼ねるため、既存扱いにして重複生成を防ぐ
         $existingDates = Task::where('parent_task_id', $template->id)
             ->pluck('due_date')
             ->map(fn ($date) => $date->format('Y-m-d'))
-            ->push($template->due_date->format('Y-m-d'))
             ->all();
 
         $created = 0;

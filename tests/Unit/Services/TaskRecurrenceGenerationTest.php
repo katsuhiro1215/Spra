@@ -33,8 +33,8 @@ class TaskRecurrenceGenerationTest extends TestCase
         $service = app(TaskService::class);
         $created = $service->generateUpcomingOccurrences(horizonDays: 3);
 
-        $this->assertSame(3, $created);
-        $this->assertSame(3, Task::where('parent_task_id', $template->id)->count());
+        $this->assertSame(4, $created);
+        $this->assertSame(4, Task::where('parent_task_id', $template->id)->count());
 
         $createdAgain = $service->generateUpcomingOccurrences(horizonDays: 3);
         $this->assertSame(0, $createdAgain);

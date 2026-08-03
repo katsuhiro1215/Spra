@@ -46,4 +46,36 @@ class TaskServiceTest extends TestCase
         $this->assertSame('in_progress', $updated->status);
         $this->assertNull($updated->completed_at);
     }
+
+    public function test_create_task_with_recurrence_rule_due_today_immediately_generates_todays_occurrence(): void
+    {
+        $admin = Admin::factory()->create();
+
+        $service = app(TaskService::class);
+        $template = $service->createTask([
+            'title' => '毎日SNS投稿',
+            'due_date' => today()->format('Y-m-d'),
+            'admin_id' => $admin->id,
+            'recurrence_rule' => ['freq' => 'daily'],
+        ], $admin->id);
+
+        $this->assertSame(1, Task::where('parent_task_id', $template->id)->count());
+
+        $child = Task::where('parent_task_id', $template->id)->first();
+        $this->assertSame(today()->format('Y-m-d'), $child->due_date->format('Y-m-d'));
+    }
+
+    public function test_create_task_without_recurrence_rule_does_not_generate_occurrences(): void
+    {
+        $admin = Admin::factory()->create();
+
+        $service = app(TaskService::class);
+        $task = $service->createTask([
+            'title' => '単発タスク',
+            'due_date' => today()->format('Y-m-d'),
+            'admin_id' => $admin->id,
+        ], $admin->id);
+
+        $this->assertSame(0, Task::where('parent_task_id', $task->id)->count());
+    }
 }
