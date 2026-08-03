@@ -223,6 +223,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      **************************************/
     require __DIR__ . '/admin/announcement.php';
 
+    /**************************************
+     * タスク管理
+     **************************************/
+    require __DIR__ . '/admin/task.php';
+
     // Documents (規約・ヘルプ・APIドキュメント等) 管理
     Route::resource('documents', DocumentController::class)->except(['show']);
     Route::controller(DocumentController::class)->group(function () {
