@@ -1,12 +1,22 @@
 import React from "react";
 import { useForm } from "@inertiajs/react";
 import Modal from "@/Components/Layout/Modal";
-import { FormGroup, TextInput, TextArea, SelectInput } from "@/Components/Forms";
+import { FormGroup, TextInput, TextArea, SelectInput, Checkbox } from "@/Components/Forms";
 import { Button, CrudButton } from "@/Components/Buttons";
+
+const WEEKDAYS = [
+    { value: "mon", label: "月" },
+    { value: "tue", label: "火" },
+    { value: "wed", label: "水" },
+    { value: "thu", label: "木" },
+    { value: "fri", label: "金" },
+    { value: "sat", label: "土" },
+    { value: "sun", label: "日" },
+];
 
 export default function TaskFormModal({ show, onClose, task, categories, admins }) {
     const isEdit = Boolean(task);
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset, transform } = useForm({
         title: task?.title || "",
         description: task?.description || "",
         priority: task?.priority || "medium",
@@ -14,7 +24,35 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
         admin_id: task?.admin?.id || "",
         due_date: task?.due_date || "",
         due_time: task?.due_time?.slice(0, 5) || "",
+        tagsInput: (task?.tags || []).join(", "),
+        recurrenceEnabled: false,
+        freq: "daily",
+        byweekday: [],
     });
+
+    transform((formData) => {
+        const { recurrenceEnabled, freq, byweekday, tagsInput, ...rest } = formData;
+
+        return {
+            ...rest,
+            tags: tagsInput
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean),
+            recurrence_rule: recurrenceEnabled
+                ? { freq, ...(freq === "weekly" ? { byweekday } : {}) }
+                : null,
+        };
+    });
+
+    const toggleWeekday = (value) => {
+        setData(
+            "byweekday",
+            data.byweekday.includes(value)
+                ? data.byweekday.filter((d) => d !== value)
+                : [...data.byweekday, value],
+        );
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -76,6 +114,51 @@ export default function TaskFormModal({ show, onClose, task, categories, admins 
                         options={[{ value: "", label: "未割当" }, ...admins.map((a) => ({ value: a.id, label: a.email }))]}
                     />
                 </FormGroup>
+                <FormGroup label="タグ" htmlFor="tagsInput" error={errors.tags}>
+                    <TextInput
+                        id="tagsInput"
+                        value={data.tagsInput}
+                        onChange={(e) => setData("tagsInput", e.target.value)}
+                        placeholder="カンマ区切りで入力（例: SNS, 投稿）"
+                    />
+                </FormGroup>
+                {!isEdit && (
+                    <div className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-700">
+                        <Checkbox
+                            id="recurrenceEnabled"
+                            checked={data.recurrenceEnabled}
+                            onChange={(e) => setData("recurrenceEnabled", e.target.checked)}
+                            label="繰り返しタスクにする"
+                        />
+                        {data.recurrenceEnabled && (
+                            <>
+                                <FormGroup label="頻度" htmlFor="freq" error={errors["recurrence_rule.freq"]}>
+                                    <SelectInput
+                                        id="freq"
+                                        value={data.freq}
+                                        onChange={(e) => setData("freq", e.target.value)}
+                                        options={[{ value: "daily", label: "毎日" }, { value: "weekly", label: "毎週" }]}
+                                    />
+                                </FormGroup>
+                                {data.freq === "weekly" && (
+                                    <FormGroup label="曜日" htmlFor="byweekday">
+                                        <div className="flex flex-wrap gap-3">
+                                            {WEEKDAYS.map((day) => (
+                                                <Checkbox
+                                                    key={day.value}
+                                                    id={`byweekday-${day.value}`}
+                                                    checked={data.byweekday.includes(day.value)}
+                                                    onChange={() => toggleWeekday(day.value)}
+                                                    label={day.label}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormGroup>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
                 <div className="flex justify-end gap-3">
                     <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
                     <CrudButton type="submit" action={isEdit ? "update" : "store"} loading={processing}>
