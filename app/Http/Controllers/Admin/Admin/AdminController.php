@@ -11,6 +11,7 @@ use App\Models\LoginLog;
 use App\Models\Media;
 use App\Services\AdminService;
 use App\Services\PermissionService;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -20,7 +21,8 @@ class AdminController extends Controller
 {
     public function __construct(
         private AdminService $adminService,
-        private PermissionService $permissionService
+        private PermissionService $permissionService,
+        private TaskService $taskService
     ) {}
 
     /**
@@ -132,6 +134,7 @@ class AdminController extends Controller
             'payTypes' => collect(AdminEmployment::PAY_TYPES)
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
+            'assignedTasks' => $this->taskService->getAssignedTo($admin->id),
         ]);
     }
 
