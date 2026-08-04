@@ -898,7 +898,7 @@ export default function Show({ project, currentVersion, progress = 0 }) {
                         <div className="flex justify-end">
                             <Button
                                 variant="primary"
-                                icon={<PlusIcon className="w-4 h-4" />}
+                                icon={PlusIcon}
                                 onClick={openCreateUpdateModal}
                             >
                                 更新情報を追加
