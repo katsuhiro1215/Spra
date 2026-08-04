@@ -203,11 +203,16 @@ class ContractPdfService
         }
 
         // ページ4：備考（必ず生成、署名を含める）
+        // 甲（SmartSprouts側）の署名欄には、クライアントが自分で描画する必要が無いよう
+        // 契約作成者（Admin）の氏名を最初から印字しておく
+        $admin = $contract->creator?->loadMissing('profile');
+
         $mpdf->AddPage();
         $page4 = view('contracts.pdf-template-notes', [
             'contract' => $contract,
             'notes' => $contract->currentVersion?->notes ?? '', // notesがない場合は空文字列
             'signatureBase64' => $signatureBase64, // 最終ページに署名を表示
+            'adminName' => $admin?->profile?->full_name ?? $admin?->email,
         ])->render();
         $mpdf->WriteHTML($page4);
 
@@ -259,10 +264,13 @@ class ContractPdfService
      */
     public function generateNotesPage(Contract $contract)
     {
+        $admin = $contract->creator?->loadMissing('profile');
+
         $html = view('contracts.pdf-template-notes', [
             'contract' => $contract,
             'notes' => $contract->currentVersion?->notes ?? '未記入',
             'signatureBase64' => null,
+            'adminName' => $admin?->profile?->full_name ?? $admin?->email,
         ])->render();
 
         $mpdf = $this->newMpdf();
