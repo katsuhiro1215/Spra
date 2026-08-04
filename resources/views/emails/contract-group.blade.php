@@ -79,6 +79,15 @@
             margin-bottom: 10px;
         }
 
+        .contract-list {
+            padding: 0 0 0 20px;
+            margin: 10px 0;
+        }
+
+        .contract-list li {
+            margin: 6px 0;
+        }
+
         .steps {
             background-color: #f0f9ff;
             border-left: 4px solid #667eea;
@@ -142,36 +151,38 @@
         </div>
 
         <div class="content">
-            <p>{{ $contract->user?->profile?->full_name ?? $contract->user?->email }} 様</p>
+            <p>{{ $contractGroup->user?->profile?->full_name ?? $contractGroup->user?->email }} 様</p>
 
-            <p>いつも大変お世話になっております。契約書を送付いたしましたので、添付のPDFまたはWebよりご確認ください。</p>
+            <p>いつも大変お世話になっております。契約書を送付いたしましたので、添付のPDFまたはWebよりご確認ください。
+                {{ $contractGroup->contracts->count() }}件の契約書をお送りいたします。</p>
 
             <div class="info-box">
                 <div class="info-row">
-                    <div class="info-label">契約名</div>
-                    <div class="info-value">{{ $contract->title }}</div>
+                    <div class="info-label">グループ番号</div>
+                    <div class="info-value">{{ $contractGroup->group_number }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">契約金額</div>
-                    <div class="info-value">¥{{ number_format($contract->currentVersion?->total_amount ?? 0) }}</div>
+                    <div class="info-label">タイトル</div>
+                    <div class="info-value">{{ $contractGroup->title }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">開始日</div>
-                    <div class="info-value">{{ $contract->start_date->format('Y年m月d日') }}</div>
+                    <div class="info-label">契約件数</div>
+                    <div class="info-value">{{ $contractGroup->contracts->count() }}件</div>
                 </div>
-                @if ($contract->end_date)
-                    <div class="info-row">
-                        <div class="info-label">終了日</div>
-                        <div class="info-value">{{ $contract->end_date->format('Y年m月d日') }}</div>
-                    </div>
-                @endif
             </div>
+
+            <h2>含まれる契約書</h2>
+            <ul class="contract-list">
+                @foreach ($contractGroup->contracts as $contract)
+                    <li>{{ $contract->title }}（{{ $contract->contract_number }}）</li>
+                @endforeach
+            </ul>
 
             <h2>次のステップ</h2>
             <ol class="steps">
-                <li>下記のリンクからダッシュボードにアクセスしてください</li>
-                <li>契約書の内容をご確認ください（添付のPDFでもご確認いただけます）</li>
-                <li>ダッシュボード上でデジタル署名を行ってください</li>
+                <li>以下の添付ファイルをご確認ください</li>
+                <li>内容に不備がないかご確認の上、署名をお願いいたします</li>
+                <li>複数の契約書が含まれています。すべてにご署名ください</li>
             </ol>
 
             @if ($terms)
@@ -184,7 +195,7 @@
                 <p style="margin-top: 0; font-size: 15px; font-weight: 600; color: #1f2937;">
                     契約書の確認・署名はこちらから
                 </p>
-                <a href="{{ route('user.contract.show', $contract->id) }}" class="cta-button">
+                <a href="{{ route('user.contract.index') }}" class="cta-button">
                     契約書を確認する
                 </a>
             </div>

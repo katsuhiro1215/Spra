@@ -47,7 +47,7 @@ class ContractEmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            text: 'emails.contract-plain',
+            view: 'emails.contract',
             with: [
                 'contract' => $this->contract,
                 'terms' => $this->terms,

@@ -3,9 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 class SendInvoiceJob implements ShouldQueue
 {
@@ -24,46 +24,13 @@ class SendInvoiceJob implements ShouldQueue
   /**
    * Execute the job.
    */
-  public function handle(): void
+  public function handle(InvoiceService $invoiceService): void
   {
-    try {
-      if (!$this->invoice->user || !$this->invoice->user->email) {
-        throw new \Exception('ユーザーメールアドレスが登録されていません。');
-      }
-
-      Mail::send('emails.invoice-notification', [
-        'invoice' => $this->invoice,
-        'user' => $this->invoice->user,
-        'contract' => $this->invoice->contract,
-      ], function ($message) {
-        $message->to($this->invoice->user->email)
-          ->subject("【請求書】{$this->invoice->invoice_number} - {$this->invoice->contract->title}");
-      });
-
-      // ステータス（sent）は既に Controller 側で更新済み
-
-      // 契約履歴記録
-      $this->invoice->contract->histories()->create([
-        'action' => 'invoice_sent',
-        'recipient_email' => $this->invoice->user->email,
-        'subject' => "請求書送付: {$this->invoice->invoice_number}",
-        'message' => "請求書が送付されました: {$this->invoice->invoice_number}",
-        'status' => 'sent',
-        'sent_at' => now(),
-        'created_by' => null,
-      ]);
-    } catch (\Exception $e) {
-      // 履歴記録
-      $this->invoice->contract->histories()->create([
-        'action' => 'invoice_send_failed',
-        'recipient_email' => $this->invoice->user?->email ?? 'unknown',
-        'subject' => "請求書送付失敗: {$this->invoice->invoice_number}",
-        'message' => $e->getMessage(),
-        'status' => 'failed',
-        'created_by' => null,
-      ]);
-
-      throw $e;
-    }
+    // 実際のPDF生成・メール送信(InvoiceMail)・ステータス更新・履歴記録は
+    // InvoiceService::sendInvoice()に集約されている(SendPendingInvoicesコマンド・
+    // 再送信でも同じ実装を使用)。以前はここで独自にMail::send('emails.invoice-notification', ...)
+    // を直接呼んでおり、装飾の無いプレーンテキストメール(かつ存在しない$user->nameを
+    // 参照)が送信される不具合があった。
+    $invoiceService->sendInvoice($this->invoice);
   }
 }
