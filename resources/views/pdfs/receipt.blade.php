@@ -231,20 +231,38 @@
         </tbody>
     </table>
 
+    @php
+        $organization = \App\Models\Organization::query()->first();
+        $organizationAddress = $organization?->defaultAddress()->first();
+    @endphp
     <div class="issuer-info">
         <table>
             <tr>
                 <td class="label">発行者</td>
-                <td>{{ config('app.name') }}</td>
+                <td>{{ $organization?->name ?? config('app.name') }}</td>
             </tr>
-            <tr>
-                <td class="label">所在地</td>
-                <td>〒000-0000 東京都○○区△△ 1-2-3</td>
-            </tr>
-            <tr>
-                <td class="label">連絡先</td>
-                <td>Tel: 03-0000-0000 / Email: info@example.com</td>
-            </tr>
+            @if ($organizationAddress)
+                <tr>
+                    <td class="label">所在地</td>
+                    <td>〒{{ $organizationAddress->formatted_postal_code }} {{ $organizationAddress->full_address }}</td>
+                </tr>
+            @endif
+            @if ($organization?->phone || $organization?->email)
+                <tr>
+                    <td class="label">連絡先</td>
+                    <td>
+                        @if ($organization->phone)
+                            Tel: {{ $organization->phone }}
+                        @endif
+                        @if ($organization->phone && $organization->email)
+                            /
+                        @endif
+                        @if ($organization->email)
+                            Email: {{ $organization->email }}
+                        @endif
+                    </td>
+                </tr>
+            @endif
         </table>
     </div>
 

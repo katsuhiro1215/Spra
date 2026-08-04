@@ -360,12 +360,24 @@
         @endif
 
         <!-- 会社情報 -->
+        @php
+            $organization = \App\Models\Organization::query()->first();
+            $organizationAddress = $organization?->defaultAddress()->first();
+        @endphp
         <div class="company-info">
-            <h3>{{ config('app.name') }}</h3>
-            <p>〒XXX-XXXX 都道府県市区町村番地</p>
-            <p>TEL: XXX-XXXX-XXXX</p>
-            <p>Email: info@example.com</p>
-            <p>Web: https://example.com</p>
+            <h3>{{ $organization?->name ?? config('app.name') }}</h3>
+            @if ($organizationAddress)
+                <p>〒{{ $organizationAddress->formatted_postal_code }} {{ $organizationAddress->full_address }}</p>
+            @endif
+            @if ($organization?->phone)
+                <p>TEL: {{ $organization->phone }}</p>
+            @endif
+            @if ($organization?->email)
+                <p>Email: {{ $organization->email }}</p>
+            @endif
+            @if ($organization?->website)
+                <p>Web: {{ $organization->website }}</p>
+            @endif
         </div>
 
         <!-- フッター -->
