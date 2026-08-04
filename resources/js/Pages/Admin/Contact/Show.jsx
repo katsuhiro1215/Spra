@@ -9,6 +9,7 @@ import {
     PrimaryButton,
     SecondaryButton,
     TextButton,
+    Button,
 } from "@/Components/Buttons";
 import { Badge } from "@/Components/Badges";
 import { DeleteAlert } from "@/Components/Alerts";
@@ -32,6 +33,7 @@ import {
     ArrowPathIcon,
     XCircleIcon,
     DocumentTextIcon,
+    ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { PageConfig } from "@/Constants/PageConfig";
 import {
@@ -740,6 +742,72 @@ export default function Show() {
                                         >
                                             最初の招待を送信する
                                         </button>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+
+                        {/* ヒアリング */}
+                        <Card>
+                            <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <CardTitle>ヒアリング</CardTitle>
+                                    <Button
+                                        variant="primary"
+                                        href={route(
+                                            "admin.contact.hearing.create",
+                                            contact.id,
+                                        )}
+                                        icon={ClipboardDocumentListIcon}
+                                    >
+                                        ヒアリングを作成
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardBody>
+                                {contact.hearings && contact.hearings.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {contact.hearings.map((hearing) => (
+                                            <div
+                                                key={hearing.id}
+                                                className="flex items-center justify-between border border-gray-200 dark:border-slate-600 rounded-lg p-4 bg-gray-50 dark:bg-slate-800"
+                                            >
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        {hearing.title}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        {new Date(
+                                                            hearing.created_at,
+                                                        ).toLocaleDateString("ja-JP")}
+                                                        {hearing.creator &&
+                                                            ` / 記録者: ${
+                                                                hearing.creator.profile
+                                                                    ?.full_name ||
+                                                                hearing.creator.email
+                                                            }`}
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    variant="secondary"
+                                                    href={route(
+                                                        "admin.contact.hearing.show",
+                                                        {
+                                                            contact: contact.id,
+                                                            hearing: hearing.id,
+                                                        },
+                                                    )}
+                                                >
+                                                    詳細を見る
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            まだヒアリングが記録されていません
+                                        </p>
                                     </div>
                                 )}
                             </CardBody>

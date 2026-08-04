@@ -50,6 +50,9 @@ class DatabaseSeeder extends Seeder
             ResponseTemplateSeeder::class,
             // ResponseSeeder::class,
 
+            // ヒアリング質問項目マスタ（小規模版、テンプレート管理画面は無くこのSeederが唯一の投入経路）
+            HearingTemplateItemSeeder::class,
+
             // サービス関連
             ServiceCategorySeeder::class,
             ServiceSeeder::class,

@@ -68,6 +68,7 @@ class ContactController extends Controller
             'quotes',
             'invitations.invitedBy',
             'invitations.user',
+            'hearings.creator.profile',
         ]);
 
         return Inertia::render('Admin/Contact/Show', [

@@ -74,6 +74,11 @@ class Contact extends Model
         return $this->hasMany(Quote::class)->orderBy('created_at', 'desc');
     }
 
+    public function hearings(): HasMany
+    {
+        return $this->hasMany(Hearing::class)->orderBy('created_at', 'desc');
+    }
+
     // スコープ
     public function scopeNew($query)
     {
