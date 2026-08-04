@@ -55,7 +55,7 @@ class ContractGroupEmail extends Mailable
   public function content(): Content
   {
     return new Content(
-      text: 'emails.contract-group-plain',
+      view: 'emails.contract-group',
       with: [
         'contractGroup' => $this->contractGroup,
         'terms' => $this->terms,
