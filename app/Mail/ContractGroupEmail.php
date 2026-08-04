@@ -102,46 +102,13 @@ class ContractGroupEmail extends Mailable
     // 規約をPDFで添付（有効な規約がある場合）
     if ($this->terms) {
       $attachments[] = Attachment::fromData(
-        function () {
-          return $this->generateTermsPdf($this->terms);
+        function () use ($pdfService) {
+          return $pdfService->generateDocumentPdf($this->terms)->Output('', 'S');
         },
         'terms_and_conditions.pdf'
       )->withMime('application/pdf');
     }
 
     return $attachments;
-  }
-
-  /**
-   * 規約をPDFとして生成
-   */
-  private function generateTermsPdf(DocumentVersion $version): string
-  {
-    $title = $version->document->title;
-
-    $html = <<<HTML
-        <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    body { font-family: DejaVu Sans, sans-serif; line-height: 1.6; margin: 20px; }
-                    h1 { font-size: 24px; margin-bottom: 20px; }
-                    h2 { font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
-                    .footer { margin-top: 40px; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <h1>{$title}</h1>
-                <p>発効日: {$version->effective_date}</p>
-                <hr>
-                {$version->content}
-                <div class="footer">
-                    <p>このドキュメントは {$title} v{$version->version} です。</p>
-                </div>
-            </body>
-        </html>
-        HTML;
-
-    return $html;
   }
 }
