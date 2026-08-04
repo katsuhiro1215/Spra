@@ -45,15 +45,36 @@
             padding: 10px;
         }
 
+        .signature-table {
+            width: 100%;
+            margin-top: 40px;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+        }
+
+        .signature-table td {
+            width: 50%;
+            vertical-align: top;
+        }
+
         .signature-area {
             position: relative;
-            width: 50%;
-            margin-left: auto;
-            margin-top: 40px;
             text-align: center;
             border: 1px solid #999;
             padding: 15px;
             background-color: #f9f9f9;
+        }
+
+        .signature-printed-name {
+            width: 100%;
+            height: 80px;
+            line-height: 80px;
+            border: 1px solid #ccc;
+            background-color: white;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            overflow: hidden;
         }
 
         .signature-label {
@@ -110,16 +131,28 @@
         {{ $notes }}
     </div>
 
-    <!-- デジタルサイン用エリア（右下） -->
-    <div class="signature-area">
-        <div class="signature-label">署名欄</div>
-        <div class="signature-canvas-area" id="signature-placeholder">
-            @if ($signatureBase64)
-                <img src="data:image/png;base64,{{ $signatureBase64 }}"
-                    style="width:100%; height:100%; object-fit:contain;" alt="デジタル署名" />
-            @endif
-        </div>
-    </div>
+    <!-- 署名欄（甲：SmartSprouts側は担当者名を印字、乙：クライアント側はデジタル署名） -->
+    <table class="signature-table">
+        <tr>
+            <td>
+                <div class="signature-area">
+                    <div class="signature-label">甲（SmartSprouts）</div>
+                    <div class="signature-printed-name">{{ $adminName ?? 'SmartSprouts' }}</div>
+                </div>
+            </td>
+            <td>
+                <div class="signature-area">
+                    <div class="signature-label">乙（署名欄）</div>
+                    <div class="signature-canvas-area" id="signature-placeholder">
+                        @if ($signatureBase64)
+                            <img src="data:image/png;base64,{{ $signatureBase64 }}"
+                                style="width:100%; height:100%; object-fit:contain;" alt="デジタル署名" />
+                        @endif
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <div class="footer">
         <p>本契約書は重要な法的文書です。内容をご理解の上、署名してください。</p>
