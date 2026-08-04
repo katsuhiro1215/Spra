@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Head, useForm, router } from "@inertiajs/react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import UserPageHeader from "@/Components/Layout/UserPageHeader";
 import {
@@ -65,24 +65,45 @@ export default function Show({
         return labels[status] || status;
     };
 
-    // ステータスカラー
-    const getStatusColor = (status) => {
-        const colors = {
-            draft: "bg-gray-100 text-gray-800",
-            pending_signature:
-                "bg-yellow-100 text-yellow-800",
-            active: "bg-green-100 text-green-800",
-            suspended:
-                "bg-orange-100 text-orange-800",
-            completed:
-                "bg-blue-100 text-blue-800",
-            cancelled:
-                "bg-red-100 text-red-800",
+    // ステータスに対応するBadgeのvariant
+    // （Badgeコンポーネントはclassnameを受け付けずvariantのみ反映するため注意）
+    const getStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            pending_signature: "warning",
+            active: "success",
+            suspended: "orange",
+            completed: "primary",
+            cancelled: "danger",
         };
-        return (
-            colors[status] ||
-            "bg-gray-100 text-gray-800"
-        );
+        return variants[status] || "secondary";
+    };
+
+    // 見積書ステータスラベル（契約とは別のステータス値セットのため個別定義）
+    const getQuoteStatusLabel = (status) => {
+        const labels = {
+            draft: "下書き",
+            negotiating: "交渉中",
+            approved: "承認済み",
+            rejected: "却下",
+            contracted: "契約済み",
+            cancelled: "キャンセル",
+        };
+        return labels[status] || status;
+    };
+
+    // 見積書ステータスに対応するBadgeのvariant
+    // （Badgeコンポーネントはclassnameを受け付けずvariantのみ反映するため注意）
+    const getQuoteStatusVariant = (status) => {
+        const variants = {
+            draft: "secondary",
+            negotiating: "warning",
+            approved: "success",
+            rejected: "danger",
+            contracted: "primary",
+            cancelled: "secondary",
+        };
+        return variants[status] || "secondary";
     };
 
     // 日付フォーマット
@@ -203,7 +224,7 @@ export default function Show({
                                 <div className="flex justify-between items-center">
                                     <UserCardTitle>基本情報</UserCardTitle>
                                     <Badge
-                                        className={getStatusColor(
+                                        variant={getStatusVariant(
                                             contract.status,
                                         )}
                                     >
@@ -545,7 +566,15 @@ export default function Show({
                                                 ステータス
                                             </dt>
                                             <dd className="mt-1 text-sm text-gray-900">
-                                                {quote.status}
+                                                <Badge
+                                                    variant={getQuoteStatusVariant(
+                                                        quote.status,
+                                                    )}
+                                                >
+                                                    {getQuoteStatusLabel(
+                                                        quote.status,
+                                                    )}
+                                                </Badge>
                                             </dd>
                                         </div>
                                     </dl>
@@ -559,6 +588,17 @@ export default function Show({
                                             </dd>
                                         </div>
                                     )}
+                                    <div className="mt-6">
+                                        <Link
+                                            href={route(
+                                                "user.quote.show",
+                                                quote.id,
+                                            )}
+                                            className="text-sm font-medium text-indigo-600 hover:text-indigo-900"
+                                        >
+                                            見積明細を見る →
+                                        </Link>
+                                    </div>
                                 </UserCardBody>
                             </UserCard>
                         ) : (
@@ -667,6 +707,9 @@ export default function Show({
                                                     <th className="px-4 py-3 text-left font-semibold text-gray-700">
                                                         発行日
                                                     </th>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                                                        操作
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -690,6 +733,17 @@ export default function Show({
                                                             {formatDate(
                                                                 receipt.issued_at,
                                                             )}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <Link
+                                                                href={route(
+                                                                    "user.receipt.show",
+                                                                    receipt.id,
+                                                                )}
+                                                                className="text-indigo-600 hover:text-indigo-900 font-medium"
+                                                            >
+                                                                詳細を見る
+                                                            </Link>
                                                         </td>
                                                     </tr>
                                                 ))}
