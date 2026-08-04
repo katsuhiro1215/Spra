@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\Contact\ContactCategoryController;
 use App\Http\Controllers\Admin\Contact\ContactApiClientController;
 use App\Http\Controllers\Admin\Contact\ResponseController;
 use App\Http\Controllers\Admin\Contact\ResponseTemplateController;
+use App\Http\Controllers\Admin\Contact\HearingController;
 use App\Http\Controllers\Admin\UserInvitationController;
 
 // 認証・権限ミドルウェアは admin.php 側の親グループで適用済みのためここでは付与しない
@@ -32,6 +33,8 @@ Route::prefix('contact/{contact}')->name('contact.')->group(function () {
     Route::post('response/{response}/send', [ResponseController::class, 'send'])->name('response.send');
     // ユーザー招待管理
     Route::post('invitation', [UserInvitationController::class, 'store'])->name('invitation.store');
+    // ヒアリング管理（Contact配下、小規模版のため一覧はContact詳細画面に表示）
+    Route::resource('hearing', HearingController::class)->except(['index']);
 });
 // ユーザー招待管理（グローバル）
 Route::prefix('invitation')->name('invitation.')->group(function () {
