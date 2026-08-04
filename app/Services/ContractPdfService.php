@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\ContractSignature;
+use App\Models\DocumentVersion;
 use App\Support\PdfFontRegistrar;
 use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Log;
@@ -267,6 +268,48 @@ class ContractPdfService
         $mpdf = $this->newMpdf();
 
         $mpdf->WriteHTML($html);
+        return $mpdf;
+    }
+
+    /**
+     * 規約文書(DocumentVersion)をPDFとして生成
+     *
+     * 契約書送付メール（ContractEmail/ContractGroupEmail）に添付する
+     * terms_and_conditions.pdf用。従来HTML文字列をそのままPDFと偽って
+     * 添付していたため開封時に破損ファイル扱いになっていた不具合の修正。
+     */
+    public function generateDocumentPdf(DocumentVersion $version): Mpdf
+    {
+        $title = e($version->document->title);
+        $content = $version->content;
+        $effectiveDate = optional($version->effective_date)->format('Y年m月d日') ?? '未設定';
+
+        $html = <<<HTML
+        <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { line-height: 1.6; margin: 20px; }
+                    h1 { font-size: 24px; margin-bottom: 20px; }
+                    h2 { font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
+                    .footer { margin-top: 40px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <h1>{$title}</h1>
+                <p>発効日: {$effectiveDate}</p>
+                <hr>
+                {$content}
+                <div class="footer">
+                    <p>このドキュメントは {$title} v{$version->version} です。</p>
+                </div>
+            </body>
+        </html>
+        HTML;
+
+        $mpdf = $this->newMpdf();
+        $mpdf->WriteHTML($html);
+
         return $mpdf;
     }
 }
