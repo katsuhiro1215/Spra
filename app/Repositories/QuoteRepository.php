@@ -201,8 +201,14 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
             ->toArray();
 
         // total_amountはQuoteVersionテーブルに保存されているため、そこから取得
-        $stats['total_amount'] = QuoteVersion::sum('total_amount');
-        $stats['average_amount'] = QuoteVersion::avg('total_amount');
+        // ただし全バージョンを合算すると同一見積の改訂履歴が二重集計されるため、
+        // 各Quoteの現在バージョン（current_version_id）のみを対象にする
+        $currentVersionQuery = QuoteVersion::whereIn(
+            'id',
+            Quote::whereNotNull('current_version_id')->pluck('current_version_id'),
+        );
+        $stats['total_amount'] = (clone $currentVersionQuery)->sum('total_amount');
+        $stats['average_amount'] = (clone $currentVersionQuery)->avg('total_amount');
 
         return $stats;
     }
