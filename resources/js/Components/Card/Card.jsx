@@ -30,11 +30,11 @@ const Card = ({
 
     return (
         <div
-            className={`rounded-lg overflow-hidden ${variantClasses.card} ${hoverClass} ${className}`}
+            className={`rounded-lg ${variantClasses.card} ${hoverClass} ${className}`}
             {...props}
         >
             {header && (
-                <div className={`px-6 py-4 ${variantClasses.header}`}>
+                <div className={`px-6 py-4 rounded-t-lg ${variantClasses.header}`}>
                     {header}
                 </div>
             )}
@@ -42,7 +42,7 @@ const Card = ({
             <div className="px-6 py-4">{children}</div>
 
             {footer && (
-                <div className={`px-6 py-4 ${variantClasses.footer}`}>
+                <div className={`px-6 py-4 rounded-b-lg ${variantClasses.footer}`}>
                     {footer}
                 </div>
             )}
