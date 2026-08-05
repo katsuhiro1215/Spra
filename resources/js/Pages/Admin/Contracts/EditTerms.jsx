@@ -92,7 +92,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                 onChange={(e) =>
                                     setSelectedTemplate(e.target.value)
                                 }
-                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                             >
                                 <option value="">テンプレートを選択...</option>
                                 {templates.map((template) => (
@@ -142,7 +142,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                         )
                                     }
                                     rows={15}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 font-mono text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 font-mono text-sm"
                                     placeholder={`第1条（目的）\n本契約は、甲と乙の間で行われる...\n\n第2条（契約期間）\n本契約の有効期間は...`}
                                 />
                                 {errors.terms_and_conditions && (
@@ -166,7 +166,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                         )
                                     }
                                     rows={8}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 font-mono text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 font-mono text-sm"
                                     placeholder="本契約に規定のない事項については..."
                                 />
                                 {errors.special_provisions && (
@@ -187,7 +187,7 @@ export default function EditTerms({ contract, templates = [] }) {
                                         setData("notes", e.target.value)
                                     }
                                     rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
                                     placeholder="内部用のメモや注意事項..."
                                 />
                                 {errors.notes && (
