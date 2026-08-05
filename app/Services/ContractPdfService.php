@@ -53,7 +53,7 @@ class ContractPdfService
             ->first();
 
         if ($latestSignature && $latestSignature->signature_image) {
-            $signatureBase64 = $latestSignature->signature_image;
+            $signatureBase64 = $this->stripDataUriPrefix($latestSignature->signature_image);
             Log::info('Signature found from contract_signatures', [
                 'signature_id' => $latestSignature->id,
                 'length' => strlen($signatureBase64),
@@ -69,7 +69,7 @@ class ContractPdfService
             'formattedAmount' => $this->formatAmount($this->calculateTaxableAmount($contract)),
             'totalWithTax' => $this->formatAmount($this->calculateTotalWithTax($contract)),
             'generatedAt' => now()->format('Y年m月d日'),
-            'signatureBase64' => $signatureBase64, // Base64エンコード済み署名画像データ
+            'signatureBase64' => $signatureBase64, // Base64エンコード済み署名画像データ（data:URIプレフィックス除去済み）
         ])->render();
 
         // mPDF インスタンスを生成（日本語対応）
@@ -79,6 +79,21 @@ class ContractPdfService
         $mpdf->WriteHTML($html);
 
         return $mpdf;
+    }
+
+    /**
+     * 署名画像のBase64文字列からdata URIプレフィックス（data:image/png;base64,等）を取り除く
+     *
+     * フロントエンドのcanvas.toDataURL()はプレフィックス付きの文字列を返し、
+     * DBにはそのまま保存されている。PDFテンプレート側で `data:image/png;base64,` を
+     * 付けて<img>に埋め込むため、プレフィックス付きのまま渡すと二重になり画像が壊れる。
+     */
+    private function stripDataUriPrefix(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        return preg_replace('/^data:image\/\w+;base64,/', '', $value);
     }
 
     /**
@@ -156,7 +171,7 @@ class ContractPdfService
             ->first();
 
         if ($latestSignature && $latestSignature->signature_image) {
-            $signatureBase64 = $latestSignature->signature_image;
+            $signatureBase64 = $this->stripDataUriPrefix($latestSignature->signature_image);
 
             Log::info('Signature found for PDF generation', [
                 'contract_id' => $contract->id,
@@ -206,6 +221,8 @@ class ContractPdfService
         // 甲（SmartSprouts側）の署名欄には、クライアントが自分で描画する必要が無いよう
         // 契約作成者（Admin）の氏名を最初から印字しておく
         $admin = $contract->creator?->loadMissing('profile');
+        // 乙（クライアント側）も、未署名の間は氏名を印字しておき、署名済みなら署名画像を優先表示する
+        $user = $contract->user?->loadMissing('profile');
 
         $mpdf->AddPage();
         $page4 = view('contracts.pdf-template-notes', [
@@ -213,6 +230,7 @@ class ContractPdfService
             'notes' => $contract->currentVersion?->notes ?? '', // notesがない場合は空文字列
             'signatureBase64' => $signatureBase64, // 最終ページに署名を表示
             'adminName' => $admin?->profile?->full_name ?? $admin?->email,
+            'userName' => $user?->profile?->full_name ?? $user?->email,
         ])->render();
         $mpdf->WriteHTML($page4);
 
@@ -265,12 +283,14 @@ class ContractPdfService
     public function generateNotesPage(Contract $contract)
     {
         $admin = $contract->creator?->loadMissing('profile');
+        $user = $contract->user?->loadMissing('profile');
 
         $html = view('contracts.pdf-template-notes', [
             'contract' => $contract,
             'notes' => $contract->currentVersion?->notes ?? '未記入',
             'signatureBase64' => null,
             'adminName' => $admin?->profile?->full_name ?? $admin?->email,
+            'userName' => $user?->profile?->full_name ?? $user?->email,
         ])->render();
 
         $mpdf = $this->newMpdf();

@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Models\Admin;
 use App\Models\Contract;
+use App\Models\ContractSignature;
 use App\Models\ContractVersion;
 use App\Models\User;
 use App\Services\ContractPdfService;
@@ -95,5 +96,52 @@ class ContractPdfServiceSignatureTest extends TestCase
         $pdfContent = (new ContractPdfService())->generateNotesPage($contract)->Output('', 'S');
 
         $this->assertStringStartsWith('%PDF-', $pdfContent);
+    }
+
+    public function test_notes_page_prints_client_user_name_when_not_yet_signed(): void
+    {
+        $admin = Admin::factory()->create();
+        $contract = $this->makeContractWithCreator($admin);
+        $contract->user->profile()->create([
+            'full_name' => '山田 太郎',
+            'last_name' => '山田',
+            'first_name' => '太郎',
+        ]);
+
+        $html = view('contracts.pdf-template-notes', [
+            'contract' => $contract,
+            'notes' => '',
+            'signatureBase64' => null,
+            'adminName' => null,
+            'userName' => '山田 太郎',
+        ])->render();
+
+        // 未署名の間も乙（クライアント）の氏名が印字されるべき（回帰テスト）
+        $this->assertStringContainsString('山田 太郎', $html);
+        $this->assertStringContainsString('乙', $html);
+    }
+
+    public function test_generate_full_contract_does_not_double_encode_the_signature_data_uri(): void
+    {
+        $admin = Admin::factory()->create();
+        $contract = $this->makeContractWithCreator($admin);
+
+        // フロントエンドのcanvas.toDataURL()と同じ形式（プレフィックス付き）で保存されている想定
+        $rawBase64 = base64_encode('fake-png-bytes');
+        $signature = ContractSignature::create([
+            'contract_id' => $contract->id,
+            'signed_by_user' => $contract->user_id,
+            'signature_image' => "data:image/png;base64,{$rawBase64}",
+            'signature_type' => 'user',
+            'method' => 'canvas',
+            'status' => 'pending',
+        ]);
+        $signature->update(['status' => 'signed', 'signed_at' => now()]);
+
+        $pdfContent = (new ContractPdfService())->generateFullContract($contract)->Output('', 'S');
+
+        // 以前はdata:image/png;base64,が二重に付き、mPDFが画像を解釈できず壊れたPDFになっていた（回帰テスト）
+        $this->assertStringStartsWith('%PDF-', $pdfContent);
+        $this->assertStringNotContainsString('base64,data:image', $pdfContent);
     }
 }
