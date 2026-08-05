@@ -72,7 +72,7 @@
             border: 1px solid #ccc;
             background-color: white;
             text-align: center;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: bold;
             overflow: hidden;
         }
@@ -142,11 +142,13 @@
             </td>
             <td>
                 <div class="signature-area">
-                    <div class="signature-label">乙（署名欄）</div>
+                    <div class="signature-label">乙（{{ $userName ?? 'クライアント' }}）</div>
                     <div class="signature-canvas-area" id="signature-placeholder">
                         @if ($signatureBase64)
                             <img src="data:image/png;base64,{{ $signatureBase64 }}"
                                 style="width:100%; height:100%; object-fit:contain;" alt="デジタル署名" />
+                        @else
+                            <div class="signature-printed-name" style="border:none;">{{ $userName ?? '' }}</div>
                         @endif
                     </div>
                 </div>
