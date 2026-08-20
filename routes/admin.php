@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AdminPermissionOverrideController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\User\UserProfileController;
 use App\Http\Controllers\Admin\User\UserAddressController;
+use App\Http\Controllers\Admin\User\UserCompanyController;
 use App\Http\Controllers\Admin\Company\CompanyController;
 use App\Http\Controllers\Admin\Company\CompanyAddressController;
 use App\Http\Controllers\Admin\MediaController;
@@ -117,6 +118,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
         Route::get('/{address}/edit', 'edit')->name('edit');
         Route::put('/{address}', 'update')->name('update');
         Route::delete('/{address}', 'destroy')->name('destroy');
+    });
+    // ユーザーの所属会社管理（company_userの紐付け・解除）
+    Route::controller(UserCompanyController::class)->prefix('user/{user}/company')->name('user.company.')->group(function () {
+        Route::post('/', 'store')->name('store');
+        Route::delete('/{company}', 'destroy')->name('destroy');
     });
 
     /**************************************

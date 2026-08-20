@@ -18,7 +18,7 @@ import UserAddresses from "./_components/UserAddresses";
 import UserCompanies from "./_components/UserCompanies";
 import UserContracts from "./_components/UserContracts";
 
-export default function Show({ user, contracts = [], mediaList = [] }) {
+export default function Show({ user, contracts = [], mediaList = [], allCompanies = [] }) {
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaListState, setMediaListState] = useState(mediaList);
     const [activeTab, setActiveTab] = useState("basic");
@@ -54,7 +54,13 @@ export default function Show({ user, contracts = [], mediaList = [] }) {
             case "addresses":
                 return <UserAddresses user={user} />;
             case "companies":
-                return <UserCompanies companies={companies} />;
+                return (
+                    <UserCompanies
+                        user={user}
+                        companies={companies}
+                        allCompanies={allCompanies}
+                    />
+                );
             case "contracts":
                 return <UserContracts contracts={contracts} />;
             default:

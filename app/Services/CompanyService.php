@@ -128,9 +128,13 @@ class CompanyService extends BaseService
     // ユーザー関連付け
     // -------------------------
 
-    public function attachUser(Company $company, string $userId, string $role = 'member'): void
+    public function attachUser(Company $company, string $userId, string $role = 'member', bool $isPrimary = false): void
     {
-        $this->repository->attachUser($company, $userId, ['role' => $role]);
+        $this->repository->attachUser($company, $userId, [
+            'role' => $role,
+            'is_primary' => $isPrimary,
+            'joined_at' => now(),
+        ]);
     }
 
     public function detachUser(Company $company, string $userId): void
