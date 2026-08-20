@@ -35,8 +35,18 @@
         .signature-canvas-area {
             width: 100%;
             height: 60px;
+            line-height: 60px;
             border: 1px dashed #999;
             background-color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* mPDFはobject-fitに対応していないため、line-height + vertical-alignで中央寄せする */
+        .signature-canvas-area img {
+            max-width: 140px;
+            max-height: 50px;
+            vertical-align: middle;
         }
 
         h1 {
@@ -149,8 +159,7 @@
         <div class="signature-label">署名欄</div>
         <div class="signature-canvas-area" id="signature-placeholder">
             @if ($signatureBase64)
-                <img src="data:image/png;base64,{{ $signatureBase64 }}"
-                    style="width:100%; height:100%; object-fit:contain;" alt="デジタル署名" />
+                <img src="data:image/png;base64,{{ $signatureBase64 }}" alt="デジタル署名" />
             @endif
         </div>
     </div>

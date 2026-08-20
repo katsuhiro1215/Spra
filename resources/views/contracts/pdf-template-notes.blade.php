@@ -87,19 +87,23 @@
         .signature-canvas-area {
             width: 100%;
             height: 80px;
+            line-height: 80px;
             border: 1px dashed #ccc;
             background-color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
             overflow: hidden;
         }
 
+        /*
+         * mPDFはflexboxやCSS3のフィット系プロパティに対応していないため、line-height +
+         * vertical-alignによるインライン要素の中央寄せ（.signature-printed-nameと同じ手法）
+         * を使う。以前のフィット指定はmPDFがサイズ制約を無視する原因になり、署名画像が
+         * ページいっぱいに表示される不具合になっていた。
+         */
         .signature-canvas-area img {
-            max-width: 90%;
-            max-height: 90%;
-            display: block;
-            margin: 0 auto;
+            max-width: 160px;
+            max-height: 70px;
+            vertical-align: middle;
         }
 
         .footer {
@@ -145,8 +149,7 @@
                     <div class="signature-label">乙（{{ $userName ?? 'クライアント' }}）</div>
                     <div class="signature-canvas-area" id="signature-placeholder">
                         @if ($signatureBase64)
-                            <img src="data:image/png;base64,{{ $signatureBase64 }}"
-                                style="width:100%; height:100%; object-fit:contain;" alt="デジタル署名" />
+                            <img src="data:image/png;base64,{{ $signatureBase64 }}" alt="デジタル署名" />
                         @else
                             <div class="signature-printed-name" style="border:none;">{{ $userName ?? '' }}</div>
                         @endif
