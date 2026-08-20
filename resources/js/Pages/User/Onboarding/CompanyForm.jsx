@@ -50,7 +50,8 @@ export default function CompanyForm({
                         {/* 法人名 */}
                         <div>
                             <InputLabel htmlFor="legal_name">
-                                法人名 <span className="text-red-500">*</span>
+                                個人事業名または法人名{" "}
+                                <span className="text-red-500">*</span>
                             </InputLabel>
                             <TextInput
                                 id="legal_name"
@@ -60,7 +61,7 @@ export default function CompanyForm({
                                 onChange={(e) =>
                                     setData("legal_name", e.target.value)
                                 }
-                                placeholder="○○株式会社"
+                                placeholder="○○株式会社 / ○○屋"
                                 className="mt-1 w-full"
                                 required
                             />

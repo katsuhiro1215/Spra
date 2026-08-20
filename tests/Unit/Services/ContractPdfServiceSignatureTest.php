@@ -144,4 +144,26 @@ class ContractPdfServiceSignatureTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $pdfContent);
         $this->assertStringNotContainsString('base64,data:image', $pdfContent);
     }
+
+    public function test_notes_page_signature_image_does_not_use_flex_or_object_fit(): void
+    {
+        $admin = Admin::factory()->create();
+        $contract = $this->makeContractWithCreator($admin);
+
+        $html = view('contracts.pdf-template-notes', [
+            'contract' => $contract,
+            'notes' => '',
+            'signatureBase64' => base64_encode('fake-png-bytes'),
+            'adminName' => null,
+            'userName' => null,
+        ])->render();
+
+        // mPDFはflexbox/object-fitに対応しておらず、これらを指定すると署名画像が
+        // 原寸大に近いサイズで描画され画面いっぱいに表示されてしまっていた（回帰テスト）。
+        // line-height + vertical-alignによる中央寄せとmax-width/max-heightの
+        // ピクセル指定に置き換えている。
+        $this->assertStringNotContainsString('object-fit:contain', $html);
+        $this->assertStringNotContainsString('display: flex;', $html);
+        $this->assertStringContainsString('max-width: 160px', $html);
+    }
 }
