@@ -1,13 +1,22 @@
-import React from "react";
-import { Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Link, router, useForm } from "@inertiajs/react";
 import { Card, CardHeader, CardBody } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
-import { IconButton } from "@/Components/Buttons";
+import { IconButton, Button } from "@/Components/Buttons";
+import { FormGroup, SelectInput } from "@/Components/Forms";
 import {
     BuildingOffice2Icon,
     EyeIcon,
+    LinkIcon,
+    XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { getStatusBadge, getRoleBadge } from "@/Constants/Badges";
+
+const ROLE_OPTIONS = [
+    { value: "owner", label: "オーナー" },
+    { value: "member", label: "メンバー" },
+    { value: "employee", label: "従業員" },
+];
 
 const COMPANY_TYPE_LABELS = {
     individual: "個人事業主",
@@ -23,7 +32,39 @@ const formatDate = (dateString) => {
     });
 };
 
-export default function UserCompanies({ companies = [] }) {
+export default function UserCompanies({ user, companies = [], allCompanies = [] }) {
+    const attachedIds = companies.map((company) => company.id);
+    const selectableCompanies = allCompanies.filter(
+        (company) => !attachedIds.includes(company.id),
+    );
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        company_id: "",
+        role: "member",
+    });
+
+    const handleAttach = (e) => {
+        e.preventDefault();
+        post(route("admin.user.company.store", user.id), {
+            preserveScroll: true,
+            onSuccess: () => reset(),
+        });
+    };
+
+    const handleDetach = (company) => {
+        if (
+            !confirm(
+                `「${company.name}」との紐付けを解除しますか？`,
+            )
+        )
+            return;
+
+        router.delete(
+            route("admin.user.company.destroy", [user.id, company.id]),
+            { preserveScroll: true },
+        );
+    };
+
     return (
         <Card>
             <CardHeader className="flex items-center gap-2">
@@ -36,6 +77,59 @@ export default function UserCompanies({ companies = [] }) {
                 </Badge>
             </CardHeader>
             <CardBody>
+                {/* 既存会社の紐付け（Admin手動作成のUser/Companyはcompany_userが
+                    自動では紐付かないため、ここから明示的に紐付ける） */}
+                <form
+                    onSubmit={handleAttach}
+                    className="mb-6 flex flex-wrap items-end gap-3 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-700"
+                >
+                    <div className="flex-1 min-w-[200px]">
+                        <FormGroup
+                            label="会社を紐付ける"
+                            htmlFor="company_id"
+                            error={errors.company_id}
+                        >
+                            <SelectInput
+                                id="company_id"
+                                value={data.company_id}
+                                onChange={(e) =>
+                                    setData("company_id", e.target.value)
+                                }
+                                options={[
+                                    { value: "", label: "選択してください" },
+                                    ...selectableCompanies.map((company) => ({
+                                        value: company.id,
+                                        label: company.name,
+                                    })),
+                                ]}
+                            />
+                        </FormGroup>
+                    </div>
+                    <div className="w-40">
+                        <FormGroup
+                            label="役割"
+                            htmlFor="role"
+                            error={errors.role}
+                        >
+                            <SelectInput
+                                id="role"
+                                value={data.role}
+                                onChange={(e) =>
+                                    setData("role", e.target.value)
+                                }
+                                options={ROLE_OPTIONS}
+                            />
+                        </FormGroup>
+                    </div>
+                    <Button
+                        type="submit"
+                        icon={LinkIcon}
+                        disabled={processing || !data.company_id}
+                    >
+                        紐付ける
+                    </Button>
+                </form>
+
                 {companies.length > 0 ? (
                     <div className="space-y-4">
                         {companies.map((company) => (
@@ -120,16 +214,27 @@ export default function UserCompanies({ companies = [] }) {
                                             </div>
                                         </div>
                                     </div>
-                                    <IconButton
-                                        icon={EyeIcon}
-                                        variant="info-text"
-                                        size="lg"
-                                        href={route(
-                                            "admin.company.show",
-                                            company.id,
-                                        )}
-                                        title="詳細"
-                                    />
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        <IconButton
+                                            icon={EyeIcon}
+                                            variant="info-text"
+                                            size="lg"
+                                            href={route(
+                                                "admin.company.show",
+                                                company.id,
+                                            )}
+                                            title="詳細"
+                                        />
+                                        <IconButton
+                                            icon={XMarkIcon}
+                                            variant="danger-text"
+                                            size="lg"
+                                            onClick={() =>
+                                                handleDetach(company)
+                                            }
+                                            title="紐付けを解除"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ))}
