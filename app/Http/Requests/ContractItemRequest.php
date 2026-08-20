@@ -23,7 +23,10 @@ class ContractItemRequest extends FormRequest
     {
         return [
             'items' => 'required|array|min:1',
-            'items.*.service_id' => 'required|ulid|exists:services,id',
+            // 手動追加のカスタム明細行やプラン割引/追加料金行は特定のServiceに
+            // 紐付かないため、contract_itemsテーブルもservice_idをnullable定義に
+            // している（DBスキーマの意図に合わせる。quote_itemsも同様の修正済み）
+            'items.*.service_id' => 'nullable|ulid|exists:services,id',
             'items.*.service_item_id' => 'nullable|ulid|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
             'items.*.description' => 'nullable|string',

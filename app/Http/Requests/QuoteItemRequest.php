@@ -23,7 +23,10 @@ class QuoteItemRequest extends FormRequest
     {
         return [
             'items' => 'required|array|min:1',
-            'items.*.service_id' => 'required|ulid|exists:services,id',
+            // 「手動で追加」で作成するカスタム明細行やプラン割引/追加料金行は
+            // 特定のServiceに紐付かないため、quote_itemsテーブルもservice_idを
+            // nullable定義にしている（DBスキーマの意図に合わせる）
+            'items.*.service_id' => 'nullable|ulid|exists:services,id',
             'items.*.service_item_id' => 'nullable|ulid|exists:service_items,id',
             'items.*.name' => 'required|string|max:255',
             'items.*.description' => 'nullable|string',
