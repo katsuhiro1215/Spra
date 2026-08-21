@@ -257,16 +257,24 @@ class ContractController extends Controller
 
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
-            'contract_number' => [
-                'nullable',
-                'string',
-                'max:50',
-                Rule::when(
-                    $request->input('contract_number') !== $contract->contract_number,
-                    ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
-                ),
-                Rule::unique('contracts', 'contract_number')->ignore($contract->id),
-            ],
+            // 下書き以外の状態では、送信されたcontract_numberの値が不正・重複していても
+            // 更新リクエスト全体を巻き込んで422にしてはならない（仕様上「無視する」の
+            // 意図はバリデーション自体を通すこと）。status !== 'draft'のときはルールを
+            // 空にしてバリデーションを完全にスキップする（永続化側のガードは
+            // ContractService::updateContract()のisset($data['contract_number'])
+            // && $contract->status === 'draft'が別途担っている）
+            'contract_number' => $contract->status === 'draft'
+                ? [
+                    'nullable',
+                    'string',
+                    'max:50',
+                    Rule::when(
+                        $request->input('contract_number') !== $contract->contract_number,
+                        ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                    ),
+                    Rule::unique('contracts', 'contract_number')->ignore($contract->id),
+                ]
+                : [],
             'description'   => 'nullable|string',
             'start_date'    => 'nullable|date',
             'end_date'      => 'nullable|date|after_or_equal:start_date',

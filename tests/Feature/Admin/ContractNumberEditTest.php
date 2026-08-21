@@ -107,4 +107,26 @@ class ContractNumberEditTest extends TestCase
 
         $response->assertSessionHasErrors('contract_number');
     }
+
+    public function test_malformed_contract_number_does_not_block_the_rest_of_the_update_when_not_draft(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        $contract = $this->makeDraftContract($admin, $user);
+        $contract->update(['status' => 'active']);
+
+        // 下書き以外の状態で、フォーマット不正・重複した番号を送っても、
+        // 番号フィールドが無視されるだけで更新リクエスト全体は失敗してはならない
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.contract.update', $contract->id),
+            [
+                'title' => '更新後のタイトル',
+                'start_date' => $contract->start_date->toDateString(),
+                'contract_number' => 'invalid-format',
+            ],
+        );
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame('更新後のタイトル', $contract->fresh()->title);
+    }
 }
