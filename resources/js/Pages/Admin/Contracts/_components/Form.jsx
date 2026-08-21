@@ -93,6 +93,33 @@ export default function ContractForm({
                                     />
                                 </FormGroup>
 
+                                {isEdit && (
+                                    <FormGroup
+                                        label="契約書番号"
+                                        htmlFor="contract_number"
+                                        error={errors.contract_number}
+                                        help={
+                                            data.status !== "draft"
+                                                ? "下書き状態でのみ編集できます"
+                                                : undefined
+                                        }
+                                    >
+                                        <TextInput
+                                            id="contract_number"
+                                            name="contract_number"
+                                            type="text"
+                                            value={data.contract_number || ""}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "contract_number",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            disabled={data.status !== "draft"}
+                                        />
+                                    </FormGroup>
+                                )}
+
                                 {!isEdit && (
                                     <FormGroup
                                         label="ステータス"

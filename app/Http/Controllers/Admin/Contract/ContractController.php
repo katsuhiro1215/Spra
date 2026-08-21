@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -256,6 +257,16 @@ class ContractController extends Controller
 
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
+            'contract_number' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::when(
+                    $request->input('contract_number') !== $contract->contract_number,
+                    ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                ),
+                Rule::unique('contracts', 'contract_number')->ignore($contract->id),
+            ],
             'description'   => 'nullable|string',
             'start_date'    => 'nullable|date',
             'end_date'      => 'nullable|date|after_or_equal:start_date',
