@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ReferenceNumberService;
 
 class InvoiceService extends BaseService
 {
@@ -277,21 +278,7 @@ class InvoiceService extends BaseService
      */
     public function generateInvoiceNumber(): string
     {
-        $year = date('Y');
-        // invoice_numberのユニーク制約はソフトデリート済みの行にも及ぶため、
-        // 採番時もwithTrashed()で削除済みの番号を含めて確認しないと、
-        // 削除済みと同じ番号を再度生成して重複エラーになる
-        $lastInvoice = Invoice::withTrashed()
-            ->whereYear('created_at', $year)
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-
-        if ($lastInvoice && preg_match('/INV(\d{4})-(\d+)/', $lastInvoice->invoice_number, $matches)) {
-            $nextNumber = intval($matches[2]) + 1;
-        } else {
-            $nextNumber = 1;
-        }
-
-        return sprintf('INV%s-%04d', $year, $nextNumber);
+        return app(ReferenceNumberService::class)
+            ->generate(Invoice::class, 'invoice_number', 'INV');
     }
 }
