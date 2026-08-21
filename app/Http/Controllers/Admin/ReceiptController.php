@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -133,19 +134,23 @@ class ReceiptController extends Controller
     $validated = $request->validated();
 
     // Invoiceを取得
-    $invoice = Invoice::findOrFail($validated['invoice_id']);
-
-    // 領収書番号を生成
-    $receiptNumber = app(\App\Services\ReferenceNumberService::class)
-      ->generate(Receipt::class, 'receipt_number', 'RCP');
-    $validated['receipt_number'] = $receiptNumber;
-    $validated['created_by'] = auth()->guard('admins')->id();
+    Invoice::findOrFail($validated['invoice_id']);
 
     if ($validated['status'] === 'issued' && !$validated['issued_at']) {
       $validated['issued_at'] = now();
     }
 
-    $receipt = Receipt::create($validated);
+    // 採番とレコード作成を同一トランザクションで包み、lockForUpdate()のロックが
+    // レコード作成まで保持されるようにする（ReferenceNumberService::generate()の
+    // ロックは呼び出し元が外側のトランザクションを持つ場合のみ有効なため）
+    $receipt = DB::transaction(function () use ($validated) {
+      $receiptNumber = app(\App\Services\ReferenceNumberService::class)
+        ->generate(Receipt::class, 'receipt_number', 'RCP');
+      $validated['receipt_number'] = $receiptNumber;
+      $validated['created_by'] = auth()->guard('admins')->id();
+
+      return Receipt::create($validated);
+    });
 
     // ステータスが「送付済み」で作成された場合、PDF生成に加えて実際にメール送信も行う
     // (以前は生成のみでステータスだけ「送付済み」になり、実際には送られていなかった)
