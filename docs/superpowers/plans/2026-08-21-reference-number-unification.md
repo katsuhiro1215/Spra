@@ -735,13 +735,35 @@ class ContractNumberEditTest extends TestCase
 
         $response->assertSessionHasErrors('contract_number');
     }
+
+    public function test_malformed_contract_number_does_not_block_the_rest_of_the_update_when_not_draft(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        $contract = $this->makeDraftContract($admin, $user);
+        $contract->update(['status' => 'active']);
+
+        // 下書き以外の状態で、フォーマット不正・重複した番号を送っても、
+        // 番号フィールドが無視されるだけで更新リクエスト全体は失敗してはならない
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.contract.update', $contract->id),
+            [
+                'title' => '更新後のタイトル',
+                'start_date' => $contract->start_date->toDateString(),
+                'contract_number' => 'invalid-format',
+            ],
+        );
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame('更新後のタイトル', $contract->fresh()->title);
+    }
 }
 ```
 
 - [ ] **Step 2: テストを実行して失敗を確認する**
 
 Run: `docker exec spra-laravel.test-1 php artisan test --filter=ContractNumberEditTest`
-Expected: FAIL（`contract_number`が`update()`のバリデーションルールに存在せず送信しても無視される、あるいは`updateContract()`が`contract_number`を反映しないため）
+Expected: FAIL（`contract_number`が`update()`のバリデーションルールに存在せず送信しても無視される、あるいは`updateContract()`が`contract_number`を反映しないため。4件目の`test_malformed_contract_number_does_not_block_the_rest_of_the_update_when_not_draft`は、修正前は`contract_number`のバリデーションがステータスに関わらず常に走るため`assertSessionDoesntHaveErrors()`で失敗する）
 
 - [ ] **Step 3: バックエンドを実装する**
 
@@ -750,16 +772,24 @@ Expected: FAIL（`contract_number`が`update()`のバリデーションルール
 ```php
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
-            'contract_number' => [
-                'nullable',
-                'string',
-                'max:50',
-                Rule::when(
-                    $request->input('contract_number') !== $contract->contract_number,
-                    ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
-                ),
-                Rule::unique('contracts', 'contract_number')->ignore($contract->id),
-            ],
+            // 下書き以外の状態では、送信されたcontract_numberの値が不正・重複していても
+            // 更新リクエスト全体を巻き込んで422にしてはならない（仕様上「無視する」の
+            // 意図はバリデーション自体を通すこと）。status !== 'draft'のときはルールを
+            // 空にしてバリデーションを完全にスキップする（永続化側のガードは
+            // ContractService::updateContract()のisset($data['contract_number'])
+            // && $contract->status === 'draft'が別途担っている）
+            'contract_number' => $contract->status === 'draft'
+                ? [
+                    'nullable',
+                    'string',
+                    'max:50',
+                    Rule::when(
+                        $request->input('contract_number') !== $contract->contract_number,
+                        ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                    ),
+                    Rule::unique('contracts', 'contract_number')->ignore($contract->id),
+                ]
+                : [],
             'description'   => 'nullable|string',
             // ... 既存のルールはそのまま
 ```
@@ -798,7 +828,7 @@ Expected: PASS（3件）
                                         label="契約書番号"
                                         htmlFor="contract_number"
                                         error={errors.contract_number}
-                                        helpText={
+                                        help={
                                             data.status !== "draft"
                                                 ? "下書き状態でのみ編集できます"
                                                 : undefined
@@ -819,8 +849,7 @@ Expected: PASS（3件）
                                         />
                                     </FormGroup>
                                 )}
-
-
+```
 
 - [ ] **Step 6: フロントエンドのビルドを確認する**
 
@@ -937,6 +966,27 @@ class QuoteNumberEditTest extends TestCase
 
         $response->assertSessionHasErrors('quote_number');
     }
+
+    public function test_malformed_quote_number_does_not_block_the_rest_of_the_update_when_not_draft(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $quote = $this->makeDraftQuote($admin, 'QTE-' . now()->format('Ym') . '-0001');
+        $quote->update(['status' => 'negotiating']);
+
+        // 下書き以外の状態で、フォーマット不正・重複した番号を送っても、
+        // 番号フィールドが無視されるだけで更新リクエスト全体は失敗してはならない
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.quote.update', $quote->id),
+            [
+                'title' => '更新後のタイトル',
+                'status' => 'negotiating',
+                'quote_number' => 'invalid-format',
+            ],
+        );
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame('更新後のタイトル', $quote->fresh()->title);
+    }
 }
 ```
 
@@ -961,16 +1011,23 @@ Expected: FAIL
 `app/Http/Controllers/Admin/Quote/QuoteController.php` の`update()`メソッド（235〜282行目）内、`$request->validate([...])`の配列に以下を追加する（`title`の直後）。
 
 ```php
-            'quote_number' => [
-                'nullable',
-                'string',
-                'max:50',
-                Rule::when(
-                    $request->input('quote_number') !== $quote->quote_number,
-                    ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
-                ),
-                Rule::unique('quotes', 'quote_number')->ignore($quote->id),
-            ],
+            // 下書き以外の状態では、送信されたquote_numberの値が不正・重複していても
+            // 更新リクエスト全体を巻き込んで422にしてはならない（仕様上「無視する」の
+            // 意図はバリデーション自体を通すこと）。status !== 'draft'のときはルールを
+            // 空にしてバリデーションを完全にスキップする（永続化側のガードは
+            // QuoteService::updateQuote()側で別途担っている）
+            'quote_number' => $quote->status === 'draft'
+                ? [
+                    'nullable',
+                    'string',
+                    'max:50',
+                    Rule::when(
+                        $request->input('quote_number') !== $quote->quote_number,
+                        ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                    ),
+                    Rule::unique('quotes', 'quote_number')->ignore($quote->id),
+                ]
+                : [],
 ```
 
 ファイル冒頭のuse文に `use Illuminate\Validation\Rule;` が無ければ追加する。
@@ -1016,8 +1073,7 @@ Expected: PASS（3件）
                                         />
                                     </FormGroup>
                                 )}
-
-
+```
 
 - [ ] **Step 6: フロントエンドのビルドを確認する**
 
@@ -1204,8 +1260,7 @@ Expected: PASS（2件）
                                     />
                                 </FormGroup>
                             )}
-
-
+```
 
 - [ ] **Step 6: フロントエンドのビルドを確認する**
 
@@ -1438,7 +1493,7 @@ Expected: 既存のReceipt関連テスト（存在すれば）が全てPASSす�
                                 />
                             </FormGroup>
                         )}
-
+```
 
 - [ ] **Step 8: フロントエンドのビルドを確認する**
 
