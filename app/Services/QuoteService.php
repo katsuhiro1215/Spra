@@ -157,6 +157,9 @@ class QuoteService extends BaseService
             if (isset($data['title'])) {
                 $quoteUpdate['title'] = $data['title'];
             }
+            if (isset($data['quote_number']) && $quote->status === 'draft') {
+                $quoteUpdate['quote_number'] = $data['quote_number'];
+            }
             if (isset($data['requirements'])) {
                 $quoteUpdate['requirements'] = $data['requirements'];
             }

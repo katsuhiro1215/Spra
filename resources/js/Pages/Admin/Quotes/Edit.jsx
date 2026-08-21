@@ -21,6 +21,7 @@ export default function Edit({
         contact_id: quote.contact_id || "",
         company_id: quote.company_id || "",
         title: quote.title || "",
+        quote_number: quote.quote_number || "",
         requirements: quote.requirements || "",
         custom_specifications:
             typeof quote.current_version?.custom_specifications === "string"

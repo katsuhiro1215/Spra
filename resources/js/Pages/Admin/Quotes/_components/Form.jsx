@@ -111,6 +111,32 @@ export default function QuoteForm({
                                     />
                                 </FormGroup>
 
+                                {isEdit && (
+                                    <FormGroup
+                                        label="見積書番号"
+                                        htmlFor="quote_number"
+                                        error={errors.quote_number}
+                                        help={
+                                            data.status !== "draft"
+                                                ? "下書き状態でのみ編集できます"
+                                                : undefined
+                                        }
+                                    >
+                                        <TextInput
+                                            id="quote_number"
+                                            name="quote_number"
+                                            value={data.quote_number || ""}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "quote_number",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            disabled={data.status !== "draft"}
+                                        />
+                                    </FormGroup>
+                                )}
+
                                 <FormGroup
                                     label="ステータス"
                                     htmlFor="status"
