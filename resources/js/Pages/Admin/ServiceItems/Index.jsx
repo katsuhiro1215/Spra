@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, router, useForm } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import Pagination from "@/Components/Layout/Pagination";
@@ -33,7 +33,7 @@ export default function Index({
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [processing, setProcessing] = useState(false);
 
-    const [data, setData] = useState(
+    const { data, setData, get } = useForm(
         initialFilters || {
             search: "",
             status: "",
@@ -310,7 +310,7 @@ export default function Index({
                 </Card>
                 {/* テーブル */}
                 <ServiceItemsTable
-                    serviceItems={serviceItems.data}
+                    serviceItems={serviceItems}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
                 />

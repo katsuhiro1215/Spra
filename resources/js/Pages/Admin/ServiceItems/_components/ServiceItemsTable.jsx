@@ -16,7 +16,7 @@ export default function ServiceItemsTable({
     onDelete,
     isDeleting,
 }) {
-    if (!serviceItems || serviceItems.length === 0) {
+    if (!serviceItems || serviceItems.data.length === 0) {
         return (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
                 <p className="text-gray-500 dark:text-gray-400">
@@ -72,7 +72,7 @@ export default function ServiceItemsTable({
 
     return (
         <Card>
-            <CardHeader>管理者一覧 ({serviceItems.total}件)</CardHeader>
+            <CardHeader>サービス項目一覧 ({serviceItems.total}件)</CardHeader>
             <Table>
                 <THead>
                     <Tr hover={false}>
@@ -89,7 +89,7 @@ export default function ServiceItemsTable({
                     </Tr>
                 </THead>
                 <TBody>
-                    {serviceItems.map((item) => (
+                    {serviceItems.data.map((item) => (
                         <Tr key={item.id}>
                             <Td>
                                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100">

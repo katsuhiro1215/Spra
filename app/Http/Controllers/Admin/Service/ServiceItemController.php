@@ -28,7 +28,7 @@ class ServiceItemController extends Controller
     public function index(Request $request): Response
     {
         try {
-            $filters = $request->only(['search', 'status', 'service_id', 'item_type']);
+            $filters = $request->only(['search', 'status', 'service_id', 'service_plan_id', 'item_type']);
 
             // Get the query builder with filters
             $query = ServiceItem::query();
@@ -42,6 +42,13 @@ class ServiceItemController extends Controller
             }
             if (!empty($filters['service_id'])) {
                 $query->where('service_id', $filters['service_id']);
+            }
+            if (!empty($filters['service_plan_id'])) {
+                // service_plan_idはservice_itemsの直接のカラムではなく、
+                // service_plan_items中間テーブル経由の多対多関係
+                $query->whereHas('servicePlans', function ($q) use ($filters) {
+                    $q->where('service_plans.id', $filters['service_plan_id']);
+                });
             }
             if (!empty($filters['item_type'])) {
                 $query->where('item_type', $filters['item_type']);
