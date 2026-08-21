@@ -135,7 +135,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - ガントチャートのドラッグ&ドロップ編集（日付・進捗）・並び替え・ファイルアップロード（`ProjectFile`、`private`ディスク保存）・ProjectUpdate作成フォームは**実装済み**（2026-07-30、フェーズ2 3.5完了）。
 
 ### 5.5 Invoice / Payment / Receipt（請求）
-- `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-00000001`形式で自動採番。
+- `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-{YYYYMM}-{4桁連番}`形式で自動採番（`ReferenceNumberService`）。
 - 月次自動請求（`GenerateMonthlyInvoices`）・督促（`SendOverdueInvoiceReminders`）・下書き未送信分の送付（`SendPendingInvoices`）をバッチで実行。
 - クライアントは `/invoice-payment/{token}` の公開ページから入金報告が可能。
 
@@ -247,8 +247,8 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 ## 8. 用語集
 
 - **ULID主体キー**: `HasUlid`トレイト使用モデルは`incrementing=false`・`keyType=string`で、作成時に`Str::ulid()`を自動採番。
-- **quote_number**: `QuoteService`で自動採番（見積番号）。
-- **invoice_number**: `INV-00000001`形式で自動採番（`InvoiceService::generateInvoiceNumber()`）。
+- **quote_number**: `QTE-{YYYYMM}-{4桁連番}`形式で自動採番（共通採番サービス`ReferenceNumberService`経由、`QuoteService::createQuote()`）。下書き状態に限りAdmin編集画面から手動修正可能（K36）。
+- **invoice_number**: `INV-{YYYYMM}-{4桁連番}`形式で自動採番（共通採番サービス`ReferenceNumberService`経由、`InvoiceService::generateInvoiceNumber()`）。下書き状態に限りAdmin編集画面から手動修正可能（K36）。
 - **project_code**: `PRJ-YYYY-XXXXXXXX`形式（年+タイムスタンプ+ランダム文字）で自動採番。
 - **Quoteステータス**: `draft`（下書き）/`negotiating`（交渉中）/`approved`（承認済み）/`rejected`（却下）/`contracted`（契約済み）/`cancelled`（キャンセル）。
 - **Contractステータス**: `draft`/`pending_signature`/`active`/`suspended`/`completed`/`cancelled`。署名状況は別カラム`signature_status`（`pending`/`user_signed`/`admin_signed`/`fully_signed`）。

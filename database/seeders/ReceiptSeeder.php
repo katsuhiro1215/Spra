@@ -34,7 +34,10 @@ class ReceiptSeeder extends Seeder
             $issuedAt = $payment->payment_date->copy()->addDay();
 
             $receipt = Receipt::create([
-                'receipt_number' => 'RCT' . $issuedAt->format('Y') . '-' . str_pad($counter++, 4, '0', STR_PAD_LEFT),
+                // RCP-{YYYYMM}-{4桁連番} 形式（本番の採番サービスReferenceNumberServiceと同じ体裁）。
+                // シーダーは開発用データ生成であり本番相当の一意性保証は不要なため、
+                // ここでは対象月+連番の単純な文字列生成で揃えている。
+                'receipt_number' => 'RCP-' . $issuedAt->format('Ym') . '-' . str_pad($counter++, 4, '0', STR_PAD_LEFT),
                 'invoice_id' => $invoice->id,
                 'payment_id' => $payment->id,
                 'user_id' => $invoice->user_id,
