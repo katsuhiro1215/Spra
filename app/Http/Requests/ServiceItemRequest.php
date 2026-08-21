@@ -18,7 +18,15 @@ class ServiceItemRequest extends FormRequest
         return [
             'service_id' => ['required', 'exists:services,id'],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:service_items,slug'],
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                // 更新時は自分自身のslugを除外しないと、値を変更していないだけで
+                // 「既に使用されています」エラーになり更新できなくなる
+                Rule::unique('service_items', 'slug')->ignore($this->route('serviceItem')),
+            ],
             'description' => ['nullable', 'string', 'max:1000'],
             'item_type' => ['required', 'in:plan_base,included,optional,addon'],
             'standard_price' => ['required', 'numeric', 'min:0'],
