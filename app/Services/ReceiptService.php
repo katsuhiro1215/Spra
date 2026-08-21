@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Services\ReferenceNumberService;
 use App\Mail\ReceiptMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -132,20 +133,7 @@ class ReceiptService
    */
   private function generateReceiptNumber(): string
   {
-    $year = date('Y');
-    // withTrashed: 論理削除された領収書の番号も含めて重複を避ける
-    // (receipt_number にはユニーク制約があるため、除外すると採番が衝突しうる)
-    $lastReceipt = Receipt::withTrashed()
-      ->whereYear('created_at', $year)
-      ->orderBy('receipt_number', 'desc')
-      ->first();
-
-    if ($lastReceipt && preg_match('/RCP(\d{4})-(\d+)/', $lastReceipt->receipt_number, $matches)) {
-      $nextNumber = intval($matches[2]) + 1;
-    } else {
-      $nextNumber = 1;
-    }
-
-    return sprintf('RCP%s-%04d', $year, $nextNumber);
+    return app(ReferenceNumberService::class)
+      ->generate(Receipt::class, 'receipt_number', 'RCP');
   }
 }

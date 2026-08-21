@@ -21,6 +21,7 @@ export default function Edit({
 
     const { data, setData, put, processing, errors } = useForm({
         title: contract.title || "",
+        contract_number: contract.contract_number || "",
         status: contract.status || "draft",
         description: contract.description || "",
         service_id: contract.service_id || "",

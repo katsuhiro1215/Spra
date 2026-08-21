@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReceiptRequest;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -13,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -127,34 +129,28 @@ class ReceiptController extends Controller
   /**
    * 領収書作成
    */
-  public function store(Request $request): RedirectResponse
+  public function store(ReceiptRequest $request): RedirectResponse
   {
-    $validated = $request->validate([
-      'invoice_id'    => 'required|ulid|exists:invoices,id',
-      'payment_id'    => 'nullable|ulid|exists:payments,id',
-      'user_id'       => 'required|uuid|exists:users,id',
-      'company_id'    => 'nullable|ulid|exists:companies,id',
-      'amount'        => 'required|numeric|min:0',
-      'tax_amount'    => 'required|numeric|min:0',
-      'total_amount'  => 'required|numeric|min:0',
-      'status'        => 'required|string|in:draft,issued,sent',
-      'issued_at'     => 'nullable|date',
-      'notes'         => 'nullable|string',
-    ]);
+    $validated = $request->validated();
 
     // Invoiceを取得
-    $invoice = Invoice::findOrFail($validated['invoice_id']);
-
-    // 領収書番号を生成
-    $receiptNumber = $this->generateReceiptNumber();
-    $validated['receipt_number'] = $receiptNumber;
-    $validated['created_by'] = auth()->guard('admins')->id();
+    Invoice::findOrFail($validated['invoice_id']);
 
     if ($validated['status'] === 'issued' && !$validated['issued_at']) {
       $validated['issued_at'] = now();
     }
 
-    $receipt = Receipt::create($validated);
+    // 採番とレコード作成を同一トランザクションで包み、lockForUpdate()のロックが
+    // レコード作成まで保持されるようにする（ReferenceNumberService::generate()の
+    // ロックは呼び出し元が外側のトランザクションを持つ場合のみ有効なため）
+    $receipt = DB::transaction(function () use ($validated) {
+      $receiptNumber = app(\App\Services\ReferenceNumberService::class)
+        ->generate(Receipt::class, 'receipt_number', 'RCP');
+      $validated['receipt_number'] = $receiptNumber;
+      $validated['created_by'] = auth()->guard('admins')->id();
+
+      return Receipt::create($validated);
+    });
 
     // ステータスが「送付済み」で作成された場合、PDF生成に加えて実際にメール送信も行う
     // (以前は生成のみでステータスだけ「送付済み」になり、実際には送られていなかった)
@@ -193,7 +189,7 @@ class ReceiptController extends Controller
   /**
    * 領収書更新
    */
-  public function update(Request $request, string $id): RedirectResponse
+  public function update(ReceiptRequest $request, string $id): RedirectResponse
   {
     $receipt = Receipt::findOrFail($id);
 
@@ -202,18 +198,7 @@ class ReceiptController extends Controller
       return back()->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
-    $validated = $request->validate([
-      'invoice_id'    => 'required|ulid|exists:invoices,id',
-      'payment_id'    => 'nullable|ulid|exists:payments,id',
-      'user_id'       => 'required|uuid|exists:users,id',
-      'company_id'    => 'nullable|ulid|exists:companies,id',
-      'amount'        => 'required|numeric|min:0',
-      'tax_amount'    => 'required|numeric|min:0',
-      'total_amount'  => 'required|numeric|min:0',
-      'status'        => 'required|string|in:draft,issued,sent',
-      'issued_at'     => 'nullable|date',
-      'notes'         => 'nullable|string',
-    ]);
+    $validated = $request->validated();
 
     if ($validated['status'] === 'issued' && !$validated['issued_at']) {
       $validated['issued_at'] = now();
@@ -297,27 +282,5 @@ class ReceiptController extends Controller
     } catch (\Exception $e) {
       return back()->with('error', __('messages.action_failed_detail', ['attribute' => '領収書の送付', 'message' => $e->getMessage()]));
     }
-  }
-
-  /**
-   * 領収書番号生成
-   */
-  private function generateReceiptNumber(): string
-  {
-    $year = date('Y');
-    // withTrashed: 論理削除された領収書の番号も含めて重複を避ける
-    // (receipt_number にはユニーク制約があるため、除外すると採番が衝突しうる)
-    $lastReceipt = Receipt::withTrashed()
-      ->whereYear('created_at', $year)
-      ->orderBy('receipt_number', 'desc')
-      ->first();
-
-    if ($lastReceipt && preg_match('/RCP(\d{4})-(\d+)/', $lastReceipt->receipt_number, $matches)) {
-      $nextNumber = intval($matches[2]) + 1;
-    } else {
-      $nextNumber = 1;
-    }
-
-    return sprintf('RCP%s-%04d', $year, $nextNumber);
   }
 }

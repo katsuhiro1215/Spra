@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -244,6 +245,23 @@ class QuoteController extends Controller
             'contact_id' => 'nullable|exists:contacts,id',
             'company_id' => 'nullable|exists:companies,id',
             'title' => 'nullable|string|max:255',
+            // 下書き以外の状態では、送信されたquote_numberの値が不正・重複していても
+            // 更新リクエスト全体を巻き込んで422にしてはならない（仕様上「無視する」の
+            // 意図はバリデーション自体を通すこと）。status !== 'draft'のときはルールを
+            // 空にしてバリデーションを完全にスキップする（永続化側のガードは
+            // QuoteService::updateQuote()側で別途担っている）
+            'quote_number' => $quote->status === 'draft'
+                ? [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::when(
+                        $request->input('quote_number') !== $quote->quote_number,
+                        ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                    ),
+                    Rule::unique('quotes', 'quote_number')->ignore($quote->id),
+                ]
+                : [],
             'requirements' => 'nullable|string',
             'custom_specifications' => 'nullable|string',
             'discount_amount' => 'nullable|numeric|min:0',

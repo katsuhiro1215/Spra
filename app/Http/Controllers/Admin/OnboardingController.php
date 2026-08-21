@@ -11,6 +11,7 @@ use App\Mail\ContractApprovedMail;
 use App\Mail\AccountApprovedMail;
 use App\Mail\PaymentRequestMail;
 use App\Services\ContractService;
+use App\Services\ReferenceNumberService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Mail;
@@ -20,6 +21,7 @@ class OnboardingController extends Controller
 {
     public function __construct(
         private ContractService $contractService,
+        private ReferenceNumberService $referenceNumberService,
     ) {}
 
     /**
@@ -171,12 +173,14 @@ class OnboardingController extends Controller
             // 金額は Quote 自体ではなく currentVersion 側にある
             $invoiceAmount = ($quoteVersion?->total_amount ?? 0) * 0.5;
 
+            $invoiceNumber = $this->referenceNumberService->generate(Invoice::class, 'invoice_number', 'INV');
+
             $invoice = Invoice::create([
                 'contract_id' => $contract->id,
                 'user_id' => $user->id,
                 'company_id' => $company->id,
                 'invoice_type' => 'deposit',
-                'invoice_number' => $this->generateInvoiceNumber(),
+                'invoice_number' => $invoiceNumber,
                 'subtotal' => $invoiceAmount,
                 'total_amount' => $invoiceAmount,
                 'tax_rate' => 0,
@@ -255,24 +259,5 @@ class OnboardingController extends Controller
 
             return back()->with('error', __('messages.unexpected_error_detail', ['message' => $e->getMessage()]));
         }
-    }
-
-    /**
-     * Generate unique invoice number
-     */
-    private function generateInvoiceNumber(): string
-    {
-        $lastInvoice = Invoice::where('invoice_number', 'like', 'INV-%')
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-
-        if (!$lastInvoice) {
-            $number = 1;
-        } else {
-            $parts = explode('-', $lastInvoice->invoice_number);
-            $number = intval(end($parts)) + 1;
-        }
-
-        return 'INV-' . str_pad($number, 8, '0', STR_PAD_LEFT);
     }
 }

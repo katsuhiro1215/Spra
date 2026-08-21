@@ -16,6 +16,7 @@ export default function Edit({
 }) {
     const { data, setData, put, processing, errors } = useForm({
         contract_id: invoice.contract_id || "",
+        invoice_number: invoice.invoice_number || "",
         issue_date: invoice.issue_date || "",
         user_id: invoice.user_id || "",
         company_id: invoice.company_id || "",

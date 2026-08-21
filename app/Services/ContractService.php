@@ -228,6 +228,9 @@ class ContractService extends BaseService
             if (isset($data['title'])) {
                 $contractUpdate['title'] = $data['title'];
             }
+            if (isset($data['contract_number']) && $contract->status === 'draft') {
+                $contractUpdate['contract_number'] = $data['contract_number'];
+            }
             if (isset($data['description'])) {
                 $contractUpdate['description'] = $data['description'];
             }

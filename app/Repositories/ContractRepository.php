@@ -115,26 +115,12 @@ class ContractRepository extends SoftDeletableRepository implements ContractRepo
 
     /**
      * 契約番号を生成
-     * フォーマット: C202407001 (C + 年月 + 連番4桁)
+     * フォーマット: CTR-202408-0001 (CTR + 年月 + 連番4桁)
      */
     public function generateContractNumber(): string
     {
-        $year = date('Y');
-        $month = date('m');
-        $prefix = "C{$year}{$month}";
-
-        $latestContract = Contract::where('contract_number', 'like', "{$prefix}%")
-            ->orderBy('contract_number', 'desc')
-            ->first();
-
-        if ($latestContract) {
-            $lastNumber = (int) substr($latestContract->contract_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return sprintf('%s%04d', $prefix, $newNumber);
+        return app(\App\Services\ReferenceNumberService::class)
+            ->generate(Contract::class, 'contract_number', 'CTR');
     }
 
     public function getActiveByUser(string $userId): Collection

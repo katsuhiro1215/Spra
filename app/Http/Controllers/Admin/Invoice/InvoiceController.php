@@ -14,6 +14,7 @@ use App\Services\ReceiptService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -103,9 +104,15 @@ class InvoiceController extends Controller
     public function store(InvoiceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['invoice_number'] = $this->service->generateInvoiceNumber();
 
-        $invoice = $this->service->create($validated);
+        // 採番とレコード作成を同一トランザクションで包み、lockForUpdate()のロックが
+        // レコード作成まで保持されるようにする（ReferenceNumberServiceのロックは
+        // 呼び出し元が外側のトランザクションを持つ場合のみ有効なため）
+        $invoice = DB::transaction(function () use ($validated) {
+            $validated['invoice_number'] = $this->service->generateInvoiceNumber();
+
+            return $this->service->create($validated);
+        });
 
         return redirect()->route('admin.invoice.show', $invoice->id)
             ->with('success', __('messages.created', ['attribute' => '請求書']));

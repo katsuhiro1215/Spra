@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Contract;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class InvoiceRequest extends FormRequest
 {
@@ -24,6 +25,19 @@ class InvoiceRequest extends FormRequest
     {
         return [
             'contract_id'           => 'nullable|ulid|exists:contracts,id',
+            'invoice_number'        => [
+                // 更新時（route('invoice')ありのとき）は空文字での上書きを防ぐためrequired。
+                // 作成時はコントローラー側でReferenceNumberServiceにより自動採番されるため
+                // フォームからこの値が送信されず、nullableのままで良い。
+                $this->route('invoice') ? 'required' : 'nullable',
+                'string',
+                'max:50',
+                Rule::when(
+                    $this->route('invoice') && $this->input('invoice_number') !== \App\Models\Invoice::find($this->route('invoice'))?->invoice_number,
+                    ['regex:/^[A-Z]{3}-\d{6}-\d{4}$/'],
+                ),
+                Rule::unique('invoices', 'invoice_number')->ignore($this->route('invoice')),
+            ],
             'invoice_type'          => 'nullable|string|in:deposit,interim,final,full,monthly,other',
             'issue_date'            => 'required|date',
             'user_id'               => 'nullable|uuid|exists:users,id',

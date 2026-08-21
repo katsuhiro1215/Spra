@@ -135,7 +135,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - ガントチャートのドラッグ&ドロップ編集（日付・進捗）・並び替え・ファイルアップロード（`ProjectFile`、`private`ディスク保存）・ProjectUpdate作成フォームは**実装済み**（2026-07-30、フェーズ2 3.5完了）。
 
 ### 5.5 Invoice / Payment / Receipt（請求）
-- `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-00000001`形式で自動採番。
+- `Invoice::STATUSES`: `draft`下書き→`sent`送付済み→`viewed`確認済み→`paid`支払済み、または`overdue`期限超過/`cancelled`キャンセル。`invoice_number`は`INV-{YYYYMM}-{4桁連番}`形式で自動採番（`ReferenceNumberService`）。
 - 月次自動請求（`GenerateMonthlyInvoices`）・督促（`SendOverdueInvoiceReminders`）・下書き未送信分の送付（`SendPendingInvoices`）をバッチで実行。
 - クライアントは `/invoice-payment/{token}` の公開ページから入金報告が可能。
 
@@ -242,12 +242,13 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K33 | Admin手動作成のUser/Companyがcompany_userピボットで紐付かず、Userが「所属会社なし」の宙に浮いた状態になる | **修正済み**（2026-08-20、実運用で発覚）。公開URL経由の自己登録フロー（`QuoteResponseController::registerStore()`）は`$user->companies()->attach()`でcompany_userピボットに正しく紐付けているが、Admin手動作成のUser（`Admin/User/Create.jsx`）とCompany（`Admin/Company/Create.jsx`）は完全に別々のフローで作成され、両者を紐付ける処理がどこにも存在しなかった（`CompanyService::attachUser()`自体は実装済みだったが、呼び出すcontrollerが1つも無いデッドコードだった）。この結果、①`DashboardController::index()`のOnboarding完了判定（`$user->companies->first()`）が常にfalseになり、Admin側で既に入力済みの会社情報・住所をUserが再入力させられる、②User側のOnboarding会社情報・会社住所の保存処理（`User\CompanyController::save()`/`User\AddressController::save()`）が`$user->companies()->firstOrFail()`前提のため紐付くCompanyが無いユーザーは保存時に失敗する、③Admin側User詳細画面で「所属会社：なし」と表示される、の3つの不具合が同時に発生していた（Contract自体は`user_id`/`company_id`を直接持つため作成・処理自体は成功してしまい、この不整合に気づきにくかった）。`Admin/User/Show.jsx`の「所属会社」タブに既存Companyを選択して紐付ける機能を追加（`Admin\User\UserCompanyController`、`CompanyService::attachUser()`を`is_primary`/`joined_at`も設定するよう拡張）し、回帰テスト追加 | フェーズ1（完了） |
 | K34 | `ContractService::recalculateVersionAmounts()`が消費税額を四捨五入せず、割引適用後の契約合計金額に円未満の端数（例: 299,999.7円）が残る | **修正済み**（2026-08-21、実運用で発覚）。同じ計算を行う`QuoteService::recalculateVersionAmounts()`は`round()`していたが、Contract側だけ抜けていた。画面表示は`number_format`で丸めるため一見300,000円に見えるが、実際にDBへ保存される`ContractVersion.total_amount`は端数を含んだまま（例: 小計342,300円・割引-69,573円・税率10%の場合、299,999.7円）だった。`Contract::remainingAmount()`（分割請求の残金計算に使用）がこの端数入りの値をそのまま使うため、着手金/完了金のように50%ずつ分割請求すると1円合わなくなり、さらに手動で端数の無い金額に修正しようとすると「残金を超えている」という一見矛盾したバリデーションエラーになっていた（エラーメッセージ自体は`number_format`で丸められた残金を表示するため）。`recalculateVersionAmounts()`に`round()`を追加し、`remainingAmount()`側にも防御的に`round()`を追加。**この修正はデプロイ時点で既に契約明細が確定している既存契約の`total_amount`を遡って直すものではない**ため、既に端数を含んだ状態で保存されている契約は、契約明細編集画面を一度保存し直す（`ContractItemController::update()`が`recalculateVersionAmounts()`を再実行する）ことで端数が解消される。回帰テスト追加 | フェーズ1（完了） |
 | K35 | サービス項目一覧のフィルターが完全に動作せず、テーブル見出しも「管理者一覧」・件数も未表示。編集画面の更新も常にエラーになる | **修正済み**（2026-08-21、実運用で発覚）。①`Admin/ServiceItems/Index.jsx`が`useState`で`data`/`setData`を実装していたが、フィルター変更ハンドラは`setData("service_id", value)`というInertiaの`useForm`前提の呼び出し方をしていたため、実際には`data`が文字列`"service_id"`に上書きされ、以降のフィルター参照が全て壊れていた。さらに検索実行時に呼ぶ`get(...)`関数がどこにもimport/定義されておらず、フィルター変更のたびにReferenceErrorが発生していた。`useForm`に置き換えて修正。②`ServiceItemsTable.jsx`のテーブル見出しが「管理者一覧」というコピペミスのハードコードで、かつ`serviceItems`に`.data`配列のみを渡していたため`.total`が常にundefinedで件数が表示されなかった。ページネーションオブジェクト全体を渡すよう統一（他の一覧画面と同じパターン）。③バックエンド（`ServiceItemController::index()`）が`service_plan_id`フィルターをそもそも受け取っておらず、常に無視されていた（`service_plan_id`は`service_items`の直接カラムではなく`service_plan_items`中間テーブル経由のため`whereHas`で対応）。④`ServiceItemRequest`の`slug`バリデーションが`unique:service_items,slug`のみで更新時の自分自身の除外（`ignore()`）が無く、スラッグを変更せず保存すると常に「既に使用されています」エラーになっていた（同一パターンの他のRequestは全て正しく`ignore()`していることを確認済み、影響範囲はServiceItemのみ）。回帰テスト追加 | フェーズ1（完了） |
+| K36 | 契約/見積/請求/領収書の採番フォーマットに統一感が無く、桁数から受注件数が推測できる。番号を手動修正する手段も無い | **修正済み**（2026-08-21、ユーザー指摘）。`{PREFIX}-{YYYYMM}-{4桁連番}`（CTR/QTE/INV/RCP）に統一する共通採番サービス`ReferenceNumberService`を新設し、既存4箇所の採番ロジックを置き換えた。あわせてContractの採番に排他ロック・論理削除考慮が欠けていた不備も修正。下書き/未送付状態に限り、Admin編集画面から番号を手動修正できるようにした。過去に発行済みの番号は遡って変換していない。設計は`docs/superpowers/specs/2026-08-21-reference-number-unification-design.md`参照 | フェーズ1（完了） |
 
 ## 8. 用語集
 
 - **ULID主体キー**: `HasUlid`トレイト使用モデルは`incrementing=false`・`keyType=string`で、作成時に`Str::ulid()`を自動採番。
-- **quote_number**: `QuoteService`で自動採番（見積番号）。
-- **invoice_number**: `INV-00000001`形式で自動採番（`InvoiceService::generateInvoiceNumber()`）。
+- **quote_number**: `QTE-{YYYYMM}-{4桁連番}`形式で自動採番（共通採番サービス`ReferenceNumberService`経由、`QuoteService::createQuote()`）。下書き状態に限りAdmin編集画面から手動修正可能（K36）。
+- **invoice_number**: `INV-{YYYYMM}-{4桁連番}`形式で自動採番（共通採番サービス`ReferenceNumberService`経由、`InvoiceService::generateInvoiceNumber()`）。下書き状態に限りAdmin編集画面から手動修正可能（K36）。
 - **project_code**: `PRJ-YYYY-XXXXXXXX`形式（年+タイムスタンプ+ランダム文字）で自動採番。
 - **Quoteステータス**: `draft`（下書き）/`negotiating`（交渉中）/`approved`（承認済み）/`rejected`（却下）/`contracted`（契約済み）/`cancelled`（キャンセル）。
 - **Contractステータス**: `draft`/`pending_signature`/`active`/`suspended`/`completed`/`cancelled`。署名状況は別カラム`signature_status`（`pending`/`user_signed`/`admin_signed`/`fully_signed`）。
@@ -286,3 +287,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | 2026-08-20 | §7にK31（見積/契約明細の「手動で追加」保存不能バグ、修正済み）・K32（週次繰り返しタスクの重複生成バグ、未修正）・K33（Admin手動作成User/Companyのcompany_user未紐付けバグ、修正済み）を追加 |
 | 2026-08-21 | §7にK34（Contract金額計算の消費税端数未丸めバグ、分割請求が1円合わなくなる不具合、修正済み）を追加 |
 | 2026-08-21 | §7にK35（サービス項目一覧のフィルター完全不動作・件数/タイトル表示崩れ、編集更新エラー、修正済み）を追加 |
+| 2026-08-21 | §7にK36（契約/見積/請求/領収書の採番フォーマット不統一・手動修正不可、修正済み）を追加。共通採番サービス`ReferenceNumberService`新設・既存4エンティティの採番ロジック置き換え・下書き/未送付時の番号手動編集機能を実装（`feat/reference-number-unification`ブランチ） |

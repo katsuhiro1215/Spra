@@ -135,6 +135,49 @@ class OnboardingApprovalTest extends TestCase
         $this->assertSame('Webサイト制作一式', $contract->currentVersion->items()->first()->name);
     }
 
+    public function test_approve_generates_invoice_number_in_unified_format_even_after_a_new_format_invoice_exists(): void
+    {
+        $owner = $this->actingAsOwner();
+
+        // 先に新形式（INV-{YYYYMM}-{4桁}）の請求書が1件存在する状態を作る。
+        // 旧実装のgenerateInvoiceNumber()は 'INV-' LIKE検索 + explode('-')でこの行を
+        // 拾ってしまい、常に同じ番号（INV-00000002）を再生成して一意制約違反になっていた。
+        $existingUser = User::factory()->create();
+        $existingContract = \App\Models\Contract::create([
+            'contract_number' => 'C-EXIST-' . Str::random(6),
+            'user_id' => $existingUser->id,
+            'title' => '既存契約',
+            'start_date' => now()->toDateString(),
+            'created_by' => $owner->id,
+        ]);
+        \App\Models\Invoice::create([
+            'invoice_number' => 'INV-' . now()->format('Ym') . '-0001',
+            'contract_id' => $existingContract->id,
+            'user_id' => $existingUser->id,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addDays(30)->toDateString(),
+            'status' => 'draft',
+            'subtotal' => 1000,
+            'tax_rate' => 10,
+            'tax_amount' => 100,
+            'total_amount' => 1100,
+        ]);
+
+        [$user, $company] = $this->makePendingRegistration();
+
+        $response = $this->post(route('admin.onboarding.approve', $user->id));
+
+        if ($response->getSession()->has('error')) {
+            $this->fail('approve failed with error: ' . $response->getSession()->get('error'));
+        }
+
+        $response->assertRedirect(route('admin.onboarding.index'));
+
+        $invoice = $company->fresh()->invoices()->latest()->first();
+        $this->assertNotNull($invoice);
+        $this->assertStringStartsWith('INV-' . now()->format('Ym') . '-', $invoice->invoice_number);
+    }
+
     public function test_reject_permanently_deletes_user_and_company_allowing_re_registration(): void
     {
         $this->actingAsOwner();
