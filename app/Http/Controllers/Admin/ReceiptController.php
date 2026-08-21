@@ -146,7 +146,8 @@ class ReceiptController extends Controller
     $invoice = Invoice::findOrFail($validated['invoice_id']);
 
     // 領収書番号を生成
-    $receiptNumber = $this->generateReceiptNumber();
+    $receiptNumber = app(\App\Services\ReferenceNumberService::class)
+      ->generate(Receipt::class, 'receipt_number', 'RCP');
     $validated['receipt_number'] = $receiptNumber;
     $validated['created_by'] = auth()->guard('admins')->id();
 
@@ -297,27 +298,5 @@ class ReceiptController extends Controller
     } catch (\Exception $e) {
       return back()->with('error', __('messages.action_failed_detail', ['attribute' => '領収書の送付', 'message' => $e->getMessage()]));
     }
-  }
-
-  /**
-   * 領収書番号生成
-   */
-  private function generateReceiptNumber(): string
-  {
-    $year = date('Y');
-    // withTrashed: 論理削除された領収書の番号も含めて重複を避ける
-    // (receipt_number にはユニーク制約があるため、除外すると採番が衝突しうる)
-    $lastReceipt = Receipt::withTrashed()
-      ->whereYear('created_at', $year)
-      ->orderBy('receipt_number', 'desc')
-      ->first();
-
-    if ($lastReceipt && preg_match('/RCP(\d{4})-(\d+)/', $lastReceipt->receipt_number, $matches)) {
-      $nextNumber = intval($matches[2]) + 1;
-    } else {
-      $nextNumber = 1;
-    }
-
-    return sprintf('RCP%s-%04d', $year, $nextNumber);
   }
 }
