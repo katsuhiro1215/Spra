@@ -71,6 +71,32 @@ class InvoiceNumberEditTest extends TestCase
         $this->assertSame('INV-' . now()->format('Ym') . '-9999', $invoice->fresh()->invoice_number);
     }
 
+    public function test_empty_invoice_number_is_rejected_and_does_not_blank_the_stored_value(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        $invoice = $this->makeDraftInvoice($user, $admin, 'INV-' . now()->format('Ym') . '-0001');
+        $originalNumber = $invoice->invoice_number;
+
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.invoice.update', $invoice->id),
+            [
+                'issue_date' => $invoice->issue_date->toDateString(),
+                'due_date' => $invoice->due_date->toDateString(),
+                'user_id' => $user->id,
+                'status' => 'draft',
+                'subtotal' => 100000,
+                'tax_rate' => 10,
+                'tax_amount' => 10000,
+                'total_amount' => 110000,
+                'invoice_number' => '',
+            ],
+        );
+
+        $response->assertSessionHasErrors('invoice_number');
+        $this->assertSame($originalNumber, $invoice->fresh()->invoice_number);
+    }
+
     public function test_invoice_number_must_be_unique(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);

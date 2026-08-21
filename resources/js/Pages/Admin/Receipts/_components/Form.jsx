@@ -111,6 +111,7 @@ export default function ReceiptForm({
                                 label="領収書番号"
                                 htmlFor="receipt_number"
                                 error={errors.receipt_number}
+                                required
                             >
                                 <TextInput
                                     id="receipt_number"
@@ -123,6 +124,7 @@ export default function ReceiptForm({
                                         )
                                     }
                                     disabled={data.status === "sent"}
+                                    required
                                 />
                             </FormGroup>
                         )}

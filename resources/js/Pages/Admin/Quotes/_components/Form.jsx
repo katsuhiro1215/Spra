@@ -116,6 +116,7 @@ export default function QuoteForm({
                                         label="見積書番号"
                                         htmlFor="quote_number"
                                         error={errors.quote_number}
+                                        required
                                         help={
                                             data.status !== "draft"
                                                 ? "下書き状態でのみ編集できます"
@@ -133,6 +134,7 @@ export default function QuoteForm({
                                                 )
                                             }
                                             disabled={data.status !== "draft"}
+                                            required
                                         />
                                     </FormGroup>
                                 )}

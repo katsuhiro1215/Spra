@@ -107,6 +107,7 @@ export default function InvoiceForm({
                                     label="請求書番号"
                                     htmlFor="invoice_number"
                                     error={errors.invoice_number}
+                                    required
                                     help={
                                         data.status !== "draft"
                                             ? "下書き状態でのみ編集できます"
@@ -124,6 +125,7 @@ export default function InvoiceForm({
                                             )
                                         }
                                         disabled={data.status !== "draft"}
+                                        required
                                     />
                                 </FormGroup>
                             )}

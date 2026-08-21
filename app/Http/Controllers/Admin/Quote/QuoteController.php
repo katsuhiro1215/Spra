@@ -252,7 +252,7 @@ class QuoteController extends Controller
             // QuoteService::updateQuote()側で別途担っている）
             'quote_number' => $quote->status === 'draft'
                 ? [
-                    'nullable',
+                    'required',
                     'string',
                     'max:50',
                     Rule::when(

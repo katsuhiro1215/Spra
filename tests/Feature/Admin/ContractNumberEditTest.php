@@ -108,6 +108,26 @@ class ContractNumberEditTest extends TestCase
         $response->assertSessionHasErrors('contract_number');
     }
 
+    public function test_empty_contract_number_is_rejected_and_does_not_blank_the_stored_value(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        $contract = $this->makeDraftContract($admin, $user);
+        $originalNumber = $contract->contract_number;
+
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.contract.update', $contract->id),
+            [
+                'title' => $contract->title,
+                'start_date' => $contract->start_date->toDateString(),
+                'contract_number' => '',
+            ],
+        );
+
+        $response->assertSessionHasErrors('contract_number');
+        $this->assertSame($originalNumber, $contract->fresh()->contract_number);
+    }
+
     public function test_malformed_contract_number_does_not_block_the_rest_of_the_update_when_not_draft(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);

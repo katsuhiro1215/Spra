@@ -265,7 +265,7 @@ class ContractController extends Controller
             // && $contract->status === 'draft'が別途担っている）
             'contract_number' => $contract->status === 'draft'
                 ? [
-                    'nullable',
+                    'required',
                     'string',
                     'max:50',
                     Rule::when(

@@ -98,6 +98,7 @@ export default function ContractForm({
                                         label="契約書番号"
                                         htmlFor="contract_number"
                                         error={errors.contract_number}
+                                        required
                                         help={
                                             data.status !== "draft"
                                                 ? "下書き状態でのみ編集できます"
@@ -116,6 +117,7 @@ export default function ContractForm({
                                                 )
                                             }
                                             disabled={data.status !== "draft"}
+                                            required
                                         />
                                     </FormGroup>
                                 )}

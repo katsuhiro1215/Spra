@@ -82,6 +82,30 @@ class ReceiptNumberEditTest extends TestCase
         $this->assertSame('RCP-' . now()->format('Ym') . '-9999', $receipt->fresh()->receipt_number);
     }
 
+    public function test_empty_receipt_number_is_rejected_and_does_not_blank_the_stored_value(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        [$invoice, $receipt] = $this->makeDraftReceipt($admin, $user, 'RCP-' . now()->format('Ym') . '-0001');
+        $originalNumber = $receipt->receipt_number;
+
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.receipt.update', $receipt->id),
+            [
+                'invoice_id' => $invoice->id,
+                'user_id' => $user->id,
+                'amount' => 100000,
+                'tax_amount' => 10000,
+                'total_amount' => 110000,
+                'status' => 'draft',
+                'receipt_number' => '',
+            ],
+        );
+
+        $response->assertSessionHasErrors('receipt_number');
+        $this->assertSame($originalNumber, $receipt->fresh()->receipt_number);
+    }
+
     public function test_receipt_number_must_be_unique(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);

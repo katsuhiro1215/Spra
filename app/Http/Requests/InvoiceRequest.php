@@ -26,7 +26,10 @@ class InvoiceRequest extends FormRequest
         return [
             'contract_id'           => 'nullable|ulid|exists:contracts,id',
             'invoice_number'        => [
-                'nullable',
+                // 更新時（route('invoice')ありのとき）は空文字での上書きを防ぐためrequired。
+                // 作成時はコントローラー側でReferenceNumberServiceにより自動採番されるため
+                // フォームからこの値が送信されず、nullableのままで良い。
+                $this->route('invoice') ? 'required' : 'nullable',
                 'string',
                 'max:50',
                 Rule::when(

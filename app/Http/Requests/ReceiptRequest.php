@@ -29,7 +29,10 @@ class ReceiptRequest extends FormRequest
             'issued_at'     => 'nullable|date',
             'notes'         => 'nullable|string',
             'receipt_number' => [
-                'nullable',
+                // 更新時（receiptIdありのとき）は空文字での上書きを防ぐためrequired。
+                // 作成時はコントローラー側でReferenceNumberServiceにより自動採番されるため
+                // フォームからこの値が送信されず、nullableのままで良い。
+                $receiptId ? 'required' : 'nullable',
                 'string',
                 'max:50',
                 Rule::when(

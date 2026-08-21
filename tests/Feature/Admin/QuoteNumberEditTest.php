@@ -109,6 +109,27 @@ class QuoteNumberEditTest extends TestCase
         $response->assertSessionHasErrors('quote_number');
     }
 
+    public function test_empty_quote_number_is_rejected_and_does_not_blank_the_stored_value(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $user = User::factory()->create();
+        $quote = $this->makeDraftQuote($admin, 'QTE-' . now()->format('Ym') . '-0001');
+        $originalNumber = $quote->quote_number;
+
+        $response = $this->actingAs($admin, 'admins')->put(
+            route('admin.quote.update', $quote->id),
+            [
+                'title' => $quote->title,
+                'status' => 'draft',
+                'user_id' => $user->id,
+                'quote_number' => '',
+            ],
+        );
+
+        $response->assertSessionHasErrors('quote_number');
+        $this->assertSame($originalNumber, $quote->fresh()->quote_number);
+    }
+
     public function test_malformed_quote_number_does_not_block_the_rest_of_the_update_when_not_draft(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
