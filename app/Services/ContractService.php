@@ -358,7 +358,12 @@ class ContractService extends BaseService
         $baseAmount = $version->items()->sum('amount');
         $discountAmount = $version->discount_amount ?? 0;
         $taxableAmount = $baseAmount - $discountAmount;
-        $taxAmount = $taxableAmount * ($version->tax_rate / 100);
+        // 円未満の端数を四捨五入しないと、割引適用後の課税対象額によっては
+        // total_amountが小数を含んだ値（例: 299999.7円）のまま保存され、
+        // 分割請求（着手金/完了金等）の残金計算がずれて1円合わなくなる
+        // 不具合になっていた（QuoteService::recalculateVersionAmounts()と
+        // 同じroundを揃える）
+        $taxAmount = round($taxableAmount * ($version->tax_rate / 100));
         $totalAmount = $taxableAmount + $taxAmount;
 
         $version->update([

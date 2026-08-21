@@ -258,7 +258,10 @@ class Contract extends Model
      */
     public function remainingAmount(?string $excludeInvoiceId = null): float
     {
-        $contractTotal = (float) ($this->currentVersion?->total_amount ?? 0);
+        // total_amountは円未満の端数が無い前提（ContractService::recalculateVersionAmounts()参照）
+        // だが、念のためここでも丸めておく。丸めていないと分割請求（着手金/完了金等）の
+        // 残金計算が1円ずれて食い違うことがあった
+        $contractTotal = round((float) ($this->currentVersion?->total_amount ?? 0));
 
         return max($contractTotal - $this->invoicedAmount($excludeInvoiceId), 0);
     }

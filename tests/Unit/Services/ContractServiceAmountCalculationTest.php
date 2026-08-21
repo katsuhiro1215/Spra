@@ -99,4 +99,28 @@ class ContractServiceAmountCalculationTest extends TestCase
         $this->assertEquals(8000, (float) $version->tax_amount); // (100000-20000)*10%
         $this->assertEquals(88000, (float) $version->total_amount); // 80000+8000
     }
+
+    public function test_recalculate_rounds_tax_amount_to_whole_yen(): void
+    {
+        // 実際に報告された不具合の再現: 割引適用後の課税対象額(272,727円)に10%を
+        // かけると27,272.7円という端数が出る。四捨五入しないとtotal_amountが
+        // 299,999.7円という小数を含んだ値のまま保存され、分割請求（着手金/完了金）
+        // の残金計算が1円ずれる不具合になっていた
+        $version = $this->makeVersion(discountAmount: 69573, taxRate: 10);
+
+        ContractItem::create([
+            'contract_version_id' => $version->id,
+            'name' => '項目A',
+            'quantity' => 1,
+            'unit_price' => 342300,
+            'amount' => 342300,
+        ]);
+
+        app(ContractService::class)->recalculateVersionAmounts($version);
+        $version->refresh();
+
+        $this->assertEquals(342300, (float) $version->base_amount);
+        $this->assertEquals(27273, (float) $version->tax_amount); // round(272727*10%) = round(27272.7)
+        $this->assertEquals(300000, (float) $version->total_amount); // 272727+27273、端数無し
+    }
 }
