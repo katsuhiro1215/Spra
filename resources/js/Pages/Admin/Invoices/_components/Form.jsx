@@ -102,6 +102,31 @@ export default function InvoiceForm({
                 <CardBody>
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {isEdit && (
+                                <FormGroup
+                                    label="請求書番号"
+                                    htmlFor="invoice_number"
+                                    error={errors.invoice_number}
+                                    help={
+                                        data.status !== "draft"
+                                            ? "下書き状態でのみ編集できます"
+                                            : undefined
+                                    }
+                                >
+                                    <TextInput
+                                        id="invoice_number"
+                                        name="invoice_number"
+                                        value={data.invoice_number || ""}
+                                        onChange={(e) =>
+                                            setData(
+                                                "invoice_number",
+                                                e.target.value,
+                                            )
+                                        }
+                                        disabled={data.status !== "draft"}
+                                    />
+                                </FormGroup>
+                            )}
                             {contract ? (
                                 <FormGroup
                                     label="契約"
