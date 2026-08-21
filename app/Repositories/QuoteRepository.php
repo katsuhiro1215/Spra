@@ -118,22 +118,8 @@ class QuoteRepository extends SoftDeletableRepository implements QuoteRepository
      */
     public function generateQuoteNumber(): string
     {
-        $year = date('Y');
-        $month = date('m');
-        $prefix = "Q{$year}{$month}";
-
-        // 見積シミュレーター経由の番号（例: Q20260722-XFIJAX）は "Q{年}{月}" で始まるため
-        // 単純な LIKE "{prefix}%" では拾ってしまい、末尾4桁の数値化に失敗して 0 とみなされ
-        // 既存の番号と重複する不具合があった。"{prefix}" + ちょうど4文字 の形式のみに絞り込む。
-        $lastNumber = Quote::withTrashed()
-            ->where('quote_number', 'like', "{$prefix}____")
-            ->orderBy('quote_number', 'desc')
-            ->lockForUpdate()
-            ->get(['quote_number'])
-            ->map(fn (Quote $quote) => (int) substr($quote->quote_number, strlen($prefix)))
-            ->max() ?? 0;
-
-        return sprintf('%s%04d', $prefix, $lastNumber + 1);
+        return app(\App\Services\ReferenceNumberService::class)
+            ->generate(Quote::class, 'quote_number', 'QTE');
     }
 
     /**
