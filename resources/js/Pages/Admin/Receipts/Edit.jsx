@@ -15,6 +15,7 @@ export default function Edit({
 }) {
     const { data, setData, put, processing, errors } = useForm({
         invoice_id: receipt.invoice_id || "",
+        receipt_number: receipt.receipt_number || "",
         payment_id: receipt.payment_id || "",
         user_id: receipt.user_id || "",
         company_id: receipt.company_id || "",

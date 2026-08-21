@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReceiptRequest;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -127,20 +128,9 @@ class ReceiptController extends Controller
   /**
    * 領収書作成
    */
-  public function store(Request $request): RedirectResponse
+  public function store(ReceiptRequest $request): RedirectResponse
   {
-    $validated = $request->validate([
-      'invoice_id'    => 'required|ulid|exists:invoices,id',
-      'payment_id'    => 'nullable|ulid|exists:payments,id',
-      'user_id'       => 'required|uuid|exists:users,id',
-      'company_id'    => 'nullable|ulid|exists:companies,id',
-      'amount'        => 'required|numeric|min:0',
-      'tax_amount'    => 'required|numeric|min:0',
-      'total_amount'  => 'required|numeric|min:0',
-      'status'        => 'required|string|in:draft,issued,sent',
-      'issued_at'     => 'nullable|date',
-      'notes'         => 'nullable|string',
-    ]);
+    $validated = $request->validated();
 
     // Invoiceを取得
     $invoice = Invoice::findOrFail($validated['invoice_id']);
@@ -194,7 +184,7 @@ class ReceiptController extends Controller
   /**
    * 領収書更新
    */
-  public function update(Request $request, string $id): RedirectResponse
+  public function update(ReceiptRequest $request, string $id): RedirectResponse
   {
     $receipt = Receipt::findOrFail($id);
 
@@ -203,18 +193,7 @@ class ReceiptController extends Controller
       return back()->with('error', __('messages.receipt.delivered_cannot_edit'));
     }
 
-    $validated = $request->validate([
-      'invoice_id'    => 'required|ulid|exists:invoices,id',
-      'payment_id'    => 'nullable|ulid|exists:payments,id',
-      'user_id'       => 'required|uuid|exists:users,id',
-      'company_id'    => 'nullable|ulid|exists:companies,id',
-      'amount'        => 'required|numeric|min:0',
-      'tax_amount'    => 'required|numeric|min:0',
-      'total_amount'  => 'required|numeric|min:0',
-      'status'        => 'required|string|in:draft,issued,sent',
-      'issued_at'     => 'nullable|date',
-      'notes'         => 'nullable|string',
-    ]);
+    $validated = $request->validated();
 
     if ($validated['status'] === 'issued' && !$validated['issued_at']) {
       $validated['issued_at'] = now();

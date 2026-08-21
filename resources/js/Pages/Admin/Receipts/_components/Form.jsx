@@ -106,6 +106,27 @@ export default function ReceiptForm({
                             />
                         </FormGroup>
 
+                        {isEdit && (
+                            <FormGroup
+                                label="領収書番号"
+                                htmlFor="receipt_number"
+                                error={errors.receipt_number}
+                            >
+                                <TextInput
+                                    id="receipt_number"
+                                    name="receipt_number"
+                                    value={data.receipt_number || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "receipt_number",
+                                            e.target.value,
+                                        )
+                                    }
+                                    disabled={data.status === "sent"}
+                                />
+                            </FormGroup>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
                             <FormGroup
                                 label="会社"
