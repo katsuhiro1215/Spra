@@ -4,7 +4,7 @@
 
 **Goal:** `Proposal`(提案書)モデルを新設し、`Hearing`→`Proposal`→`Quote`という経路と、`Hearing`→`Quote`を直接つなぐ経路の両方を1つのスキーマで表現できるようにする。提案書はオプショナルなステップとして扱う。あわせて、お問い合わせ→**概算見積もり**(既存の`EstimateSimulator`が作るQuote v1)→ヒアリング+提案書→**正式見積**(同じQuoteの新バージョン)→契約、という確定済みの全体フローが成立することを検証する。
 
-**Architecture:** 新規`proposals`テーブルを追加し、`hearing_id`(nullable)・`contact_id`(nullable)で紐付ける。既存の`quotes`テーブルに`proposal_id`(nullable)を追加する。`hearings.quote_id`は既存のまま変更しない。Repository/Service/Controller層は既存の`Task`ドメインと同じ`BaseRepository`/`BaseService`継承パターンに揃える。AIによる提案書生成ロジック自体(市況分析等)は本計画のスコープ外とし、まずは人間のAdminが提案書を作成・保存できるCRUD基盤を作る(AI生成は基盤ができた後の別タスク)。**「概算」と「正式」は別モデルを作らず、同じ`Quote`の`QuoteVersion`の違いとして表現する**(`EstimateSimulatorController`が作るv1はそのまま「概算」、ヒアリング・提案書を経て作る新バージョンが「正式」。詳細はSpec §2.2b参照)。
+**Architecture:** 新規`proposals`テーブルを追加し、`hearing_id`(nullable)・`contact_id`(nullable)で紐付ける。既存の`quotes`テーブルに`proposal_id`(nullable)を追加する。`hearings.quote_id`は既存のまま変更しないが、`hearings.appointment_id`(nullable)を新規追加し、契約前のゲストのまま予約できる既存の`/consultation`(`Public\AppointmentController`)発の`Appointment`と紐付けられるようにする(§2.3参照。ユーザー登録が無い前提のため`users`経由の紐付けはできない)。Repository/Service/Controller層は既存の`Task`ドメインと同じ`BaseRepository`/`BaseService`継承パターンに揃える。AIによる提案書生成ロジック自体(市況分析等)は本計画のスコープ外とし、まずは人間のAdminが提案書を作成・保存できるCRUD基盤を作る(AI生成は基盤ができた後の別タスク)。**「概算」と「正式」は別モデルを作らず、同じ`Quote`の`QuoteVersion`の違いとして表現する**(`EstimateSimulatorController`が作るv1はそのまま「概算」、ヒアリング・提案書を経て作る新バージョンが「正式」。詳細はSpec §2.2b参照)。
 
 **Tech Stack:** Laravel 12 / Inertia.js / MySQL / PHPUnit(クラスベース)
 
@@ -1054,8 +1054,214 @@ git commit -m "test: 概算見積もり(EstimateSimulator)発のQuoteとヒア�
 
 ---
 
+### Task 6: ヒアリングを`/consultation`発のゲスト予約(Appointment)に紐付ける
+
+**Files:**
+- Create: `database/migrations/2026_09_19_020002_add_appointment_id_to_hearings_table.php`
+- Modify: `app/Models/Hearing.php`
+- Test: `tests/Feature/Proposal/HearingAppointmentLinkTest.php`
+
+**Interfaces:**
+- Produces: `hearings.appointment_id`(nullable)、`Hearing::appointment(): BelongsTo`
+
+**背景**: 契約前のクライアントはユーザー登録していない。`appointments.user_id`はnullableで、`guest_name`/`guest_email`/`guest_phone`という「アカウントなしの一般クライアント用」の項目がすでに用意されており、`/consultation`(ログイン不要の公開ページ、`Public\AppointmentController`)経由でゲストのまま予約できる導線が実装済み。ヒアリングの日程調整はこの既存の予約機構を主経路とする(ユーザー確認済み、2026-09-19)。新規の予約モデルは作らず、`hearings`から既存の`appointments`を参照するだけで済ませる。
+
+- [ ] **Step 1: 失敗するテストを書く**
+
+```php
+<?php
+
+namespace Tests\Feature\Proposal;
+
+use App\Models\Admin;
+use App\Models\Appointment;
+use App\Models\AppointmentSlot;
+use App\Models\Contact;
+use App\Models\ContactCategory;
+use App\Models\Hearing;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class HearingAppointmentLinkTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RolePermissionSeeder::class);
+    }
+
+    private function createContact(): Contact
+    {
+        $category = ContactCategory::create([
+            'name' => '見積もり依頼',
+            'slug' => 'quote-request-' . uniqid(),
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        return Contact::create([
+            'contact_category_id' => $category->id,
+            'name' => 'ゲストテスト太郎',
+            'email' => 'guest-appointment-' . uniqid() . '@example.com',
+            'message' => 'テストメッセージ',
+            'status' => 'new',
+            'source' => 'web',
+        ]);
+    }
+
+    /**
+     * /consultation(Public\AppointmentController::store)が実際に作るのと同じ形
+     * (AppointmentSlot + Appointment、user_id=null・guest_name/guest_emailあり)を
+     * ここでは直接組み立てる。Public\AppointmentController自体のテストはスコープ外。
+     */
+    private function createGuestAppointment(): Appointment
+    {
+        $slot = AppointmentSlot::create([
+            'date' => now()->addDays(3)->format('Y-m-d'),
+            'start_time' => '14:00:00',
+            'end_time' => '14:30:00',
+            'slot_type' => 'consultation',
+        ]);
+
+        return Appointment::create([
+            'appointment_slot_id' => $slot->id,
+            'user_id' => null,
+            'guest_name' => 'ゲストテスト太郎',
+            'guest_email' => 'guest-appointment-test@example.com',
+            'subject' => '無料相談(ヒアリング日程)',
+            'location_type' => 'online',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_hearing_can_be_linked_to_a_guest_appointment_without_a_user_account(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin']);
+        $contact = $this->createContact();
+        $appointment = $this->createGuestAppointment();
+
+        $hearing = Hearing::create([
+            'contact_id' => $contact->id,
+            'appointment_id' => $appointment->id,
+            'title' => '無料相談予約に紐づくヒアリング',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->assertTrue($hearing->appointment->is($appointment));
+        $this->assertNull($hearing->appointment->user_id);
+        $this->assertSame('ゲストテスト太郎', $hearing->appointment->guest_name);
+    }
+
+    public function test_hearing_can_still_be_created_without_an_appointment(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin']);
+        $contact = $this->createContact();
+
+        $hearing = Hearing::create([
+            'contact_id' => $contact->id,
+            'appointment_id' => null,
+            'title' => '電話で日程調整したヒアリング',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->assertNull($hearing->appointment);
+    }
+}
+```
+
+- [ ] **Step 2: テストを実行し失敗を確認する**
+
+Run: `php artisan test --filter=HearingAppointmentLinkTest`
+Expected: FAIL(`hearings.appointment_id`カラムが存在しない)
+
+- [ ] **Step 3: マイグレーションを作成する**
+
+`appointments.id`は(Quote/Contact/Hearingとは異なり)ULIDではなく通常のauto-increment整数(`$table->id()`、`app/Models/Appointment.php`に`HasUlid`トレイトが無いことを確認済み)のため、`foreignId`を使う。
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * ヒアリングと、既存のゲスト予約導線(/consultation、Public\AppointmentController)で
+     * 作られたAppointmentを紐付けるためのカラムを追加する。
+     * 契約前のクライアントはユーザー登録していないため、appointments.user_idではなく
+     * この直接参照でヒアリングの日程を追跡する。
+     */
+    public function up(): void
+    {
+        Schema::table('hearings', function (Blueprint $table) {
+            $table->foreignId('appointment_id')->nullable()->after('quote_id')
+                ->constrained('appointments')->nullOnDelete()
+                ->comment('/consultation等で予約されたヒアリング日程(任意。電話等の手動調整の場合はnull)');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('hearings', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('appointment_id');
+        });
+    }
+};
+```
+
+- [ ] **Step 4: マイグレーションを実行する**
+
+Run: `php artisan migrate`
+Expected: 正常に適用される。既存の`hearings`レコードは`appointment_id`が`null`のまま(nullable追加のため既存行への影響なし)
+
+- [ ] **Step 5: `Hearing`モデルに`appointment()`リレーションを追加する**
+
+`app/Models/Hearing.php`の`quote()`リレーションの直後に追記し、`$fillable`に`appointment_id`を追加する:
+
+```php
+protected $fillable = [
+    'contact_id',
+    'quote_id',
+    'appointment_id',
+    'title',
+    'notes',
+    'created_by',
+];
+```
+
+```php
+public function appointment(): BelongsTo
+{
+    return $this->belongsTo(Appointment::class);
+}
+```
+
+- [ ] **Step 6: テストを実行し成功を確認する**
+
+Run: `php artisan test --filter=HearingAppointmentLinkTest`
+Expected: PASS
+
+- [ ] **Step 7: コミット**
+
+```bash
+git add database/migrations/2026_09_19_020002_add_appointment_id_to_hearings_table.php app/Models/Hearing.php tests/Feature/Proposal/HearingAppointmentLinkTest.php
+git commit -m "feat: ヒアリングを/consultation発のゲスト予約(Appointment)に紐付けられるようにする"
+```
+
+---
+
 ## Self-Review
 
-- **Spec対応**: 設計メモ§2.2(提案書はオプショナル)→Task4の`test_simple_case_skips_proposal_from_hearing_to_quote`で明示的に検証。§2.2b(2026-09-19追記、概算→正式の全体フロー)→Task5で、EstimateSimulator発のQuoteにヒアリング・提案書を後付けし、同じQuoteの新バージョンとして正式見積を作る一連の流れを検証。§2.3(スキーマ)→Task1。§2.4の未決定事項のうち「バージョニング」は今回`ProposalVersion`を作らず「新しいProposalレコードを作り直す」形で妥協的に解決(Task4の`test_quote_can_be_recreated_against_a_revised_proposal`で経路として動くことのみ確認、厳密な版管理はスコープ外)。「AI生成のトリガー」「出力形式」は本計画では未着手(Architecture節に明記の通りスコープ外)。「ヒアリング→Quote転記機能」(TASKS.md §3.7の既存タスク)は、Task5で`custom_specifications`への転記経路として実質的に統合を確認した。
+- **Spec対応**: 設計メモ§2.2(提案書はオプショナル)→Task4の`test_simple_case_skips_proposal_from_hearing_to_quote`で明示的に検証。§2.2b(2026-09-19追記、概算→正式の全体フロー)→Task5で、EstimateSimulator発のQuoteにヒアリング・提案書を後付けし、同じQuoteの新バージョンとして正式見積を作る一連の流れを検証。§2.3(スキーマ)→Task1(`proposals`・`quotes.proposal_id`)、Task6(`hearings.appointment_id`)。§2.4の未決定事項のうち「バージョニング」は今回`ProposalVersion`を作らず「新しいProposalレコードを作り直す」形で妥協的に解決(Task4の`test_quote_can_be_recreated_against_a_revised_proposal`で経路として動くことのみ確認、厳密な版管理はスコープ外)。「AI生成のトリガー」「出力形式」は本計画では未着手(Architecture節に明記の通りスコープ外)。「ヒアリング→Quote転記機能」(TASKS.md §3.7の既存タスク)は、Task5で`custom_specifications`への転記経路として実質的に統合を確認した。「ユーザー登録していない契約前クライアントの日程調整」(2026-09-19追記の論点)は、Task6で`/consultation`の既存ゲスト予約機構への直接参照として解決した。
+- **プレースホルダー確認**: Task6含め全ステップに実コードあり。TODO/TBDなし。
+- **型の一貫性**: `Hearing::appointment(): BelongsTo`はTask6で新規定義。`Appointment`/`AppointmentSlot`のフィールド名(`appointment_slot_id`/`guest_name`/`guest_email`/`subject`/`location_type`等)は実際のマイグレーション定義から転記しており、他タスクとの命名齟齬なし。
 - **プレースホルダー確認**: 全ステップに実コードあり。TODO/TBDなし。
 - **型の一貫性**: `ProposalService::createProposal(array $data, string $creatorId): Proposal`はTask2で定義し、Task3のコントローラ・Task4のテストで同じシグネチャで呼んでいる。`Proposal::STATUSES`はTask1で定義しTask3の`ProposalRequest`で参照、値の食い違いなし。

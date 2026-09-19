@@ -60,6 +60,7 @@
 - ただし「ヒアリング内容をQuoteの`requirements`/`custom_specifications`へ転記する導線」はTASKS.md §3.7で**未実装のまま**残っている
 - 「提案書」に相当するモデル・テーブルは現状**存在しない**
 - **`EstimateSimulator`（概算見積もり）は独立したモデルではない**（`EstimateSimulatorController`を確認）。公開画面でサービス・プラン・追加機能を選んで送信すると、その場で`Contact`（`source='estimate_simulator'`）と、`status='draft'`の`Quote`＋`QuoteVersion`（v1、選択内容から自動計算した金額・明細つき）が**その場で直接作成される**。つまり「概算見積もり」の実体は、Quoteの最初のバージョンそのものである
+- **契約前のゲスト向け予約ページ`/consultation`（ログイン不要）がすでに実装済み**（`Public\AppointmentController`、`StorePublicAppointmentRequest`）。`appointments.user_id`はnullableで、`guest_name`/`guest_email`/`guest_phone`という「アカウントなしの一般クライアント用」の項目が用意されている。`appointment_slots`（予約枠、`assigned_admin_id`で担当Adminと紐付け）は`AdminShift`（勤怠シフト）の登録状況をもとに、Admin側の一括作成画面でデフォルトの候補チェックが決まる設計（シフト外の時間帯はデフォルトで除外）。つまり**契約前のクライアントは、Userアカウントを作らずにヒアリング日程を予約できる導線がすでに存在する**
 
 ### 2.2 追加する概念: Proposal（提案書）
 
@@ -76,6 +77,8 @@
   ↓
 概算見積もり (EstimateSimulator → Quote v1・draft、自動計算)
   ↓
+ヒアリング日程の予約 (/consultation、ゲストのまま予約可。Appointment.user_id=null)
+  ↓
 ヒアリング + 提案書（オプショナル）
   ↓
 正式見積 (同じQuoteの新しいQuoteVersion。Proposal内容をrequirements/custom_specificationsへ反映)
@@ -83,15 +86,16 @@
 契約 (Contract)
 ```
 
-重要なのは、**「概算」と「正式」は別テーブルではなく、同じ`Quote`の`QuoteVersion`の違いとして表現する**という点。2.1で確認した通り、EstimateSimulatorが作る`Quote`はすでに実在するため、新たに「概算見積もりモデル」を作る必要は無い。具体的には:
+重要なのは、**「概算」と「正式」は別テーブルではなく、同じ`Quote`の`QuoteVersion`の違いとして表現する**という点。2.1で確認した通り、EstimateSimulatorが作る`Quote`はすでに実在するため、新たに「概算見積もりモデル」を作る必要は無い。同様に、ヒアリング日程の予約も`/consultation`の既存Appointment機構をそのまま使う（新規の予約モデルは作らない）。具体的には:
 
 1. `EstimateSimulatorController::save()`が`Quote`(v1, draft)を作成する（実装済み、変更不要）
-2. 管理者がヒアリングを行う際、`hearings.contact_id`にその`Contact`を紐付け、`hearings.quote_id`にステップ1で作られた既存の`Quote`を紐付ける（既存カラムをそのまま使う、スキーマ変更不要）
-3. 複雑な案件では、ヒアリングから`Proposal`を作成し（`proposals.hearing_id`）、`quotes.proposal_id`にその`Proposal`を紐付ける（2.3のスキーマ変更で対応）
-4. 正式な見積を出す際は、同じ`Quote`に対して新しい`QuoteVersion`（v2）を作成する。既存の`QuoteVersion.requirements`/`custom_specifications`にヒアリング・提案書の内容を転記する（TASKS.md §3.7の未実装タスクと合流する）
-5. 単純な案件は3をスキップし、v1のまま、または簡単な調整だけのv2を経て契約へ進む
+2. クライアントが`/consultation`でヒアリング日程を予約する（実装済み、変更不要）。`Appointment`が`user_id=null`・`guest_name`/`guest_email`で作成される
+3. 管理者がヒアリングを行う際、`hearings.contact_id`にその`Contact`を紐付け、`hearings.quote_id`にステップ1で作られた既存の`Quote`を紐付け、`hearings.appointment_id`にステップ2で作られた`Appointment`を紐付ける（`quote_id`は既存カラム、`appointment_id`は今回新規追加。2.3参照）
+4. 複雑な案件では、ヒアリングから`Proposal`を作成し（`proposals.hearing_id`）、`quotes.proposal_id`にその`Proposal`を紐付ける（2.3のスキーマ変更で対応）
+5. 正式な見積を出す際は、同じ`Quote`に対して新しい`QuoteVersion`（v2）を作成する。既存の`QuoteVersion.requirements`/`custom_specifications`にヒアリング・提案書の内容を転記する（TASKS.md §3.7の未実装タスクと合流する）
+6. 単純な案件は4をスキップし、v1のまま、または簡単な調整だけのv2を経て契約へ進む
 
-この整理により、**Plan 2（ヒアリング→提案書→見積フロー拡張）のスキーマ変更（`proposals`テーブル・`quotes.proposal_id`）は変更不要**。実装時にPlan 2へ「EstimateSimulator発のQuoteとHearingを紐付ける導線」の確認テストを1タスク追加する。
+この整理により、**Plan 2（ヒアリング→提案書→見積フロー拡張）のスキーマ変更は`proposals`テーブル・`quotes.proposal_id`に加えて`hearings.appointment_id`（nullable）を追加する**。実装時にPlan 2へ「EstimateSimulator発のQuoteとHearingを紐付ける導線」「`/consultation`発のゲストAppointmentとHearingを紐付ける導線」の確認テストを追加する。
 
 ### 2.3 スキーマ変更案
 
@@ -103,6 +107,9 @@
   - `created_by`（`admins`参照）
 - `quotes`に`proposal_id`（nullable）を追加
   - 既存の`hearings.quote_id`と合わせることで、「ヒアリング→見積」「ヒアリング→提案書→見積」の両経路を1つのスキーマで表現できる
+- `hearings`に`appointment_id`（nullable、`appointments`参照、`onDelete: set null`）を追加
+  - **契約前のクライアントはユーザー登録していないため、`users`テーブル経由の紐付けは前提にできない**。既存の`/consultation`（ゲスト予約、`appointments.user_id`はnullable）で作られた`Appointment`をそのまま`hearings.appointment_id`で参照する
+  - ユーザー確認: 「必須になるだろう」との判断のため、ヒアリング日程調整の主経路として位置づける（ただしDBカラム自体は電話等の手動調整もありうるためnullableのまま。§2.4参照）
 
 ### 2.4 未決定事項（実装時に詰める）
 
