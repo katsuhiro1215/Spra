@@ -1,0 +1,159 @@
+# AI社員導入・ヒアリング〜見積フロー拡張・過去書類アーカイブ 設計メモ
+
+- 作成日: 2026-09-18
+- 位置づけ: 3つの独立した改修項目についての方針合意メモ。実装計画（writing-plans）は着手時に別途作成する。今回はスコープと方向性の確定のみ行う。
+- 背景: オーナー1人では業務量が捌ききれなくなってきたため、部署単位でAI社員を導入したい。あわせて、営業フロー（お問い合わせ→ヒアリング→提案書→見積）の柔軟化と、過去の請求書・領収書をシステムを壊さずに記録として残す方法についても合意しておきたい、という3件の相談から出発している。
+
+## 0. 前提の確認
+
+- **Spraは本番稼働中**（`https://smartsprouts.jp`、実データあり）。CLAUDE.md §7・SPEC.md §2・§7に「本番未リリース・スキーマ変更自由」という記述が残っているが、TASKS.md T17〜T26（2026-07-31完了）で実際にAWS Lightsailへ本番デプロイ済みであることを確認した。**この記述は古く、実態と食い違っている。** 今回の3項目はいずれも本番データがある前提でマイグレーションを設計する（ロールバック可能・既存データ無傷が必須条件）。SPEC.md §2の訂正は本メモのスコープ外だが、着手時に合わせて直す。
+- `admins`（自社スタッフ）/`users`（クライアント企業担当者）の2ガード構成、Spatie Permission（`Admin::ROLES`/`RESTRICTABLE_ROLES`）は既存の枠組みをそのまま再利用する方針で統一する。
+
+---
+
+## 1. AI社員（Admin拡張）
+
+### 1.1 目的
+
+部署単位でAI社員（初期10名想定）を`admins`テーブル上のアカウントとして表現し、将来的にAI自身がAPI経由でログイン・操作できる土台を作る。
+
+### 1.2 採用アプローチ
+
+3案検討し、**「`admins.role`に新ロールを追加する」案**を採用（他2案との比較は本メモ作成時のチャット議事に記録済み）。
+
+理由: 既存のSpatie権限基盤（`RESTRICTABLE_ROLES`個別制限、`RolePermissionSeeder`）と、Adminへの外部キーを持つ既存機能（`project_admin`のプロジェクト担当、`posts.author_id`の投稿者、`Task.admin_id`のタスク担当）にそのまま乗せられるため。§5.12で紹介されているAdmin向けタスク管理機能（カンバンボード・担当者アサイン）は、AI社員への業務割り振りの受け皿として実装済みであり、追加開発なしで転用できる。
+
+### 1.3 スキーマ変更案
+
+- `admins.role` enumに新ロール値を追加（値名は実装時に確定。候補: `ai_staff`）
+- `admins`に`department`カラムを追加（nullable string、部署slugを格納。`company/CLAUDE.md`の部署一覧と対応させる）
+- 将来のAPI経由ログインに備え、`Admin`モデルにLaravel Sanctumの`HasApiTokens`を追加（トークン発行自体は今回は行わない。土台のみ）
+
+### 1.4 権限設計
+
+- 新ロールは`Admin::RESTRICTABLE_ROLES`に追加し、`owner`/`super_admin`のような無条件フルアクセスにはしない
+- `RolePermissionSeeder`に新ロール専用の許可アクションブランチを追加し、担当領域に応じた必要最小限の権限のみ付与する（詳細は実装時に部署ごとの業務範囲と照らして決定）
+
+### 1.5 メールアドレス発行方式
+
+部署ベースでユニークなメールを機械発行する（例: `ai-marketing@smartsprouts.jp`）。DB制約の緩和（unique制約撤廃やメール共有）は行わない。認証・パスワードリセット周りの事故を避けるため。
+
+### 1.6 給与・雇用情報
+
+`admin_employments`（給与体系テーブル）はAI社員には作成しない。リレーションはnullable設計のため、レコードが存在しなくても既存機能に影響はない。
+
+### 1.7 未決定事項（実装時に詰める）
+
+- ロール値の最終名称
+- 初期10部署の一覧・`department`値のマッピング（`company/CLAUDE.md`の部署再編と合わせて決定）
+- 部署ごとの権限セット詳細
+- Sanctumトークンの発行・失効・スコープ設計（今回は土台のみで、実際の運用フローは別途）
+
+---
+
+## 2. お問い合わせ→ヒアリング→提案書→見積フローの拡張
+
+### 2.1 現状（コード確認済み）
+
+- `Contact`（問い合わせ）→`Hearing`（ヒアリングシート、質問項目はSeeder固定の小規模版が実装済み）の経路は存在する
+- `hearings`テーブルは`contact_id`（nullable）・`quote_id`（nullable、Quote削除時は`set null`）を既に持っており、ヒアリングとQuoteの緩やかな紐付けは可能な状態
+- ただし「ヒアリング内容をQuoteの`requirements`/`custom_specifications`へ転記する導線」はTASKS.md §3.7で**未実装のまま**残っている
+- 「提案書」に相当するモデル・テーブルは現状**存在しない**
+- **`EstimateSimulator`（概算見積もり）は独立したモデルではない**（`EstimateSimulatorController`を確認）。公開画面でサービス・プラン・追加機能を選んで送信すると、その場で`Contact`（`source='estimate_simulator'`）と、`status='draft'`の`Quote`＋`QuoteVersion`（v1、選択内容から自動計算した金額・明細つき）が**その場で直接作成される**。つまり「概算見積もり」の実体は、Quoteの最初のバージョンそのものである
+- **契約前のゲスト向け予約ページ`/consultation`（ログイン不要）がすでに実装済み**（`Public\AppointmentController`、`StorePublicAppointmentRequest`）。`appointments.user_id`はnullableで、`guest_name`/`guest_email`/`guest_phone`という「アカウントなしの一般クライアント用」の項目が用意されている。`appointment_slots`（予約枠、`assigned_admin_id`で担当Adminと紐付け）は`AdminShift`（勤怠シフト）の登録状況をもとに、Admin側の一括作成画面でデフォルトの候補チェックが決まる設計（シフト外の時間帯はデフォルトで除外）。つまり**契約前のクライアントは、Userアカウントを作らずにヒアリング日程を予約できる導線がすでに存在する**
+
+### 2.2 追加する概念: Proposal（提案書）
+
+- ヒアリング回答をもとに、AIが要望・市況等を分析して提案書ドラフトを生成する
+- **提案書はオプショナルなステップ**とする（ユーザー確認済み）。小規模・単純な案件はヒアリング→見積を直接つなぎ、複雑な案件や分析が必要な案件のみヒアリング→提案書→見積を経由する
+- 見積を出し直す際に提案書を作り直すケースもある（1つの提案書から複数バージョンの見積が生まれる、または提案書自体を更新して再度見積を作る、の両方があり得る）
+
+### 2.2b 全体フローの確定（2026-09-19追記）
+
+ユーザーとの議論により、契約までの標準的な流れを次の形に確定する:
+
+```
+お問い合わせ (Contact)
+  ↓
+概算見積もり (EstimateSimulator → Quote v1・draft、自動計算)
+  ↓
+ヒアリング日程の予約 (/consultation、ゲストのまま予約可。Appointment.user_id=null)
+  ↓
+ヒアリング + 提案書（オプショナル）
+  ↓
+正式見積 (同じQuoteの新しいQuoteVersion。Proposal内容をrequirements/custom_specificationsへ反映)
+  ↓
+契約 (Contract)
+```
+
+重要なのは、**「概算」と「正式」は別テーブルではなく、同じ`Quote`の`QuoteVersion`の違いとして表現する**という点。2.1で確認した通り、EstimateSimulatorが作る`Quote`はすでに実在するため、新たに「概算見積もりモデル」を作る必要は無い。同様に、ヒアリング日程の予約も`/consultation`の既存Appointment機構をそのまま使う（新規の予約モデルは作らない）。具体的には:
+
+1. `EstimateSimulatorController::save()`が`Quote`(v1, draft)を作成する（実装済み、変更不要）
+2. クライアントが`/consultation`でヒアリング日程を予約する（実装済み、変更不要）。`Appointment`が`user_id=null`・`guest_name`/`guest_email`で作成される
+3. 管理者がヒアリングを行う際、`hearings.contact_id`にその`Contact`を紐付け、`hearings.quote_id`にステップ1で作られた既存の`Quote`を紐付け、`hearings.appointment_id`にステップ2で作られた`Appointment`を紐付ける（`quote_id`は既存カラム、`appointment_id`は今回新規追加。2.3参照）
+4. 複雑な案件では、ヒアリングから`Proposal`を作成し（`proposals.hearing_id`）、`quotes.proposal_id`にその`Proposal`を紐付ける（2.3のスキーマ変更で対応）
+5. 正式な見積を出す際は、同じ`Quote`に対して新しい`QuoteVersion`（v2）を作成する。既存の`QuoteVersion.requirements`/`custom_specifications`にヒアリング・提案書の内容を転記する（TASKS.md §3.7の未実装タスクと合流する）
+6. 単純な案件は4をスキップし、v1のまま、または簡単な調整だけのv2を経て契約へ進む
+
+この整理により、**Plan 2（ヒアリング→提案書→見積フロー拡張）のスキーマ変更は`proposals`テーブル・`quotes.proposal_id`に加えて`hearings.appointment_id`（nullable）を追加する**。実装時にPlan 2へ「EstimateSimulator発のQuoteとHearingを紐付ける導線」「`/consultation`発のゲストAppointmentとHearingを紐付ける導線」の確認テストを追加する。
+
+### 2.3 スキーマ変更案
+
+- 新規`proposals`テーブルを追加
+  - `hearing_id`（nullable、`hearings`参照）
+  - `contact_id`（nullable）
+  - AI生成内容を保持するカラム（分析結果・提案文面。形式は実装時に決定）
+  - ステータス（draft等、詳細は実装時）
+  - `created_by`（`admins`参照）
+- `quotes`に`proposal_id`（nullable）を追加
+  - 既存の`hearings.quote_id`と合わせることで、「ヒアリング→見積」「ヒアリング→提案書→見積」の両経路を1つのスキーマで表現できる
+- `hearings`に`appointment_id`（nullable、`appointments`参照、`onDelete: set null`）を追加
+  - **契約前のクライアントはユーザー登録していないため、`users`テーブル経由の紐付けは前提にできない**。既存の`/consultation`（ゲスト予約、`appointments.user_id`はnullable）で作られた`Appointment`をそのまま`hearings.appointment_id`で参照する
+  - ユーザー確認: 「必須になるだろう」との判断のため、ヒアリング日程調整の主経路として位置づける（ただしDBカラム自体は電話等の手動調整もありうるためnullableのまま。§2.4参照）
+
+### 2.4 未決定事項（実装時に詰める）
+
+- 提案書の再作成・バージョニングの要否（見積のように`ProposalVersion`を持つか、単純な更新にするか）
+- AI生成のトリガー（Admin操作起点の生成ボタンか、ヒアリング完了時の自動生成か）
+- 提案書の出力形式（PDF化するか、画面表示のみか）
+- ヒアリング→Quote転記機能（TASKS.md §3.7の既存未実装タスク）とどう統合するか
+
+---
+
+## 3. 過去の請求書・領収書のアーカイブ
+
+### 3.1 現状の制約（コード確認済み）
+
+`receipts`テーブルは`invoice_id`・`user_id`が**NOT NULL必須**で、既存のQuote→Contract→Invoice→Payment→Receiptパイプラインに強く結合している。過去分を今の仕組みに無理に乗せると、実態と異なる明細・税額を持つダミーのInvoice/Contract/Userを作る羽目になり、かつ「金額に差異が出ない」既存の整合性チェックを壊すリスクが最も高い箇所に手を入れることになる。
+
+### 3.2 採用方針
+
+既存の請求パイプラインとは**完全に分離した**新規テーブル（仮称: `legacy_documents`）を新設する。
+
+想定カラム（実装時に確定）:
+- 書類種別（invoice/receipt）
+- クライアント名（自由記述。既存`User`/`Company`との紐付けは必須にしない）
+- 発行日
+- 合計金額（明細分割はしない、合計のみ）
+- PDF添付
+- 備考
+- 登録者（`admins`参照）
+
+既存のInvoice/Receiptのステータス遷移・整合性ロジックには一切触れない。一覧表示は既存画面と分離するか、「過去分」バッジ付きで混在表示するかは実装時に判断する。
+
+### 3.3 未決定事項（実装時に詰める）
+
+- 一覧表示を既存Invoice/Receipt画面と統合するか、別画面にするか
+- 検索性のため既存`User`/`Company`への任意紐付けを持たせるか
+
+---
+
+## 4. 全体への注意点
+
+- 3項目とも本番データがある前提でマイグレーションを設計し、ロールバック可能な形・既存データへの影響ゼロを実装前に確認する
+- Git運用ルール（CLAUDE.md §9）に従い、項目ごとに`feat/`ブランチを切りPRを作成する。3項目は独立しているため、実装フェーズでは別々のブランチ・別々のPRに分割する想定
+- 着手時にSPEC.md §2「現在の完成度」の「本番未リリース」表記を実態（本番稼働中）に合わせて修正する
+
+## 5. 次のステップ
+
+来週、本メモをもとに項目ごとに実装計画（writing-plans）を作成し、TASKS.mdに新規フェーズとして追記した上で着手する。
