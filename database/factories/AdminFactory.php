@@ -47,4 +47,13 @@ class AdminFactory extends Factory
     {
         return $this->state(fn(array $attributes) => ['email_verified_at' => null]);
     }
+
+    public function aiStaff(string $department = 'marketing'): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => 'ai_staff',
+            'department' => $department,
+            'email' => "ai-{$department}@smartsprouts.jp",
+        ]);
+    }
 }

@@ -15,12 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
 
 class Admin extends Authenticatable
 {
-    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasRoles, HasLoginLockout, HasTwoFactorAuthentication;
+    use HasUuid, HasFactory, Notifiable, SoftDeletes, HasRoles, HasLoginLockout, HasTwoFactorAuthentication, HasApiTokens;
 
     /**
      * idの型を指定(UUID対応)
@@ -39,6 +40,7 @@ class Admin extends Authenticatable
         'email',
         'password',
         'role',
+        'department',
         'status',
         'last_login_at',
     ];
@@ -81,12 +83,13 @@ class Admin extends Authenticatable
         'admin'       => '管理者',
         'editor'      => '編集者',
         'viewer'      => '閲覧者',
+        'ai_staff'    => 'AI社員',
     ];
 
     /**
      * 個別制限をかけられるロール（owner/super_adminは常にフルアクセスのため対象外）
      */
-    public const RESTRICTABLE_ROLES = ['admin', 'editor', 'viewer'];
+    public const RESTRICTABLE_ROLES = ['admin', 'editor', 'viewer', 'ai_staff'];
 
     public const STATUSES = [
         'active'    => '有効',
@@ -199,6 +202,11 @@ class Admin extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, ['super_admin', 'admin']);
+    }
+
+    public function isAiStaff(): bool
+    {
+        return $this->role === 'ai_staff';
     }
 
     public function getRoleNameAttribute(): string
