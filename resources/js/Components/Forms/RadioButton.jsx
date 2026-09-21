@@ -1,8 +1,8 @@
 import { forwardRef } from 'react';
 
-export default forwardRef(function RadioButton({ 
-    className = '', 
-    ...props 
+const RadioButton = forwardRef(function RadioButton({
+    className = '',
+    ...props
 }, ref) {
     return (
         <input
@@ -16,6 +16,8 @@ export default forwardRef(function RadioButton({
         />
     );
 });
+
+export default RadioButton;
 
 // ラジオボタングループコンポーネント
 export function RadioGroup({ 
