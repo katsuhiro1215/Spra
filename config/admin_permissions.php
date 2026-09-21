@@ -60,4 +60,8 @@ return [
         'index',
         'show',
     ],
+    'ai_staff_role_allowed_actions' => [
+        'index',
+        'show',
+    ],
 ];

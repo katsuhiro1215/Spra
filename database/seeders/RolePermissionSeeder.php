@@ -49,5 +49,14 @@ class RolePermissionSeeder extends Seeder
         });
         Role::where('name', 'editor')->where('guard_name', 'admins')->first()
             ?->syncPermissions($editorPermissions);
+
+        $aiStaffActions = config('admin_permissions.ai_staff_role_allowed_actions', []);
+        $aiStaffPermissions = $allPermissionNames->filter(function (string $name) use ($aiStaffActions) {
+            $action = Str::afterLast($name, '.');
+
+            return in_array($action, $aiStaffActions, true);
+        });
+        Role::where('name', 'ai_staff')->where('guard_name', 'admins')->first()
+            ?->syncPermissions($aiStaffPermissions);
     }
 }
