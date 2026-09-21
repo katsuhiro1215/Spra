@@ -52,10 +52,11 @@ class AdminService extends BaseService
             $randomPassword = Str::password(12, letters: true, numbers: true, symbols: false);
 
             $admin = $this->repository->create([
-                'email'    => $data['email'],
-                'password' => Hash::make($randomPassword),
-                'role'     => $data['role'],
-                'status'   => 'active',
+                'email'      => $data['email'],
+                'password'   => Hash::make($randomPassword),
+                'role'       => $data['role'],
+                'department' => $data['department'] ?? null,
+                'status'     => 'active',
             ]);
 
             // プロフィール作成（名前が提供された場合）
@@ -84,6 +85,21 @@ class AdminService extends BaseService
                 'password' => $randomPassword,
             ];
         });
+    }
+
+    /**
+     * AI社員を作成する(部署slugからメールアドレスを自動発行する)
+     *
+     * @param string $department 部署slug(例: marketing, creative)
+     * @return array{admin: Admin, password: string}
+     */
+    public function createAiStaff(string $department): array
+    {
+        return $this->createAdmin([
+            'email'      => "ai-{$department}@smartsprouts.jp",
+            'role'       => 'ai_staff',
+            'department' => $department,
+        ]);
     }
 
     /**
