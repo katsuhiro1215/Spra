@@ -37,6 +37,23 @@ class PermissionEnforcementTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_ai_staff_can_view_but_not_create_or_delete_quotes(): void
+    {
+        $aiStaff = Admin::factory()->create(['role' => 'ai_staff', 'status' => 'active']);
+
+        $this->actingAs($aiStaff, 'admins')
+            ->get(route('admin.quote.index'))
+            ->assertOk();
+
+        $this->actingAs($aiStaff, 'admins')
+            ->get(route('admin.quote.create'))
+            ->assertForbidden();
+
+        $this->actingAs($aiStaff, 'admins')
+            ->post(route('admin.quote.store'), [])
+            ->assertForbidden();
+    }
+
     public function test_admin_can_update_but_not_delete_quotes(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);

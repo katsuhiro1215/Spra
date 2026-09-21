@@ -62,7 +62,12 @@ class PermissionService
     }
 
     /**
-     * admin/editorロールのデフォルト権限セットを更新する
+     * 引数に含まれるロールのデフォルト権限セットのみを更新する。
+     * 呼び出し元が送ってこなかったロール（例: 個別画面が無いviewer/ai_staff）は
+     * 一切変更しない。ここで`?? []`のようなデフォルト値を使ってしまうと、
+     * 呼び出し元が特定ロールのキーを送らなかっただけでそのロールの権限が
+     * 意図せず全消去される（実際にadmin/editorしか送らない管理画面が
+     * viewer/ai_staffの権限を毎回サイレントに空にしていたバグがあった）。
      *
      * @param array<string, array<int, int>> $rolePermissionIds 例: ['admin' => [1,2], 'editor' => [1]]
      */
@@ -70,8 +75,12 @@ class PermissionService
     {
         DB::transaction(function () use ($rolePermissionIds) {
             foreach (Admin::RESTRICTABLE_ROLES as $role) {
+                if (! array_key_exists($role, $rolePermissionIds)) {
+                    continue;
+                }
+
                 $roleModel = Role::firstOrCreate(['name' => $role, 'guard_name' => 'admins']);
-                $roleModel->syncPermissions($rolePermissionIds[$role] ?? []);
+                $roleModel->syncPermissions($rolePermissionIds[$role]);
             }
         });
     }

@@ -34,8 +34,8 @@ Spra は、以下2つの事業ドメインを1つのシステムで管理する�
 
 ### 現在の完成度
 
-- 約8割完成。**開発環境のみで稼働中、本番未リリース（実データなし）**。
-- そのため、破壊的なスキーマ変更・データ初期化は現時点では自由に行える（TASKS.mdフェーズ1で本番リリースを予定しているため、リリース後は方針が変わる）。
+- 約8割完成。**2026-07-31付けで本番稼働中（`https://smartsprouts.jp`、実データあり）**。
+- そのため、破壊的なスキーマ変更・データ初期化は自由には行えない。スキーマ変更は既存データを壊さないロールバック可能な形で設計すること（enum値を縮小する前に該当データを退避する、追加カラムはnullableにする等）。`migrate:fresh`等の破壊的コマンドは実行しない。
 - リポジトリ名は `Spra`。正式なプロダクト名・`APP_NAME`は `composer.json`/`.env` 上まだ `Laravel` のままで未確定（TASKS.mdフェーズ2で統一予定、§7参照）。
 
 ## 3. アーキテクチャ全体像
@@ -175,6 +175,15 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
   - `tasks:generate-recurring`（毎日06:10）: `TaskService::generateUpcomingOccurrences()`がテンプレート行を走査し、既定14日先までの実体タスクを未生成分のみ穴埋め生成する。
   - `tasks:send-reminders`（15分おき、デフォルト30分前）: `TaskService::getTasksNeedingReminder()`で本日期限・未完了・繰り返しテンプレート以外・`due_time`設定済みのタスクのうち期限が指定分数以内に迫っているものを抽出し、`TaskDueReminder`通知（`database`チャンネルのみ、キューワーカー不要の同期実行）を担当Adminへ送信する。
 - スコープ外（意図的に見送り）: タスクへのコメント・添付ファイル、複数Admin共同担当、既存シフト/予約カレンダーとの統合表示、カスタムステータス列。TASKS.mdフェーズ2に候補として記載。
+
+### 5.13 AI社員（ai_staffロール）
+- 部署単位のAI社員を`admins`テーブル上のアカウントとして表現する仕組み。新規テーブルは作らず、既存のSpatie権限基盤（`Admin::ROLES`/`RESTRICTABLE_ROLES`/`RolePermissionSeeder`）にロールを1つ追加する形で乗せている。
+- `Admin::ROLES`に`ai_staff`（AI社員）を追加、`Admin::RESTRICTABLE_ROLES`にも含めているため`owner`/`super_admin`のような無条件フルアクセスにはならない。`Admin::isAiStaff()`で判定できる。
+- `admins.department`カラム（nullable string）に部署slug（`marketing`/`creative`/`articles`/`tech-blog`/`ai-tools`/`spra`/`forge`/`nara-next`/`office`/`katsuooool`の10部署、`company/CLAUDE.md`の稼働中部署一覧と対応）を保持する。人間の管理者は`null`。
+- メールアドレスは`ai-{department}@smartsprouts.jp`の部署ベース命名規約で自動発行される（`AdminService::createAiStaff(string $department)`、内部で既存の`createAdmin()`を再利用）。
+- デフォルト権限は`config('admin_permissions.ai_staff_role_allowed_actions')`（`index`/`show`のみ）で閲覧専用に絞られており、`RolePermissionSeeder`実行時に同期される。権限マトリクス編集画面（`Admin\PermissionController::update()`）は`admin`/`editor`キーしか送らないため、`PermissionService::updateRoleMatrix()`は引数に含まれるロールのみを更新し、`ai_staff`/`viewer`のように画面から送られてこないロールの権限は変更しない仕様になっている。
+- 初期10部署分のAI社員を作成する`AiStaffSeeder`（冪等、既存の同一部署のai_staff Adminがあればスキップ）が存在するが、`DatabaseSeeder`には登録されておらず自動実行されない。本番投入時は必ず`migrate`→`db:seed --class=RolePermissionSeeder`（`ai_staff`の`Role`レコード作成・権限同期。これを飛ばすと`Admin::booted()`の`syncRoles()`が`RoleDoesNotExist`で失敗する）→任意で`db:seed --class=AiStaffSeeder`の順で手動実行する。
+- 将来のAPI経由ログインに備え`Admin`モデルに`HasApiTokens`（Sanctum）を追加済みだが、トークン発行の実装自体は対象外（土台のみ）。給与・勤務情報等（`admin_employments`等）には一切触れない。
 
 ## 6. 非機能要件
 

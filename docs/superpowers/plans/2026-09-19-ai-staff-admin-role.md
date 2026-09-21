@@ -541,6 +541,8 @@ git commit -m "feat: 初期10部署分のAI社員シーダーを追加"
 
 **注意(本番投入時)**: このシーダーを本番で`php artisan db:seed --class=AiStaffSeeder`として実行すると、実際にメール送信(`AdminCreatedMail`)が飛ぶ。本番実行前にメール送信先・内容(自動生成パスワードの扱い)をユーザーと確認すること。`migrate:fresh`は絶対に使わない(過去にNARA NEXTでseeder未記録のDBデータを消失させた実例あり)。
 
+**注意(本番投入の実行順序)**: `Admin::booted()`はAdmin保存時に`syncRoles([$admin->role])`を呼ぶため、対象ロールに対応するSpatieの`Role`レコードが先に存在しないと`RoleDoesNotExist`例外で失敗する。本番投入は必ず次の順序で行う: (1) `php artisan migrate`(`ai_staff`ロール値・`department`カラムを追加) → (2) `php artisan db:seed --class=RolePermissionSeeder`(`ai_staff`の`Role`レコード作成・権限同期。内部で`admin:sync-permissions`相当の処理も行う) → (3) 任意で`php artisan db:seed --class=AiStaffSeeder`(実際にAI社員Adminを作成)。(2)を飛ばして(3)を先に実行すると`RoleDoesNotExist`で必ず失敗する。
+
 ---
 
 ## Self-Review

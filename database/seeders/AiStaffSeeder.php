@@ -38,7 +38,8 @@ class AiStaffSeeder extends Seeder
                 continue;
             }
 
-            $service->createAiStaff($department);
+            $result = $service->createAiStaff($department);
+            $this->command?->info("{$department}: {$result['admin']->email} / {$result['password']}");
         }
     }
 }
