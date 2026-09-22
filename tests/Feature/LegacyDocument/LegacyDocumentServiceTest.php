@@ -35,6 +35,10 @@ class LegacyDocumentServiceTest extends TestCase
         $this->assertSame($admin->id, $document->created_by);
         $this->assertNotNull($document->pdf_path);
         Storage::disk('private')->assertExists($document->pdf_path);
+        $this->assertSame('old-invoice.pdf', $document->original_filename);
+        $this->assertSame('application/pdf', $document->mime_type);
+        $this->assertNotNull($document->file_size);
+        $this->assertGreaterThan(0, $document->file_size);
     }
 
     public function test_register_without_a_file_leaves_pdf_path_null(): void
@@ -49,5 +53,8 @@ class LegacyDocumentServiceTest extends TestCase
         ], null, $admin->id);
 
         $this->assertNull($document->pdf_path);
+        $this->assertNull($document->original_filename);
+        $this->assertNull($document->mime_type);
+        $this->assertNull($document->file_size);
     }
 }

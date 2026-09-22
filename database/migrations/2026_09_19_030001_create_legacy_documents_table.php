@@ -23,6 +23,9 @@ return new class extends Migration
 
             $table->string('disk')->default('private');
             $table->string('pdf_path')->nullable()->comment('スキャンPDFの保存パス(任意)');
+            $table->string('original_filename')->nullable()->comment('アップロード時の元ファイル名');
+            $table->string('mime_type')->nullable()->comment('アップロードファイルのMIMEタイプ');
+            $table->unsignedBigInteger('file_size')->nullable()->comment('アップロードファイルのバイト数');
 
             $table->text('notes')->nullable();
 

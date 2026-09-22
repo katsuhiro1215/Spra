@@ -21,6 +21,9 @@ class LegacyDocument extends Model
         'total_amount',
         'disk',
         'pdf_path',
+        'original_filename',
+        'mime_type',
+        'file_size',
         'notes',
         'created_by',
     ];
