@@ -43,4 +43,9 @@ class Hearing extends Model
     {
         return $this->hasMany(HearingAnswer::class);
     }
+
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
 }

@@ -27,6 +27,7 @@ class Quote extends Model
         'quote_number',
         'user_id',
         'contact_id',
+        'proposal_id',
         'company_id',
         'title',
         'requirements',
@@ -58,6 +59,14 @@ class Quote extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    /**
+     * 提案書
+     */
+    public function proposal(): BelongsTo
+    {
+        return $this->belongsTo(Proposal::class);
     }
 
     /**
