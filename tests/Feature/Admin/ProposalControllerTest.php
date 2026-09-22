@@ -65,4 +65,25 @@ class ProposalControllerTest extends TestCase
 
         $response->assertRedirect(route('admin.login'));
     }
+
+    public function test_admin_can_view_a_proposal(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $hearing = $this->createHearing($admin);
+
+        $proposal = \App\Models\Proposal::create([
+            'hearing_id' => $hearing->id,
+            'title' => '閲覧テスト提案書',
+            'content' => '## 提案内容',
+            'created_by' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin, 'admins')->get(route('admin.proposal.show', $proposal));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Proposals/Show')
+            ->has('proposal')
+            ->where('proposal.id', $proposal->id)
+        );
+    }
 }
