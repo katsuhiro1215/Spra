@@ -6,7 +6,6 @@ use App\Models\LegacyDocument;
 use App\Repositories\Contracts\LegacyDocumentRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class LegacyDocumentService extends BaseService
 {
@@ -33,6 +32,9 @@ class LegacyDocumentService extends BaseService
                 'total_amount' => $data['total_amount'],
                 'disk' => $disk,
                 'pdf_path' => $path,
+                'original_filename' => $file?->getClientOriginalName(),
+                'mime_type' => $file?->getMimeType(),
+                'file_size' => $file?->getSize(),
                 'notes' => $data['notes'] ?? null,
                 'created_by' => $creatorId,
             ]);
@@ -40,15 +42,14 @@ class LegacyDocumentService extends BaseService
     }
 
     /**
+     * ソフトデリートのみ行う。アーカイブの目的上、元ファイルは物理削除しない
+     * (物理削除は将来 force-delete 専用の経路を追加する場合のみ検討する)。
+     *
      * @param LegacyDocument $model
      */
     public function delete(mixed $model): bool
     {
         return DB::transaction(function () use ($model) {
-            if ($model->pdf_path) {
-                Storage::disk($model->disk)->delete($model->pdf_path);
-            }
-
             return $this->repository->delete($model);
         });
     }
