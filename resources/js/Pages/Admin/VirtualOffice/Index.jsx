@@ -1,0 +1,32 @@
+import { Head } from "@inertiajs/react";
+import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
+import PageHeader from "@/Components/Layout/PageHeader";
+import { FlashMessage } from "@/Components/Notifications";
+import { PageConfig } from "@/Constants/PageConfig";
+
+export default function Index() {
+    return (
+        <AdminAuthenticatedLayout>
+            <Head title={PageConfig.virtualOffice.documentTitle} />
+            {/* フラッシュメッセージ */}
+            <FlashMessage />
+            {/* ヘッダー */}
+            <PageHeader
+                title={PageConfig.virtualOffice.title}
+                description={PageConfig.virtualOffice.description}
+            />
+            {/* メイン */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+                <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">🏢</div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        バーチャルオフィス機能
+                    </h3>
+                    <p className="text-gray-500">
+                        この機能は現在準備中です。近日公開予定です。
+                    </p>
+                </div>
+            </main>
+        </AdminAuthenticatedLayout>
+    );
+}

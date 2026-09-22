@@ -858,6 +858,16 @@ export const PageConfig = {
     },
 
     /**
+     * バーチャルオフィス
+     */
+    virtualOffice: {
+        title: "🏢 バーチャルオフィス",
+        description: "AI社員が働く様子を可視化します",
+        documentTitle: "バーチャルオフィス",
+        breadcrumbs: ["ホーム", "バーチャルオフィス"],
+    },
+
+    /**
      * Webサイト管理
      */
     websiteDashboard: {

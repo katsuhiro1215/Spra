@@ -339,4 +339,9 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
      * 外部サービス連携（SaaS等へのリンク・APIデータ取得）
      **************************************/
     require __DIR__ . '/admin/external-service.php';
+
+    /**************************************
+     * バーチャルオフィス
+     **************************************/
+    require __DIR__ . '/admin/virtual-office.php';
 });
