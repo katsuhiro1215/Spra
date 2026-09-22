@@ -225,6 +225,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     require __DIR__ . '/admin/receipt.php';
 
     /**************************************
+     * 過去の請求書・領収書アーカイブ
+     **************************************/
+    require __DIR__ . '/admin/legacy-document.php';
+
+    /**************************************
      * お知らせ配信
      **************************************/
     require __DIR__ . '/admin/announcement.php';
