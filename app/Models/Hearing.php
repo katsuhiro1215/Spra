@@ -15,6 +15,7 @@ class Hearing extends Model
     protected $fillable = [
         'contact_id',
         'quote_id',
+        'appointment_id',
         'title',
         'notes',
         'created_by',
@@ -32,6 +33,11 @@ class Hearing extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class);
     }
 
     public function creator(): BelongsTo
