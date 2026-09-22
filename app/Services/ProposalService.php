@@ -23,7 +23,7 @@ class ProposalService extends BaseService
         $data['created_by'] = $creatorId;
         $data['status'] ??= 'draft';
 
-        return $this->repository->create($data);
+        return $this->create($data);
     }
 
     public function findByHearing(string $hearingId): Collection
