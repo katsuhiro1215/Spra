@@ -84,4 +84,30 @@ class LegacyDocumentControllerTest extends TestCase
 
         $response->assertRedirect(route('admin.login'));
     }
+
+    public function test_index_filters_by_document_type(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+
+        LegacyDocument::factory()->create([
+            'document_type' => 'invoice',
+            'client_name' => '請求書クライアント',
+            'created_by' => $admin->id,
+        ]);
+        LegacyDocument::factory()->create([
+            'document_type' => 'receipt',
+            'client_name' => '領収書クライアント',
+            'created_by' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin, 'admins')
+            ->get(route('admin.legacy-document.index', ['document_type' => 'invoice']));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/LegacyDocuments/Index')
+            ->has('documents.data', 1)
+            ->where('documents.data.0.document_type', 'invoice')
+            ->where('documents.data.0.client_name', '請求書クライアント')
+        );
+    }
 }
