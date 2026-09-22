@@ -749,3 +749,7 @@ git commit -m "test: 過去書類アーカイブが既存の請求パイプラ�
 - **Spec対応**: 設計メモ§3.2(既存パイプラインと分離した新規テーブル、想定カラム)→Task1のマイグレーション・モデルで全カラムを反映。ファイルアップロードは想定通り`private`ディスク・PDF任意(必須にはしていない)。Task4で「既存の整合性ロジックには一切触れない」という要件を明示的にテストで検証した。§3.3の未決定事項(一覧統合可否・User/Company任意紐付け)は今回未着手のままスコープ外として明記。
 - **プレースホルダー確認**: 全ステップに実コードあり。TODO/TBDなし。
 - **型の一貫性**: `LegacyDocumentService::register(array $data, ?UploadedFile $file, ?string $creatorId): LegacyDocument`はTask2で定義し、Task3のコントローラで同じ引数順・型で呼んでいる。`LegacyDocument::DOCUMENT_TYPES`はTask1で定義しTask3の`LegacyDocumentRequest`で参照、値の食い違いなし。
+
+## 本番投入時の注意
+
+- `EnsureAdminPermission`ミドルウェアはルート名(`legacy-document.index`/`legacy-document.store`)から権限スラッグを導出し、Spatieの`hasEffectivePermission()`で判定する。テストでは`RolePermissionSeeder`が内部で`admin:sync-permissions`相当の処理を実行しているため問題が表面化しないが、本番ではこのブランチのマージ・デプロイ後に必ず`php artisan admin:sync-permissions`を実行すること。実行を忘れると、スーパー管理者以外のスタッフがこのルートにアクセスした際に403ではなく500エラーになる。

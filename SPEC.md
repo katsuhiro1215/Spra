@@ -185,6 +185,15 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - 初期10部署分のAI社員を作成する`AiStaffSeeder`（冪等、既存の同一部署のai_staff Adminがあればスキップ）が存在するが、`DatabaseSeeder`には登録されておらず自動実行されない。本番投入時は必ず`migrate`→`db:seed --class=RolePermissionSeeder`（`ai_staff`の`Role`レコード作成・権限同期。これを飛ばすと`Admin::booted()`の`syncRoles()`が`RoleDoesNotExist`で失敗する）→任意で`db:seed --class=AiStaffSeeder`の順で手動実行する。
 - 将来のAPI経由ログインに備え`Admin`モデルに`HasApiTokens`（Sanctum）を追加済みだが、トークン発行の実装自体は対象外（土台のみ）。給与・勤務情報等（`admin_employments`等）には一切触れない。
 
+### 5.14 過去書類アーカイブ（legacy_documents）
+- 現行システム導入以前の請求書・領収書を記録として保管するための新規テーブル・機能。`LegacyDocument`モデル（ULID主体、`SoftDeletes`）・`LegacyDocumentRepository`/`LegacyDocumentService`（Repository/Serviceパターン）・`Admin\LegacyDocumentController`で構成。
+- 既存の`invoices`/`receipts`/`payments`とは**意図的に外部キーを持たない**。既存の請求パイプライン（金額整合性チェック）には一切影響を与えない設計で、`LegacyDocumentIsolationTest`で検証済み。クライアント名も`client_name`の自由記述で、既存`User`/`Company`とは紐付けない。
+- 保有カラム: `document_type`（`invoice`/`receipt`のenum、`LegacyDocument::DOCUMENT_TYPES`）、`client_name`、`issued_at`、`total_amount`（明細分割はしない）、`disk`/`pdf_path`（スキャンPDFの保存先、任意）、`original_filename`/`mime_type`/`file_size`（アップロード時の元ファイル情報、いずれもnullable）、`notes`、`created_by`（`admins`参照、`set null`）。
+- スキャンPDFは`private`ディスクに保存し、アップロード時のMIMEタイプは`pdf,png,jpg,jpeg`のみ許可（`LegacyDocumentRequest`）。ファイルは任意（無くても登録可能）。
+- 削除は`SoftDeletes`のみで、物理ファイルは削除しない（アーカイブの目的上、元ファイルを失わないことを優先）。force-delete相当の物理削除経路は未実装。
+- 管理画面は`/admin/legacy-document`（`Route::resource(...)->only(['index', 'store'])`、ルート名`admin.legacy-document.*`）。フロントエンドは登録一覧を表示する`Admin/LegacyDocuments/Index.jsx`のみ実装済みで、作成・編集フォームや削除UIは未実装（登録は現状APIへの直接POSTのみを想定したスタブ）。
+- 本番投入後は`php artisan admin:sync-permissions`の実行が必須（§4の権限同期ルール、詳細は`docs/superpowers/plans/2026-09-19-legacy-documents-archive.md`の「本番投入時の注意」参照）。
+
 ## 6. 非機能要件
 
 ### 6.1 セキュリティ・個人情報保護方針
@@ -297,3 +306,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | 2026-08-21 | §7にK34（Contract金額計算の消費税端数未丸めバグ、分割請求が1円合わなくなる不具合、修正済み）を追加 |
 | 2026-08-21 | §7にK35（サービス項目一覧のフィルター完全不動作・件数/タイトル表示崩れ、編集更新エラー、修正済み）を追加 |
 | 2026-08-21 | §7にK36（契約/見積/請求/領収書の採番フォーマット不統一・手動修正不可、修正済み）を追加。共通採番サービス`ReferenceNumberService`新設・既存4エンティティの採番ロジック置き換え・下書き/未送付時の番号手動編集機能を実装（`feat/reference-number-unification`ブランチ） |
+| 2026-09-23 | §5.14に過去書類アーカイブ（`legacy_documents`）のドメイン仕様を追加（`feat/legacy-documents-archive`ブランチの最終レビュー修正の一環、本ドキュメント更新が漏れていたため追記） |
