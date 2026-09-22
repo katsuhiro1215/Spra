@@ -188,6 +188,11 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     require __DIR__ . '/admin/quote.php';
 
     /**************************************
+     * 提案書
+     **************************************/
+    require __DIR__ . '/admin/proposal.php';
+
+    /**************************************
      * キャンペーン
      **************************************/
     require __DIR__ . '/admin/campaign.php';
