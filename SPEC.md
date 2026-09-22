@@ -194,6 +194,16 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - 管理画面は`/admin/legacy-document`（`Route::resource(...)->only(['index', 'store'])`、ルート名`admin.legacy-document.*`）。フロントエンドは登録一覧を表示する`Admin/LegacyDocuments/Index.jsx`のみ実装済みで、作成・編集フォームや削除UIは未実装（登録は現状APIへの直接POSTのみを想定したスタブ）。
 - 本番投入後は`php artisan admin:sync-permissions`の実行が必須（§4の権限同期ルール、詳細は`docs/superpowers/plans/2026-09-19-legacy-documents-archive.md`の「本番投入時の注意」参照）。
 
+### 5.15 提案書（proposals）
+- ヒアリング内容をもとにした提案書。`Proposal`モデル（ULID主体、`SoftDeletes`）・`ProposalRepository`/`ProposalService`（Repository/Serviceパターン）・`Admin\ProposalController`で構成。
+- `Hearing`→`Quote`を直接つなぐ既存経路に加え、`Hearing`→`Proposal`→`Quote`を経由する経路をオプショナルとしてサポートする（提案書を経由しない直接経路は引き続き有効）。`quotes.proposal_id`（nullable FK、`onDelete('set null')`）で紐付ける。
+- バージョニングは専用の`ProposalVersion`モデルを設けず、**改訂のたびに新しい`Proposal`レコードを作り直す**設計とした（既存の`QuoteVersion`/`ContractVersion`のような厳密な版管理はスコープ外の意図的な設計判断）。
+- 提案書本文（`content`、Markdown想定）のAIによる自動生成は本ブランチのスコープ外。現状は人間の管理者が入力するCRUD基盤のみを実装している。
+- フロントエンドは`Admin/Proposals/Show.jsx`（閲覧のみのスタブページ）のみ実装済み。作成・編集フォーム、一覧画面、削除UIは未実装。
+- 削除時の挙動: `proposals.hearing_id`/`proposals.contact_id`はいずれも`onDelete('set null')`。`Hearing`または`Contact`が削除されても、紐づく`Proposal`レコード自体は削除されず、該当FKがnullになるだけで内容は保持される（提案書は取引先に提示した業務文書のため、参照元の削除に連動して失われないようにする意図的な設計判断）。
+- ヒアリングと`/consultation`のゲスト予約導線の紐付け: `hearings.appointment_id`（nullable、`Appointment::class`を参照する`foreignId`。`Appointment`はこのドメインの他モデルと異なりULIDではなく整数PKのため`foreignId`を使用）で、契約前のゲストのまま予約された既存の`Appointment`（`Public\AppointmentController`）と紐付けられる。ユーザー登録していない契約前クライアントの日程調整に使う想定で、電話等の手動調整の場合はnullのまま運用する。
+- 本番投入後は`php artisan admin:sync-permissions`の実行が必須（§4の権限同期ルール、新規追加された`admin.proposal.show`/`admin.proposal.store`ルートの権限を同期するため。詳細は`docs/superpowers/plans/2026-09-19-hearing-proposal-quote-flow.md`の「本番投入時の注意」参照）。
+
 ## 6. 非機能要件
 
 ### 6.1 セキュリティ・個人情報保護方針
@@ -261,6 +271,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | K34 | `ContractService::recalculateVersionAmounts()`が消費税額を四捨五入せず、割引適用後の契約合計金額に円未満の端数（例: 299,999.7円）が残る | **修正済み**（2026-08-21、実運用で発覚）。同じ計算を行う`QuoteService::recalculateVersionAmounts()`は`round()`していたが、Contract側だけ抜けていた。画面表示は`number_format`で丸めるため一見300,000円に見えるが、実際にDBへ保存される`ContractVersion.total_amount`は端数を含んだまま（例: 小計342,300円・割引-69,573円・税率10%の場合、299,999.7円）だった。`Contract::remainingAmount()`（分割請求の残金計算に使用）がこの端数入りの値をそのまま使うため、着手金/完了金のように50%ずつ分割請求すると1円合わなくなり、さらに手動で端数の無い金額に修正しようとすると「残金を超えている」という一見矛盾したバリデーションエラーになっていた（エラーメッセージ自体は`number_format`で丸められた残金を表示するため）。`recalculateVersionAmounts()`に`round()`を追加し、`remainingAmount()`側にも防御的に`round()`を追加。**この修正はデプロイ時点で既に契約明細が確定している既存契約の`total_amount`を遡って直すものではない**ため、既に端数を含んだ状態で保存されている契約は、契約明細編集画面を一度保存し直す（`ContractItemController::update()`が`recalculateVersionAmounts()`を再実行する）ことで端数が解消される。回帰テスト追加 | フェーズ1（完了） |
 | K35 | サービス項目一覧のフィルターが完全に動作せず、テーブル見出しも「管理者一覧」・件数も未表示。編集画面の更新も常にエラーになる | **修正済み**（2026-08-21、実運用で発覚）。①`Admin/ServiceItems/Index.jsx`が`useState`で`data`/`setData`を実装していたが、フィルター変更ハンドラは`setData("service_id", value)`というInertiaの`useForm`前提の呼び出し方をしていたため、実際には`data`が文字列`"service_id"`に上書きされ、以降のフィルター参照が全て壊れていた。さらに検索実行時に呼ぶ`get(...)`関数がどこにもimport/定義されておらず、フィルター変更のたびにReferenceErrorが発生していた。`useForm`に置き換えて修正。②`ServiceItemsTable.jsx`のテーブル見出しが「管理者一覧」というコピペミスのハードコードで、かつ`serviceItems`に`.data`配列のみを渡していたため`.total`が常にundefinedで件数が表示されなかった。ページネーションオブジェクト全体を渡すよう統一（他の一覧画面と同じパターン）。③バックエンド（`ServiceItemController::index()`）が`service_plan_id`フィルターをそもそも受け取っておらず、常に無視されていた（`service_plan_id`は`service_items`の直接カラムではなく`service_plan_items`中間テーブル経由のため`whereHas`で対応）。④`ServiceItemRequest`の`slug`バリデーションが`unique:service_items,slug`のみで更新時の自分自身の除外（`ignore()`）が無く、スラッグを変更せず保存すると常に「既に使用されています」エラーになっていた（同一パターンの他のRequestは全て正しく`ignore()`していることを確認済み、影響範囲はServiceItemのみ）。回帰テスト追加 | フェーズ1（完了） |
 | K36 | 契約/見積/請求/領収書の採番フォーマットに統一感が無く、桁数から受注件数が推測できる。番号を手動修正する手段も無い | **修正済み**（2026-08-21、ユーザー指摘）。`{PREFIX}-{YYYYMM}-{4桁連番}`（CTR/QTE/INV/RCP）に統一する共通採番サービス`ReferenceNumberService`を新設し、既存4箇所の採番ロジックを置き換えた。あわせてContractの採番に排他ロック・論理削除考慮が欠けていた不備も修正。下書き/未送付状態に限り、Admin編集画面から番号を手動修正できるようにした。過去に発行済みの番号は遡って変換していない。設計は`docs/superpowers/specs/2026-08-21-reference-number-unification-design.md`参照 | フェーズ1（完了） |
+| K37 | `QuoteVersion`に「同一Quoteにつき`is_current=true`は1件のみ」という不変条件を強制する仕組みが無い | **未修正**（2026-09-23、`feat/hearing-proposal-quote-flow`ブランチの最終レビューで発見）。`QuoteService::updateQuote()`の新バージョン作成パス（sent以上の状態からの改訂）は旧バージョンの`is_current`をfalseに更新しているが、これはこのサービスメソッド経由の場合のみで、規約として強制されているわけではない。実際、本ブランチのテスト（`EstimateSimulatorToProposalFlowTest::test_formal_quote_version_is_created_on_the_same_quote_after_proposal`）は概算(v1)→正式(v2)の遷移を`QuoteService`を介さず`$quote->versions()->create(['is_current' => true, ...])`で直接組み立てており、v1の`is_current`をfalseに戻していない。この結果、同一Quoteの複数バージョンで`is_current=true`が並立しうる状態が既に作出可能であることが確認できる。現状`quotes.current_version_id`が実質的な正の情報源であり、`is_current`単体を信頼するコードがある場合は不整合の余地がある。本ブランチはバージョン作成コードを追加していないため対応していない。将来、正式見積のバージョン作成を実装するタスクで、①同一トランザクション内で旧バージョンの`is_current`を確実にfalseへ更新する、または②`is_current`カラムを廃止し`current_version_id`との一致から動的に導出する、のいずれかで解消すること | フェーズ2（要対応） |
 
 ## 8. 用語集
 
@@ -307,3 +318,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | 2026-08-21 | §7にK35（サービス項目一覧のフィルター完全不動作・件数/タイトル表示崩れ、編集更新エラー、修正済み）を追加 |
 | 2026-08-21 | §7にK36（契約/見積/請求/領収書の採番フォーマット不統一・手動修正不可、修正済み）を追加。共通採番サービス`ReferenceNumberService`新設・既存4エンティティの採番ロジック置き換え・下書き/未送付時の番号手動編集機能を実装（`feat/reference-number-unification`ブランチ） |
 | 2026-09-23 | §5.14に過去書類アーカイブ（`legacy_documents`）のドメイン仕様を追加（`feat/legacy-documents-archive`ブランチの最終レビュー修正の一環、本ドキュメント更新が漏れていたため追記） |
+| 2026-09-23 | §5.15に提案書（`proposals`）のドメイン仕様を追加。§7にK37（`QuoteVersion`の`is_current`単一性が未強制、未修正）を追加（`feat/hearing-proposal-quote-flow`ブランチの最終レビュー修正の一環、本ドキュメント更新が漏れていたため追記） |

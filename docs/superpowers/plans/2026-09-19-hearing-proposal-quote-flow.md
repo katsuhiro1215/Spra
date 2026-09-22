@@ -1265,3 +1265,7 @@ git commit -m "feat: ヒアリングを/consultation発のゲスト予約(Appoin
 - **型の一貫性**: `Hearing::appointment(): BelongsTo`はTask6で新規定義。`Appointment`/`AppointmentSlot`のフィールド名(`appointment_slot_id`/`guest_name`/`guest_email`/`subject`/`location_type`等)は実際のマイグレーション定義から転記しており、他タスクとの命名齟齬なし。
 - **プレースホルダー確認**: 全ステップに実コードあり。TODO/TBDなし。
 - **型の一貫性**: `ProposalService::createProposal(array $data, string $creatorId): Proposal`はTask2で定義し、Task3のコントローラ・Task4のテストで同じシグネチャで呼んでいる。`Proposal::STATUSES`はTask1で定義しTask3の`ProposalRequest`で参照、値の食い違いなし。
+
+## 本番投入時の注意
+
+- `EnsureAdminPermission`ミドルウェアはルート名(`proposal.show`/`proposal.store`)から権限スラッグを導出し、Spatieの`hasEffectivePermission()`で判定する。テストでは`RolePermissionSeeder`が内部で`admin:sync-permissions`相当の処理を実行しているため問題が表面化しないが、本番ではこのブランチのマージ・デプロイ後に必ず`php artisan admin:sync-permissions`を実行すること。実行を忘れると、スーパー管理者以外のスタッフがこのルートにアクセスした際に403ではなく500エラーになる。
