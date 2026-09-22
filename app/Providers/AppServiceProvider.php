@@ -79,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ServicePlanRepositoryInterface::class, ServicePlanRepository::class);
         $this->app->bind(ServiceItemRepositoryInterface::class, ServiceItemRepository::class);
         $this->app->bind(\App\Repositories\Contracts\TaskRepositoryInterface::class, \App\Repositories\TaskRepository::class);
+        $this->app->bind(\App\Repositories\Contracts\LegacyDocumentRepositoryInterface::class, \App\Repositories\LegacyDocumentRepository::class);
         $this->app->bind(\App\Repositories\Contracts\TaskCategoryRepositoryInterface::class, \App\Repositories\TaskCategoryRepository::class);
         $this->app->singleton(\App\Repositories\QuoteResponseRepository::class);
 
