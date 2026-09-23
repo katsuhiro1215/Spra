@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin\Quote;
 use App\Http\Controllers\Controller;
 use App\Models\QuoteResponse;
 use App\Services\QuoteResponseService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,16 +21,13 @@ class QuoteResponseController extends Controller
 
     /**
      * QuoteResponse一覧表示
-     *
-     * @param Request $request
-     * @return Response
      */
     public function index(Request $request): Response
     {
         $filters = $request->only(['status', 'search', 'response_type']);
         $sort = [
             'field' => $request->get('sort_by', 'created_at'),
-            'direction' => $request->get('sort_order', 'desc')
+            'direction' => $request->get('sort_order', 'desc'),
         ];
 
         $quoteResponses = $this->quoteResponseService->getPaginated($filters, $sort, $request->get('per_page', 20));
@@ -44,16 +41,13 @@ class QuoteResponseController extends Controller
 
     /**
      * QuoteResponse詳細表示
-     *
-     * @param QuoteResponse $quoteResponse
-     * @return Response
      */
     public function show(QuoteResponse $quoteResponse): Response
     {
         $quoteResponse = $this->quoteResponseService->getDetail($quoteResponse->id);
 
         // user_id がない場合、メールアドレスから User を検索して自動設定
-        if (!$quoteResponse->user_id && $quoteResponse->email) {
+        if (! $quoteResponse->user_id && $quoteResponse->email) {
             $user = \App\Models\User::where('email', $quoteResponse->email)->first();
             if ($user) {
                 $quoteResponse->update(['user_id' => $user->id]);
@@ -68,14 +62,12 @@ class QuoteResponseController extends Controller
         return Inertia::render('Admin/QuoteResponses/Show', [
             'quoteResponse' => $quoteResponse,
             'responseTypes' => QuoteResponse::RESPONSE_TYPES,
+            'declineReasons' => QuoteResponse::DECLINE_REASONS,
         ]);
     }
 
     /**
      * 招待メール送信
-     *
-     * @param QuoteResponse $quoteResponse
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function sendInvitation(QuoteResponse $quoteResponse): RedirectResponse
     {
@@ -88,6 +80,7 @@ class QuoteResponseController extends Controller
 
         try {
             $this->quoteResponseService->sendInvitationEmail($quoteResponse);
+
             return back()->with('success', __('messages.sent', ['attribute' => '招待メール']));
         } catch (\Exception $e) {
             return back()->with('error', __('messages.action_failed_detail', ['attribute' => '招待メール送信', 'message' => $e->getMessage()]));
@@ -96,9 +89,6 @@ class QuoteResponseController extends Controller
 
     /**
      * 管理者が内容を確認済みであることを記録する
-     *
-     * @param QuoteResponse $quoteResponse
-     * @return RedirectResponse
      */
     public function markReviewed(QuoteResponse $quoteResponse): RedirectResponse
     {
@@ -109,10 +99,6 @@ class QuoteResponseController extends Controller
 
     /**
      * 未回答の見積を管理者が目視確認のうえ手動で「見送り(NG)」として記録する
-     *
-     * @param Request $request
-     * @param QuoteResponse $quoteResponse
-     * @return RedirectResponse
      */
     public function markDeclined(Request $request, QuoteResponse $quoteResponse): RedirectResponse
     {

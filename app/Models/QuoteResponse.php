@@ -17,6 +17,7 @@ class QuoteResponse extends Model
         'email',
         'response_type',
         'response_text',
+        'decline_reason',
         'responded_at',
         'admin_notified_at',
         'decided_by_admin_id',
@@ -39,6 +40,15 @@ class QuoteResponse extends Model
         'request' => 'ご依頼をお願いします',
         'decline' => '今回は見送ります。',
         'revision_request' => 'お見積りの見直しを依頼',
+        'other' => 'その他',
+    ];
+
+    // 辞退理由（response_type = decline の場合のみ使用）
+    public const DECLINE_REASONS = [
+        'price' => '価格が合わなかった',
+        'timing' => 'タイミングが合わなかった',
+        'competitor' => '他社に依頼することにした',
+        'requirements_mismatch' => '要件を満たさなかった',
         'other' => 'その他',
     ];
 
@@ -85,7 +95,7 @@ class QuoteResponse extends Model
     /**
      * Create User and Company from onboarding form data
      *
-     * @param array $validated Validated form data
+     * @param  array  $validated  Validated form data
      * @return array [$user, $company]
      */
     public function createUserAndCompany(array $validated)
@@ -148,6 +158,18 @@ class QuoteResponse extends Model
     public function getResponseTypeLabel(): string
     {
         return self::RESPONSE_TYPES[$this->response_type] ?? $this->response_type;
+    }
+
+    /**
+     * Get human-readable decline reason label
+     */
+    public function getDeclineReasonLabel(): ?string
+    {
+        if (! $this->decline_reason) {
+            return null;
+        }
+
+        return self::DECLINE_REASONS[$this->decline_reason] ?? $this->decline_reason;
     }
 
     /**

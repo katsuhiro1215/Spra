@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\QuoteResponse;
 use App\Notifications\QuoteResponseReceived;
 use App\Services\QuoteResponseService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class QuoteResponseController extends Controller
 {
@@ -52,17 +52,29 @@ class QuoteResponseController extends Controller
         $validated = $request->validate([
             'response_type' => 'required|in:request,decline,revision_request,other',
             'response_text' => 'nullable|string|max:1000',
+            'decline_reason' => 'nullable|in:'.implode(',', array_keys(\App\Models\QuoteResponse::DECLINE_REASONS)),
         ]);
 
         // Add text validation for "other" type
-        if ($validated['response_type'] === 'other' && !$validated['response_text']) {
+        if ($validated['response_type'] === 'other' && empty($validated['response_text'] ?? null)) {
             return back()->withErrors(['response_text' => '詳細をお入力ください']);
         }
+
+        // 「今回は見送ります」の場合は辞退理由の選択を必須にする
+        if ($validated['response_type'] === 'decline' && ! ($validated['decline_reason'] ?? null)) {
+            return back()->withErrors(['decline_reason' => '辞退理由をお選びください']);
+        }
+
+        // decline以外を選んだ場合は辞退理由を保存しない
+        $declineReason = $validated['response_type'] === 'decline'
+            ? $validated['decline_reason']
+            : null;
 
         // Update response
         $quoteResponse->update([
             'response_type' => $validated['response_type'],
-            'response_text' => $validated['response_text'],
+            'response_text' => $validated['response_text'] ?? null,
+            'decline_reason' => $declineReason,
             'responded_at' => now(),
             'admin_notified_at' => now(),
         ]);
@@ -71,8 +83,8 @@ class QuoteResponseController extends Controller
         // 管理者による内容確認は admin_reviewed_at で別途後追い記録する（Admin/QuoteResponses/Show.jsx）。
         if (
             $validated['response_type'] === 'request'
-            && !$quoteResponse->user_id
-            && !$quoteResponse->invitation_sent_at
+            && ! $quoteResponse->user_id
+            && ! $quoteResponse->invitation_sent_at
         ) {
             try {
                 $this->quoteResponseService->sendInvitationEmail($quoteResponse);

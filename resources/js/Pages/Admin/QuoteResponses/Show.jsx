@@ -29,7 +29,7 @@ const QUOTE_STATUS_LABELS = {
     cancelled: "キャンセル",
 };
 
-export default function Detail({ quoteResponse, responseTypes }) {
+export default function Detail({ quoteResponse, responseTypes, declineReasons }) {
     const { post, processing } = useForm();
     const declineForm = useForm({ note: "" });
     const reviewForm = useForm();
@@ -76,6 +76,10 @@ export default function Detail({ quoteResponse, responseTypes }) {
 
     const getResponseTypeLabel = (responseType) => {
         return responseTypes[responseType] || responseType;
+    };
+
+    const getDeclineReasonLabel = (declineReason) => {
+        return declineReasons?.[declineReason] || declineReason;
     };
 
     const headerActions = [
@@ -182,6 +186,19 @@ export default function Detail({ quoteResponse, responseTypes }) {
                                 </p>
                             </div>
                         </div>
+
+                        {quoteResponse.decline_reason && (
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    辞退理由
+                                </label>
+                                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                    {getDeclineReasonLabel(
+                                        quoteResponse.decline_reason,
+                                    )}
+                                </p>
+                            </div>
+                        )}
 
                         {quoteResponse.response_text && (
                             <div>

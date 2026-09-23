@@ -251,6 +251,8 @@ Teams/Zoom等の会議自体はSpra外のため直接自動化はしない。AI�
 
 失注分析をAIにさせるには、まず構造化データが必要。`decline_reason`のような理由コード（価格が合わなかった／他社に決めた／タイミングが悪かった等）を`QuoteResponse`（または関連テーブル）に新設することが前提条件となる。現状は自由記述のみのため、AIが都度文章を分類する形になり精度・再利用性が低い。
 
+**実装済み（2026-09-23、`feat/quote-decline-reason`ブランチ）**: `QuoteResponse.decline_reason`カラムを新設し、`response_type = 'decline'`を選んだ場合に理由コード（`QuoteResponse::DECLINE_REASONS`: price/timing/competitor/requirements_mismatch/other）の選択を公開フォーム・サーバー側バリデーション双方で必須化した。これで将来のAI失注分析に使える構造化データの蓄積が始まる（分析ロジック自体はまだ未実装）。管理者が未回答を目視でNG判定する`markAsDeclined()`経路は対象外（クライアント自身の選択ではないため）。詳細はSPEC.md §5.1参照。
+
 ### 6.5 契約フローについて
 
 **既存のContract署名フローに追加変更は不要**（ユーザー確認済み）。見積承認後のContract下書き作成をAIに手伝わせる案は出たが、優先度は低いとして5.7の未決定事項に留める。
@@ -259,7 +261,7 @@ Teams/Zoom等の会議自体はSpra外のため直接自動化はしない。AI�
 
 1. ヒアリング当日用の補助質問・メモ提案（AI）
 2. ヒアリング回答（`HearingAnswer`）→提案書ドラフト（`Proposal.content`）生成（AI）
-3. `decline_reason`等、失注理由の構造化フィールド新設（分析の土台）
+3. ~~`decline_reason`等、失注理由の構造化フィールド新設（分析の土台）~~ **実装済み（2026-09-23）**。6.4参照
 4. （5章まとめ）`appointments.contact_id`追加＋`/consultation`のcontact_id連携＋カテゴリ別自動返信テンプレート
 5. （5章まとめ）見積フロア価格ガードレールをAIの見積回答ロジックに組み込む
 

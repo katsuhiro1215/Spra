@@ -7,7 +7,16 @@ export default function QuoteResponseForm({ quote, token }) {
     const { data, setData, post, processing, errors } = useForm({
         response_type: "request", // default selection
         response_text: "",
+        decline_reason: "",
     });
+
+    const DECLINE_REASONS = [
+        { value: "price", label: "価格が合わなかった" },
+        { value: "timing", label: "タイミングが合わなかった" },
+        { value: "competitor", label: "他社に依頼することにした" },
+        { value: "requirements_mismatch", label: "要件を満たさなかった" },
+        { value: "other", label: "その他" },
+    ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -236,6 +245,49 @@ export default function QuoteResponseForm({ quote, token }) {
                                 </p>
                             )}
                         </div>
+
+                        {/* 辞退理由選択（見送りの場合） */}
+                        {data.response_type === "decline" && (
+                            <div>
+                                <label
+                                    htmlFor="decline_reason"
+                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    辞退理由をお聞かせください
+                                    <span className="text-red-500 ml-1">*</span>
+                                </label>
+                                <select
+                                    id="decline_reason"
+                                    name="decline_reason"
+                                    value={data.decline_reason}
+                                    onChange={(e) =>
+                                        setData(
+                                            "decline_reason",
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    required={
+                                        data.response_type === "decline"
+                                    }
+                                >
+                                    <option value="">選択してください</option>
+                                    {DECLINE_REASONS.map((reason) => (
+                                        <option
+                                            key={reason.value}
+                                            value={reason.value}
+                                        >
+                                            {reason.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.decline_reason && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                        {errors.decline_reason}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {/* テキスト入力（その他の場合） */}
                         {data.response_type === "other" && (
