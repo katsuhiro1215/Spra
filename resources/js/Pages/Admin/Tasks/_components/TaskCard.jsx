@@ -2,9 +2,17 @@ import React from "react";
 import { Link } from "@inertiajs/react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Avatar from "@/Components/Avatar";
 
 const PRIORITY_LABEL = { high: "高", medium: "中", low: "低" };
 const PRIORITY_COLOR = { high: "bg-red-100 text-red-700", medium: "bg-yellow-100 text-yellow-700", low: "bg-gray-100 text-gray-600" };
+
+// AI社員アバターの右下に重ねる小さなバッジ（一目で人間スタッフと区別するため）
+const AiStaffBadge = () => (
+    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[9px] ring-1 ring-gray-300">
+        🤖
+    </span>
+);
 
 export default function TaskCard({ task, onClick }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
@@ -41,7 +49,17 @@ export default function TaskCard({ task, onClick }) {
                     {task.category.name}
                 </span>
             )}
-            {task.admin && <div className="mt-1 text-xs text-gray-400">{task.admin.email}</div>}
+            {task.admin && (
+                <div className="mt-2 flex items-center gap-2">
+                    <Avatar
+                        name={task.admin.email}
+                        size="xs"
+                        variant={task.admin.role === "ai_staff" ? "info" : "primary"}
+                        badge={task.admin.role === "ai_staff" ? <AiStaffBadge /> : null}
+                    />
+                    <span className="text-xs text-gray-400">{task.admin.email}</span>
+                </div>
+            )}
             <Link
                 href={route("admin.task.show", task.id)}
                 onClick={(e) => e.stopPropagation()}
