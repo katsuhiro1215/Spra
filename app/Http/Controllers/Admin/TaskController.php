@@ -36,7 +36,7 @@ class TaskController extends Controller
         return Inertia::render('Admin/Tasks/Index', [
             'tasks' => $tasks,
             'categories' => $this->categoryService->listAll(),
-            'admins' => Admin::where('status', 'active')->orderBy('email')->get(['id', 'email']),
+            'admins' => Admin::where('status', 'active')->orderBy('email')->get(['id', 'email', 'role']),
             'filters' => $filters,
         ]);
     }

@@ -16,7 +16,7 @@ class Task extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    public const STATUSES = ['todo', 'in_progress', 'done'];
+    public const STATUSES = ['todo', 'in_progress', 'review', 'done'];
     public const PRIORITIES = ['high', 'medium', 'low'];
 
     protected $fillable = [

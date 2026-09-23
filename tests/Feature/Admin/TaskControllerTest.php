@@ -47,6 +47,36 @@ class TaskControllerTest extends TestCase
         $this->assertNotNull($task->fresh()->completed_at);
     }
 
+    public function test_updating_status_to_review_does_not_set_completed_at(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->create(['status' => 'in_progress']);
+
+        $this->actingAs($admin, 'admins')
+            ->patch(route('admin.task.status', $task), ['status' => 'review'])
+            ->assertRedirect();
+
+        $task->refresh();
+        $this->assertSame('review', $task->status);
+        $this->assertNull($task->completed_at);
+    }
+
+    public function test_index_exposes_assignee_role_including_ai_staff(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        Admin::factory()->aiStaff('marketing')->create(['status' => 'active']);
+
+        $response = $this->actingAs($admin, 'admins')->get(route('admin.task.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Tasks/Index')
+            ->has('admins', 2)
+            ->where('admins.0.role', fn ($role) => in_array($role, ['admin', 'ai_staff'], true))
+            ->where('admins.1.role', fn ($role) => in_array($role, ['admin', 'ai_staff'], true))
+        );
+    }
+
     public function test_creating_weekly_recurring_task_without_weekday_fails_validation(): void
     {
         $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
