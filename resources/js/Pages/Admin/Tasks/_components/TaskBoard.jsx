@@ -5,6 +5,7 @@ import TaskColumn from "./TaskColumn";
 const COLUMNS = [
     { status: "todo", label: "未着手" },
     { status: "in_progress", label: "進行中" },
+    { status: "review", label: "レビュー待ち" },
     { status: "done", label: "完了" },
 ];
 
