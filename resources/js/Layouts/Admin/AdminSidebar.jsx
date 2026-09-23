@@ -46,8 +46,15 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
 
         const anchorRect = anchorEl.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
+        // menuEl自体はflexレイアウト(flex-1 min-h-0)で直前の項目用の古いmaxHeightに
+        // 合わせて子要素(スクロール領域)が縮んでしまうため、menuEl.getBoundingClientRect()は
+        // もちろんmenuEl.scrollHeightも「今の制約の中での高さ」しか返せない。
+        // ヘッダーの実高さ + スクロール領域本来のscrollHeight(overflow-y-autoでも
+        // 常にクリップ前の本来のコンテンツ高さを返す)を合算し、本来必要な高さを測る。
+        const headerEl = menuEl?.firstElementChild ?? null;
+        const contentEl = menuEl?.lastElementChild ?? null;
         const menuHeight = menuEl
-            ? menuEl.getBoundingClientRect().height
+            ? (headerEl?.getBoundingClientRect().height ?? 0) + (contentEl?.scrollHeight ?? 0)
             : 0;
         const availableHeight = viewportHeight - SUBMENU_MARGIN * 2;
         const maxHeight = Math.min(menuHeight || availableHeight, availableHeight);
