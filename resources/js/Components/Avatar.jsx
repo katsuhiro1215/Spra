@@ -10,6 +10,7 @@ import { getPrimaryBackgroundStyle } from "@/Utils/themeUtils";
  * @param {string} rounded - 角の丸み (none, sm, md, lg, full)
  * @param {string} variant - カラーバリアント (primary, secondary, success, danger, warning, info, gray)
  * @param {string} className - 追加のCSSクラス
+ * @param {React.ReactNode} badge - 右下に重ねて表示する小さなバッジ要素（省略可）
  */
 export default function Avatar({
     src,
@@ -19,6 +20,7 @@ export default function Avatar({
     rounded = "full",
     variant = "primary",
     className = "",
+    badge,
     ...props
 }) {
     const sizes = {
@@ -63,19 +65,15 @@ export default function Avatar({
         variant === "primary" ? getPrimaryBackgroundStyle(false, 1) : {};
 
     // 画像がある場合
-    if (src) {
-        return (
-            <img
-                src={src}
-                alt={alt || name || "Avatar"}
-                className={`${sizes[size]} ${roundedStyles[rounded]} object-cover ${className}`}
-                {...props}
-            />
-        );
-    }
-
-    // 画像がない場合、イニシャルを表示
-    return (
+    const avatarElement = src ? (
+        <img
+            src={src}
+            alt={alt || name || "Avatar"}
+            className={`${sizes[size]} ${roundedStyles[rounded]} object-cover ${className}`}
+            {...props}
+        />
+    ) : (
+        // 画像がない場合、イニシャルを表示
         <div
             className={`${sizes[size]} ${roundedStyles[rounded]} ${
                 variant === "primary" ? "" : colorVariants[variant]
@@ -84,6 +82,17 @@ export default function Avatar({
             {...props}
         >
             {getInitials(name)}
+        </div>
+    );
+
+    if (!badge) {
+        return avatarElement;
+    }
+
+    return (
+        <div className="relative inline-block">
+            {avatarElement}
+            <div className="absolute -bottom-0.5 -right-0.5">{badge}</div>
         </div>
     );
 }

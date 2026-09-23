@@ -30,6 +30,7 @@ export const ROLE_BADGES = {
     super_admin: { text: "スーパー管理者", variant: "danger" },
     admin: { text: "管理者", variant: "info" },
     editor: { text: "編集者", variant: "success" },
+    ai_staff: { text: "AI社員", variant: "purple" },
     ceo: { text: "CEO", variant: "primary" },
     system: { text: "システム管理者", variant: "success" },
     general_owner: { text: "一般オーナー", variant: "secondary" },
