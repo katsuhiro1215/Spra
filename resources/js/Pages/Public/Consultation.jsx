@@ -13,6 +13,7 @@ export default function Consultation({
     availableSlots = [],
     source = "web",
     ref = null,
+    contactId = null,
 }) {
     const breadcrumbs = [{ label: "無料相談" }];
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -24,6 +25,7 @@ export default function Consultation({
         website: "", // ハニーポット（人間には見えない欄）
         source, // 予約経路（SNS等の外部導線から流入した場合に設定される）
         ref, // 外部プラットフォームのユーザー識別子
+        contact_id: contactId, // お問い合わせ（Contact）からの誘導の場合に設定される
     });
 
     const handleSubmit = (e) => {

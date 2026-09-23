@@ -13,6 +13,7 @@ class ResponseTemplate extends Model
     use HasUlid, SoftDeletes;
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
 
     protected $fillable = [
@@ -85,6 +86,7 @@ class ResponseTemplate extends Model
             '{admin_name}' => '担当者名',
             '{today}' => '今日の日付',
             '{app_name}' => 'アプリケーション名',
+            '{hearing_link}' => 'ヒアリング予約ページへのリンク（このお問い合わせに紐付け）',
         ];
     }
 

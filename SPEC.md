@@ -150,6 +150,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - 詳細: `docs/AppointmentSystemGuide.md`
 - `ScheduleDefault`（曜日ごとの営業時間テンプレート）/`ScheduleException`/`Holiday`/`AppointmentSlot`/`Appointment`（status: `pending`/`confirmed`/`completed`/`cancelled`/`no_show`）。
 - 繰り返し枠設定（`AppointmentSlotRecurrence`、曜日パターン→`AppointmentSlot`自動生成）・クライアント向け予約UI（`User/AppointmentController`）・カレンダー連携（`ScheduleController::calendar()`）は**実装済み**（2026-07-30、フェーズ2 3.5完了。クライアント向けUI・カレンダー連携は調査の結果既に実装済みだったと判明）。SMS通知・一括インポート/エクスポートは引き続き**未実装**（フェーズ2）。
+- **`appointments.contact_id`（nullable、`contacts.id`へのFK）を追加（2026-09-24）**: 「一般問い合わせ→ヒアリング予約」の導線を作るため、`/consultation`（`Public\AppointmentController`）に`?contact_id=<ulid>`を渡せるようにした（既存の`source`/`ref`と同じクエリパラメータ方式）。存在しない`contact_id`はGET側で自動的に無視（null化）、POST側はバリデーションで拒否する。あわせて`ResponseTemplate`のプレースホルダーに`{hearing_link}`（`route('consultation', ['contact_id' => $contact->id])`に置換）を追加し、カテゴリ`general`/`estimate`向けにヒアリング誘導文言入りテンプレートを2件追加した。Appointment予約時にHearingレコードを自動作成する処理は今回のスコープ外（`hearings.appointment_id`との紐付けは管理者が手動で行う）。
 
 ### 5.9 Atlas
 - §3参照。「/apply」フォーム実装がフェーズ1スコープ、審査・承認・課金プラン管理はスコープ外。

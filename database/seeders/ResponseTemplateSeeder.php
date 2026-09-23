@@ -67,6 +67,24 @@ class ResponseTemplateSeeder extends Seeder
                 'status' => 'active',
                 'sort_order' => 6,
             ],
+            [
+                'name' => 'お問い合わせ回答（ヒアリングご案内）',
+                'category' => 'general',
+                'subject' => 'お問い合わせへの回答とヒアリングのご案内 - {app_name}',
+                'body' => "{contact_name} 様\n\nお世話になっております。{app_name} の {admin_name} です。\n\nお問い合わせいただいた内容につきまして、\nいただいた情報をもとに簡単にご回答いたします。\n\n【ご回答内容】\n※ここに簡易的な回答を記載してください\n\nより具体的な内容につきましては、\n直接お話を伺えますと的確なご提案が可能です。\nよろしければ以下より無料ヒアリングをご予約ください。\n\n{hearing_link}\n\nご不明な点がございましたら、お気軽にお問い合わせください。\n\n{admin_name}\n{app_name}",
+                'placeholders' => 'contact_name, admin_name, app_name, hearing_link',
+                'status' => 'active',
+                'sort_order' => 7,
+            ],
+            [
+                'name' => '概算のご案内とヒアリングのご提案',
+                'category' => 'estimate',
+                'subject' => '概算費用のご案内とヒアリングのご提案 - {app_name}',
+                'body' => "{contact_name} 様\n\nお世話になっております。{app_name} の {admin_name} です。\n\nお見積りのお問い合わせをいただき、誠にありがとうございます。\nいただいた情報をもとに、概算の目安をご案内いたします。\n\n【概算費用の目安】\n※ここに概算金額の幅を記載してください\n\n正式なお見積りには、より詳しいご要件の確認が必要です。\nよろしければ以下より無料ヒアリングをご予約ください。\n\n{hearing_link}\n\nご不明な点やご要望がございましたら、\nお気軽にお申し付けください。\n\n{admin_name}\n{app_name}",
+                'placeholders' => 'contact_name, admin_name, app_name, hearing_link',
+                'status' => 'active',
+                'sort_order' => 8,
+            ],
         ];
 
         foreach ($templates as $template) {

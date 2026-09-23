@@ -12,6 +12,7 @@ class Response extends Model
     use HasUlid, SoftDeletes;
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SENT = 'sent';
 
     protected $fillable = [
@@ -114,6 +115,7 @@ class Response extends Model
             '{admin_name}' => $this->admin->profile->full_name ?? $this->admin->email,
             '{today}' => now()->format('Y年m月d日'),
             '{app_name}' => config('app.name'),
+            '{hearing_link}' => route('consultation', ['contact_id' => $contact->id]),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $text);

@@ -212,9 +212,13 @@ AIが「お見積り」カテゴリで概算回答・見積対応をする際、
 お問い合わせに対し、AI（将来的に）または人間が「これはいただいた情報をもとに作成した簡易的な回答です。しっかりお話を伺いたい場合はヒアリングを受けることもできます」という形で返信し、希望者はヒアリング日程を`/consultation`から選んで予約できるようにする。
 
 実装に必要な要素（5.2の欠落箇所に対応）:
-1. `appointments`に`contact_id`（nullable、`contacts`参照）を追加するマイグレーション
-2. `/consultation`のリンクに`contact_id`を渡せるようにする（既存の`source`/`ref`と同様のクエリパラメータ方式を踏襲）
-3. カテゴリ（一般的・お見積り）向けの、ヒアリング誘導リンク付き返信テンプレート（`ResponseTemplate`機構を活用）
+1. ~~`appointments`に`contact_id`（nullable、`contacts`参照）を追加するマイグレーション~~ **実装済み（2026-09-24）**
+2. ~~`/consultation`のリンクに`contact_id`を渡せるようにする（既存の`source`/`ref`と同様のクエリパラメータ方式を踏襲）~~ **実装済み（2026-09-24）**
+3. ~~カテゴリ（一般的・お見積り）向けの、ヒアリング誘導リンク付き返信テンプレート（`ResponseTemplate`機構を活用）~~ **実装済み（2026-09-24）**
+
+**実装済み（2026-09-24、`feat/appointment-contact-linkage`ブランチ）**: `appointments.contact_id`（nullable、`contacts.id`へのFK、`nullOnDelete`）を追加。`Public\AppointmentController::create()`が`?contact_id=<ulid>`をクエリパラメータとして受け取り（存在しないIDは無視してnull化）、`store()`側でもバリデーション（`exists:contacts,id`）した上で`Appointment::create()`に渡す。`ResponseTemplate`のプレースホルダーに`{hearing_link}`（`route('consultation', ['contact_id' => $contact->id])`へ置換、`Response::replacePlaceholders()`で実装）を追加し、カテゴリ`general`/`estimate`向けにヒアリング誘導文言入りの新規テンプレートを2件追加した（既存6件はそのまま）。
+
+**スコープ外として見送った点**: `Appointment`予約時に`Hearing`レコードを自動作成する処理は含めていない。`hearings.appointment_id`/`hearings.contact_id`への紐付けは、引き続き管理者が手動でHearingを作成する際に行う想定（5.7の未決定事項参照）。
 
 ### 5.7 未決定事項（実装計画作成時に詰める）
 
@@ -262,7 +266,7 @@ Teams/Zoom等の会議自体はSpra外のため直接自動化はしない。AI�
 1. ヒアリング当日用の補助質問・メモ提案（AI）
 2. ヒアリング回答（`HearingAnswer`）→提案書ドラフト（`Proposal.content`）生成（AI）
 3. ~~`decline_reason`等、失注理由の構造化フィールド新設（分析の土台）~~ **実装済み（2026-09-23）**。6.4参照
-4. （5章まとめ）`appointments.contact_id`追加＋`/consultation`のcontact_id連携＋カテゴリ別自動返信テンプレート
+4. ~~（5章まとめ）`appointments.contact_id`追加＋`/consultation`のcontact_id連携＋カテゴリ別自動返信テンプレート~~ **実装済み（2026-09-24）**。5.6参照
 5. （5章まとめ）見積フロア価格ガードレールをAIの見積回答ロジックに組み込む
 
 ## 7. マーケティング（AI社員によるブログ・SNS発信）と見積シミュレーターのAPI化（2026-09-23追記）
