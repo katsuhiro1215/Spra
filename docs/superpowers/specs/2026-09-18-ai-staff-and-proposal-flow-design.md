@@ -305,17 +305,23 @@ Obsidian等ローカルファイルでのコンテンツ管理は「誰が（ど
 **現状の制約（コード確認済み）**: `EstimateSimulatorController::save()`は計算ロジック・Contact/Quote/QuoteVersion作成処理が約150行、コントローラーに直接書かれておりService層に分離されていない（このリポジトリの他機能はRepository/Serviceパターンに則っているが、ここは例外）。またInertiaのセッション・CSRFに依存した作りで、JSONレスポンスを返す設計になっていない。
 
 **必要な作業**:
-1. `save()`の計算・作成ロジックを`EstimateSimulatorService`（仮称）に切り出す（既存のInertia版・新しいAPI版の両方から呼べるようにする）
-2. お問い合わせAPIと同じ`X-Api-Key`方式の新しい公開APIエンドポイント（例: `POST /api/estimate-simulator/calculate`）を追加する。かつコード側のWordPressサーバーがサーバー間で呼び出す想定のため、CORS設定の変更は不要
+1. ~~`save()`の計算・作成ロジックを`EstimateSimulatorService`（仮称）に切り出す（既存のInertia版・新しいAPI版の両方から呼べるようにする）~~ **実装済み（2026-09-24）**
+2. ~~お問い合わせAPIと同じ`X-Api-Key`方式の新しい公開APIエンドポイント（例: `POST /api/estimate-simulator/calculate`）を追加する。かつコード側のWordPressサーバーがサーバー間で呼び出す想定のため、CORS設定の変更は不要~~ **実装済み（2026-09-24）**
 3. 参考として、既存ページをiframe埋め込みする簡易案もあるが、かつコードのデザインに馴染ませたいとの要望のため、正式にAPI化する方針を採用（ユーザー確認済み）
 
-**ユーザー指示**: 「実装してから反映させる」とのことで、かつコード側の実際の組み込みは別チャット/別セッションで行う。Spra側（Service切り出し＋API追加）のみ本メモ・今後の実装計画の対象とする。
+**実装済み（2026-09-24、`feat/estimate-simulator-api`ブランチ）**: `EstimateSimulatorController::save()`の約200行のロジックを`app/Services/EstimateSimulatorService.php`（`createEstimateRequest()`/`getSimulatorOptions()`）へ抽出し、既存のWeb UI（Inertia）と新しい外部APIの両方から同じロジックを呼び出せるようにした。既存Web版の挙動は完全に同一（回帰テストで確認済み）。
+
+新設した公開API（`routes/api.php`、既存の`ContactApiClient`/`contact.api_key`ミドルウェア＋`throttle:30,1`をそのまま再利用、CORS設定は変更なし）:
+- `GET /api/estimate-simulator/options` — シミュレーターUIを組み立てるための選択肢（カテゴリ・サービス・プラン・追加項目）を返す
+- `POST /api/estimate-simulator` — 見積依頼を受け付ける。かつコード側にログインアカウントは無いため常にゲスト扱い（`name`/`email`必須）。作成された`Contact`は`source='estimate_simulator_api'`で区別し`api_client_id`を記録、成功時は`quote_number`・金額内訳をJSONで返す
+
+**ユーザー指示**: 「実装してから反映させる」とのことで、かつコード側の実際の組み込みは別チャット/別セッションで行う。Spra側（Service切り出し＋API追加）のみ本メモ・今後の実装計画の対象とする。かつコード側で連携する際は、Admin画面から新規`ContactApiClient`（APIキー）を発行し、`X-Api-Key`ヘッダーで上記2エンドポイントを呼び出す。
 
 ### 7.6 次フェーズで実装計画に入れる新規要素（追加分）
 
 6. Spraブログへの企画〜投稿フロー（AI下書き→人間確認→公開）とAI社員の担当割り当て
-7. `EstimateSimulatorController::save()`のService層への切り出し
-8. 見積シミュレーターの公開API化（`ContactApiClient`と同じ`X-Api-Key`方式）
+7. ~~`EstimateSimulatorController::save()`のService層への切り出し~~ **実装済み（2026-09-24）**。7.5参照
+8. ~~見積シミュレーターの公開API化（`ContactApiClient`と同じ`X-Api-Key`方式）~~ **実装済み（2026-09-24）**。7.5参照
 
 ## 8. 次のステップ
 
