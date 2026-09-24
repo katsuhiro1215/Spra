@@ -4,17 +4,19 @@ namespace App\Http\Controllers\Admin\Quote;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\QuoteRequest;
-use App\Models\Quote;
-use App\Models\User;
-use App\Models\Contact;
+use App\Models\AiStaffActivityLog;
 use App\Models\Company;
+use App\Models\Contact;
+use App\Models\Quote;
 use App\Models\Service;
-use App\Models\ServicePlan;
+use App\Models\User;
+use App\Services\AiStaffActivityLogger;
 use App\Services\QuoteService;
 use App\Services\ServiceCategoryService;
 use App\Services\ServiceItemService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -26,7 +28,8 @@ class QuoteController extends Controller
     public function __construct(
         private QuoteService $quoteService,
         private ServiceCategoryService $serviceCategoryService,
-        private ServiceItemService $serviceItemService
+        private ServiceItemService $serviceItemService,
+        private AiStaffActivityLogger $activityLogger,
     ) {}
 
     /**
@@ -140,6 +143,13 @@ class QuoteController extends Controller
             // Quote作成（QuoteVersion v1 も自動作成される）
             $quote = $this->quoteService->createQuote($quoteData);
 
+            $actor = Auth::guard('admins')->user();
+            $this->activityLogger->log(
+                $actor,
+                AiStaffActivityLog::ACTION_QUOTE_CREATED,
+                "見積「{$quote->title}」を作成",
+                $quote
+            );
 
             return redirect()->route('admin.quote.show', $quote)
                 ->with('success', __('messages.quote.created_add_items'));
@@ -198,7 +208,7 @@ class QuoteController extends Controller
                 'serviceItems' => function ($query) {
                     $query->select('service_items.id', 'service_items.name', 'service_items.standard_price', 'service_items.item_type')
                         ->orderBy('service_plan_items.sort_order');
-                }
+                },
             ])
             ->select('id', 'name', 'service_id', 'description', 'base_price')
             ->orderBy('sort_order')
@@ -351,6 +361,7 @@ class QuoteController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return back()->with('error', __('messages.action_failed_detail', ['attribute' => '見積もりの送信', 'message' => $e->getMessage()]));
         }
     }
