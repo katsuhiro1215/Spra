@@ -1,45 +1,44 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AccountController;
-use App\Http\Controllers\Admin\Admin\AdminController;
-use App\Http\Controllers\Admin\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Admin\AdminAddressController;
+use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Admin\AdminEmploymentController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\SecuritySettingsController;
+use App\Http\Controllers\Admin\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminPermissionOverrideController;
-use App\Http\Controllers\Admin\User\UserController;
-use App\Http\Controllers\Admin\User\UserProfileController;
-use App\Http\Controllers\Admin\User\UserAddressController;
-use App\Http\Controllers\Admin\User\UserCompanyController;
-use App\Http\Controllers\Admin\Company\CompanyController;
-use App\Http\Controllers\Admin\Company\CompanyAddressController;
-use App\Http\Controllers\Admin\MediaController;
-use App\Http\Controllers\Admin\MediaSettingController;
 use App\Http\Controllers\Admin\AnalyticsController;
-use App\Http\Controllers\Admin\OnboardingController;
-use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\Document\DocumentController;
-use App\Http\Controllers\Admin\Document\DocumentCategoryController;
-use App\Http\Controllers\Admin\Document\UserAcceptanceController;
+use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AppointmentSlotController;
 use App\Http\Controllers\Admin\AppointmentSlotRecurrenceController;
-use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\Batch\ReminderExecutionController;
+use App\Http\Controllers\Admin\Company\CompanyAddressController;
+use App\Http\Controllers\Admin\Company\CompanyController;
+use App\Http\Controllers\Admin\Document\DocumentCategoryController;
+use App\Http\Controllers\Admin\Document\DocumentController;
+use App\Http\Controllers\Admin\Document\UserAcceptanceController;
 use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\MediaSettingController;
 use App\Http\Controllers\Admin\NotificationController;
-use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\OrganizationController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\SecuritySettingsController;
+use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\User\UserAddressController;
+use App\Http\Controllers\Admin\User\UserCompanyController;
+use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\User\UserProfileController;
 use App\Http\Controllers\Admin\Website\OrganizationHistoryController;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // ログイン・登録・パスワードリセットなど、ダッシュボード用の認証ミドルウェアより前に
 // 解決される必要があるルート群を先頭で読み込む
-require __DIR__ . '/admin_auth.php';
+require __DIR__.'/admin_auth.php';
 
 Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(function () {
     // 管理者ダッシュボード
@@ -165,47 +164,47 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * サービス
      **************************************/
-    require __DIR__ . '/admin/service.php';
+    require __DIR__.'/admin/service.php';
 
     /**************************************
      * お問い合わせ
      **************************************/
-    require __DIR__ . '/admin/contact.php';
+    require __DIR__.'/admin/contact.php';
 
     /**************************************
      * プロジェクト
      **************************************/
-    require __DIR__ . '/admin/project.php';
+    require __DIR__.'/admin/project.php';
 
     /**************************************
      * 契約
      **************************************/
-    require __DIR__ . '/admin/contract.php';
+    require __DIR__.'/admin/contract.php';
 
     /**************************************
      * 見積もり
      **************************************/
-    require __DIR__ . '/admin/quote.php';
+    require __DIR__.'/admin/quote.php';
 
     /**************************************
      * 提案書
      **************************************/
-    require __DIR__ . '/admin/proposal.php';
+    require __DIR__.'/admin/proposal.php';
 
     /**************************************
      * キャンペーン
      **************************************/
-    require __DIR__ . '/admin/campaign.php';
+    require __DIR__.'/admin/campaign.php';
 
     /**************************************
      * ポイント特典・紹介
      **************************************/
-    require __DIR__ . '/admin/point.php';
+    require __DIR__.'/admin/point.php';
 
     /**************************************
      * Atlas（富裕層向けサービス）
      **************************************/
-    require __DIR__ . '/admin/atlas.php';
+    require __DIR__.'/admin/atlas.php';
 
     // オンボーディング管理
     Route::prefix('onboarding')->name('onboarding.')->controller(OnboardingController::class)->group(function () {
@@ -222,27 +221,27 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * 請求書
      **************************************/
-    require __DIR__ . '/admin/invoice.php';
+    require __DIR__.'/admin/invoice.php';
 
     /**************************************
      * 領収書
      **************************************/
-    require __DIR__ . '/admin/receipt.php';
+    require __DIR__.'/admin/receipt.php';
 
     /**************************************
      * 過去の請求書・領収書アーカイブ
      **************************************/
-    require __DIR__ . '/admin/legacy-document.php';
+    require __DIR__.'/admin/legacy-document.php';
 
     /**************************************
      * お知らせ配信
      **************************************/
-    require __DIR__ . '/admin/announcement.php';
+    require __DIR__.'/admin/announcement.php';
 
     /**************************************
      * タスク管理
      **************************************/
-    require __DIR__ . '/admin/task.php';
+    require __DIR__.'/admin/task.php';
 
     // Documents (規約・ヘルプ・APIドキュメント等) 管理
     Route::resource('documents', DocumentController::class)->except(['show']);
@@ -262,17 +261,17 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * スケジュール
      **************************************/
-    require __DIR__ . '/admin/schedule.php';
+    require __DIR__.'/admin/schedule.php';
 
     /**************************************
      * 勤怠管理
      **************************************/
-    require __DIR__ . '/admin/attendance.php';
+    require __DIR__.'/admin/attendance.php';
 
     /**************************************
      * 給与計算
      **************************************/
-    require __DIR__ . '/admin/payroll.php';
+    require __DIR__.'/admin/payroll.php';
 
     // 予約枠管理
     Route::prefix('appointment-slots')->name('appointment-slots.')->group(function () {
@@ -306,7 +305,7 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * ホームページ管理
      **************************************/
-    require __DIR__ . '/admin/website.php';
+    require __DIR__.'/admin/website.php';
 
     // ログ管理
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
@@ -338,10 +337,15 @@ Route::middleware(['auth:admins', 'verified', 'admin.permission'])->group(functi
     /**************************************
      * 外部サービス連携（SaaS等へのリンク・APIデータ取得）
      **************************************/
-    require __DIR__ . '/admin/external-service.php';
+    require __DIR__.'/admin/external-service.php';
 
     /**************************************
      * バーチャルオフィス
      **************************************/
-    require __DIR__ . '/admin/virtual-office.php';
+    require __DIR__.'/admin/virtual-office.php';
+
+    /**************************************
+     * AI社員 日報
+     **************************************/
+    require __DIR__.'/admin/ai-staff-daily-report.php';
 });
