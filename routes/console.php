@@ -42,5 +42,8 @@ $alertOnFailure(Schedule::command('invoices:send-overdue-reminders')->dailyAt('1
 // アクセス解析・業務KPIの日次集計（前日分）を毎日深夜2時に実行
 $alertOnFailure(Schedule::command('analytics:aggregate-daily')->dailyAt('02:00'));
 
+// AI社員の日報（前日分の活動ログ集計）を毎日午前8時に生成
+$alertOnFailure(Schedule::command('ai-staff:generate-daily-reports')->dailyAt('08:00'));
+
 // Search Console検索パフォーマンスの同期（反映ラグを考慮し3日前分）を毎日深夜3時に実行
 $alertOnFailure(Schedule::command('analytics:sync-search-console')->dailyAt('03:00'));
