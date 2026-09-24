@@ -102,4 +102,37 @@ class TaskControllerTest extends TestCase
             ->delete(route('admin.task.destroy', $task))
             ->assertForbidden();
     }
+
+    public function test_updating_status_of_an_ai_staff_task_logs_the_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $aiStaff = Admin::factory()->aiStaff('marketing')->create(['status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->for($aiStaff, 'admin')->create([
+            'title' => 'SNS投稿作成',
+            'status' => 'in_progress',
+        ]);
+
+        $this->actingAs($admin, 'admins')
+            ->patch(route('admin.task.status', $task), ['status' => 'review'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('ai_staff_activity_logs', [
+            'admin_id' => $aiStaff->id,
+            'action' => \App\Models\AiStaffActivityLog::ACTION_TASK_STATUS_CHANGED,
+            'subject_type' => Task::class,
+            'subject_id' => $task->id,
+        ]);
+    }
+
+    public function test_updating_status_of_a_human_admins_task_does_not_log_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->for($admin, 'admin')->create(['status' => 'in_progress']);
+
+        $this->actingAs($admin, 'admins')
+            ->patch(route('admin.task.status', $task), ['status' => 'review'])
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('ai_staff_activity_logs', 0);
+    }
 }

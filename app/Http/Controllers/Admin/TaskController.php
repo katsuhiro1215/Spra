@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskRequest;
 use App\Models\Admin;
+use App\Models\AiStaffActivityLog;
 use App\Models\Task;
+use App\Services\AiStaffActivityLogger;
 use App\Services\TaskCategoryService;
 use App\Services\TaskService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -17,9 +19,17 @@ use Inertia\Response;
 
 class TaskController extends Controller
 {
+    private const STATUS_LABELS = [
+        'todo' => '未着手',
+        'in_progress' => '対応中',
+        'review' => 'レビュー待ち',
+        'done' => '完了',
+    ];
+
     public function __construct(
         private TaskService $service,
         private TaskCategoryService $categoryService,
+        private AiStaffActivityLogger $activityLogger,
     ) {}
 
     public function index(Request $request): Response
@@ -70,7 +80,18 @@ class TaskController extends Controller
     {
         $request->validate(['status' => ['required', Rule::in(Task::STATUSES)]]);
 
-        $this->service->updateStatus($task, $request->input('status'));
+        $status = $request->input('status');
+        $this->service->updateStatus($task, $status);
+
+        if ($task->admin) {
+            $label = self::STATUS_LABELS[$status] ?? $status;
+            $this->activityLogger->log(
+                $task->admin,
+                AiStaffActivityLog::ACTION_TASK_STATUS_CHANGED,
+                "タスク「{$task->title}」を「{$label}」に変更",
+                $task
+            );
+        }
 
         return redirect()->back();
     }
