@@ -15,6 +15,11 @@ class ProposalControllerTest extends TestCase
     {
         parent::setUp();
         $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+
+        // ai_staffロールは現状view専用(index/show)に権限制限されているため(config/admin_permissions.php)、
+        // この専用ミドルウェアだけテストスコープでバイパスする。本番の権限設定・ロール定義は変更しない。
+        // AI社員への書き込み権限付与自体は別途未決定事項(design memo §1.4参照)。
+        $this->withoutMiddleware(\App\Http\Middleware\EnsureAdminPermission::class);
     }
 
     private function createHearing(Admin $admin): Hearing
@@ -85,5 +90,30 @@ class ProposalControllerTest extends TestCase
             ->has('proposal')
             ->where('proposal.id', $proposal->id)
         );
+    }
+
+    public function test_ai_staff_creating_a_proposal_logs_the_activity(): void
+    {
+        $aiStaff = Admin::factory()->aiStaff('sales')->create(['status' => 'active']);
+
+        $this->actingAs($aiStaff, 'admins')->post(route('admin.proposal.store'), [
+            'title' => 'AI社員作成の提案書',
+        ]);
+
+        $this->assertDatabaseHas('ai_staff_activity_logs', [
+            'admin_id' => $aiStaff->id,
+            'action' => \App\Models\AiStaffActivityLog::ACTION_PROPOSAL_CREATED,
+        ]);
+    }
+
+    public function test_human_admin_creating_a_proposal_does_not_log_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+
+        $this->actingAs($admin, 'admins')->post(route('admin.proposal.store'), [
+            'title' => '人間作成の提案書',
+        ]);
+
+        $this->assertDatabaseCount('ai_staff_activity_logs', 0);
     }
 }
