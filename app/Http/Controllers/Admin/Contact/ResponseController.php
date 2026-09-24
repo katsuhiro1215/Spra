@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin\Contact;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ResponseRequest;
+use App\Models\AiStaffActivityLog;
 use App\Models\Contact;
 use App\Models\Response;
+use App\Services\AiStaffActivityLogger;
 use App\Services\ContactService;
 use App\Services\ResponseService;
 use App\Services\ResponseTemplateService;
@@ -18,7 +20,8 @@ class ResponseController extends Controller
     public function __construct(
         private ResponseService $responseService,
         private ContactService $contactService,
-        private ResponseTemplateService $responseTemplateService
+        private ResponseTemplateService $responseTemplateService,
+        private AiStaffActivityLogger $activityLogger,
     ) {}
 
     /**
@@ -67,23 +70,32 @@ class ResponseController extends Controller
         $validated = $request->validated();
 
         try {
+            $actor = auth('admins')->user();
             $data = [
                 'contact_id' => $contact->id,
                 'response_template_id' => $validated['response_template_id'] ?? null,
-                'admin_id' => auth('admins')->id(),
+                'admin_id' => $actor->id,
                 'subject' => $validated['subject'],
                 'body' => $validated['body'],
                 'recipient_email' => $contact->email,
                 'recipient_name' => $contact->name,
                 'status' => 'draft',
-                'created_by' => auth('admins')->id(),
+                'created_by' => $actor->id,
             ];
 
             $response = $this->responseService->createResponse($data);
 
+            $this->activityLogger->log(
+                $actor,
+                AiStaffActivityLog::ACTION_RESPONSE_CREATED,
+                "お問い合わせ「{$contact->subject}」への返信を作成",
+                $response
+            );
+
             // 即座に送信する場合
             if ($request->boolean('send_now')) {
                 $this->responseService->sendResponse($response);
+
                 return redirect()->route('admin.contact.show', $contact)
                     ->with('success', __('messages.sent', ['attribute' => '返答']));
             }
@@ -138,6 +150,7 @@ class ResponseController extends Controller
             // 即座に送信する場合
             if ($request->boolean('send_now')) {
                 $this->responseService->sendResponse($response);
+
                 return redirect()->route('admin.contact.show', $contact)
                     ->with('success', __('messages.sent', ['attribute' => '返答']));
             }
