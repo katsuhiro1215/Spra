@@ -35,6 +35,7 @@ class AiStaffDailyReportControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Admin/AiStaffDailyReports/Index')
             ->has('reports.data', 1)
+            ->where('reports.data.0.report_date', '2026-09-23')
         );
     }
 

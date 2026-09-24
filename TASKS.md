@@ -265,6 +265,10 @@ SPEC.md §7 K9の通り、実際に未移行なのは以下**4エンティティ
 - [ ] 見積作成時に「このヒアリングから見積を作成」導線でrequirements/custom_specificationsへ転記する機能
 - [ ] （将来）テンプレート管理画面への拡張
 
+### 3.8 AI社員 日報（業務ログ・日次レポート）
+
+- [x] AI社員（`admins.role = 'ai_staff'`）の業務アクション（タスク状態変更・返信/見積/提案書作成）を記録する`ai_staff_activity_logs`・日次集計`ai_staff_daily_reports`テーブルと、毎朝8時スケジュール実行の`ai-staff:generate-daily-reports`コマンド、閲覧専用Admin画面（`/admin/ai-staff-daily-reports`）を実装（完了: 2026-09-24、`feat/ai-staff-daily-reports`）。詳細はSPEC.md §5.13参照。
+
 ---
 
 ## 4. タスク粒度に関する指針

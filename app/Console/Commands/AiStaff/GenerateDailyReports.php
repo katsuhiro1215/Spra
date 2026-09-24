@@ -22,7 +22,7 @@ class GenerateDailyReports extends Command
         $this->info("集計対象日: {$date->toDateString()}");
 
         $logs = AiStaffActivityLog::query()
-            ->whereBetween('occurred_at', [$date->copy()->startOfDay(), $date->copy()->endOfDay()])
+            ->whereBetween('occurred_at', [$date->copy(), $date->copy()->endOfDay()])
             ->orderBy('occurred_at')
             ->get()
             ->groupBy('admin_id');

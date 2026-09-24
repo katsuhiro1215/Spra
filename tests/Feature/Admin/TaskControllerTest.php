@@ -135,4 +135,70 @@ class TaskControllerTest extends TestCase
 
         $this->assertDatabaseCount('ai_staff_activity_logs', 0);
     }
+
+    public function test_resubmitting_the_same_status_does_not_log_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $aiStaff = Admin::factory()->aiStaff('marketing')->create(['status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->for($aiStaff, 'admin')->create([
+            'status' => 'in_progress',
+        ]);
+
+        $this->actingAs($admin, 'admins')
+            ->patch(route('admin.task.status', $task), ['status' => 'in_progress'])
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('ai_staff_activity_logs', 0);
+    }
+
+    public function test_updating_status_via_edit_form_of_an_ai_staff_task_logs_the_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $aiStaff = Admin::factory()->aiStaff('marketing')->create(['status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->for($aiStaff, 'admin')->create([
+            'title' => 'SNS投稿作成',
+            'status' => 'in_progress',
+            'due_date' => today(),
+        ]);
+
+        $this->actingAs($admin, 'admins')
+            ->put(route('admin.task.update', $task), [
+                'title' => $task->title,
+                'due_date' => $task->due_date->toDateString(),
+                'priority' => $task->priority,
+                'status' => 'review',
+                'admin_id' => $aiStaff->id,
+            ])
+            ->assertRedirect(route('admin.task.index'));
+
+        $this->assertDatabaseHas('ai_staff_activity_logs', [
+            'admin_id' => $aiStaff->id,
+            'action' => \App\Models\AiStaffActivityLog::ACTION_TASK_STATUS_CHANGED,
+            'subject_type' => Task::class,
+            'subject_id' => $task->id,
+        ]);
+    }
+
+    public function test_updating_other_fields_via_edit_form_without_status_change_does_not_log_activity(): void
+    {
+        $admin = Admin::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $aiStaff = Admin::factory()->aiStaff('marketing')->create(['status' => 'active']);
+        $task = Task::factory()->for($admin, 'creator')->for($aiStaff, 'admin')->create([
+            'title' => 'SNS投稿作成',
+            'status' => 'in_progress',
+            'due_date' => today(),
+        ]);
+
+        $this->actingAs($admin, 'admins')
+            ->put(route('admin.task.update', $task), [
+                'title' => '更新後タイトル',
+                'due_date' => $task->due_date->toDateString(),
+                'priority' => $task->priority,
+                'status' => 'in_progress',
+                'admin_id' => $aiStaff->id,
+            ])
+            ->assertRedirect(route('admin.task.index'));
+
+        $this->assertDatabaseCount('ai_staff_activity_logs', 0);
+    }
 }

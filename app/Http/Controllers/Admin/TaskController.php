@@ -70,7 +70,24 @@ class TaskController extends Controller
 
     public function update(TaskRequest $request, Task $task): RedirectResponse
     {
-        $this->service->update($task, $request->validated());
+        $oldStatus = $task->status;
+        $validated = $request->validated();
+
+        $updatedTask = $this->service->update($task, $validated);
+
+        if (
+            array_key_exists('status', $validated)
+            && $validated['status'] !== $oldStatus
+            && $updatedTask->admin
+        ) {
+            $label = self::STATUS_LABELS[$updatedTask->status] ?? $updatedTask->status;
+            $this->activityLogger->log(
+                $updatedTask->admin,
+                AiStaffActivityLog::ACTION_TASK_STATUS_CHANGED,
+                "タスク「{$updatedTask->title}」を「{$label}」に変更",
+                $updatedTask
+            );
+        }
 
         return redirect()->route('admin.task.index')
             ->with('success', __('messages.updated', ['attribute' => 'タスク']));
@@ -81,9 +98,10 @@ class TaskController extends Controller
         $request->validate(['status' => ['required', Rule::in(Task::STATUSES)]]);
 
         $status = $request->input('status');
+        $oldStatus = $task->status;
         $this->service->updateStatus($task, $status);
 
-        if ($task->admin) {
+        if ($task->admin && $oldStatus !== $status) {
             $label = self::STATUS_LABELS[$status] ?? $status;
             $this->activityLogger->log(
                 $task->admin,

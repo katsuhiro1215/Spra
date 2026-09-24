@@ -73,8 +73,8 @@ public function log(Admin $admin, string $action, string $description, ?Model $s
 
 ## 4. ②日次集計バッチ
 
-- 新規Artisanコマンド `php artisan ai-staff:generate-daily-reports {--date=}`（既存の`GenerateMonthlyInvoices`等と同じ運用パターン）
-- `--date`未指定時は「前日」（`Carbon::yesterday()`）を対象にする。指定時はその日付を対象にし、手動での過去分再生成・欠損日の埋め直しに使う
+- 新規Artisanコマンド `php artisan ai-staff:generate-daily-reports {date?}`（位置引数、既存の`GenerateMonthlyInvoices`等と同じ運用パターン）
+- `date`未指定時は「前日」（`Carbon::yesterday()`）を対象にする。指定時はその日付を対象にし、手動での過去分再生成・欠損日の埋め直しに使う
 - 処理内容: 対象日の`ai_staff_activity_logs`を`admin_id`ごとに`groupBy`し、各グループについて`occurred_at`昇順に整形した文字列を`body`として`ai_staff_daily_reports`へupsert。ログが0件のAI社員はレコードを作らない（＝日報は「活動があった日のみ」存在する）
 - スケジュール登録: `routes/console.php`（Laravel 12の標準）に`Schedule::command('ai-staff:generate-daily-reports')->dailyAt('08:00')`を追加
 
@@ -88,7 +88,7 @@ public function log(Admin $admin, string $action, string $description, ?Model $s
 ## 6. エラーハンドリング・運用上の注意
 
 - ①のログ記録失敗は本処理（タスク更新等）を止めない（3章参照）
-- ②のバッチ失敗時は次回実行を待たず`--date=`オプションで対象日を指定して手動再実行できる
+- ②のバッチ失敗時は次回実行を待たず`{date?}`位置引数で対象日を指定して手動再実行できる
 - 既存のCLAUDE.md §7方針（本番稼働中、ロールバック安全なマイグレーション）に従い、両テーブルとも新規追加のみで既存テーブルへの破壊的変更は無い
 
 ## 7. テスト方針

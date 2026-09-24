@@ -2,6 +2,7 @@ import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
+import Pagination from "@/Components/Layout/Pagination";
 import { Card } from "@/Components/Card";
 import { Badge } from "@/Components/Badges";
 
@@ -121,6 +122,10 @@ export default function Index({ reports, filters, aiStaffAdmins }) {
                         </table>
                     </div>
                 </Card>
+
+                {reports.data.length > 0 && (
+                    <Pagination paginationData={reports} />
+                )}
             </div>
         </AdminAuthenticatedLayout>
     );

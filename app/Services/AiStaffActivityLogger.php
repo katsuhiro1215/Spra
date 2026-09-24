@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 class AiStaffActivityLogger
 {
     /**
-     * @param  Admin  $admin  この操作の主体（人間Adminの場合は何もしない）
+     * @param  Admin  $admin  記録の帰属先（タスクは担当者、その他は作成者。人間Adminの場合は何もしない）
      * @param  string  $action  AiStaffActivityLog::ACTION_* のいずれか
      * @param  string  $description  一覧・日報にそのまま使える一言
      * @param  Model|null  $subject  対象レコード（Task/Response/Quote/Proposal）
