@@ -60,8 +60,9 @@ class TaskRecurrenceGenerationTest extends TestCase
         $until = today()->addDays($horizonDays);
         while ($cursor->lte($until)) {
             $isMatchingWeekday = in_array(strtolower($cursor->format('D')), $byWeekday, true);
-            // テンプレート自身のdue_date（today）は既存扱いのため生成対象から除外される
-            if ($isMatchingWeekday && ! $cursor->isSameDay(today())) {
+            // テンプレート行自身は実体タスクではないため、今日が対象曜日なら今日の分も生成される
+            // （以前は今日を除外しており、今日が月曜・木曜の日だけ失敗していた）
+            if ($isMatchingWeekday) {
                 $expectedDates[] = $cursor->format('Y-m-d');
             }
             $cursor->addDay();

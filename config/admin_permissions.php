@@ -46,6 +46,7 @@ return [
         'restore' => '復元',
         'history' => '変更履歴',
         'status' => 'ステータス変更',
+        'bulk-status' => 'ステータス一括変更',
     ],
 
     /*
