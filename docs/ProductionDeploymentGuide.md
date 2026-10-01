@@ -148,3 +148,43 @@ docker compose -f compose.prod.yaml up -d --force-recreate app horizon scheduler
 - [x] Search Console連携（2026-07-31）。DNS所有権確認（TXT）完了、サービスアカウント作成・Search Console側への権限付与・本番`.env`設定（`SEARCH_CONSOLE_DRIVER=google`/`SEARCH_CONSOLE_SITE_URL=sc-domain:smartsprouts.jp`）・鍵ファイル配置（`docker cp`でコンテナ内`storage/app/private/`へ、named volumeのためホスト側配置では反映されない点に注意）まで完了し、`analytics:sync-search-console`が正常終了することを確認（新規ドメインのためクエリ0件、データ反映まで数日のラグは想定通り）
 - [ ] スケジュール変更履歴・営業中判定APIが本番データで正しく機能するか
 - [ ] AWS請求ダッシュボードで想定通りの金額になっているか（初週は特にこまめに確認）
+
+## 📌 本番反映の履歴
+
+本番がどのコミットまで反映済みかを追えるよう、反映のたびに1行追記する（反映後に本番で`git log -1 --oneline`を実行して確認した値を書く）。
+
+| 日付 | 反映前 | 反映後 | 主な内容 | 備考 |
+|---|---|---|---|---|
+| 2026-10-01 | `ae62957` | `6ef8b9b` | 見積回答の辞退理由、予約とお問い合わせの紐付け（`{hearing_link}`）、AI社員日報など53コミット・マイグレーション9本 | Docker構成・依存関係の変更なし。戻す場合は`ae62957`を基準にする。見積シミュレーターAPI化（PR #102）は未マージのため含まない |
+
+## 🔁 定型の更新手順（コードの反映）
+
+```bash
+cd ~/Spra
+git status                      # 本番サーバー上で直接修正したファイルが無いか確認（あれば先に退避）
+./scripts/backup-db.sh          # DBバックアップ
+git pull && git log -1 --oneline
+docker compose -f compose.prod.yaml build
+docker compose -f compose.prod.yaml up -d
+docker compose -f compose.prod.yaml exec app php artisan migrate --force
+docker compose -f compose.prod.yaml exec app php artisan admin:sync-permissions
+# ↓ 新しい権限が増えた場合のみ、次節の「既存の権限を上書きしない権限付与」を実行
+docker compose -f compose.prod.yaml exec app php artisan optimize:clear
+docker compose -f compose.prod.yaml exec app php artisan optimize
+```
+
+### ⚠️ 本番で実行してはいけないもの
+
+- `php artisan db:seed`（全体実行）および`migrate:fresh`: 本番データを上書き・消去する
+- `RolePermissionSeeder`: `syncPermissions`のため、管理画面の権限マトリクスで行った調整がすべて初期値に戻る
+- `ResponseTemplateSeeder`: 既存テンプレートが重複登録される（2026-10-01、開発DBで6件重複した実例あり）。テンプレートを追加する場合は`firstOrCreate`で1件ずつ投入する
+
+### 既存の権限を上書きしない権限付与
+
+`admin:sync-permissions`はルート名から権限の一覧を作るだけで、ロールへの付与はしない。新しい画面を追加した後は、**どのロールにもまだ付いていない新規権限だけ**に、`config/admin_permissions.php`の初期ルール（adminは`destroy`以外、editor/ai_staffは`index`/`show`のみ、owner/super_adminは全権限）で付与する。既存の権限は変更しないため、管理画面での調整は保持される。以下を**1行のまま**実行する。
+
+```bash
+docker compose -f compose.prod.yaml exec app php artisan tinker --execute='use Spatie\Permission\Models\Permission; use Spatie\Permission\Models\Role; use Illuminate\Support\Str; use App\Models\Admin; $new=Permission::where("guard_name","admins")->whereDoesntHave("roles")->get(); echo "新規権限: ".$new->count()."件".PHP_EOL; foreach(array_keys(Admin::ROLES) as $n){ Role::firstOrCreate(["name"=>$n,"guard_name"=>"admins"]); } $act=fn($p)=>Str::afterLast($p->name,"."); foreach(array_diff(array_keys(Admin::ROLES),Admin::RESTRICTABLE_ROLES) as $n){ Role::findByName($n,"admins")->givePermissionTo($new); } Role::findByName("admin","admins")->givePermissionTo($new->reject(fn($p)=>in_array($act($p),config("admin_permissions.admin_role_excluded_actions")))); Role::findByName("editor","admins")->givePermissionTo($new->filter(fn($p)=>in_array($act($p),config("admin_permissions.editor_role_allowed_actions")))); Role::findByName("ai_staff","admins")->givePermissionTo(Permission::where("guard_name","admins")->get()->filter(fn($p)=>in_array($act($p),config("admin_permissions.ai_staff_role_allowed_actions")))); app(Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions(); echo "完了: ai_staffロールあり=".(Role::where("name","ai_staff")->exists()?"はい":"いいえ").PHP_EOL;'
+```
+
+`新規権限: ○件`と`完了: ai_staffロールあり=はい`が出れば成功。`新規権限: 0件`なら付与対象が無かっただけで問題ない。
