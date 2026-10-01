@@ -119,6 +119,7 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 - `Contact`（問い合わせ、`source`/IP/UTM等のトラッキング情報を保持）→ `Quote`（見積もり、`quote_number`自動採番）。
 - `QuoteObserver`（`Quote`モデルに`#[ObservedBy]`属性で登録済み）は、`contact_id`のみを指定してQuoteを作成した場合（`Admin/Contact/Show.jsx`からの「見積もり作成」導線）に、Contactのメールアドレスと一致する既存Userを自動的に`user_id`/`company_id`へ紐付ける。
 - `QuoteResponse.response_type = 'decline'`（今回は見送ります）を選んだ場合、`decline_reason`（`QuoteResponse::DECLINE_REASONS`: price/timing/competitor/requirements_mismatch/other）の選択が必須（2026-09-23追加、失注理由の集計・分析を見据えた構造化）。公開フォーム（`QuoteResponseForm.jsx`）はdeclineを選んだ時のみプルダウンを表示し、`QuoteResponseController::store()`側でも同条件をサーバー側バリデーションしている。管理者が未回答を目視で見送り判定する`QuoteResponseService::markAsDeclined()`（手動NG判定）では、クライアント自身が選んだ理由ではないため`decline_reason`は設定しない。
+- **`EstimateSimulator`（概算見積もり、`/estimate-simulator`）のロジックを`EstimateSimulatorService`へ抽出し、外部API化（2026-09-24）**: 従来`EstimateSimulatorController::save()`に約200行のCLAUDE.md §3例外として inline されていたContact+Quote+QuoteVersion+QuoteVersionItem作成ロジックを`EstimateSimulatorService::createEstimateRequest()`へ抽出（既存Web UIの挙動は完全に同一）。あわせて外部サイト（かつコード等）向けの公開JSON API（`GET /api/estimate-simulator/options`＝選択肢取得、`POST /api/estimate-simulator`＝見積依頼作成）を新設し、既存の`ContactApiClient`/`VerifyContactApiKey`（`X-Api-Key`ヘッダー、`contact.api_key`ミドルウェア、`throttle:30,1`）をそのまま再利用した。API経由で作成された`Contact`は`source='estimate_simulator_api'`（Web版は`estimate_simulator`のまま）で区別し、`api_client_id`を記録する。API側はSpraへのログインアカウントを持たない外部訪問者からの送信のため常にゲスト扱い（`name`/`email`必須）。
 
 ### 5.2 Onboarding（顧客登録承認）
 - 詳細: `docs/OnboardingSystemGuide.md`
