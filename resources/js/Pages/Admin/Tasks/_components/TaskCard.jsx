@@ -14,7 +14,7 @@ const AiStaffBadge = () => (
     </span>
 );
 
-export default function TaskCard({ task, onClick }) {
+export default function TaskCard({ task, onClick, selectable = false, selected = false }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
 
     const style = {
@@ -29,10 +29,20 @@ export default function TaskCard({ task, onClick }) {
             {...attributes}
             {...listeners}
             onClick={() => onClick?.(task)}
-            className="cursor-grab rounded border bg-white p-3 shadow-sm"
+            className={`cursor-grab rounded border bg-white p-3 shadow-sm ${selected ? "ring-2 ring-indigo-500" : ""}`}
         >
             <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{task.title}</span>
+                <span className="flex items-center gap-2 text-sm font-medium">
+                    {selectable && (
+                        <input
+                            type="checkbox"
+                            checked={selected}
+                            readOnly
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+                        />
+                    )}
+                    {task.title}
+                </span>
                 <span className={`rounded px-2 py-0.5 text-xs ${PRIORITY_COLOR[task.priority]}`}>
                     {PRIORITY_LABEL[task.priority]}
                 </span>

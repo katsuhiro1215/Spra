@@ -1,15 +1,16 @@
 import React from "react";
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import TaskColumn from "./TaskColumn";
+import CompletedArchiveColumn from "./CompletedArchiveColumn";
 
 const COLUMNS = [
     { status: "todo", label: "未着手" },
     { status: "in_progress", label: "進行中" },
     { status: "review", label: "レビュー待ち" },
-    { status: "done", label: "完了" },
+    { status: "done", label: "完了（直近7日）" },
 ];
 
-export default function TaskBoard({ tasks, onStatusChange, onCardClick }) {
+export default function TaskBoard({ tasks, completedMonths, onStatusChange, onCardClick, selection }) {
     // ポインタが一定距離動くまではドラッグと判定しない（クリックでの編集モーダル起動と競合しないように）
     // resources/js/Components/BlockUI/BlockEditor.jsx の実装に合わせて distance: 4 を使用
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
@@ -38,8 +39,10 @@ export default function TaskBoard({ tasks, onStatusChange, onCardClick }) {
                         label={column.label}
                         tasks={tasks.filter((t) => t.status === column.status)}
                         onCardClick={onCardClick}
+                        selection={selection}
                     />
                 ))}
+                <CompletedArchiveColumn months={completedMonths} />
             </div>
         </DndContext>
     );

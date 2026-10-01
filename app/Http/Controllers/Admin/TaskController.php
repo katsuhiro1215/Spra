@@ -45,6 +45,7 @@ class TaskController extends Controller
 
         return Inertia::render('Admin/Tasks/Index', [
             'tasks' => $tasks,
+            'completedMonths' => $this->service->getCompletedMonthlyCounts(array_filter($filters)),
             'categories' => $this->categoryService->listAll(),
             'admins' => Admin::where('status', 'active')->orderBy('email')->get(['id', 'email', 'role']),
             'filters' => $filters,
@@ -97,7 +98,35 @@ class TaskController extends Controller
     {
         $request->validate(['status' => ['required', Rule::in(Task::STATUSES)]]);
 
-        $status = $request->input('status');
+        $this->changeStatus($task, $request->input('status'));
+
+        return redirect()->back();
+    }
+
+    public function bulkUpdateStatus(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'task_ids.*' => ['string'],
+            'status' => ['required', Rule::in(Task::STATUSES)],
+        ]);
+
+        // 繰り返し設定（テンプレート行）はボードに出ないため、一括操作の対象外にする
+        $tasks = Task::whereIn('id', $validated['task_ids'])
+            ->whereNull('recurrence_rule')
+            ->with('admin')
+            ->get();
+
+        foreach ($tasks as $task) {
+            $this->changeStatus($task, $validated['status']);
+        }
+
+        return redirect()->back()
+            ->with('success', "{$tasks->count()}件のタスクを「" . (self::STATUS_LABELS[$validated['status']] ?? $validated['status']) . "」に変更しました。");
+    }
+
+    private function changeStatus(Task $task, string $status): void
+    {
         $oldStatus = $task->status;
         $this->service->updateStatus($task, $status);
 
@@ -110,8 +139,6 @@ class TaskController extends Controller
                 $task
             );
         }
-
-        return redirect()->back();
     }
 
     public function destroy(Task $task): RedirectResponse
