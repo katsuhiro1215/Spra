@@ -4,7 +4,7 @@ import AdminAuthenticatedLayout from "@/Layouts/AdminAuthenticatedLayout";
 import PageHeader from "@/Components/Layout/PageHeader";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-const STATUS_LABEL = { todo: "未着手", in_progress: "進行中", done: "完了" };
+const STATUS_LABEL = { todo: "未着手", in_progress: "進行中", review: "レビュー待ち", done: "完了" };
 const PRIORITY_LABEL = { high: "高", medium: "中", low: "低" };
 
 export default function Show({ task }) {

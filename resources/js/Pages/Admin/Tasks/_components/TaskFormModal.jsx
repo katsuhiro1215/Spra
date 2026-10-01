@@ -3,16 +3,7 @@ import { useForm } from "@inertiajs/react";
 import Modal from "@/Components/Layout/Modal";
 import { FormGroup, TextInput, TextArea, SelectInput, Checkbox } from "@/Components/Forms";
 import { Button, CrudButton } from "@/Components/Buttons";
-
-const WEEKDAYS = [
-    { value: "mon", label: "月" },
-    { value: "tue", label: "火" },
-    { value: "wed", label: "水" },
-    { value: "thu", label: "木" },
-    { value: "fri", label: "金" },
-    { value: "sat", label: "土" },
-    { value: "sun", label: "日" },
-];
+import { WEEKDAYS } from "./recurrence";
 
 export default function TaskFormModal({ show, onClose, task, categories, admins }) {
     const isEdit = Boolean(task);
