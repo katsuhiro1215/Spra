@@ -188,3 +188,42 @@ docker compose -f compose.prod.yaml exec app php artisan tinker --execute='use S
 ```
 
 `新規権限: ○件`と`完了: ai_staffロールあり=はい`が出れば成功。`新規権限: 0件`なら付与対象が無かっただけで問題ない。
+
+## 🧰 同居アプリ katsuooool（`katsuooool.smartsprouts.jp`）
+
+Web制作ツール katsuooool を、本体と同じLightsailインスタンスに**別のComposeプロジェクト**（`name: katsuooool`）として載せている。本体側で持つのは`Caddyfile`の`katsuooool.smartsprouts.jp`ブロックだけで、本体の`compose.prod.yaml`は変更しない（2026-10-08、案A）。
+
+### 役割分担
+
+| 担当 | 内容 |
+|---|---|
+| 本体Caddy（Spra） | `katsuooool.smartsprouts.jp`のHTTPS終端（証明書は自動取得）、HSTS、アクセスログ（`/data/katsuooool-access.log`）、`katsuooool-web:80`への`reverse_proxy` |
+| katsuooool側のWebコンテナ | `public/`（`public/build`など）の静的配信、php-fpm（`katsuooool-app:9000`）へのfastcgi、HSTS以外のセキュリティヘッダー |
+
+### katsuooool側のWebコンテナに必要な条件
+
+- 本体のネットワーク`spra_prod`（`external: true`）に**エイリアス`katsuooool-web`**で参加し、**80番（HTTP）**で待ち受ける。TLSは本体Caddyで終端するため、Webコンテナ側で証明書は取得しない。
+- 本体Caddyが付ける`X-Forwarded-For`/`X-Forwarded-Proto`/`X-Forwarded-Host`をphp-fpmまでそのまま渡す。WebコンテナにCaddyを使う場合は、グローバル設定の`servers { trusted_proxies static private_ranges }`を入れないと、`X-Forwarded-For`が本体CaddyのIPに置き換えられ、アプリから利用者のIPが取れなくなる（nginxの場合は`fastcgi_params`の既定で`HTTP_X_FORWARDED_*`が渡る）。
+- 画像アップロードのサイズ上限・処理時間の上限はkatsuooool側（Webコンテナとphp-fpm）で決める。本体Caddyの`reverse_proxy`には本文サイズ・応答時間の上限を設定していない。
+
+### 本番への反映順
+
+1. katsuooool側をデプロイし、`docker network inspect spra_prod`で`katsuooool-web`が参加していることを確認する。
+2. Xserverで`katsuooool.smartsprouts.jp`のAレコードをLightsailの静的IPへ向け、`dig +short katsuooool.smartsprouts.jp`で反映を確認する（DNSが反映される前にCaddyを更新すると、証明書の取得に失敗して長い待機に入るため）。
+3. 本体のCaddyを更新する（`Caddyfile`はCaddyイメージに焼き込んでいるため、イメージの作り直しが必要）。
+
+```bash
+cd ~/Spra
+git pull
+docker compose -f compose.prod.yaml build caddy
+# 新しいイメージで設定を検証（本体には影響しない）
+docker compose -f compose.prod.yaml run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile
+# Caddyだけを作り直す。数秒間、本体サイトにもつながらなくなる（証明書はcaddy-dataボリュームに残る）
+docker compose -f compose.prod.yaml up -d caddy
+docker compose -f compose.prod.yaml logs --tail=50 caddy   # katsuooool.smartsprouts.jp の証明書取得ログを確認
+```
+
+4. 確認: `https://katsuooool.smartsprouts.jp/up`が200、トップと画像ツール画面の表示、`/build/*`の取得、画像変換（AVIF含む）、本体`https://smartsprouts.jp`が今までどおり表示されること。
+
+- katsuooool側が停止していても本体Caddyは起動でき、`katsuooool.smartsprouts.jp`だけが502になる（転送先の名前解決はリクエスト時に行うため）。
+- 本体の`smartsprouts.jp`は`includeSubDomains`付きのHSTSを返しているため、ブラウザは`katsuooool.smartsprouts.jp`にもHTTPSで接続する。HTTPのまま公開することはできない。

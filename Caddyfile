@@ -30,3 +30,27 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 	}
 }
+
+# katsuooool（Web制作ツール）。同じLightsailインスタンス上の別Composeプロジェクト（name: katsuooool）。
+# 静的ファイルの配信とphp-fpmへの中継はkatsuooool側のWebコンテナが行うため、本体Caddyは
+# HTTPS終端と転送だけを担当する（本体のcompose.prod.yamlは変更しない）。
+# - 転送先: katsuooool側のWebコンテナが本体ネットワーク spra_prod にエイリアス katsuooool-web で参加し、80番で待ち受ける
+# - ドメインは環境変数にしない。未設定だとCaddy自体が起動できず、本体サイトまで止まるため
+# - 転送先が停止中でもCaddyは起動できる（名前解決はリクエスト時）。その間このドメインだけが502になる
+katsuooool.smartsprouts.jp {
+	encode gzip
+
+	reverse_proxy katsuooool-web:80
+
+	log {
+		output file /data/katsuooool-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+
+	header {
+		# TLSを終端する本体側で付ける。X-Frame-Options等はツールの使い方に依存するためkatsuooool側で設定する
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+}
