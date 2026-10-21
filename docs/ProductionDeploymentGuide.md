@@ -156,6 +156,7 @@ docker compose -f compose.prod.yaml up -d --force-recreate app horizon scheduler
 | 日付 | 反映前 | 反映後 | 主な内容 | 備考 |
 |---|---|---|---|---|
 | 2026-10-01 | `ae62957` | `6ef8b9b` | 見積回答の辞退理由、予約とお問い合わせの紐付け（`{hearing_link}`）、AI社員日報など53コミット・マイグレーション9本 | Docker構成・依存関係の変更なし。戻す場合は`ae62957`を基準にする。見積シミュレーターAPI化（PR #102）は未マージのため含まない |
+| 2026-10-22 | 記録なし（`6ef8b9b`または`2d2f55c`） | `42acb07` | **緊急**: PHPを8.4.27へ更新（CVE-2026-109618/109619、認証なしRCE）。あわせてタスク管理の繰り返し設定・完了済みアーカイブ（PR #103）、katsuooool用Caddyブロック（PR #105）が未反映なら同時に反映 | `php -v`が`PHP 8.4.27`、サイト表示・管理画面ログイン・問い合わせ送信を確認済み。Node（ビルド用）は`node:22-alpine`＝v22.23.4で修正版。反映前のコミットは記録を取っていなかったため不明 |
 
 ## 🔁 定型の更新手順（コードの反映）
 
@@ -227,3 +228,30 @@ docker compose -f compose.prod.yaml logs --tail=50 caddy   # katsuooool.smartspr
 
 - katsuooool側が停止していても本体Caddyは起動でき、`katsuooool.smartsprouts.jp`だけが502になる（転送先の名前解決はリクエスト時に行うため）。
 - 本体の`smartsprouts.jp`は`includeSubDomains`付きのHSTSを返しているため、ブラウザは`katsuooool.smartsprouts.jp`にもHTTPSで接続する。HTTPのまま公開することはできない。
+
+## 🚨 PHP・Nodeのセキュリティ更新（緊急対応の手順）
+
+2026-10-21、PHP本体に認証なしでリモートコード実行ができる脆弱性（CVE-2026-109618/109619）が公表された実例から得た手順。
+
+- **情報源は公式だけ**: PHPは `https://www.php.net/`（`archive/2026.php` のsecurity advisory）、Nodeは `https://nodejs.org/en/blog/vulnerability/`。脆弱性の話題が出ているときは `php-net.pro` のような**偽のドメイン**が出回る。偽の「修正版」を入れさせる手口があるため、リンクを開かない・入れない。
+- **PHPのタグは patch 番号まで固定する**（`Dockerfile.prod`の`FROM php:8.4.27-fpm-alpine`）。サーバーに古いイメージが残っていると、`build`だけでは古いPHPのままになるため。更新するときは番号を上げる。katsuooool・Forgeも同様。
+- **Docker公式イメージは、PHP本体の発表から少し遅れて出る**。タグが作られても、中身（amd64）が入るまで取得できないことがある。`docker manifest inspect php:<版>-fpm-alpine`でamd64が出るのを確認してから作り直す。
+- 修正が出るまでは、PHPを動かすコンテナを止める。DB・Redis・Caddyは残す。
+
+```bash
+docker compose -f compose.prod.yaml stop app horizon scheduler   # 停止（PHPのみ）
+docker compose -p katsuooool stop                                 # katsuoool（載せている場合）
+```
+
+- 再開は`start`ではなく、**作り直して起動する**（`start`は古いイメージのまま戻る）。
+
+```bash
+git pull
+docker compose -f compose.prod.yaml build --pull
+docker compose -f compose.prod.yaml up -d
+docker compose -f compose.prod.yaml exec app php -v    # 修正版の番号を確認
+```
+
+- ビルド中は他の重い作業（別のビルドなど）を同時に動かさない。手元では、複数のビルドを同時に動かしたことで途中で失敗した（単独で実行すると成功した）。
+- PHPの系列（8.4/8.5など）は別々に修正版が出る。**8.4系列なら8.4の修正版**でよく、8.5へ上げる必要はない。系列の移行は、緊急対応とは分けて検討する。
+- Nodeは本番の実行イメージに入っておらず、ビルド用（`node:22-alpine`）だけ。`build --pull`で最新の修正版になる。katsuoooolはAlpineのパッケージ（`apk add nodejs`）の版を、ビルド後に確認する。
