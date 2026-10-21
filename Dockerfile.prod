@@ -49,7 +49,9 @@ RUN npm run build
 ########################################
 # Stage 3: 実行用イメージ
 ########################################
-FROM php:8.4-fpm-alpine AS app
+# PHP 8.4.27: CVE-2026-109618/109619（認証なしRCE）の修正版。タグを固定しているのは、サーバーに残った古いイメージで
+# 古いPHPのままビルドされるのを防ぐため。次回以降のPHP更新でもここの番号を上げる（php.netのsecurity releaseで確認）。
+FROM php:8.4.27-fpm-alpine AS app
 
 RUN apk add --no-cache \
         icu-libs \
