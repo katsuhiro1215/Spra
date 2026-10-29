@@ -157,6 +157,7 @@ docker compose -f compose.prod.yaml up -d --force-recreate app horizon scheduler
 |---|---|---|---|---|
 | 2026-10-01 | `ae62957` | `6ef8b9b` | 見積回答の辞退理由、予約とお問い合わせの紐付け（`{hearing_link}`）、AI社員日報など53コミット・マイグレーション9本 | Docker構成・依存関係の変更なし。戻す場合は`ae62957`を基準にする。見積シミュレーターAPI化（PR #102）は未マージのため含まない |
 | 2026-10-22 | 記録なし（`6ef8b9b`または`2d2f55c`） | `42acb07` | **緊急**: PHPを8.4.27へ更新（CVE-2026-109618/109619、認証なしRCE）。あわせてタスク管理の繰り返し設定・完了済みアーカイブ（PR #103）、katsuooool用Caddyブロック（PR #105）が未反映なら同時に反映 | `php -v`が`PHP 8.4.27`、サイト表示・管理画面ログイン・問い合わせ送信を確認済み。Node（ビルド用）は`node:22-alpine`＝v22.23.4で修正版。反映前のコミットは記録を取っていなかったため不明 |
+| 2026-10-29 | `42acb07`（未確認。前回の記録による） | `0ab0639` | 見積シミュレーターのService層化と、外部サイト向け見積API（`GET /api/estimate-simulator/options`、`POST /api/estimate-simulator`）の新設（PR #102）、反映履歴のドキュメント更新（PR #107） | マイグレーション・Docker構成・依存関係の変更なし。反映後に`git log -1 --oneline`が`0ab0639`、`route:list`で見積APIの2ルート、コンテナ6つがUpであることを確認。キー無しの`/api/estimate-simulator/options`が401（反映前は404）。反映前のコミットは控えていなかったため未確認。katsucodeは当面リンクのみで、このAPIは使わない（2026-10-30決定） |
 
 ## 🔁 定型の更新手順（コードの反映）
 
