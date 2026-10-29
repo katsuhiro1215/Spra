@@ -3,121 +3,72 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Page;
+use App\Models\Faq;
+use App\Models\Portfolio;
 use App\Models\Post;
-use App\Models\Voice;
-use App\Services\ServiceService;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function __construct(
-        private ServiceService $serviceService
-    ) {}
-
     /**
      * トップページ
      *
-     * Hero/About/CTAの内容はPage/Section(ブロックエディタ)で管理し、
-     * 公開サイト側はHeroSection/AboutSection/ContactSectionの専用コンポーネントに
-     * データを流し込んで描画する(デザインの作り込みはコンポーネント側に残す)
+     * ヒーロー（3D）・イントロ・サービス・サポート・進め方の文章はコードに置き、
+     * 管理画面で更新する内容（記事・FAQ・制作実績）だけをここで渡す。
+     * 設計: docs/superpowers/specs/2026-10-30-public-site-renewal-design.md §6-3
      */
     public function index(): Response
     {
-        $homePage = Page::where('slug', 'home')
-            ->with(['sections' => fn ($query) => $query->orderBy('sort_order')])
-            ->first();
-
         return Inertia::render('Public/Home', [
-            'canLogin' => Route::has('user.login'),
-            'canRegister' => Route::has('user.register'),
-            'services' => $this->serviceService->getFeaturedForHome(),
-            'hero' => $this->buildHeroProps($homePage),
-            'about' => $this->buildAboutProps($homePage),
-            'cta' => $this->buildCtaProps($homePage),
-            'newsItems' => Post::published()
-                ->whereHas('postCategory', fn ($q) => $q->where('slug', 'news'))
+            'journal' => Post::published()
                 ->with('postCategory')
-                ->recent(3)
+                ->recent(2)
                 ->get()
                 ->map($this->summarizePost(...)),
-            'blogPosts' => Post::published()
-                ->whereHas('postCategory', fn ($q) => $q->where('slug', '!=', 'news'))
-                ->with('postCategory')
-                ->recent(3)
-                ->get()
-                ->map($this->summarizePost(...)),
-            'voices' => Voice::published()
-                ->featured()
-                ->with(['service', 'user.profile', 'avatar'])
+            'faqs' => $this->homeFaqs(),
+            'works' => Portfolio::displayed()
                 ->ordered()
+                ->with('media')
                 ->limit(6)
-                ->get(),
+                ->get()
+                ->map(fn (Portfolio $portfolio) => [
+                    'id' => $portfolio->id,
+                    'title' => $portfolio->title,
+                    'description' => $portfolio->description,
+                    'url' => $portfolio->url,
+                    'image' => $portfolio->media?->url,
+                    'date' => $portfolio->completed_at?->format('Y.m'),
+                ]),
         ]);
     }
 
     /**
-     * Heroセクション（hero ブロック）→ HeroSection.jsx 用props
+     * トップに出すFAQ。管理画面で「注目」にしたものを優先し、無ければ並び順の先頭から4件
      */
-    private function buildHeroProps(?Page $homePage): array
+    private function homeFaqs()
     {
-        $heroBlock = $homePage?->sections
-            ->firstWhere('role', 'hero')
-            ?->getBlockData('hero');
+        $featured = Faq::published()->featured()->ordered()->limit(4)->get();
+        $faqs = $featured->isNotEmpty() ? $featured : Faq::published()->ordered()->limit(4)->get();
 
-        return [
-            'images' => $heroBlock['images'] ?? null,
-        ];
-    }
-
-    /**
-     * メインセクション（heading/text/button/cardGroup ブロック）→ AboutSection.jsx 用props
-     */
-    private function buildAboutProps(?Page $homePage): array
-    {
-        $aboutSection = $homePage?->sections->firstWhere('role', 'main');
-
-        $heading = $aboutSection?->getBlockData('heading');
-        $text = $aboutSection?->getBlockData('text');
-        $button = $aboutSection?->getBlockData('button');
-        $cardGroup = $aboutSection?->getBlockData('cardGroup');
-
-        return [
-            'heading' => $heading['text'] ?? null,
-            'description' => strip_tags($text['html'] ?? ''),
-            'buttonLabel' => $button['label'] ?? null,
-            'buttonUrl' => $button['url'] ?? null,
-            'cards' => $cardGroup['items'] ?? null,
-        ];
-    }
-
-    /**
-     * CTAセクション（cta ブロック）→ ContactSection.jsx 用props
-     */
-    private function buildCtaProps(?Page $homePage): array
-    {
-        $ctaBlock = $homePage?->sections
-            ->firstWhere('role', 'cta')
-            ?->getBlockData('cta');
-
-        return [
-            'heading' => $ctaBlock['heading'] ?? null,
-            'description' => $ctaBlock['text'] ?? null,
-            'buttonLabel' => $ctaBlock['buttonLabel'] ?? null,
-            'buttonUrl' => $ctaBlock['buttonUrl'] ?? null,
-        ];
+        return $faqs->map(fn (Faq $faq) => [
+            'id' => $faq->id,
+            'question' => $faq->question,
+            'answer' => trim(strip_tags($faq->answer)),
+        ]);
     }
 
     private function summarizePost(Post $post): array
     {
+        $isNews = $post->postCategory?->slug === 'news';
+
         return [
             'id' => $post->id,
-            'slug' => $post->slug,
             'title' => $post->title,
             'category' => $post->postCategory?->name,
+            'href' => ($isNews ? '/news/' : '/blog/').$post->slug,
             'date' => $post->published_at?->format('Y.m.d'),
+            'datetime' => $post->published_at?->toDateString(),
             'excerpt' => $post->excerpt,
             'image' => $post->thumbnail,
         ];
