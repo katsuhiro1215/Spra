@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 公開サイト（resources/css/public/site.css）：固定ヘッダーの高さぶん見出しを下げ、メニューを開いている間は背景をスクロールさせない */
+html:has(.ss-public) {
+    scroll-behavior: smooth;
+    scroll-padding-top: 108px;
+}
+html:has(.ss-public.locked) {
+    overflow: hidden;
+}
+
 /* Loading Animation Styles */
 @layer utilities {
     .bg-gradient-conic {
