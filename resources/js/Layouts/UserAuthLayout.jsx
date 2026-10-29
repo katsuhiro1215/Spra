@@ -88,7 +88,7 @@ export default function UserAuthLayout({ children }) {
                             </Link>
                             <span className="text-gray-300">•</span>
                             <Link
-                                href="/privacy"
+                                href="/privacy-policy"
                                 className="hover:text-green-600 transition-colors duration-200"
                             >
                                 プライバシーポリシー
