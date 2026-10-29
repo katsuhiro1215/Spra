@@ -4,8 +4,8 @@ use App\Http\Controllers\Api\AnalyticsEventController;
 use App\Http\Controllers\Api\BusinessStatusController;
 use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\CsrfTokenController;
+use App\Http\Controllers\Api\EstimateSimulatorApiController;
 use App\Http\Controllers\Api\InstagramWebhookController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')->group(function () {
@@ -42,6 +42,18 @@ Route::middleware('api')->group(function () {
         ->group(function () {
             Route::get('/categories', [ContactApiController::class, 'categories'])->name('categories');
             Route::post('/', [ContactApiController::class, 'store'])->name('store');
+        });
+
+    /**
+     * 外部サイト(かつコード等)からの見積もりシミュレーターAPI連携（APIキー認証必須）
+     */
+    Route::middleware(['throttle:30,1', 'contact.api_key'])
+        ->withoutMiddleware('csrf')
+        ->prefix('estimate-simulator')
+        ->name('api.estimate-simulator.')
+        ->group(function () {
+            Route::get('/options', [EstimateSimulatorApiController::class, 'options'])->name('options');
+            Route::post('/', [EstimateSimulatorApiController::class, 'store'])->name('store');
         });
 
     /**
