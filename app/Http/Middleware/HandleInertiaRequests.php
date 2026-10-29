@@ -78,20 +78,30 @@ class HandleInertiaRequests extends Middleware
                     ? $admin->notifications()->latest()->limit(10)->get(['id', 'data', 'read_at', 'created_at'])
                     : [],
             ],
-            'headerMenu' => fn() => Menu::query()
-                ->where('location', 'header')
-                ->with(['menuItems' => function ($query) {
-                    $query->whereNull('parent_id')
-                        ->active()
-                        ->ordered()
-                        ->with(['page:id,slug', 'children' => function ($query) {
-                            $query->active()->ordered()->with('page:id,slug');
-                        }]);
-                }])
-                ->first(),
+            'headerMenu' => fn() => $this->menuFor('header'),
+            // 公開サイトのフッターメニュー（管理画面で設置場所を footer にしたメニュー。無ければ null）
+            'footerMenu' => fn() => $this->menuFor('footer'),
             'organization' => fn() => Organization::query()
                 ->with(['defaultAddress'])
                 ->first(),
         ];
+    }
+
+    /**
+     * 公開サイトのメニュー（親項目と、その子項目。有効なものだけを並び順で）
+     */
+    private function menuFor(string $location): ?Menu
+    {
+        return Menu::query()
+            ->where('location', $location)
+            ->with(['menuItems' => function ($query) {
+                $query->whereNull('parent_id')
+                    ->active()
+                    ->ordered()
+                    ->with(['page:id,slug', 'children' => function ($query) {
+                        $query->active()->ordered()->with('page:id,slug');
+                    }]);
+            }])
+            ->first();
     }
 }
