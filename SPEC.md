@@ -146,6 +146,10 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 
 ### 5.7 Website CMS（自社サイト管理）
 - `Page`/`Section`（ブロックエディタ）/`Menu`/`MenuItem`/`Post`/`PostCategory`/`Faq`/`FaqCategory`/`SiteSetting`/`Portfolio`/`Voice`（お客様の声）/`Document`（利用規約・プライバシーポリシー等、バージョン管理・同意取得あり）。
+- 公開サイトのリニューアル（2026-10-30〜、設計は`docs/superpowers/specs/2026-10-30-public-site-renewal-design.md`）：
+  - メニューは設置場所（`menus.location`）で使い分ける。`header`＝ヘッダー（親項目だけを表示）、`footer`＝フッター（無ければヘッダーの親項目で代用）。共有プロップ`headerMenu`/`footerMenu`
+  - トップ（`/`）は段階1で作り直し済み。記事（最新2件）・FAQ（注目を優先、無ければ先頭4件）・制作実績（表示中のもの、0件ならセクションごと非表示）だけが管理画面のデータで、ヒーロー（3D）・イントロ・サービス・サポート・進め方の文章はコード。固定ページ`home`のセクション（hero/main/cta）はトップでは使わなくなった
+  - デザインのCSSは`resources/css/public/site.css`。`postcss.config.js`で`.ss-public`の中だけに効くよう書き換えるため、管理画面には影響しない。3D（three.js）はトップだけで読み込む
 
 ### 5.8 Appointment（予約）
 - 詳細: `docs/AppointmentSystemGuide.md`
@@ -328,3 +332,4 @@ Media（画像アップロード＋バリアント自動生成）、Analytics（
 | 2026-09-23 | §5.14に過去書類アーカイブ（`legacy_documents`）のドメイン仕様を追加（`feat/legacy-documents-archive`ブランチの最終レビュー修正の一環、本ドキュメント更新が漏れていたため追記） |
 | 2026-09-23 | §5.15に提案書（`proposals`）のドメイン仕様を追加。§7にK37（`QuoteVersion`の`is_current`単一性が未強制、未修正）を追加（`feat/hearing-proposal-quote-flow`ブランチの最終レビュー修正の一環、本ドキュメント更新が漏れていたため追記） |
 | 2026-10-01 | §5.12に「繰り返し設定」画面、削除した実体タスクが再生成される不具合の修正、完了列の直近7日表示と完了済みアーカイブ、まとめて完了を追記。§7 K32を解消（テスト側の誤り）に更新 |
+| 2026-10-30 | §5.7に公開サイトのリニューアル（段階1：共通ヘッダー・フッター、トップの3D、ヘッダー／フッターメニューの使い分け）を追記 |
