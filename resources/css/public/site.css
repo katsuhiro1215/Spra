@@ -66,3 +66,15 @@
 @media (max-width:1280px){.navigation{gap:18px}}
 /* フッターの大きな社名「SmartSprouts.」（13文字）が画面幅に収まる大きさにする（試作の「Katsucode.」は19vw） */
 @media screen{.renewal-footer .footer-word{font-size:14.2vw}}
+/* サービス一覧：カテゴリごとに directory-row をグループ化した際の見出し・グループ間の余白（試作は単一グループのみ） */
+.page-section > .service-directory + .service-directory{margin-top:56px}
+.service-directory > .eyebrow{margin-bottom:4px}
+/* サービス詳細：料金プランのカード並び（試作には複数プランの並び方が無いため追加） */
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin:40px 0}
+/* 私たちについて：代表紹介(/greeting)が未着手のため写真を省いた簡易版。1カラムにする */
+.founder-teaser:has(> div:only-child){grid-template-columns:1fr;background:none;padding-top:0}
+/* 読みもの一覧：ページ送り（試作はページネーションを持たないため追加） */
+.pagination{display:flex;flex-wrap:wrap;gap:10px;margin-top:50px;font:14px var(--en)}
+.pagination a,.pagination span{display:grid;place-items:center;min-width:40px;height:40px;border-radius:50%;border:1px solid var(--line)}
+.pagination a[aria-current]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pagination span[aria-disabled]{opacity:.35}
