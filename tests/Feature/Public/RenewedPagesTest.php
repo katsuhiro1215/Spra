@@ -96,4 +96,38 @@ class RenewedPagesTest extends TestCase
         $response->assertDontSee('南紀寺町1-2-3');
         $response->assertDontSee('6300000');
     }
+
+    public function test_generic_page_renders_published_sections_via_block_editor(): void
+    {
+        $pageType = PageType::create(['key' => 'static', 'name' => '固定ページ', 'slug' => 'static']);
+        $page = Page::create(['slug' => 'greeting', 'title' => '代表紹介', 'is_published' => true, 'page_type_id' => $pageType->id]);
+        $page->sections()->create([
+            'name' => 'intro',
+            'role' => 'body',
+            'sort_order' => 0,
+            'content' => ['blocks' => [['id' => 'b1', 'type' => 'text', 'data' => ['text' => 'ごあいさつ本文']]]],
+        ]);
+
+        $this->get('/greeting')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Public/Page')
+            ->where('page.title', '代表紹介'));
+    }
+
+    public function test_generic_page_404s_when_unpublished(): void
+    {
+        $pageType = PageType::create(['key' => 'static', 'name' => '固定ページ', 'slug' => 'static']);
+        Page::create(['slug' => 'draft-page', 'title' => '非公開', 'is_published' => false, 'page_type_id' => $pageType->id]);
+
+        $this->get('/draft-page')->assertNotFound();
+    }
+
+    public function test_unknown_public_url_shows_branded_404(): void
+    {
+        $this->get('/no-such-page')->assertNotFound()->assertSee('無料相談');
+    }
+
+    public function test_unknown_admin_url_shows_minimal_404(): void
+    {
+        $this->get('/admin/no-such-page')->assertNotFound()->assertDontSee('無料相談');
+    }
 }

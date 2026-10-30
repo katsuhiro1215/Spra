@@ -1,24 +1,25 @@
 import { Head } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
-import { PageHero } from "@/Components/Public";
+import RenewedPageHero from "@/Components/PublicSite/RenewedPageHero";
 import BlockRenderer from "@/Components/BlockUI/BlockRenderer";
 
-export default function Page({ auth, page }) {
-    const breadcrumbs = [{ label: page.title }];
+/*
+ * 管理画面「Webサイト管理」のページ＋ブロックエディタで作る、汎用の固定ページ。
+ * 代表紹介（/greeting）など、専用テンプレートを作らないページはすべてここを通る。
+ * 見出し・本文はBlockRenderer（既存・Tailwindベース）をそのまま使う（段階2のBlog詳細と同じ扱い）
+ */
+export default function Page({ page }) {
     const sections = Array.isArray(page.sections) ? page.sections : [];
 
     return (
-        <PublicLayout auth={auth}>
+        <PublicLayout renewed>
             <Head title={page.meta_title || page.title} />
-
-            <PageHero title={page.title} breadcrumbs={breadcrumbs} />
+            <RenewedPageHero eyebrow="PAGE" title={page.title} current={page.title} />
 
             {sections.map((section) => (
-                <section key={section.id} className="py-20 bg-white">
-                    <div className="container mx-auto px-6">
-                        <div className="max-w-3xl mx-auto">
-                            <BlockRenderer blocks={section.content?.blocks} />
-                        </div>
+                <section key={section.id} className="narrow page-section">
+                    <div className="prose">
+                        <BlockRenderer blocks={section.content?.blocks} />
                     </div>
                 </section>
             ))}
