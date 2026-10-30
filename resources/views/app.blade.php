@@ -41,6 +41,16 @@
         </script>
     @endif
 
+    @unless (request()->is('admin') || request()->is('admin/*'))
+        <style>
+            #boot-splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f4f7f0;animation:ss-boot-fade .45s ease .95s forwards}
+            #boot-splash svg{width:84px;height:auto;animation:ss-boot-pop .9s cubic-bezier(.16,.84,.44,1) both;filter:drop-shadow(0 18px 30px rgba(30,57,49,.18))}
+            @keyframes ss-boot-pop{0%{opacity:0;transform:perspective(900px) translateZ(-260px) rotateY(-720deg) scale(.3)}55%{opacity:1;transform:perspective(900px) translateZ(60px) rotateY(0deg) scale(1.18)}78%{transform:perspective(900px) translateZ(0) rotateY(0deg) scale(.95)}100%{opacity:1;transform:perspective(900px) translateZ(0) rotateY(0deg) scale(1)}}
+            @keyframes ss-boot-fade{from{opacity:1;visibility:visible}to{opacity:0;visibility:hidden;pointer-events:none}}
+            @media (prefers-reduced-motion: reduce){#boot-splash{display:none}}
+        </style>
+    @endunless
+
     <!-- Scripts -->
     @routes
     @viteReactRefresh
@@ -49,6 +59,20 @@
 </head>
 
 <body class="font-sans antialiased">
+    {{-- 公開サイトの初回読み込み時だけ出す簡単な起動アニメーション（Inertiaでのページ遷移では出さない。
+         CSSのみの疑似3D：ロゴがくるくる回りながら前に迫ってくる→定位置で収まる→フェードして消える）。
+         本物の3D（Three.js）はトップのヒーローだけで使う重い処理のため、ここでは使わない --}}
+    @unless (request()->is('admin') || request()->is('admin/*'))
+        <div id="boot-splash" aria-hidden="true">
+            {!! file_get_contents(resource_path('images/public/sprout-logo.svg')) !!}
+        </div>
+        <script>
+            document.getElementById('boot-splash')?.addEventListener('animationend', function(event) {
+                if (event.animationName === 'ss-boot-fade') this.remove();
+            });
+        </script>
+    @endunless
+
     @inertia
 </body>
 
