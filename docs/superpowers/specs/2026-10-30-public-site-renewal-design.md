@@ -365,3 +365,29 @@
 |---|---|
 | 制作実績（`/works`） | 未着手。`portfolios`へのクライアント名・見出し文などの項目追加（マイグレーション）が必要 |
 | 採用情報（`/careers`） | 非公開のまま保留。採用方針が決まってから、実データをもとに作成する |
+
+## 15. 画面遷移・初回ローディングアニメーション
+
+段階3と並行して追加。制作実績・採用情報とは別件（オーナーより別途依頼）。
+
+### 15-1. 画面遷移（Inertiaでのページ移動のたび）
+
+- `resources/js/app.jsx`でInertiaのルーターイベント（`start`/`finish`）を使い、`/admin`以外のとき`.ss-public`要素（公開レイアウトの外枠）に`ss-navigating`クラスを付け外しする
+- CSS（`resources/css/public/site.css`）で、遷移中は不透明度を0.55に、新しいページの本文（`main#main`）は表示時にふわっと出す（`ss-page-enter`）
+- `prefers-reduced-motion: reduce`のときはどちらも出さない（即座に切り替わる）
+- 非renewedページ（お問い合わせ・見積もりシミュレーター）は`main`が`.ss-public`の外にあるため、本文のふわっと演出は対象外（ヘッダー・フッターの遷移中の暗転のみ効く）。段階2で見送った理由と同じ扱い
+
+### 15-2. 初回ローディングアニメーション（最初の読み込みだけ）
+
+- `resources/views/app.blade.php`に、`/admin`以外のときだけ出すスプラッシュ（`#boot-splash`）を追加。純粋なCSSアニメーション（Three.jsは使わない。ヒーローの3Dと違い、どのページから訪れても出るため、毎回Three.js（約550KB）を読み込むコストを避けた。2026-10-30、オーナー判断）
+- ロゴ（`resources/images/public/sprout-logo.svg`、ヘッダー・フッターと同じもの）を`perspective`+`rotateY`+`scale`で「遠くで回転→前に迫り出す→収まる」ように見せ、その後フェードして消える（合計約1.4秒）
+- Inertiaでのページ移動（SPA内の遷移）では出さない。ブラウザの実読み込み（最初のアクセス・リロード）のときだけ
+- `prefers-reduced-motion: reduce`のときは出さない
+
+### 15-3. 確認したこと
+
+- `html.ss-navigating body{...}`は、公開サイトCSSを`.ss-public`に閉じ込めるPostCSSプラグイン（`postcss.config.js`）が`.ss-public.ss-navigating body`に書き換えてしまい、`<html>`に付けたクラスと一致しなくなる不具合を実装中に発見・修正した。`.ss-navigating`はJS側で`.ss-public`要素自体に付ける方式に変更している
+- 開発環境で、遷移中に`.ss-public`の`opacity`が1→0.55→1と変化することを確認（Playwrightで数値を直接確認）
+- 初回ローディングのアニメーションは、ヒーローの3D（WebGL）がある分重いため、検証環境（ソフトウェアGPU描画）ではタイミングがぶれたが、3Dが無いページでは設計どおり約1.4秒で完了することを確認
+- 管理画面（`/admin/*`）にスプラッシュが出ないことを確認
+- 公開ページ11件を巡回：リンク切れ0件、ビルド成功、`RenewedPagesTest`10件すべて通過

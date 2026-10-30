@@ -78,3 +78,11 @@
 .pagination a,.pagination span{display:grid;place-items:center;min-width:40px;height:40px;border-radius:50%;border:1px solid var(--line)}
 .pagination a[aria-current]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .pagination span[aria-disabled]{opacity:.35}
+/* 画面遷移：Inertiaでのページ移動中は少し暗くし、新しいページの本文はふわっと出す（app.jsxのルーターイベントで .ss-navigating を付け外しする） */
+@media (prefers-reduced-motion: no-preference){
+    /* .ss-public はこのファイルのセレクタが自動で閉じ込められる外枠そのもの（postcss.config.js）。
+       「.ss-navigating」はJS側（app.jsx）で .ss-public 要素に直接付け外しする */
+    .ss-public.ss-navigating{opacity:.55;transition:opacity .18s ease}
+    main#main{animation:ss-page-enter .5s cubic-bezier(.2,.7,.2,1) both}
+    @keyframes ss-page-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+}
