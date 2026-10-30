@@ -1,250 +1,131 @@
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
-import { PageHero } from "@/Components/Public";
-import { formatAddress, formatPostalCode } from "@/Utils/address";
+import RenewedPageHero from "@/Components/PublicSite/RenewedPageHero";
+import { Arrow, ROUTES, SiteLink } from "@/Components/PublicSite/links";
 
-const formatHistoryYear = (dateString) => {
-    if (!dateString) return "";
-    return `${new Date(dateString).getFullYear()}年`;
-};
-
-const formatEstablishedDate = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-};
-
-export default function Company({ auth, histories = [] }) {
+/*
+ * 事業者情報（試作 company/index.html の移植）。
+ * 定義リストは組織情報（organization、共有プロップ）から出す。固定の文言には置き換えない。
+ * 試作の「代表紹介」「採用情報」へのリンクは、どちらも未着手（段階3）のため外している
+ *
+ * 所在地：試作は「都道府県・市」までにとどめ、「自宅兼事務所のため、詳細はご契約の際にお伝えします」としていた
+ * （番地レベルの district/address_other は個人事業主の自宅住所になりうるため）。
+ * 旧ページ（Tailwind版）は formatAddress() で番地まで公開していたが、ここでは試作の扱いに合わせた。
+ * 番地まで公開する方針に戻す場合は、Utils/address の formatAddress() を使う
+ */
+export default function Company({ histories = [] }) {
     const { props } = usePage();
-    const organization = props.organization;
-    const address = organization?.default_address?.[0];
-
-    const breadcrumbs = [{ label: "会社情報" }];
-
-    const companyInfo = {
-        name: organization?.name,
-        nameEn: organization?.name_en,
-        established: formatEstablishedDate(organization?.established_date),
-        capital: organization?.capital,
-        ceo: organization?.representative_name,
-        employees: organization?.employee_count
-            ? `${organization.employee_count}名`
-            : null,
-        business: (organization?.business_description || "")
-            .split("\n")
-            .map((line) => line.trim())
-            .filter(Boolean),
-        postalCode: formatPostalCode(address?.postal_code),
-        address: formatAddress(address),
-        phone: organization?.phone,
-        email: organization?.email,
-        hours: organization?.business_hours,
-    };
-
-    const siteName = organization?.site_name || organization?.name;
+    const org = props.organization;
+    const defaultAddress = org?.default_address?.[0];
+    const address = defaultAddress ? [defaultAddress.prefecture, defaultAddress.city].filter(Boolean).join("") : null;
 
     return (
-        <PublicLayout auth={auth}>
-            <Head title={`会社情報 | ${siteName || ""}`}>
-                <meta
-                    name="description"
-                    content={`${siteName || ""}の会社概要・沿革をご紹介します。`}
-                />
-            </Head>
-            <PageHero
-                title="Company"
-                subtitle="会社情報"
-                breadcrumbs={breadcrumbs}
+        <PublicLayout renewed>
+            <Head title="事業者情報" />
+            <RenewedPageHero
+                eyebrow="COMPANY"
+                title={
+                    <>
+                        安心して、
+                        <br />
+                        声をかけていただくために。
+                    </>
+                }
+                lead="基本情報をご案内します。"
+                current="事業者情報"
             />
 
-            {/* 会社概要 */}
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                会社概要
-                            </h2>
-                        </div>
-
-                        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                            <table className="w-full">
-                                <tbody className="divide-y divide-gray-200">
-                                    {companyInfo.name && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700 w-1/3">
-                                                会社名
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.name}
-                                                {companyInfo.nameEn && (
-                                                    <>
-                                                        <br />
-                                                        <span className="text-sm text-gray-600">
-                                                            {
-                                                                companyInfo.nameEn
-                                                            }
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.established && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                設立
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.established}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.capital && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                資本金
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.capital}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.ceo && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                代表取締役
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.ceo}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.employees && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                従業員数
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.employees}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.business.length > 0 && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                事業内容
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                <ul className="space-y-1">
-                                                    {companyInfo.business.map(
-                                                        (item, index) => (
-                                                            <li key={index}>
-                                                                ・{item}
-                                                            </li>
-                                                        ),
-                                                    )}
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.address && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                本社所在地
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.postalCode &&
-                                                    `〒${companyInfo.postalCode} `}
-                                                {companyInfo.address}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.phone && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                電話
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.phone}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.email && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                メール
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                <a
-                                                    href={`mailto:${companyInfo.email}`}
-                                                    className="text-blue-600 hover:underline"
-                                                >
-                                                    {companyInfo.email}
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {companyInfo.hours && (
-                                        <tr>
-                                            <td className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
-                                                営業時間
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-900">
-                                                {companyInfo.hours}
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <section className="shell page-section editorial-split">
+                <div>
+                    <p className="eyebrow">INFORMATION</p>
+                    <h2 className="section-heading">{org?.site_name || org?.name}について。</h2>
+                    <p>必要なことを、必要な分だけ。小さなご相談からお聞かせください。</p>
                 </div>
+                <dl className="definition-list">
+                    {org?.legal_name && (
+                        <div>
+                            <dt>屋号・社名</dt>
+                            <dd>{org.legal_name}</dd>
+                        </div>
+                    )}
+                    {org?.representative_name && (
+                        <div>
+                            <dt>代表</dt>
+                            <dd>{org.representative_name}</dd>
+                        </div>
+                    )}
+                    {org?.established_date && (
+                        <div>
+                            <dt>設立・開業</dt>
+                            <dd>{org.established_date}</dd>
+                        </div>
+                    )}
+                    {address && (
+                        <div>
+                            <dt>所在地</dt>
+                            <dd>
+                                {address}
+                                <br />
+                                自宅兼事務所のため、詳細はご契約の際にお伝えします。
+                            </dd>
+                        </div>
+                    )}
+                    {org?.business_description && (
+                        <div>
+                            <dt>事業内容</dt>
+                            <dd>{org.business_description}</dd>
+                        </div>
+                    )}
+                    {org?.business_hours && (
+                        <div>
+                            <dt>営業時間</dt>
+                            <dd>{org.business_hours}</dd>
+                        </div>
+                    )}
+                    {(org?.phone || org?.email) && (
+                        <div>
+                            <dt>連絡先</dt>
+                            <dd>
+                                {org.phone && (
+                                    <>
+                                        <a href={`tel:${org.phone.replace(/[^\d+]/g, "")}`}>{org.phone}</a>
+                                        <br />
+                                    </>
+                                )}
+                                {org.email && <a href={`mailto:${org.email}`}>{org.email}</a>}
+                            </dd>
+                        </div>
+                    )}
+                </dl>
             </section>
 
-            {/* 沿革 */}
             {histories.length > 0 && (
-                <section className="py-20 bg-gray-50">
-                    <div className="container mx-auto px-6">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                沿革
-                            </h2>
-                        </div>
-
-                        <div className="max-w-3xl mx-auto">
-                            <div className="relative">
-                                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 to-purple-600"></div>
-
-                                {histories.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="relative pl-20 pb-12 last:pb-0"
-                                    >
-                                        <div className="absolute left-6 top-2 w-5 h-5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full border-4 border-white shadow-lg"></div>
-
-                                        <div className="bg-white p-6 rounded-xl shadow-md">
-                                            <span className="inline-block px-4 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold rounded-full mb-3">
-                                                {formatHistoryYear(
-                                                    item.event_date,
-                                                )}
-                                            </span>
-                                            <p className="text-gray-700 font-medium">
-                                                {item.title}
-                                            </p>
-                                            {item.description && (
-                                                <p className="text-gray-500 text-sm mt-2">
-                                                    {item.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                <section className="shell page-section">
+                    <p className="eyebrow">HISTORY</p>
+                    <div className="section-top">
+                        <h2 className="section-heading">沿革</h2>
                     </div>
+                    <dl className="definition-list">
+                        {histories.map((history) => (
+                            <div key={history.id}>
+                                <dt>{history.event_date}</dt>
+                                <dd>{history.title}</dd>
+                            </div>
+                        ))}
+                    </dl>
                 </section>
             )}
+
+            <section className="shell page-section">
+                <div className="related-links">
+                    <SiteLink className="text-link" href={ROUTES.contact}>
+                        まずはご相談ください <Arrow />
+                    </SiteLink>
+                    <SiteLink className="text-link" href="/about">
+                        私たちが大切にしていること <Arrow />
+                    </SiteLink>
+                </div>
+            </section>
         </PublicLayout>
     );
 }

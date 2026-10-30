@@ -78,6 +78,9 @@ Route::domain(config('app.atlas_domain'))->group(function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => Inertia::render('Public/About'))->name('about');
+// 制作の流れ：公開サイトリニューアル段階2で新設（設計: docs/superpowers/specs/2026-10-30-public-site-renewal-design.md）。
+// 内容は/aboutと同様、現時点では管理画面のデータを持たないため静的
+Route::get('/flow', fn() => Inertia::render('Public/Flow'))->name('flow');
 Route::get('/service', [ServiceController::class, 'index'])->name('service');
 Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('service.detail');
 Route::get('/blog', [PostController::class, 'index'])->name('blog');
