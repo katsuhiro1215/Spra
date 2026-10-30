@@ -81,10 +81,32 @@ class HandleInertiaRequests extends Middleware
             'headerMenu' => fn() => $this->menuFor('header'),
             // 公開サイトのフッターメニュー（管理画面で設置場所を footer にしたメニュー。無ければ null）
             'footerMenu' => fn() => $this->menuFor('footer'),
-            'organization' => fn() => Organization::query()
-                ->with(['defaultAddress'])
-                ->first(),
+            // 全ページ共通で送る組織情報。番地（district/address_other）・郵便番号は、個人事業主の
+            // 自宅兼事務所の住所になりうるため含めない（2026-10-30、公開サイトリニューアル段階2で変更）。
+            // 管理画面（Admin/Organization/Edit等）は各コントローラーが別途フルの organization を渡すため、
+            // ここを絞ってもadmin側には影響しない
+            'organization' => fn() => $this->publicOrganization(),
         ];
+    }
+
+    /**
+     * 公開サイト向けの組織情報。住所は都道府県・市区町村までに絞る
+     */
+    private function publicOrganization(): ?array
+    {
+        $organization = Organization::query()->with(['defaultAddress'])->first();
+        if (! $organization) {
+            return null;
+        }
+
+        $data = $organization->toArray();
+        $address = $organization->defaultAddress->first();
+        $data['default_address'] = $address ? [[
+            'prefecture' => $address->prefecture,
+            'city' => $address->city,
+        ]] : [];
+
+        return $data;
     }
 
     /**
