@@ -26,9 +26,9 @@ export default function Company({ histories = [] }) {
                 eyebrow="COMPANY"
                 title={
                     <>
-                        安心して、
+                        安心して
                         <br />
-                        声をかけていただくために。
+                        声をかけていただくために
                     </>
                 }
                 lead="基本情報をご案内します。"

@@ -34,12 +34,12 @@ export default function Blog({ posts, categories = [], heroTitle = "Blog", heroS
                 eyebrow={isNewsPage ? "NEWS" : "JOURNAL"}
                 title={
                     isNewsPage ? (
-                        "SmartSproutsからの、お知らせ。"
+                        "お知らせ"
                     ) : (
                         <>
-                            つくる日々の、
+                            つくる日々の
                             <br />
-                            考えごと。
+                            考えごと
                         </>
                     )
                 }

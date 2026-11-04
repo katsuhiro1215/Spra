@@ -38,9 +38,9 @@ export default function Service({ services = [] }) {
                 eyebrow="SERVICES"
                 title={
                     <>
-                        事業に合った、
+                        事業に合った
                         <br />
-                        つくり方がある。
+                        つくり方がある
                     </>
                 }
                 lead={
