@@ -61,10 +61,10 @@ export default function SiteHeader({ refs, headerMenu, footerMenu, menuOpen, onT
                         ),
                     )}
                     <SiteLink className="header-estimate" href={ROUTES.estimate} {...current(ROUTES.estimate)}>
-                        料金の目安 <Arrow />
+                        料金の目安
                     </SiteLink>
                     <SiteLink className="header-contact" href={ROUTES.contact} {...current(ROUTES.contact)}>
-                        無料相談 <Arrow />
+                        無料相談
                     </SiteLink>
                 </nav>
                 <button

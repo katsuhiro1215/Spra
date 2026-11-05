@@ -74,7 +74,7 @@ export default function Service({ services = [] }) {
                                             {service.description && <p>{service.description}</p>}
                                         </div>
                                         <span className="round" aria-hidden="true">
-                                            ↗
+                                            →
                                         </span>
                                     </SiteLink>
                                 );
