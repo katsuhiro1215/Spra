@@ -14,8 +14,13 @@ const isCurrent = (currentUrl, href) => {
  */
 export default function SiteHeader({ refs, headerMenu, footerMenu, menuOpen, onToggleMenu, onCloseMenu }) {
     const { url } = usePage();
-    const items = menuEntries(headerMenu);
-    const primaryHrefs = new Set(items.map((item) => item.href));
+    const rawItems = menuEntries(headerMenu);
+    const primaryHrefs = new Set(rawItems.map((item) => item.href));
+    // 子メニューのうち、自分自身や他の親項目と同じリンク先のもの（管理画面の古いデータに残っている重複）は出さない
+    const items = rawItems.map((item) => ({
+        ...item,
+        children: item.children.filter((child) => child.href !== item.href && !primaryHrefs.has(child.href)),
+    }));
     const secondary = menuEntries(footerMenu).filter((item) => !primaryHrefs.has(item.href));
     const current = (href) => (isCurrent(url, href) ? { "aria-current": "page" } : {});
     const number = (index) => String(index).padStart(2, "0");
@@ -32,11 +37,29 @@ export default function SiteHeader({ refs, headerMenu, footerMenu, menuOpen, onT
                     </span>
                 </SiteLink>
                 <nav className="navigation" aria-label="メインメニュー" ref={refs.nav}>
-                    {items.map((item) => (
-                        <SiteLink key={item.id} href={item.href} external={item.external} {...current(item.href)}>
-                            {item.label}
-                        </SiteLink>
-                    ))}
+                    {items.map((item) =>
+                        item.children.length > 0 ? (
+                            <div className="nav-item" key={item.id}>
+                                <SiteLink href={item.href} external={item.external} {...current(item.href)}>
+                                    {item.label}
+                                    <span className="nav-caret" aria-hidden="true">
+                                        ▾
+                                    </span>
+                                </SiteLink>
+                                <div className="nav-dropdown">
+                                    {item.children.map((child) => (
+                                        <SiteLink key={child.id} href={child.href} external={child.external}>
+                                            {child.label}
+                                        </SiteLink>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <SiteLink key={item.id} href={item.href} external={item.external} {...current(item.href)}>
+                                {item.label}
+                            </SiteLink>
+                        ),
+                    )}
                     <SiteLink className="header-estimate" href={ROUTES.estimate} {...current(ROUTES.estimate)}>
                         料金の目安 <Arrow />
                     </SiteLink>
@@ -88,12 +111,23 @@ export default function SiteHeader({ refs, headerMenu, footerMenu, menuOpen, onT
                         </small>
                     </SiteLink>
                     {items.map((item, index) => (
-                        <SiteLink key={item.id} href={item.href} external={item.external} onClick={onCloseMenu}>
-                            {item.label}
-                            <small>
-                                {number(index + 2)} <Arrow />
-                            </small>
-                        </SiteLink>
+                        <div className="menu-entry" key={item.id}>
+                            <SiteLink href={item.href} external={item.external} onClick={onCloseMenu}>
+                                {item.label}
+                                <small>
+                                    {number(index + 2)} <Arrow />
+                                </small>
+                            </SiteLink>
+                            {item.children.length > 0 && (
+                                <div className="menu-sublist">
+                                    {item.children.map((child) => (
+                                        <SiteLink key={child.id} href={child.href} external={child.external} onClick={onCloseMenu}>
+                                            {child.label}
+                                        </SiteLink>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     ))}
                     <SiteLink href={ROUTES.contact} onClick={onCloseMenu}>
                         まずは、無料相談

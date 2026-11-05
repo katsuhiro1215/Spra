@@ -17,9 +17,9 @@ const SERVICE_LINKS = {
 };
 
 const CHAPTERS = [
-    { key: "web", kicker: "01 / Webサイト制作", title: ["魅力が伝わる、", "相談につながる。"], body: ["言葉、デザイン、使いやすさ。", "事業の魅力を整理して、", "新しい出会いにつながるサイトへ。"], link: "Webサイト制作について", tags: "コーポレートサイト / LP / ECサイト", side: "copy-right" },
-    { key: "system", kicker: "02 / システム開発", title: ["いつもの仕事が、", "少し軽くなる。"], body: ["紙や表計算に分かれた情報を、ひとつに。", "現場の「こうだったら」を聞きながら、", "無理なく使える仕組みをつくります。"], link: "システム開発について", tags: "予約管理 / 顧客管理 / 業務の効率化", side: "" },
-    { key: "app", kicker: "03 / アプリ開発", title: ["アイデアから、", "日常の体験へ。"], body: ["新しいサービスも、毎日使う道具も。", "まずは小さく、使えるカタチに。", "使う人の声とともに育てていきます。"], link: "アプリ開発について", tags: "Webアプリ / iOS・Android / 新規サービス", side: "copy-right" },
+    { key: "web", kicker: "01 / Webサイト制作", title: ["魅力が伝わる", "相談につながる"], body: ["言葉、デザイン、使いやすさ。", "事業の魅力を整理して、", "新しい出会いにつながるサイトへ。"], link: "Webサイト制作について", tags: "コーポレートサイト / LP / ECサイト", side: "copy-right" },
+    { key: "system", kicker: "02 / システム開発", title: ["いつもの仕事が", "少し軽くなる"], body: ["紙や表計算に分かれた情報を、ひとつに。", "現場の「こうだったら」を聞きながら、", "無理なく使える仕組みをつくります。"], link: "システム開発について", tags: "予約管理 / 顧客管理 / 業務の効率化", side: "" },
+    { key: "app", kicker: "03 / アプリ開発", title: ["アイデアから", "日常の体験へ"], body: ["新しいサービスも、毎日使う道具も。", "まずは小さく、使えるカタチに。", "使う人の声とともに育てていきます。"], link: "アプリ開発について", tags: "Webアプリ / iOS・Android / 新規サービス", side: "copy-right" },
 ];
 
 /** 試作と同じく、行を <br> でつなぐ（spanで包むと見出しのCSSが変わるため Fragment にする） */
@@ -44,15 +44,15 @@ function Hero() {
                 <div className="journey-copy active" data-chapter="0">
                     <p className="hero-kicker">奈良のWeb制作・システム開発・アプリ開発</p>
                     <h1 className="hero-title">
-                        <span>小さく動き、</span>
-                        <span className="accent">早く育てる。</span>
+                        <span>小さく動き</span>
+                        <span className="accent">早く育てる</span>
                     </h1>
                     <p className="hero-lead">
                         伝わるホームページも、仕事がはかどる仕組みも。
                         <br />
-                        あなたの事業を知るところから、
+                        あなたの事業を知るところから、つくるその先まで。
                         <br />
-                        つくる、その先まで。一緒に育てていきます。
+                        一緒に育てていきます。
                     </p>
                     <CtaPair />
                     <a className="hero-skip" href="#intro">
@@ -98,10 +98,10 @@ function Intro() {
                 <p className="eyebrow">HELLO, WE ARE SMARTSPROUTS.</p>
             </div>
             <h2 className="intro-heading" id="intro-title">
-                <span>「こんなこと、できたらいいな。」</span>
+                <span>「こんなことできたらいいな。」</span>
                 <br />
                 <span>
-                    その想いに、<span className="highlight">デザインと技術</span>で応える。
+                    その想いに<span className="highlight">デザインと技術</span>で応える。
                 </span>
             </h2>
             <p className="intro-body reveal">
@@ -124,9 +124,9 @@ function Intro() {
                     <div className="tile-message">
                         <small>DESIGN × ENGINEERING</small>
                         <strong>
-                            小さく動き、
+                            小さく動き
                             <br />
-                            早く育てる。
+                            早く育てる
                         </strong>
                     </div>
                 </div>
@@ -174,15 +174,15 @@ function ServicePanel({ type, index, en, title, label, text, scopes, children })
     );
 }
 
-function Services() {
+function Services({ number }) {
     return (
         <section className="services shell" id="services" aria-labelledby="services-title">
-            <p className="eyebrow reveal">01 / SERVICES</p>
+            <p className="eyebrow reveal">{number} / SERVICES</p>
             <div className="section-top reveal">
                 <h2 className="section-heading" id="services-title">
-                    つくるのは、
+                    つくるのは
                     <br />
-                    事業が動くきっかけ。
+                    事業が動くきっかけ
                 </h2>
                 <p>
                     目的も、課題も、事業によってさまざま。
@@ -251,7 +251,7 @@ function Services() {
                     type="system"
                     index="02"
                     en="SYSTEM DEVELOPMENT"
-                    title={["いつもの仕事を、", "もっとスムーズに。"]}
+                    title={["いつもの仕事を", "もっとスムーズに"]}
                     label="業務システム開発"
                     text="予約、会員情報、顧客管理、日々の集計。現場の流れに合わせて、手作業や二重入力を減らす仕組みをつくります。"
                     scopes={["予約管理", "会員・顧客管理", "業務効率化", "社内ツール"]}
@@ -305,7 +305,7 @@ function Services() {
                     type="app"
                     index="03"
                     en="APPLICATION DEVELOPMENT"
-                    title={["アイデアを、", "手のひらの体験へ。"]}
+                    title={["アイデアを", "手のひらの体験へ"]}
                     label="Webアプリ・モバイルアプリ開発"
                     text="「こんなサービスがあったら」を、使える形に。利用する場面から考え、迷わず使えて、日常に馴染むアプリを開発します。"
                     scopes={["Webアプリ", "iOS・Android", "新規サービス", "運用・改善"]}
@@ -357,18 +357,18 @@ function Services() {
     );
 }
 
-function Works({ works }) {
+function Works({ works, number }) {
     if (!works?.length) return null;
     return (
         <section className="works" id="works" aria-labelledby="works-title">
             <div className="works-pin">
                 <div className="shell">
-                    <p className="eyebrow">02 / SELECTED WORKS</p>
+                    <p className="eyebrow">{number} / SELECTED WORKS</p>
                     <div className="section-top">
                         <h2 className="section-heading" id="works-title">
-                            ひとつずつ、
+                            ひとつずつ
                             <br />
-                            育ててきた仕事。
+                            育ててきた仕事
                         </h2>
                         <p>
                             教室の運営を支えるシステム。
@@ -433,7 +433,7 @@ function Works({ works }) {
     );
 }
 
-function Support() {
+function Support({ number }) {
     const points = [
         ["進捗を、いつでも確認。", "専用アカウントから制作の状況を確認できます。"],
         ["見積もりから請求まで、Webで完結。", "契約・請求書・領収書などのやり取りをまとめて管理。"],
@@ -443,11 +443,11 @@ function Support() {
         <section className="support shell" id="support" aria-labelledby="support-title">
             <div className="support-grid">
                 <div className="support-copy reveal">
-                    <p className="eyebrow">03 / OUR SUPPORT</p>
+                    <p className="eyebrow">{number} / OUR SUPPORT</p>
                     <h2 className="section-heading" id="support-title">
-                        つくる過程も、
+                        つくる過程も
                         <br />
-                        見えるから安心。
+                        見えるから安心
                     </h2>
                     <p>
                         「今、どこまで進んでいるのだろう？」
@@ -533,20 +533,20 @@ function EstimateBanner() {
     );
 }
 
-function Flow() {
+function Flow({ number }) {
     const promises = [
-        ["約1", "分", "費用の目安を知る", "登録不要のシミュレーターで、はじめの予算感を。"],
-        ["最短3", "営業日", "方向性を確かめる", "ヒアリング後、構成とデザインの方向性をご提案。"],
-        ["いつでも", "", "進み具合を見る", "SmartSproutsの専用画面で制作状況を確認。"],
+        { prefix: "約", number: "1", unit: "分", title: "費用の目安を知る", text: "登録不要のシミュレーターで、はじめの予算感を。" },
+        { prefix: "最短", number: "3", unit: "営業日", title: "方向性を確かめる", text: "ヒアリング後、構成とデザインの方向性をご提案。" },
+        { prefix: "", number: "いつでも", unit: "", title: "進み具合を見る", text: "SmartSproutsの専用画面で制作状況を確認。" },
     ];
     return (
         <section className="flow shell">
-            <p className="eyebrow">04 / HOW WE WORK</p>
+            <p className="eyebrow">{number} / HOW WE WORK</p>
             <div className="section-top">
                 <h2 className="section-heading">
-                    費用も、方向性も。
+                    費用も方向性も
                     <br />
-                    進み具合も、見える。
+                    進み具合も見える
                 </h2>
                 <p>
                     まずは目安を知り、話して、確かめる。
@@ -557,14 +557,15 @@ function Flow() {
                 </p>
             </div>
             <div className="promise-grid">
-                {promises.map(([number, unit, title, text]) => (
-                    <article className="promise reveal" key={title}>
+                {promises.map((p) => (
+                    <article className="promise reveal" key={p.title}>
                         <div>
-                            <strong>{number}</strong>
-                            <span>{unit}</span>
+                            {p.prefix && <span className="promise-prefix">{p.prefix}</span>}
+                            <strong>{p.number}</strong>
+                            {p.unit && <span>{p.unit}</span>}
                         </div>
-                        <h3>{title}</h3>
-                        <p>{text}</p>
+                        <h3>{p.title}</h3>
+                        <p>{p.text}</p>
                     </article>
                 ))}
             </div>
@@ -605,16 +606,16 @@ function JournalCard({ post }) {
     );
 }
 
-function Journal({ posts }) {
+function Journal({ posts, number }) {
     if (!posts?.length) return null;
     return (
         <section className="journal shell">
-            <p className="eyebrow">05 / JOURNAL</p>
+            <p className="eyebrow">{number} / JOURNAL</p>
             <div className="section-top">
                 <h2 className="section-heading">
-                    つくる日々の、
+                    つくる日々の
                     <br />
-                    考えごと。
+                    考えごと
                 </h2>
                 <p>
                     技術のこと、地域のこと、試していること。
@@ -640,9 +641,9 @@ function Faq({ faqs }) {
         <section className="faq shell" aria-label="よくある質問">
             <div>
                 <p className="eyebrow">QUESTIONS</p>
-                <h2 className="section-heading">相談の、その前に。</h2>
+                <h2 className="section-heading">相談の前に</h2>
                 <SiteLink className="text-link" href={ROUTES.faq}>
-                    ほかの質問も見る <Arrow />
+                    他の質問も見る <Arrow />
                 </SiteLink>
             </div>
             <div>
@@ -675,18 +676,27 @@ export default function Home({ journal, faqs, works }) {
         };
     }, []);
 
+    // 「01 / SERVICES」等のセクション番号は、実績・読みものが0件のときセクションごと非表示になるため、
+    // 実際に表示される分だけを連番にする（固定の01〜05だと欠番が出てしまうため。2026-11-05修正）
+    let sectionCount = 1;
+    const servicesNumber = String(sectionCount++).padStart(2, "0");
+    const worksNumber = works?.length ? String(sectionCount++).padStart(2, "0") : null;
+    const supportNumber = String(sectionCount++).padStart(2, "0");
+    const flowNumber = String(sectionCount++).padStart(2, "0");
+    const journalNumber = journal?.length ? String(sectionCount++).padStart(2, "0") : null;
+
     return (
         <PublicLayout renewed>
             <Head title="奈良のWeb制作・システム開発・アプリ開発" />
             <div ref={pageRef}>
                 <Hero />
                 <Intro />
-                <Services />
-                <Works works={works} />
-                <Support />
+                <Services number={servicesNumber} />
+                <Works works={works} number={worksNumber} />
+                <Support number={supportNumber} />
                 <EstimateBanner />
-                <Flow />
-                <Journal posts={journal} />
+                <Flow number={flowNumber} />
+                <Journal posts={journal} number={journalNumber} />
                 <Faq faqs={faqs} />
             </div>
         </PublicLayout>

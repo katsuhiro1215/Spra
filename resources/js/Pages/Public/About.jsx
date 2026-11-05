@@ -25,9 +25,9 @@ export default function About() {
                 eyebrow="ABOUT US"
                 title={
                     <>
-                        つくる前に、
+                        つくる前に
                         <br />
-                        あなたの話を聞きたい。
+                        あなたの話を聞きたい
                     </>
                 }
                 lead={
@@ -58,9 +58,9 @@ export default function About() {
                 <p className="eyebrow">OUR APPROACH</p>
                 <div className="section-top">
                     <h2 className="section-heading">
-                        大切にしている、
+                        大切にしている
                         <br />
-                        3つのこと。
+                        3つのこと
                     </h2>
                 </div>
                 <div className="feature-grid three">
@@ -79,9 +79,9 @@ export default function About() {
                     <div>
                         <p className="eyebrow">THE PERSON BEHIND THE CODE</p>
                         <h2 className="section-heading">
-                            話す人と、
+                            話す人と
                             <br />
-                            つくる人が、近い。
+                            つくる人が、近い
                         </h2>
                         <p>代表 / {representative}</p>
                         <SiteLink className="text-link" href={ROUTES.contact}>

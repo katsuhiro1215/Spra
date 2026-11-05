@@ -31,9 +31,9 @@ export default function Flow() {
                 eyebrow="HOW WE WORK"
                 title={
                     <>
-                        ひとつずつ、
+                        ひとつずつ
                         <br />
-                        納得しながら進める。
+                        納得しながら進める
                     </>
                 }
                 lead={
@@ -50,9 +50,9 @@ export default function Flow() {
                 <aside>
                     <p className="eyebrow">YOUR NEXT STEP</p>
                     <h2>
-                        相談から、
+                        相談から
                         <br />
-                        公開後まで。
+                        公開後まで
                     </h2>
                     <p>
                         内容が決まっていない段階から
@@ -81,9 +81,9 @@ export default function Flow() {
 
             <section className="shell page-section tint-green editorial-split">
                 <h2 className="section-heading">
-                    速く見せて、
+                    速く見せて
                     <br />
-                    丁寧に仕上げる。
+                    丁寧に仕上げる
                 </h2>
                 <div>
                     <p className="lead-copy">最短3営業日の提案は、最初の方向性を確かめるためのものです。</p>
@@ -95,9 +95,9 @@ export default function Flow() {
             <section className="faq shell" aria-label="よくある質問">
                 <div>
                     <p className="eyebrow">QUESTIONS</p>
-                    <h2 className="section-heading">相談の、その前に。</h2>
+                    <h2 className="section-heading">相談の前に</h2>
                     <SiteLink className="text-link" href={ROUTES.faq}>
-                        ほかの質問も見る <Arrow />
+                        他の質問も見る <Arrow />
                     </SiteLink>
                 </div>
                 <div>

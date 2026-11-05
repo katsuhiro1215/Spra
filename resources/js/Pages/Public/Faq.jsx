@@ -21,7 +21,7 @@ export default function Faq({ page, categories = [] }) {
             <Head title={page?.title || "よくある質問"} />
             <RenewedPageHero
                 eyebrow="QUESTIONS"
-                title="相談の、その前に。"
+                title="相談の前に"
                 lead={
                     <>
                         気になること、不安なこと。
