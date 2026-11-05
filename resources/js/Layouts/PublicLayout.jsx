@@ -150,6 +150,11 @@ export default function PublicLayout({ children, renewed = false }) {
                 rel="stylesheet"
                 href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap"
             />
+            <link
+                head-key="font-open-sans"
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap"
+            />
         </Head>
     );
 
