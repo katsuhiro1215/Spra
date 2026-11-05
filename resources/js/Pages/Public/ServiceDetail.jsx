@@ -107,7 +107,7 @@ export default function ServiceDetail({ service, relatedServices = [] }) {
                                     {portfolio.media?.url && <img src={portfolio.media.url} alt={portfolio.title} loading="lazy" width="1024" height="576" />}
                                     {portfolio.url && (
                                         <span className="round" aria-hidden="true">
-                                            ↗
+                                            →
                                         </span>
                                     )}
                                 </>

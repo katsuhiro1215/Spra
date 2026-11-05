@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import RenewedPageHero from "@/Components/PublicSite/RenewedPageHero";
-import { Arrow, SiteLink } from "@/Components/PublicSite/links";
+import { SiteLink } from "@/Components/PublicSite/links";
 
 /*
  * 読みもの・お知らせ一覧（試作 blog/index.html の移植。/blog と /news の両方で使う）。
@@ -95,9 +95,7 @@ export default function Blog({ posts, categories = [], heroTitle = "Blog", heroS
                                         <time dateTime={post.published_at}>{post.published_at}</time>
                                     </div>
                                     <h3>
-                                        <SiteLink href={href}>
-                                            {post.title} <Arrow />
-                                        </SiteLink>
+                                        <SiteLink href={href}>{post.title}</SiteLink>
                                     </h3>
                                     {post.excerpt && <p>{post.excerpt}</p>}
                                 </article>

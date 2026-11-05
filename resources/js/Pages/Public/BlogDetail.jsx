@@ -73,9 +73,7 @@ export default function BlogDetail({ post, relatedPosts = [] }) {
                                         <time dateTime={related.published_at}>{related.published_at}</time>
                                     </div>
                                     <h3>
-                                        <SiteLink href={href}>
-                                            {related.title} <Arrow />
-                                        </SiteLink>
+                                        <SiteLink href={href}>{related.title}</SiteLink>
                                     </h3>
                                 </article>
                             );

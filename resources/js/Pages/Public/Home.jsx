@@ -162,7 +162,7 @@ function ServicePanel({ type, index, en, title, label, text, scopes, children })
                 <SiteLink className="text-link" href={SERVICE_LINKS[type]}>
                     対応内容を詳しく見る{" "}
                     <span className="round" aria-hidden="true">
-                        ↗
+                        →
                     </span>
                 </SiteLink>
             </div>
@@ -227,7 +227,7 @@ function Services({ number }) {
                                             <br />
                                             心地よい未来をつくっていく。
                                         </p>
-                                        <span className="ui-action">私たちについて　↗</span>
+                                        <span className="ui-action">私たちについて　→</span>
                                     </div>
                                     <div className="ui-landscape">
                                         <svg viewBox="0 0 180 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -243,7 +243,7 @@ function Services({ number }) {
                             </div>
                         </div>
                         <div className="floating-badge">
-                            <b>↗</b> らしさと、使いやすさ。
+                            <b>→</b> らしさと、使いやすさ。
                         </div>
                     </div>
                 </ServicePanel>
@@ -386,7 +386,7 @@ function Works({ works, number }) {
                                 {work.image && <img src={work.image} alt={work.title} width="1024" height="576" loading="lazy" />}
                                 {work.url && (
                                     <span className="round" aria-hidden="true">
-                                        ↗
+                                        →
                                     </span>
                                 )}
                             </>
@@ -470,7 +470,7 @@ function Support({ number }) {
                     <SiteLink className="text-link" href={ROUTES.login}>
                         お客様専用ページにログイン{" "}
                         <span className="round" aria-hidden="true">
-                            ↗
+                            →
                         </span>
                     </SiteLink>
                 </div>
@@ -597,9 +597,7 @@ function JournalCard({ post }) {
                 {post.date && <time dateTime={post.datetime}>{post.date}</time>}
             </div>
             <h3>
-                <SiteLink href={post.href}>
-                    {post.title} <Arrow />
-                </SiteLink>
+                <SiteLink href={post.href}>{post.title}</SiteLink>
             </h3>
             {post.excerpt && <p>{post.excerpt}</p>}
         </article>
